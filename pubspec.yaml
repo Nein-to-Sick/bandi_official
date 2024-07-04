@@ -35,4 +35,29 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/*
+   - assets/images/
+   - assets/fonts/
+   - assets/config/
+
+fonts:
+  - family: IBMPlexSansBold
+    fonts:
+      - asset: assets/fonts/IBMPlexSansKR-Bold.ttf
+  - family: IBMPlexSansExtraLight
+    fonts:
+      - asset: assets/fonts/IBMPlexSansKR-ExtraLight.ttf
+  - family: IBMPlexSansLight
+    fonts:
+      - asset: assets/fonts/IBMPlexSansKR-Light.ttf
+  - family: IBMPlexSansMedium
+    fonts:
+      - asset: assets/fonts/IBMPlexSansKR-Medium.ttf
+  - family: IBMPlexSansRegular
+    fonts:
+      - asset: assets/fonts/IBMPlexSansKR-Regular.ttf
+  - family: IBMPlexSansSemiBold
+    fonts:
+      - asset: assets/fonts/IBMPlexSansKR-SemiBold.ttf
+  - family: IBMPlexSansThin
+    fonts:
+      - asset: assets/fonts/IBMPlexSansKR-Thin.ttf
