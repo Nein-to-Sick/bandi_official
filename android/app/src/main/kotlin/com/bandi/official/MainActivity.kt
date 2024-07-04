@@ -1,4 +1,4 @@
-package com.example.bandi_official
+package com.bandi.official
 
 import io.flutter.embedding.android.FlutterActivity
 
