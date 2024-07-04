@@ -10,6 +10,16 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # DEFAULT
+  change_app_package_name: ^1.2.0
+  cupertino_icons: ^1.0.8
+  # STATE MANAGEMENT
+  provider: ^6.1.2
+  # FIREBASE
+  
+  # CONVENIENCE
+
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
