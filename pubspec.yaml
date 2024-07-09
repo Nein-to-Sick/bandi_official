@@ -1,0 +1,63 @@
+name: bandi_official
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: '>=3.4.3 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # DEFAULT
+  change_app_package_name: ^1.2.0
+  cupertino_icons: ^1.0.8
+  google_sign_in: ^6.2.1
+  sign_in_with_apple: ^6.1.1
+  # STATE MANAGEMENT
+  provider: ^6.1.2
+  # FIREBASE
+  firebase_core: ^3.1.1
+  firebase_auth: ^5.1.1
+  firebase_storage: ^12.1.0
+  cloud_firestore: ^5.0.2
+  flutter_dotenv: ^5.1.0
+  # CONVENIENCE
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+   - assets/images/
+   - assets/fonts/
+   - assets/config/
+
+fonts:
+  - family: IBMPlexSansBold
+    fonts:
+      - asset: assets/fonts/IBMPlexSansKR-Bold.ttf
+  - family: IBMPlexSansExtraLight
+    fonts:
+      - asset: assets/fonts/IBMPlexSansKR-ExtraLight.ttf
+  - family: IBMPlexSansLight
+    fonts:
+      - asset: assets/fonts/IBMPlexSansKR-Light.ttf
+  - family: IBMPlexSansMedium
+    fonts:
+      - asset: assets/fonts/IBMPlexSansKR-Medium.ttf
+  - family: IBMPlexSansRegular
+    fonts:
+      - asset: assets/fonts/IBMPlexSansKR-Regular.ttf
+  - family: IBMPlexSansSemiBold
+    fonts:
+      - asset: assets/fonts/IBMPlexSansKR-SemiBold.ttf
+  - family: IBMPlexSansThin
+    fonts:
+      - asset: assets/fonts/IBMPlexSansKR-Thin.ttf
