@@ -24,6 +24,8 @@ dependencies:
   cloud_firestore: ^5.0.2
   flutter_dotenv: ^5.1.0
   # CONVENIENCE
+  phosphor_flutter: ^2.1.0
+
 
 
 dev_dependencies:
@@ -36,6 +38,7 @@ flutter:
 
   assets:
    - assets/images/
+   - assets/images/backgrounds/
    - assets/fonts/
    - assets/config/
 
