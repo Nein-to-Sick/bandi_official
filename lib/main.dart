@@ -1,5 +1,6 @@
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/theme/custom_theme_mode.dart';
+import 'package:bandi_official/view/homePage.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -14,7 +15,7 @@ Future<void> main() async {
     DeviceOrientation.portraitDown,
   ]);
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await dotenv.load(fileName: 'assets/config/.env');
+  // await dotenv.load(fileName: 'assets/config/.env');
 
   runApp(const MainApp());
 }
@@ -32,7 +33,7 @@ class MainApp extends StatelessWidget {
           darkTheme: CustomThemeData.dark,
           theme: CustomThemeData.light,
           themeMode: CustomThemeMode.themeMode.value,
-          home: const Placeholder(),
+          home: const HomePage(),
         );
       },
     );
