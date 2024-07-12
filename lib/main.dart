@@ -1,9 +1,11 @@
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/theme/custom_theme_mode.dart';
-import 'package:bandi_official/view/homePage.dart';
+import 'package:bandi_official/view/navigation.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:provider/provider.dart';
+import 'controller/navigationToggleProvider.dart';
 import 'firebase_options.dart';
 import 'package:flutter/material.dart';
 
@@ -33,7 +35,9 @@ class MainApp extends StatelessWidget {
           darkTheme: CustomThemeData.dark,
           theme: CustomThemeData.light,
           themeMode: CustomThemeMode.themeMode.value,
-          home: const HomePage(),
+          home: ChangeNotifierProvider(
+              create: (context) => NavigationToggleProvider(),
+              child: const Navigation()),
         );
       },
     );
