@@ -1,9 +1,9 @@
-import 'package:bandi_official/view/homePage.dart';
-import 'package:bandi_official/view/listPage.dart';
+import 'package:bandi_official/view/home_view.dart';
+import 'package:bandi_official/view/list_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../components/noreuse/navigationbar.dart';
-import '../controller/navigationToggleProvider.dart';
+import '../components/noreuse/navigation_bar.dart';
+import '../controller/navigation_toggle_provider.dart';
 
 class Navigation extends StatelessWidget {
   const Navigation({super.key});
