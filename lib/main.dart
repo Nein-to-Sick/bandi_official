@@ -17,7 +17,7 @@ Future<void> main() async {
     DeviceOrientation.portraitDown,
   ]);
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  // await dotenv.load(fileName: 'assets/config/.env');
+  await dotenv.load(fileName: 'assets/config/.env');
 
   runApp(const MainApp());
 }
