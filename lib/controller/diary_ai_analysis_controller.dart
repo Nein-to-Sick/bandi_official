@@ -5,26 +5,26 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:developer' as dev;
 
 class DiaryAIAnalysisController with ChangeNotifier {
-  late Diary userDairy;
+  late Diary userDairyModel;
 
   //  TODO: diary controller로 향후 전환 필요?
   updateUserDiaryContent(String content) {
-    userDairy.content = content;
+    userDairyModel.content = content.trim();
     notifyListeners();
   }
 
   updateUserDiaryTitle(String title) {
-    userDairy.title = title;
+    userDairyModel.title = title.trim();
     notifyListeners();
   }
 
   updateUserDiaryKeyword(List<String> keyword) {
-    userDairy.keyword = keyword;
+    userDairyModel.keyword = keyword;
     notifyListeners();
   }
 
   updateUserDiaryDate(String date) {
-    userDairy.date = date;
+    userDairyModel.date = date;
     notifyListeners();
   }
 
@@ -46,7 +46,7 @@ class DiaryAIAnalysisController with ChangeNotifier {
     final userMessageForKeyword = OpenAIChatCompletionChoiceMessageModel(
       content: [
         OpenAIChatCompletionChoiceMessageContentItemModel.text(
-          userDairy.content,
+          userDairyModel.content,
         ),
       ],
       role: OpenAIChatMessageRole.user,
@@ -97,7 +97,7 @@ class DiaryAIAnalysisController with ChangeNotifier {
     final userMessageForKeyword = OpenAIChatCompletionChoiceMessageModel(
       content: [
         OpenAIChatCompletionChoiceMessageContentItemModel.text(
-          userDairy.content,
+          userDairyModel.content,
         ),
       ],
       role: OpenAIChatMessageRole.user,
@@ -148,7 +148,7 @@ class DiaryAIAnalysisController with ChangeNotifier {
     final userMessageForKeyword = OpenAIChatCompletionChoiceMessageModel(
       content: [
         OpenAIChatCompletionChoiceMessageContentItemModel.text(
-          userDairy.content,
+          userDairyModel.content,
         ),
       ],
       role: OpenAIChatMessageRole.user,
