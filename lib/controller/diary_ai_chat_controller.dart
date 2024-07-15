@@ -58,31 +58,36 @@ class DiaryAiChatController with ChangeNotifier {
   void readChatLogFormDatabase() {}
 
   // send and get response from chatGPT (chatting model)
-  Future<void> getResponse() async {
+  void getResponse() async {
     updateChatMemory();
 
-    // Initializes the package with that API key
-    OpenAI.apiKey = dotenv.env['OPENAI_API_KEY']!;
+    try {
+      // Initializes the package with that API key
+      OpenAI.apiKey = dotenv.env['OPENAI_API_KEY']!;
 
-    // the actual request.
-    OpenAIChatCompletionModel chatCompletion =
-        await OpenAI.instance.chat.create(
-      // TODO: 향후 모델 결정 및 수정 필요
-      model: "gpt-4o",
-      messages: chatMemory,
-      // 답변할 종류의 수
-      n: 1,
-      // 답변에 사용할 최대 토큰의 크기
-      maxTokens: 350,
-      // 같은 답변 반복 (0.1~1.0일 수록 감소)
-      frequencyPenalty: 0.5,
-      // 새로운 주제 제시 (>0 수록 새로운 주제 확률 상승)
-      presencePenalty: 0.5,
-      // 답변의 일관성 (낮을 수록 집중됨)
-      temperature: 0.9,
-    );
+      // the actual request.
+      OpenAIChatCompletionModel chatCompletion =
+          await OpenAI.instance.chat.create(
+        // TODO: 향후 모델 결정 및 수정 필요
+        model: "gpt-4o",
+        messages: chatMemory,
+        // 답변할 종류의 수
+        n: 1,
+        // 답변에 사용할 최대 토큰의 크기
+        maxTokens: 350,
+        // 같은 답변 반복 (0.1~1.0일 수록 감소)
+        frequencyPenalty: 0.5,
+        // 새로운 주제 제시 (>0 수록 새로운 주제 확률 상승)
+        presencePenalty: 0.5,
+        // 답변의 일관성 (낮을 수록 집중됨)
+        temperature: 0.9,
+      );
 
-    dev.log(chatCompletion.choices.first.message.content!.first.text!);
+      dev.log(chatCompletion.choices.first.message.content!.first.text!);
+    } on RequestFailedException catch (e) {
+      dev.log(e.toString());
+      // TODO: 채팅 오류시 예외 처리 추가
+    }
   }
 
   // put past chat log into the chatMemory
