@@ -69,4 +69,4 @@ lib/generated_plugin_registrant.dart
 .DS_Store
 assets/config/.env
 
-# End of https://www.toptal.com/developers/gitignore/api/flutter
+# End of https://www.toptal.com/developers/gitignore/api/flutterassets/.env
