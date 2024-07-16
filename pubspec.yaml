@@ -25,6 +25,7 @@ dependencies:
   flutter_dotenv: ^5.1.0
   # CONVENIENCE
   phosphor_flutter: ^2.1.0
+  flutter_native_splash: ^2.4.1
 
 
 
@@ -39,6 +40,7 @@ flutter:
   assets:
    - assets/images/
    - assets/images/backgrounds/
+   - assets/images/splashscreen/
    - assets/fonts/
    - assets/config/
 

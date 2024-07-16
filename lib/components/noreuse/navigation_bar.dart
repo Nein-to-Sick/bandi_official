@@ -5,7 +5,8 @@ import 'package:provider/provider.dart';
 import '../../controller/navigation_toggle_provider.dart';
 
 Widget navigationBar(BuildContext context) {
-  final navigationToggleProvider = Provider.of<NavigationToggleProvider>(context);
+  final navigationToggleProvider =
+      Provider.of<NavigationToggleProvider>(context);
 
   return Center(
     child: Padding(
