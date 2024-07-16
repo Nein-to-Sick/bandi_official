@@ -134,6 +134,16 @@ class BandiFont {
   static medium(BuildContext context) {}
 }
 
+class BandiEffects {
+  static double radius() {
+    return 8;
+  }
+
+  static double backgroundBlur() {
+    return 16;
+  }
+}
+
 class CustomThemeData {
   static final ThemeData light = ThemeData(
     colorScheme: const ColorScheme.light(
