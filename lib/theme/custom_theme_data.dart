@@ -170,6 +170,8 @@ class CustomThemeData {
     hintColor: const Color(0xff4E4E4E), // Text
     hoverColor: const Color(0xff2E2E2E), // Header
     textTheme: textTheme,
+    // scaffoldBackgroundColor: Colors.transparent,
+    // canvasColor: Colors.transparent,
   );
 
   static final ThemeData dark = ThemeData(
