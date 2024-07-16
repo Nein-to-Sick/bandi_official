@@ -115,6 +115,7 @@ class Keyword {
       "힘들다",
     ],
     Emotion.unknown: [
+      "모름",
       "없음",
     ],
   };
