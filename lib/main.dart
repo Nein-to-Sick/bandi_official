@@ -1,3 +1,5 @@
+import 'package:bandi_official/controller/diary_ai_analysis_controller.dart';
+import 'package:bandi_official/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/theme/custom_theme_mode.dart';
 import 'package:bandi_official/view/navigation.dart';
@@ -17,7 +19,7 @@ Future<void> main() async {
     DeviceOrientation.portraitDown,
   ]);
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  // await dotenv.load(fileName: 'assets/config/.env');
+  await dotenv.load(fileName: 'assets/config/.env');
 
   runApp(const MainApp());
 }
@@ -35,9 +37,20 @@ class MainApp extends StatelessWidget {
           darkTheme: CustomThemeData.dark,
           theme: CustomThemeData.light,
           themeMode: CustomThemeMode.themeMode.value,
-          home: ChangeNotifierProvider(
-              create: (context) => NavigationToggleProvider(),
-              child: const Navigation()),
+          home: MultiProvider(
+            providers: [
+              ChangeNotifierProvider(
+                create: (context) => NavigationToggleProvider(),
+              ),
+              ChangeNotifierProvider(
+                create: (context) => DiaryAIAnalysisController(),
+              ),
+              ChangeNotifierProvider(
+                create: (context) => DiaryAiChatController(),
+              ),
+            ],
+            child: const Navigation(),
+          ),
         );
       },
     );
