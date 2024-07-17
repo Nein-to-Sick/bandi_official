@@ -135,7 +135,7 @@ class BandiFont {
 }
 
 class BandiEffects {
-  static BorderRadius? radius() {
+  static BorderRadius radius() {
     return BorderRadius.circular(8);
   }
 
