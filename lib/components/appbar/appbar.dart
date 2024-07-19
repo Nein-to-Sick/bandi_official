@@ -17,7 +17,7 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   });
 
   final String title;
-  final IconData trailingIcon;
+  final PhosphorIconData Function([PhosphorIconsStyle]) trailingIcon;
   final Function onLeadingIconPressed;
   final Function onTrailingIconPressed;
   final bool disableLeadingButton;
@@ -70,7 +70,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
             ),
             child: IconButton(
               icon: PhosphorIcon(
-                widget.trailingIcon,
+                widget.trailingIcon(PhosphorIconsStyle.regular),
                 color: widget.disableTrailingButton
                     ? BandiColor.neutralColor20(context)
                     : BandiColor.neutralColor80(context),
