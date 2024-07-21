@@ -6,14 +6,14 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:developer' as dev;
 
 class DiaryAiChatController with ChangeNotifier {
-  late Chat chatModel;
+  late ChatMessage chatModel;
 
   // past chat log form firebase (cannot remember)
-  List<Chat> pastChatlog = [];
+  List<ChatMessage> pastChatlog = [];
 
   // current chat log (can remember)
-  List<Chat> currentChatlog = [
-    Chat(
+  List<ChatMessage> currentChatlog = [
+    ChatMessage(
       message: "안녕! 무슨 일이야?",
       messenger: Messenger.ai,
       messageType: MessageType.chat,
