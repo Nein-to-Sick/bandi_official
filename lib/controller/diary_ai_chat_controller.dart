@@ -6,14 +6,28 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:developer' as dev;
 
 class DiaryAiChatController with ChangeNotifier {
-  late Chat chatModel;
+  late ChatMessage chatModel;
+  int readDocumentsLimit = 10; // 한 번에 로드할 문서 수
+  final TextEditingController chatTextController = TextEditingController();
+  FocusNode chatFocusNode = FocusNode();
+  bool sendFirstMessage = false;
+  bool isChatResponsloading = false;
+
+  // recommanded system message
+  List<ChatMessage> assistantMessage = [
+    ChatMessage(
+        message: 'wow',
+        messenger: Messenger.assistant,
+        messageType: MessageType.chat,
+        messageTime: Timestamp.now()),
+  ];
 
   // past chat log form firebase (cannot remember)
-  List<Chat> pastChatlog = [];
+  List<ChatMessage> pastChatlog = [];
 
   // current chat log (can remember)
-  List<Chat> currentChatlog = [
-    Chat(
+  List<ChatMessage> currentChatlog = [
+    ChatMessage(
       message: "안녕! 무슨 일이야?",
       messenger: Messenger.ai,
       messageType: MessageType.chat,
@@ -53,9 +67,46 @@ class DiaryAiChatController with ChangeNotifier {
     notifyListeners();
   }
 
+  // unfocus screen >> 다른 함수 호출 시에 사용하기!
+  void unfocusScreen() {
+    if (chatFocusNode.hasFocus) {
+      chatFocusNode.unfocus();
+    }
+  }
+
+  // creat message in Firebase
+  Future<void> sendMessage(ChatMessage message) async {
+    await FirebaseFirestore.instance
+        .collection('userChatCollection')
+        .add(message.toMap());
+  }
+
   // read chat log form firebase
-  // TODO: 과거 기록 유지 여부 확인 후 개발
-  void readChatLogFormDatabase() {}
+  Stream<List<ChatMessage>> getMessagesFromFirebase() {
+    dev.log('처음으로 읽기!!!');
+    return FirebaseFirestore.instance
+        .collection('userChatCollection')
+        .orderBy('messageTime', descending: true)
+        .limit(readDocumentsLimit)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => ChatMessage.fromFirestore(doc))
+            .toList());
+  }
+
+  // read older chat log form firebase
+  Future<List<ChatMessage>> getOlderMessagesFromFirebase(
+      Timestamp lastTimestamp) async {
+    dev.log('오래된거 읽기!!!');
+    QuerySnapshot snapshot = await FirebaseFirestore.instance
+        .collection('userChatCollection')
+        .orderBy('messageTime', descending: true)
+        .startAfter([lastTimestamp])
+        .limit(readDocumentsLimit)
+        .get();
+
+    return snapshot.docs.map((doc) => ChatMessage.fromFirestore(doc)).toList();
+  }
 
   // send and get response from chatGPT (chatting model)
   void getResponse() async {
