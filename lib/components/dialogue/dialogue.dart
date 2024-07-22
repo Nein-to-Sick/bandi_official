@@ -5,8 +5,10 @@ import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:flutter/material.dart';
 
 class CustomDialogue extends StatefulWidget {
-  const CustomDialogue({super.key, required this.chatMessage});
+  const CustomDialogue(
+      {super.key, required this.chatMessage, required this.onDialoguePressed});
   final ChatMessage chatMessage;
+  final Function onDialoguePressed;
 
   @override
   State<CustomDialogue> createState() => _CustomDialogueState();
@@ -40,27 +42,33 @@ class _CustomDialogueState extends State<CustomDialogue> {
             sigmaY: BandiEffects.backgroundBlur());
         break;
     }
-    return IntrinsicWidth(
-      child: ClipRRect(
-        borderRadius: BandiEffects.radius(),
-        child: BackdropFilter(
-          filter: boxBlur,
-          child: Container(
-            constraints: BoxConstraints(
-                minHeight: 31,
-                maxWidth: MediaQuery.of(context).size.width * 0.55),
-            decoration: BoxDecoration(
-              color: boxColor,
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-              child: Center(
-                child: Text(
-                  widget.chatMessage.message,
-                  maxLines: 10,
-                  overflow: TextOverflow.ellipsis,
-                  style: BandiFont.headlineSmall(context)
-                      ?.copyWith(color: textColor),
+    return GestureDetector(
+      onTap: () {
+        widget.onDialoguePressed();
+      },
+      child: IntrinsicWidth(
+        child: ClipRRect(
+          borderRadius: BandiEffects.radius(),
+          child: BackdropFilter(
+            filter: boxBlur,
+            child: Container(
+              constraints: BoxConstraints(
+                  minHeight: 31,
+                  maxWidth: MediaQuery.of(context).size.width * 0.55),
+              decoration: BoxDecoration(
+                color: boxColor,
+              ),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                child: Center(
+                  child: Text(
+                    widget.chatMessage.message,
+                    maxLines: 10,
+                    overflow: TextOverflow.ellipsis,
+                    style: BandiFont.headlineSmall(context)
+                        ?.copyWith(color: textColor),
+                  ),
                 ),
               ),
             ),
