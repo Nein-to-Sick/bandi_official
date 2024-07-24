@@ -12,8 +12,8 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
     required this.onTrailingIconPressed,
     required this.disableLeadingButton,
     required this.disableTrailingButton,
-    required this.isVisbleLeadingButton,
-    required this.isVisbleTrailingButton,
+    required this.isVisibleLeadingButton,
+    required this.isVisibleTrailingButton,
   });
 
   final String title;
@@ -22,8 +22,8 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   final Function onTrailingIconPressed;
   final bool disableLeadingButton;
   final bool disableTrailingButton;
-  final bool isVisbleLeadingButton;
-  final bool isVisbleTrailingButton;
+  final bool isVisibleLeadingButton;
+  final bool isVisibleTrailingButton;
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -49,7 +49,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
         ),
       ),
       centerTitle: true,
-      leading: (widget.isVisbleLeadingButton)
+      leading: (widget.isVisibleLeadingButton)
           ? Padding(
               padding: const EdgeInsets.symmetric(
                 vertical: 8,
@@ -62,7 +62,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
             )
           : const SizedBox.shrink(),
       actions: [
-        if (widget.isVisbleTrailingButton)
+        if (widget.isVisibleTrailingButton)
           Padding(
             padding: const EdgeInsets.symmetric(
               vertical: 8,

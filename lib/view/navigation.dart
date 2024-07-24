@@ -1,3 +1,4 @@
+import 'package:bandi_official/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/view/home/home_view.dart';
 import 'package:bandi_official/view/list/list_view.dart';
 import 'package:bandi_official/view/mail/mail_view.dart';
@@ -17,6 +18,8 @@ class Navigation extends StatelessWidget {
     final navigationToggleProvider =
         Provider.of<NavigationToggleProvider>(context);
     final writeProvider = Provider.of<HomeToWrite>(context);
+    final DiaryAiChatController diaryAiChatController =
+        context.watch<DiaryAiChatController>();
 
     return Container(
       decoration: const BoxDecoration(
@@ -27,8 +30,10 @@ class Navigation extends StatelessWidget {
         ),
       ),
       child: Scaffold(
-          backgroundColor: Colors.transparent,
-          body: Stack(children: [
+        backgroundColor: Colors.transparent,
+        body: Stack(
+          children: [
+            const FireFly(),
             navigationToggleProvider.selectedIndex == 0
                 ? const HomePage()
                 : navigationToggleProvider.selectedIndex == 1
@@ -39,11 +44,14 @@ class Navigation extends StatelessWidget {
             Column(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                !writeProvider.write ? navigationBar(context) : Container()
+                (!writeProvider.write && !diaryAiChatController.isChatOpen)
+                    ? navigationBar(context)
+                    : Container()
               ],
             ),
-            const FireFly()
-          ])),
+          ],
+        ),
+      ),
     );
   }
 }

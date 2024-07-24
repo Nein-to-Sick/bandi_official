@@ -5,60 +5,163 @@ import 'package:dart_openai/dart_openai.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:developer' as dev;
 
+import 'package:intl/intl.dart';
+
 class DiaryAiChatController with ChangeNotifier {
   late ChatMessage chatModel;
+  // maximun number of reading documents in once
+  int readDocumentsLimit = 10;
+  // chat message text controller
+  final TextEditingController chatTextController = TextEditingController();
+  // chat focus node
+  FocusNode chatFocusNode = FocusNode();
+  // determine whether to display the recommended message
+  bool sendFirstMessage = false;
+  // while the ai answering the message
+  bool isChatResponsLoading = false;
+  // determine whether to display the chat view
+  bool isChatOpen = false;
+  // manage the chat page scroll
+  final chatScrollController = ScrollController();
+  // for chat system message (today's date)
+  late String todayDate = '';
 
-  // past chat log form firebase (cannot remember)
-  List<ChatMessage> pastChatlog = [];
+  // // called on initState
+  // void loadDataAndSetting() {
+  //   todayDate = formatTimestamp(Timestamp.now())
+  // }
 
-  // current chat log (can remember)
-  List<ChatMessage> currentChatlog = [
+  // toggle the chat page view
+  void toggleChatOpen() {
+    isChatOpen = !isChatOpen;
+    notifyListeners();
+  }
+
+  // toggle the message send button while the gpt respoonse loading
+  void toggleChatResponseLodaing(bool state) {
+    isChatResponsLoading = state;
+    notifyListeners();
+  }
+
+  void updateTexfieldMessage() {
+    dev.log(chatTextController.text);
+    notifyListeners();
+  }
+
+  // unfocus screen
+  void unfocusScreen() {
+    if (chatFocusNode.hasFocus) {
+      chatFocusNode.unfocus();
+    }
+  }
+
+  // scroll chat screen to newest message
+  void scrollChatScreenToBottom() {
+    chatScrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  static String formatTimestamp(Timestamp timestamp) {
+    // Timestamp to DateTime
+    DateTime dateTime = timestamp.toDate();
+
+    /*
+    String formattedTime =
+         DateFormat('yyyy년 MM월 dd일 EEEE', 'ko').format(dateTime);
+    */
+    // formate date time
+    String formattedTime = DateFormat('MM월 dd일 EEEE', 'ko').format(dateTime);
+
+    return formattedTime;
+  }
+
+  // recommanded system message
+  List<ChatMessage> assistantMessage = [
+    // TODO: assistant message 정리하기
     ChatMessage(
-      message: "안녕! 무슨 일이야?",
+      message: 'wow',
+      messenger: Messenger.assistant,
+      messageType: MessageType.chat,
+      messageTime: Timestamp.now(),
+    ),
+  ];
+
+  // current chat log
+  List<ChatMessage> chatlog = [
+    ChatMessage(
+      message: formatTimestamp(Timestamp.now()),
+      messenger: Messenger.system,
+      messageType: MessageType.chat,
+      messageTime: Timestamp.now(),
+    ),
+    ChatMessage(
+      message: '안녕! 무슨 일이야?',
       messenger: Messenger.ai,
       messageType: MessageType.chat,
       messageTime: Timestamp.now(),
     ),
   ];
 
+  // update user chatting
+  void updateUserChat() {
+    chatModel = ChatMessage(
+      message: chatTextController.text.trim(),
+      messenger: Messenger.user,
+      messageType: MessageType.chat,
+      messageTime: Timestamp.now(),
+    );
+  }
+
+  // update ai chatting
+  void updateAIChat(String message) {
+    chatModel = ChatMessage(
+      message: message,
+      messenger: Messenger.ai,
+      messageType: MessageType.chat,
+      messageTime: Timestamp.now(),
+    );
+  }
+
+  // when user message has submitted
+  void onMessageSubmitted() {
+    // make user message to ChatMessage model
+    updateUserChat();
+    sendFirstMessage = true;
+    scrollChatScreenToBottom();
+    chatlog.add(chatModel);
+    chatTextController.clear();
+
+    // call chatGPT response
+    getResponse();
+  }
+
+  // when assistant message has submitted
+  void onAssistantMessageSubmitted(String submittedMessage) {
+    // TODO: assistant message 초기화 주기 결정 필요
+    chatTextController.text = submittedMessage;
+    onMessageSubmitted();
+  }
+
   // make modle albe to remember the past chat log
-  // all messages to be sent
   List<OpenAIChatCompletionChoiceMessageModel> chatMemory = [
     OpenAIChatCompletionChoiceMessageModel(
       content: [
         OpenAIChatCompletionChoiceMessageContentItemModel.text(
           // TODO: fine-tuning 이후 prompt 수정
-          "fine tuning prompt goes in here!",
+          "사용자의 감정 상태를 파악하고, 그에 맞는 위로와 공감을 표현하며, 필요한 경우 조언도 제공해 주세요. 사용자가 표현하는 감정과 상황에 따라 적절한 반응을 선택해 주세요. 친근하고 따뜻한 어투로 답해주세요.",
         ),
       ],
       role: OpenAIChatMessageRole.system,
     ),
   ];
 
-  // update user chatting
-  void updateUserChat(String message) {
-    chatModel.message = message;
-    chatModel.messenger = Messenger.user;
-    chatModel.messageType = MessageType.chat;
-    chatModel.messageTime = Timestamp.now();
-    notifyListeners();
-  }
-
-  // update ai chatting
-  void updateAIChat(String message) {
-    chatModel.message = message;
-    chatModel.messenger = Messenger.ai;
-    chatModel.messageType = MessageType.chat;
-    chatModel.messageTime = Timestamp.now();
-    notifyListeners();
-  }
-
-  // read chat log form firebase
-  // TODO: 과거 기록 유지 여부 확인 후 개발
-  void readChatLogFormDatabase() {}
-
   // send and get response from chatGPT (chatting model)
+  // 추후 stream으로 답변 받아오기로 변경 고려
   void getResponse() async {
+    toggleChatResponseLodaing(true);
     updateChatMemory();
 
     try {
@@ -83,22 +186,71 @@ class DiaryAiChatController with ChangeNotifier {
         temperature: 0.9,
       );
 
-      dev.log(chatCompletion.choices.first.message.content!.first.text!);
+      updateAIChat(chatCompletion.choices.first.message.content!.first.text!);
+      chatlog.add(chatModel);
     } on RequestFailedException catch (e) {
       dev.log(e.toString());
-      // TODO: 채팅 오류시 예외 처리 추가
+      updateAIChat("이해가 안됐어. 다시 설명해 줄 수 있을까?");
+      chatlog.add(chatModel);
     }
+    toggleChatResponseLodaing(false);
+    notifyListeners();
   }
 
   // put past chat log into the chatMemory
   void updateChatMemory() {
-    chatMemory.add(
-      OpenAIChatCompletionChoiceMessageModel(
-        content: [
-          OpenAIChatCompletionChoiceMessageContentItemModel.text("temp"),
-        ],
-        role: OpenAIChatMessageRole.user,
-      ),
-    );
+    // TODO: 최대로 기억할 메세지 개수 지정 필요
+    for (int i = 0; i < chatlog.length; i++) {
+      if (chatlog[i].messenger != Messenger.system &&
+          chatlog[i].messenger != Messenger.assistant) {
+        chatMemory.add(
+          OpenAIChatCompletionChoiceMessageModel(
+            content: [
+              OpenAIChatCompletionChoiceMessageContentItemModel.text(
+                  chatlog[i].message),
+            ],
+            role: (chatlog[i].messenger == Messenger.user)
+                ? OpenAIChatMessageRole.user
+                : OpenAIChatMessageRole.assistant,
+          ),
+        );
+      }
+    }
   }
+
+  /*
+  // creat message in Firebase
+  Future<void> sendMessage(ChatMessage message) async {
+    await FirebaseFirestore.instance
+        .collection('userChatCollection')
+        .add(message.toMap());
+  }
+
+  // read chat log form firebase
+  Stream<List<ChatMessage>> getMessagesFromFirebase() {
+    dev.log('처음으로 읽기!!!');
+    return FirebaseFirestore.instance
+        .collection('userChatCollection')
+        .orderBy('messageTime', descending: true)
+        .limit(readDocumentsLimit)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => ChatMessage.fromFirestore(doc))
+            .toList());
+  }
+
+  // read older chat log form firebase
+  Future<List<ChatMessage>> getOlderMessagesFromFirebase(
+      Timestamp lastTimestamp) async {
+    dev.log('오래된거 읽기!!!');
+    QuerySnapshot snapshot = await FirebaseFirestore.instance
+        .collection('userChatCollection')
+        .orderBy('messageTime', descending: true)
+        .startAfter([lastTimestamp])
+        .limit(readDocumentsLimit)
+        .get();
+
+    return snapshot.docs.map((doc) => ChatMessage.fromFirestore(doc)).toList();
+  }
+  */
 }
