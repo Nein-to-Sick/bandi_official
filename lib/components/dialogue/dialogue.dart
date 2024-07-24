@@ -46,34 +46,49 @@ class _CustomDialogueState extends State<CustomDialogue> {
       onTap: () {
         widget.onDialoguePressed();
       },
-      child: IntrinsicWidth(
-        child: ClipRRect(
-          borderRadius: BandiEffects.radius(),
-          child: BackdropFilter(
-            filter: boxBlur,
-            child: Container(
-              constraints: BoxConstraints(
-                  minHeight: 31,
-                  maxWidth: MediaQuery.of(context).size.width * 0.55),
-              decoration: BoxDecoration(
-                color: boxColor,
-              ),
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-                child: Center(
-                  child: Text(
-                    widget.chatMessage.message,
-                    maxLines: 10,
-                    overflow: TextOverflow.ellipsis,
-                    style: BandiFont.headlineSmall(context)
-                        ?.copyWith(color: textColor),
+      child: Row(
+        mainAxisAlignment: (widget.chatMessage.messenger == Messenger.user)
+            ? MainAxisAlignment.end
+            : (widget.chatMessage.messenger == Messenger.ai)
+                ? MainAxisAlignment.start
+                : MainAxisAlignment.center,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 25),
+            child: IntrinsicWidth(
+              child: ClipRRect(
+                borderRadius: BandiEffects.radius(),
+                child: BackdropFilter(
+                  filter: boxBlur,
+                  child: Container(
+                    constraints: BoxConstraints(
+                        minHeight: 32,
+                        maxWidth: MediaQuery.of(context).size.width * 0.55),
+                    decoration: BoxDecoration(
+                      color: boxColor,
+                    ),
+                    child:
+                        // inner padding
+                        Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 5),
+                      child: Center(
+                        child: Text(
+                          widget.chatMessage.message,
+                          maxLines: 15,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.left,
+                          style: BandiFont.headlineSmall(context)
+                              ?.copyWith(color: textColor),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
