@@ -11,6 +11,7 @@ import 'controller/home_to_write.dart';
 import 'controller/navigation_toggle_provider.dart';
 import 'firebase_options.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,8 +20,12 @@ Future<void> main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+  // Initialize firebase connection
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // Initialize env file
   await dotenv.load(fileName: 'assets/config/.env');
+  // Initialize date formatting for the 'ko' locale
+  await initializeDateFormatting('ko', null);
 
   runApp(const MainApp());
 }

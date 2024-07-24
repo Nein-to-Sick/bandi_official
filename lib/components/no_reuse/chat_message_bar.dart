@@ -16,6 +16,7 @@ class ChatMessageBar extends StatefulWidget {
 }
 
 class _ChatMessageBarState extends State<ChatMessageBar> {
+  // button pressed state (just for design)
   bool isSendButtonPressed = false;
   final ScrollController listViewController = ScrollController();
 
@@ -95,7 +96,11 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                         chatMessage:
                             diaryAiChatController.assistantMessage[index],
                         onDialoguePressed: () {
-                          // TODO: assistant 함수 호출
+                          diaryAiChatController.onAssistantMessageSubmitted(
+                            diaryAiChatController
+                                .assistantMessage[index].message
+                                .trim(),
+                          );
                         },
                       ),
                     );
@@ -132,8 +137,11 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                 children: [
                   Flexible(
                     child: IgnorePointer(
-                      ignoring: diaryAiChatController.isChatResponsloading,
+                      ignoring: diaryAiChatController.isChatResponsLoading,
                       child: TextField(
+                        onChanged: (text) {
+                          diaryAiChatController.updateTexfieldMessage();
+                        },
                         controller: diaryAiChatController.chatTextController,
                         focusNode: diaryAiChatController.chatFocusNode,
                         keyboardType: TextInputType.multiline,
@@ -143,7 +151,7 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                           color: BandiColor.neutralColor100(context),
                         ),
                         decoration: InputDecoration(
-                          hintText: (diaryAiChatController.isChatResponsloading)
+                          hintText: (diaryAiChatController.isChatResponsLoading)
                               ? '답변 중이에요'
                               : '대화를 시작해보세요',
                           hintStyle: BandiFont.headlineLarge(context)?.copyWith(
@@ -158,7 +166,10 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                   Padding(
                     padding: const EdgeInsets.only(right: 5.5),
                     child: GestureDetector(
-                      onTapDown: diaryAiChatController.isChatResponsloading
+                      onTapDown: (diaryAiChatController.chatTextController.text
+                                  .trim()
+                                  .isEmpty ||
+                              diaryAiChatController.isChatResponsLoading)
                           ? null
                           : (_) {
                               dev.log('눌림!');
@@ -166,16 +177,27 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                                 isSendButtonPressed = true;
                               });
                             },
-                      onTapUp: (diaryAiChatController.isChatResponsloading)
+                      onTapUp: (diaryAiChatController.chatTextController.text
+                                  .trim()
+                                  .isEmpty ||
+                              diaryAiChatController.isChatResponsLoading)
                           ? null
                           : (_) {
                               dev.log('실행!');
                               setState(() {
                                 isSendButtonPressed = false;
                               });
-                              // TODO: 메세지 전송 함수 실행
+                              if (diaryAiChatController.chatTextController.text
+                                  .trim()
+                                  .isNotEmpty) {
+                                diaryAiChatController.onMessageSubmitted();
+                              }
                             },
-                      onTapCancel: diaryAiChatController.isChatResponsloading
+                      onTapCancel: (diaryAiChatController
+                                  .chatTextController.text
+                                  .trim()
+                                  .isEmpty ||
+                              diaryAiChatController.isChatResponsLoading)
                           ? null
                           : () {
                               dev.log('취소!');
@@ -183,11 +205,15 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                                 isSendButtonPressed = false;
                               });
                             },
-                      child: Container(
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: (diaryAiChatController.isChatResponsloading)
+                          color: (diaryAiChatController.chatTextController.text
+                                      .trim()
+                                      .isEmpty ||
+                                  diaryAiChatController.isChatResponsLoading)
                               ? BandiColor.neutralColor20(context) // Disabled
                               : (isSendButtonPressed)
                                   ? BandiColor.neutralColor60(
@@ -201,7 +227,11 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                             PhosphorIcons.paperPlaneRight(
                               PhosphorIconsStyle.fill,
                             ),
-                            color: (diaryAiChatController.isChatResponsloading)
+                            color: (diaryAiChatController
+                                        .chatTextController.text
+                                        .trim()
+                                        .isEmpty ||
+                                    diaryAiChatController.isChatResponsLoading)
                                 ? BandiColor.neutralColor20(context) // Disabled
                                 : BandiColor.neutralColor80(context), // Default
                             size: 24,
