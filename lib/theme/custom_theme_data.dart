@@ -103,6 +103,18 @@ class BandiFont {
     return Theme.of(context).textTheme.headlineSmall;
   }
 
+  static TextStyle? titleLarge(BuildContext context) {
+    return Theme.of(context).textTheme.titleLarge;
+  }
+
+  static TextStyle? titleMedium(BuildContext context) {
+    return Theme.of(context).textTheme.titleMedium;
+  }
+
+  static TextStyle? titleSmall(BuildContext context) {
+    return Theme.of(context).textTheme.titleSmall;
+  }
+
   static TextStyle? bodyLarge(BuildContext context) {
     return Theme.of(context).textTheme.bodyLarge;
   }
@@ -170,6 +182,8 @@ class CustomThemeData {
     hintColor: const Color(0xff4E4E4E), // Text
     hoverColor: const Color(0xff2E2E2E), // Header
     textTheme: textTheme,
+    // scaffoldBackgroundColor: Colors.transparent,
+    // canvasColor: Colors.transparent,
   );
 
   static final ThemeData dark = ThemeData(
