@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../components/no_reuse/firefly.dart';
 import '../components/no_reuse/navigation_bar.dart';
+import '../controller/home_to_write.dart';
 import '../controller/navigation_toggle_provider.dart';
 
 class Navigation extends StatelessWidget {
@@ -15,6 +16,7 @@ class Navigation extends StatelessWidget {
   Widget build(BuildContext context) {
     final navigationToggleProvider =
         Provider.of<NavigationToggleProvider>(context);
+    final writeProvider = Provider.of<HomeToWrite>(context);
 
     return Container(
       decoration: const BoxDecoration(
@@ -24,23 +26,24 @@ class Navigation extends StatelessWidget {
               AssetImage('assets/images/backgrounds/background.png'), // 배경 이미지
         ),
       ),
-      child: SafeArea(
-        child: Scaffold(
-            backgroundColor: Colors.transparent,
-            body: Stack(children: [
-              navigationToggleProvider.selectedIndex == 0
-                  ? const HomePage() :
-              navigationToggleProvider.selectedIndex == 1
-                  ? const ListPage() :
-              navigationToggleProvider.selectedIndex == 2
-                  ? const MailView() : const UserView(),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [navigationBar(context)],
-              ),
-              const FireFly()
-            ])),
-      ),
+      child: Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Stack(children: [
+            navigationToggleProvider.selectedIndex == 0
+                ? const HomePage()
+                : navigationToggleProvider.selectedIndex == 1
+                    ? const ListPage()
+                    : navigationToggleProvider.selectedIndex == 2
+                        ? const MailView()
+                        : const UserView(),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                !writeProvider.write ? navigationBar(context) : Container()
+              ],
+            ),
+            const FireFly()
+          ])),
     );
   }
 }
