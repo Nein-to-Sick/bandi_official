@@ -103,6 +103,18 @@ class BandiFont {
     return Theme.of(context).textTheme.headlineSmall;
   }
 
+  static TextStyle? titleLarge(BuildContext context) {
+    return Theme.of(context).textTheme.titleLarge;
+  }
+
+  static TextStyle? titleMedium(BuildContext context) {
+    return Theme.of(context).textTheme.titleMedium;
+  }
+
+  static TextStyle? titleSmall(BuildContext context) {
+    return Theme.of(context).textTheme.titleSmall;
+  }
+
   static TextStyle? bodyLarge(BuildContext context) {
     return Theme.of(context).textTheme.bodyLarge;
   }
