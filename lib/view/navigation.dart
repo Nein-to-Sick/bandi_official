@@ -41,13 +41,16 @@ class Navigation extends StatelessWidget {
                     : navigationToggleProvider.selectedIndex == 2
                         ? const MailView()
                         : const UserView(),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                (!writeProvider.write && !diaryAiChatController.isChatOpen)
-                    ? navigationBar(context)
-                    : Container()
-              ],
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  (!writeProvider.write && !diaryAiChatController.isChatOpen)
+                      ? navigationBar(context)
+                      : Container()
+                ],
+              ),
             ),
           ],
         ),
