@@ -32,54 +32,61 @@ class _DiaryAIChatPageState extends State<DiaryAIChatPage> {
       backgroundColor: Colors.transparent,
       appBar: CustomAppBar(
         title: '반디와 대화하기',
-        trailingIcon: PhosphorIcons.x,
+        trailingIcon: PhosphorIcons.arrowCounterClockwise,
         onLeadingIconPressed: () {
           diaryAiChatController.toggleChatOpen();
         },
-        onTrailingIconPressed: () {},
+        onTrailingIconPressed: () {
+          // TODO: 대화 초기화 기능 호출
+          dev.log('wowowowo');
+        },
         disableLeadingButton: disableLeadingButton,
         disableTrailingButton: false,
         isVisibleLeadingButton: true,
-        isVisibleTrailingButton: false,
+        isVisibleTrailingButton: true,
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: GestureDetector(
-                onTap: () {
-                  if (diaryAiChatController.chatFocusNode.hasFocus) {
-                    diaryAiChatController.chatFocusNode.unfocus();
-                  }
-                },
-                child: ListView.builder(
-                  controller: diaryAiChatController.chatScrollController,
-                  shrinkWrap: true,
-                  reverse: true,
-                  itemCount: diaryAiChatController.chatlog.length,
-                  itemBuilder: (context, index) {
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 10, bottom: 10),
-                      child: IgnorePointer(
-                        ignoring: true,
-                        child: CustomDialogue(
-                          chatMessage: diaryAiChatController.chatlog[
-                              diaryAiChatController.chatlog.length - index - 1],
-                          onDialoguePressed: () {},
-                        ),
-                      ),
-                    );
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: GestureDetector(
+                  onTap: () {
+                    if (diaryAiChatController.chatFocusNode.hasFocus) {
+                      diaryAiChatController.chatFocusNode.unfocus();
+                    }
                   },
+                  child: ListView.builder(
+                    controller: diaryAiChatController.chatScrollController,
+                    shrinkWrap: true,
+                    reverse: true,
+                    itemCount: diaryAiChatController.chatlog.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 10, bottom: 10),
+                        child: IgnorePointer(
+                          ignoring: true,
+                          child: CustomDialogue(
+                            chatMessage: diaryAiChatController.chatlog[
+                                diaryAiChatController.chatlog.length -
+                                    index -
+                                    1],
+                            onDialoguePressed: () {},
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ),
             ),
-          ),
-          const Align(
-            alignment: Alignment.bottomCenter,
-            child: ChatMessageBar(),
-          ),
-        ],
+            const Align(
+              alignment: Alignment.bottomCenter,
+              child: ChatMessageBar(),
+            ),
+          ],
+        ),
       ),
     );
   }
