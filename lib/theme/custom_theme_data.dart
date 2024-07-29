@@ -206,90 +206,116 @@ class CustomThemeData {
     textTheme: textTheme,
   );
 
+  /*
+    FontWeight.w100: Thin
+    FontWeight.w200: ExtraLight
+    FontWeight.w300: Light
+    FontWeight.w400: Regular
+    FontWeight.w500: Medium
+    FontWeight.w600: SemiBold
+    FontWeight.w700: Bold
+    FontWeight.w800: ExtraBold
+    FontWeight.w900: Black
+  */
+
   static TextTheme textTheme = const TextTheme(
     /**Headline1 */
     displayLarge: TextStyle(
-      fontFamily: "IBMPlexSansSemiBold",
+      fontFamily: "IBMPlexSansKR",
       fontSize: 28,
       height: 36 / 28,
+      fontWeight: FontWeight.w600, // SemiBold
     ),
     /**Headline2 */
     displayMedium: TextStyle(
-      fontFamily: "IBMPlexSansSemiBold",
+      fontFamily: "IBMPlexSansKR",
       fontSize: 20,
       height: 28 / 20,
+      fontWeight: FontWeight.w600, // SemiBold
     ),
     /**Headline3 */
     displaySmall: TextStyle(
-      fontFamily: "IBMPlexSansSemiBold",
+      fontFamily: "IBMPlexSansKR",
       fontSize: 18,
       height: 24 / 18,
+      fontWeight: FontWeight.w600, // SemiBold
     ),
     /**Headline4 */
     headlineMedium: TextStyle(
-      fontFamily: "IBMPlexSansSemiBold",
+      fontFamily: "IBMPlexSansKR",
       fontSize: 16,
       height: 20 / 16,
+      fontWeight: FontWeight.w600, // SemiBold
     ),
     /**Body1 */
     titleMedium: TextStyle(
-      fontFamily: "IBMPlexSansRegular",
+      fontFamily: "IBMPlexSansKR",
       fontSize: 16,
       height: 24 / 16,
+      fontWeight: FontWeight.w400, // Regular
     ),
     /**Body2 */
     titleSmall: TextStyle(
-      fontFamily: "IBMPlexSansRegular",
+      fontFamily: "IBMPlexSansKR",
       fontSize: 14,
       height: 20 / 14,
+      fontWeight: FontWeight.w400, // Regular
     ),
     /**Body3 */
     headlineSmall: TextStyle(
-      fontFamily: "IBMPlexSansRegular",
+      fontFamily: "IBMPlexSansKR",
       fontSize: 12,
       height: 16 / 12,
+      fontWeight: FontWeight.w400, // Regular
     ),
     /**Normal */
     bodyLarge: TextStyle(
-      fontFamily: "IBMPlexSansMedium",
-      fontSize: 18,
-      height: 24 / 18,
+      fontFamily: "IBMPlexSansKR",
+      fontSize: 12,
+      height: 16 / 12,
+      fontWeight: FontWeight.w500, // Medium
     ),
     /**Medium */
     bodyMedium: TextStyle(
-      fontFamily: "IBMPlexSansMedium",
-      fontSize: 16,
-      height: 20 / 16,
+      fontFamily: "IBMPlexSansKR",
+      fontSize: 18,
+      height: 24 / 18,
+      fontWeight: FontWeight.w500, // Medium
     ),
     /**Small */
     bodySmall: TextStyle(
-      fontFamily: "IBMPlexSansMedium",
+      fontFamily: "IBMPlexSansKR",
       fontSize: 14,
       height: 16 / 14,
+      fontWeight: FontWeight.w500, // Medium
     ),
     /**Small2 */
     labelLarge: TextStyle(
-      fontFamily: "IBMPlexSansSemiBold",
-      fontSize: 11,
-      height: 22 / 11,
+      fontFamily: "IBMPlexSansKR",
+      fontSize: 16,
+      height: 20 / 16,
+      fontWeight: FontWeight.w600, // SemiBold
     ),
     /**Text1 */
     labelMedium: TextStyle(
-      fontFamily: "IBMPlexSansRegular",
+      fontFamily: "IBMPlexSansKR",
       fontSize: 16,
       height: 24 / 16,
+      fontWeight: FontWeight.w400, // Regular
     ),
     /**Text2 */
     labelSmall: TextStyle(
-      fontFamily: "IBMPlexSansRegular",
-      fontSize: 12,
-      height: 16 / 12,
+      fontFamily: "IBMPlexSansKR",
+      fontSize: 11,
+      height: 22 / 11,
+      fontWeight: FontWeight.w400, // Regular
     ),
     /**Mobile & Field */
     headlineLarge: TextStyle(
-      fontFamily: "IBMPlexSansSemiBold",
+      fontFamily: "IBMPlexSansKR",
       fontSize: 16,
       height: 24 / 16,
+      fontWeight: FontWeight.w600, // SemiBold
     ),
   );
 }
