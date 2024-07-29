@@ -76,7 +76,11 @@ class _CustomAppBarState extends State<CustomAppBar> {
                     : BandiColor.neutralColor80(context),
                 size: 24,
               ),
-              onPressed: widget.onTrailingIconPressed(),
+              onPressed: () {
+                (widget.disableTrailingButton)
+                    ? null
+                    : widget.onTrailingIconPressed();
+              },
             ),
           ),
       ],
