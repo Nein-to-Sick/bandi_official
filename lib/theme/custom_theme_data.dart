@@ -152,7 +152,7 @@ class BandiEffects {
   }
 
   static double backgroundBlur() {
-    return 16;
+    return 8;
   }
 }
 
