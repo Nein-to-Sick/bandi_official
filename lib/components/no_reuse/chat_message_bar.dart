@@ -80,7 +80,8 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                 child: ListView.builder(
                   controller: listViewController,
                   physics: (listViewController.hasClients &&
-                          (listViewController.position.maxScrollExtent) <
+                          (listViewController.position.maxScrollExtent +
+                                  MediaQuery.of(context).size.width) <=
                               MediaQuery.of(context).size.width)
                       ? const NeverScrollableScrollPhysics()
                       : const AlwaysScrollableScrollPhysics()
