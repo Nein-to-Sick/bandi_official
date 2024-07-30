@@ -258,14 +258,14 @@ class CustomThemeData {
     titleSmall: TextStyle(
       fontFamily: "IBMPlexSansKR",
       fontSize: 14,
-      height: 20 / 14,
+      height: 26 / 14,
       fontWeight: FontWeight.w400, // Regular
     ),
     /**Body3 */
     headlineSmall: TextStyle(
       fontFamily: "IBMPlexSansKR",
       fontSize: 12,
-      height: 16 / 12,
+      height: 22 / 12,
       fontWeight: FontWeight.w400, // Regular
     ),
     /**Normal */
@@ -292,8 +292,8 @@ class CustomThemeData {
     /**Small2 */
     labelLarge: TextStyle(
       fontFamily: "IBMPlexSansKR",
-      fontSize: 16,
-      height: 20 / 16,
+      fontSize: 11,
+      height: 19 / 11,
       fontWeight: FontWeight.w600, // SemiBold
     ),
     /**Text1 */
