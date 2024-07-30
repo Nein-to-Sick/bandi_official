@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:bandi_official/model/diary_ai_chat.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +12,7 @@ import 'package:intl/intl.dart';
 class DiaryAiChatController with ChangeNotifier {
   late ChatMessage chatModel;
   // maximun number of reading documents in once
-  int readDocumentsLimit = 10;
+  int rememberableChatlogLimit = 10;
   // chat message text controller
   final TextEditingController chatTextController = TextEditingController();
   // chat focus node
@@ -40,6 +42,18 @@ class DiaryAiChatController with ChangeNotifier {
   // toggle the message send button while the gpt respoonse loading
   void toggleChatResponseLodaing(bool state) {
     isChatResponsLoading = state;
+    if (isChatResponsLoading) {
+      chatlog.add(
+        chatModel = ChatMessage(
+          message: '. . .',
+          messenger: Messenger.ai,
+          messageType: MessageType.chat,
+          messageTime: Timestamp.now(),
+        ),
+      );
+    } else {
+      chatlog.removeLast();
+    }
     notifyListeners();
   }
 
@@ -80,9 +94,20 @@ class DiaryAiChatController with ChangeNotifier {
 
   // recommanded system message
   List<ChatMessage> assistantMessage = [
-    // TODO: assistant message 정리하기
     ChatMessage(
-      message: 'wow',
+      message: '오늘 기분이 좋은데 넌 어때?',
+      messenger: Messenger.assistant,
+      messageType: MessageType.chat,
+      messageTime: Timestamp.now(),
+    ),
+    ChatMessage(
+      message: '오늘 기분이 별로야 응원해 줘',
+      messenger: Messenger.assistant,
+      messageType: MessageType.chat,
+      messageTime: Timestamp.now(),
+    ),
+    ChatMessage(
+      message: '지난 내 기록을 보여줘',
       messenger: Messenger.assistant,
       messageType: MessageType.chat,
       messageTime: Timestamp.now(),
@@ -129,34 +154,73 @@ class DiaryAiChatController with ChangeNotifier {
   void onMessageSubmitted() {
     // make user message to ChatMessage model
     updateUserChat();
-    sendFirstMessage = true;
-    scrollChatScreenToBottom();
+    if (!sendFirstMessage) {
+      sendFirstMessage = true;
+    }
     chatlog.add(chatModel);
+    scrollChatScreenToBottom();
     chatTextController.clear();
 
     // call chatGPT response
     getResponse();
+
+    // save the chat log to the local storage
   }
 
   // when assistant message has submitted
   void onAssistantMessageSubmitted(String submittedMessage) {
-    // TODO: assistant message 초기화 주기 결정 필요
     chatTextController.text = submittedMessage;
     onMessageSubmitted();
   }
 
-  // make modle albe to remember the past chat log
-  List<OpenAIChatCompletionChoiceMessageModel> chatMemory = [
-    OpenAIChatCompletionChoiceMessageModel(
-      content: [
-        OpenAIChatCompletionChoiceMessageContentItemModel.text(
-          // TODO: fine-tuning 이후 prompt 수정
-          "사용자의 감정 상태를 파악하고, 그에 맞는 위로와 공감을 표현하며, 필요한 경우 조언도 제공해 주세요. 사용자가 표현하는 감정과 상황에 따라 적절한 반응을 선택해 주세요. 친근하고 따뜻한 어투로 답해주세요.",
+  void resetTheChat(BuildContext context) {
+    if (sendFirstMessage && !isChatResponsLoading) {
+      Navigator.pop(context);
+      sendFirstMessage = false;
+
+      // reset the chatlog (visible chat)
+      chatlog.clear();
+      chatlog = [
+        ChatMessage(
+          message: formatTimestamp(Timestamp.now()),
+          messenger: Messenger.system,
+          messageType: MessageType.chat,
+          messageTime: Timestamp.now(),
         ),
-      ],
-      role: OpenAIChatMessageRole.system,
-    ),
-  ];
+        ChatMessage(
+          message: '안녕! 무슨 일이야?',
+          messenger: Messenger.ai,
+          messageType: MessageType.chat,
+          messageTime: Timestamp.now(),
+        ),
+      ];
+
+      // reset the chat memory (for gpt prompt)
+      chatMemory.clear();
+      chatMemory = [
+        OpenAIChatCompletionChoiceMessageModel(
+          content: [
+            OpenAIChatCompletionChoiceMessageContentItemModel.text(
+              // TODO: fine-tuning 이후 prompt 수정
+              "사용자의 감정 상태를 파악하고, 그에 맞는 위로와 공감을 표현하며, 필요한 경우 조언도 제공해 주세요. 사용자가 표현하는 감정과 상황에 따라 적절한 반응을 선택해 주세요. 친근하고 따뜻한 어투로 답해주세요.",
+            ),
+          ],
+          role: OpenAIChatMessageRole.system,
+        ),
+      ];
+
+      for (int i = 0; i < chatMemory.length; i++) {
+        dev.log(chatMemory[i].content!.first.text.toString());
+      }
+      for (int i = 0; i < chatlog.length; i++) {
+        dev.log(chatlog[i].message);
+      }
+    }
+    notifyListeners();
+  }
+
+  // make modle albe to remember the past chat log
+  List<OpenAIChatCompletionChoiceMessageModel> chatMemory = [];
 
   // send and get response from chatGPT (chatting model)
   // 추후 stream으로 답변 받아오기로 변경 고려
@@ -186,23 +250,46 @@ class DiaryAiChatController with ChangeNotifier {
         temperature: 0.9,
       );
 
+      toggleChatResponseLodaing(false);
       updateAIChat(chatCompletion.choices.first.message.content!.first.text!);
+      chatlog.add(chatModel);
+    } on SocketException catch (e) {
+      dev.log(e.toString());
+      toggleChatResponseLodaing(false);
+      updateAIChat("인터넷 연결이 없는 것 같아. 확인해 줄 수 있을까?");
       chatlog.add(chatModel);
     } on RequestFailedException catch (e) {
       dev.log(e.toString());
+      toggleChatResponseLodaing(false);
       updateAIChat("이해가 안됐어. 다시 설명해 줄 수 있을까?");
       chatlog.add(chatModel);
     }
-    toggleChatResponseLodaing(false);
+
     notifyListeners();
   }
 
   // put past chat log into the chatMemory
   void updateChatMemory() {
-    // TODO: 최대로 기억할 메세지 개수 지정 필요
-    for (int i = 0; i < chatlog.length; i++) {
-      if (chatlog[i].messenger != Messenger.system &&
-          chatlog[i].messenger != Messenger.assistant) {
+    chatMemory.clear();
+    chatMemory = [
+      OpenAIChatCompletionChoiceMessageModel(
+        content: [
+          OpenAIChatCompletionChoiceMessageContentItemModel.text(
+            // TODO: fine-tuning 이후 prompt 수정
+            "사용자의 감정 상태를 파악하고, 그에 맞는 위로와 공감을 표현하며, 필요한 경우 조언도 제공해 주세요. 사용자가 표현하는 감정과 상황에 따라 적절한 반응을 선택해 주세요. 친근하고 따뜻한 어투로 답해주세요.",
+          ),
+        ],
+        role: OpenAIChatMessageRole.system,
+      ),
+    ];
+
+    for (int i = (chatlog.length > rememberableChatlogLimit)
+            ? chatlog.length - rememberableChatlogLimit
+            : 0;
+        i < chatlog.length;
+        i++) {
+      if (chatlog[i].messenger == Messenger.ai ||
+          chatlog[i].messenger == Messenger.user) {
         chatMemory.add(
           OpenAIChatCompletionChoiceMessageModel(
             content: [
@@ -218,6 +305,7 @@ class DiaryAiChatController with ChangeNotifier {
     }
   }
 
+  // DB 저장은 향후 유료 기능 등으로 고려하기, 현재로는 로컬에 대화 기록 저장
   /*
   // creat message in Firebase
   Future<void> sendMessage(ChatMessage message) async {
@@ -232,7 +320,7 @@ class DiaryAiChatController with ChangeNotifier {
     return FirebaseFirestore.instance
         .collection('userChatCollection')
         .orderBy('messageTime', descending: true)
-        .limit(readDocumentsLimit)
+        .limit(rememberableChatlogLimit)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => ChatMessage.fromFirestore(doc))
@@ -247,7 +335,7 @@ class DiaryAiChatController with ChangeNotifier {
         .collection('userChatCollection')
         .orderBy('messageTime', descending: true)
         .startAfter([lastTimestamp])
-        .limit(readDocumentsLimit)
+        .limit(rememberableChatlogLimit)
         .get();
 
     return snapshot.docs.map((doc) => ChatMessage.fromFirestore(doc)).toList();

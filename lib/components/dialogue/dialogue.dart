@@ -51,10 +51,16 @@ class _CustomDialogueState extends State<CustomDialogue> {
             ? MainAxisAlignment.end
             : (widget.chatMessage.messenger == Messenger.ai)
                 ? MainAxisAlignment.start
-                : MainAxisAlignment.center,
+                : (widget.chatMessage.messenger == Messenger.system)
+                    ? MainAxisAlignment.center
+                    : MainAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 25),
+            padding: EdgeInsets.symmetric(
+                horizontal: (widget.chatMessage.messenger == Messenger.user ||
+                        widget.chatMessage.messenger == Messenger.ai)
+                    ? 25
+                    : 0),
             child: IntrinsicWidth(
               child: ClipRRect(
                 borderRadius: BandiEffects.radius(),
