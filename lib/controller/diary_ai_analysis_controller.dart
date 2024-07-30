@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:bandi_official/model/diary.dart';
 import 'package:flutter/material.dart';
 import 'package:dart_openai/dart_openai.dart';
@@ -80,6 +82,8 @@ class DiaryAIAnalysisController with ChangeNotifier {
 
       //  TODO: keyword update 함수 호출
       dev.log(keywordCompletion.choices.first.message.content!.first.text!);
+    } on SocketException catch (e) {
+      dev.log(e.toString());
     } on RequestFailedException catch (e) {
       dev.log(e.toString());
       // TODO: keyword update > 비워서 호출
@@ -136,6 +140,8 @@ class DiaryAIAnalysisController with ChangeNotifier {
 
       //  TODO: title update 함수 호출
       dev.log(titleCompletion.choices.first.message.content!.first.text!);
+    } on SocketException catch (e) {
+      dev.log(e.toString());
     } on RequestFailedException catch (e) {
       dev.log(e.toString());
       String tempDiaryTitle =
@@ -194,6 +200,8 @@ class DiaryAIAnalysisController with ChangeNotifier {
 
       dev.log(
           encouragementCompletion.choices.first.message.content!.first.text!);
+    } on SocketException catch (e) {
+      dev.log(e.toString());
     } on RequestFailedException catch (e) {
       dev.log(e.toString());
       // TODO: 임시 문구 or 예외 처리 방법 고안
