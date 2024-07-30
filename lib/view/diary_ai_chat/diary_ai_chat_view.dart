@@ -16,11 +16,15 @@ class DiaryAIChatPage extends StatefulWidget {
 }
 
 class _DiaryAIChatPageState extends State<DiaryAIChatPage> {
-  bool disableLeadingButton = false;
-
   @override
   void initState() {
-    // TODO: implement initState
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      DiaryAiChatController diaryAiChatController =
+          Provider.of<DiaryAiChatController>(context, listen: false);
+
+      diaryAiChatController.loadDataAndSetting();
+    });
+
     super.initState();
   }
 
@@ -28,6 +32,7 @@ class _DiaryAIChatPageState extends State<DiaryAIChatPage> {
   Widget build(BuildContext context) {
     DiaryAiChatController diaryAiChatController =
         context.watch<DiaryAiChatController>();
+
     return Scaffold(
       resizeToAvoidBottomInset: true,
       backgroundColor: Colors.transparent,
@@ -40,8 +45,8 @@ class _DiaryAIChatPageState extends State<DiaryAIChatPage> {
         onTrailingIconPressed: () {
           showResetDialog(context, diaryAiChatController);
         },
-        disableLeadingButton: disableLeadingButton,
-        disableTrailingButton: false,
+        disableLeadingButton: diaryAiChatController.isChatResponsLoading,
+        disableTrailingButton: diaryAiChatController.isChatResponsLoading,
         isVisibleLeadingButton: true,
         isVisibleTrailingButton: true,
       ),
