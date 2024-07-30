@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:bandi_official/model/diary_ai_chat.dart';
@@ -8,6 +9,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:developer' as dev;
 
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class DiaryAiChatController with ChangeNotifier {
   late ChatMessage chatModel;
@@ -27,11 +29,19 @@ class DiaryAiChatController with ChangeNotifier {
   final chatScrollController = ScrollController();
   // for chat system message (today's date)
   late String todayDate = '';
+  // default chatGPT system prompt
+  // TODO: fine-tuning 이후 prompt 수정
+  String chatGPTSystemPrompt =
+      "사용자의 감정 상태를 파악하고, 그에 맞는 위로와 공감을 표현하며, 필요한 경우 조언도 제공해 주세요. 사용자가 표현하는 감정과 상황에 따라 적절한 반응을 선택해 주세요. 친근하고 따뜻한 어투로 답해주세요.";
 
-  // // called on initState
-  // void loadDataAndSetting() {
-  //   todayDate = formatTimestamp(Timestamp.now())
-  // }
+  // called on initState
+  void loadDataAndSetting() {
+    if (!sendFirstMessage) {
+      getChatLogFromLocal();
+    } else {
+      dev.log('did not read data');
+    }
+  }
 
   // toggle the chat page view
   void toggleChatOpen() {
@@ -58,7 +68,7 @@ class DiaryAiChatController with ChangeNotifier {
   }
 
   void updateTexfieldMessage() {
-    dev.log(chatTextController.text);
+    // dev.log(chatTextController.text);
     notifyListeners();
   }
 
@@ -114,6 +124,21 @@ class DiaryAiChatController with ChangeNotifier {
     ),
   ];
 
+  List<ChatMessage> defaultChatLog = [
+    ChatMessage(
+      message: formatTimestamp(Timestamp.now()),
+      messenger: Messenger.system,
+      messageType: MessageType.chat,
+      messageTime: Timestamp.now(),
+    ),
+    ChatMessage(
+      message: '안녕! 무슨 일이야?',
+      messenger: Messenger.ai,
+      messageType: MessageType.chat,
+      messageTime: Timestamp.now(),
+    ),
+  ];
+
   // current chat log
   List<ChatMessage> chatlog = [
     ChatMessage(
@@ -162,9 +187,12 @@ class DiaryAiChatController with ChangeNotifier {
     chatTextController.clear();
 
     // call chatGPT response
-    getResponse();
+    getResponse().then((value) {
+      // save the chat log to the local storage
+      saveChatLogToLocal();
+    });
 
-    // save the chat log to the local storage
+    notifyListeners();
   }
 
   // when assistant message has submitted
@@ -180,20 +208,7 @@ class DiaryAiChatController with ChangeNotifier {
 
       // reset the chatlog (visible chat)
       chatlog.clear();
-      chatlog = [
-        ChatMessage(
-          message: formatTimestamp(Timestamp.now()),
-          messenger: Messenger.system,
-          messageType: MessageType.chat,
-          messageTime: Timestamp.now(),
-        ),
-        ChatMessage(
-          message: '안녕! 무슨 일이야?',
-          messenger: Messenger.ai,
-          messageType: MessageType.chat,
-          messageTime: Timestamp.now(),
-        ),
-      ];
+      chatlog = defaultChatLog;
 
       // reset the chat memory (for gpt prompt)
       chatMemory.clear();
@@ -201,20 +216,21 @@ class DiaryAiChatController with ChangeNotifier {
         OpenAIChatCompletionChoiceMessageModel(
           content: [
             OpenAIChatCompletionChoiceMessageContentItemModel.text(
-              // TODO: fine-tuning 이후 prompt 수정
-              "사용자의 감정 상태를 파악하고, 그에 맞는 위로와 공감을 표현하며, 필요한 경우 조언도 제공해 주세요. 사용자가 표현하는 감정과 상황에 따라 적절한 반응을 선택해 주세요. 친근하고 따뜻한 어투로 답해주세요.",
+              chatGPTSystemPrompt,
             ),
           ],
           role: OpenAIChatMessageRole.system,
         ),
       ];
 
-      for (int i = 0; i < chatMemory.length; i++) {
-        dev.log(chatMemory[i].content!.first.text.toString());
-      }
-      for (int i = 0; i < chatlog.length; i++) {
-        dev.log(chatlog[i].message);
-      }
+      deleteChatLogFromLocal();
+
+      // for (int i = 0; i < chatMemory.length; i++) {
+      //   dev.log(chatMemory[i].content!.first.text.toString());
+      // }
+      // for (int i = 0; i < chatlog.length; i++) {
+      //   dev.log(chatlog[i].message);
+      // }
     }
     notifyListeners();
   }
@@ -224,7 +240,7 @@ class DiaryAiChatController with ChangeNotifier {
 
   // send and get response from chatGPT (chatting model)
   // 추후 stream으로 답변 받아오기로 변경 고려
-  void getResponse() async {
+  Future<void> getResponse() async {
     toggleChatResponseLodaing(true);
     updateChatMemory();
 
@@ -235,7 +251,6 @@ class DiaryAiChatController with ChangeNotifier {
       // the actual request.
       OpenAIChatCompletionModel chatCompletion =
           await OpenAI.instance.chat.create(
-        // TODO: 향후 모델 결정 및 수정 필요
         model: "gpt-4o",
         messages: chatMemory,
         // 답변할 종류의 수
@@ -252,19 +267,17 @@ class DiaryAiChatController with ChangeNotifier {
 
       toggleChatResponseLodaing(false);
       updateAIChat(chatCompletion.choices.first.message.content!.first.text!);
-      chatlog.add(chatModel);
     } on SocketException catch (e) {
       dev.log(e.toString());
       toggleChatResponseLodaing(false);
       updateAIChat("인터넷 연결이 없는 것 같아. 확인해 줄 수 있을까?");
-      chatlog.add(chatModel);
     } on RequestFailedException catch (e) {
       dev.log(e.toString());
       toggleChatResponseLodaing(false);
       updateAIChat("이해가 안됐어. 다시 설명해 줄 수 있을까?");
-      chatlog.add(chatModel);
     }
 
+    chatlog.add(chatModel);
     notifyListeners();
   }
 
@@ -275,8 +288,7 @@ class DiaryAiChatController with ChangeNotifier {
       OpenAIChatCompletionChoiceMessageModel(
         content: [
           OpenAIChatCompletionChoiceMessageContentItemModel.text(
-            // TODO: fine-tuning 이후 prompt 수정
-            "사용자의 감정 상태를 파악하고, 그에 맞는 위로와 공감을 표현하며, 필요한 경우 조언도 제공해 주세요. 사용자가 표현하는 감정과 상황에 따라 적절한 반응을 선택해 주세요. 친근하고 따뜻한 어투로 답해주세요.",
+            chatGPTSystemPrompt,
           ),
         ],
         role: OpenAIChatMessageRole.system,
@@ -303,6 +315,41 @@ class DiaryAiChatController with ChangeNotifier {
         );
       }
     }
+  }
+
+  // read chat log from local storage
+  // TODO: 향후 단위 별로 채팅 기록을 읽어올 수 있도록 개선
+  void getChatLogFromLocal() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? jsonMessages = prefs.getStringList('localChatLog');
+
+    if (jsonMessages != null) {
+      dev.log('read chat log from local');
+      sendFirstMessage = true;
+      chatlog = jsonMessages
+          .map((jsonMessage) => ChatMessage.fromJson(jsonDecode(jsonMessage)))
+          .toList();
+    } else {
+      dev.log('there is no chat data');
+    }
+
+    notifyListeners();
+  }
+
+  // update chat log to local storage
+  void saveChatLogToLocal() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> jsonMessages =
+        chatlog.map((message) => jsonEncode(message.toJson())).toList();
+    await prefs.setStringList('localChatLog', jsonMessages);
+    dev.log('save chat log to local');
+  }
+
+  // delete chat log from local storage
+  void deleteChatLogFromLocal() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove('localChatLog');
+    dev.log('delete chat log from local');
   }
 
   // DB 저장은 향후 유료 기능 등으로 고려하기, 현재로는 로컬에 대화 기록 저장
