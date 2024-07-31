@@ -1,6 +1,7 @@
 import 'package:bandi_official/components/appbar/appbar.dart';
 import 'package:bandi_official/components/dialogue/dialogue.dart';
 import 'package:bandi_official/components/no_reuse/chat_message_bar.dart';
+import 'package:bandi_official/components/no_reuse/reset_dialogue.dart';
 import 'package:bandi_official/controller/diary_ai_chat_controller.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
@@ -15,11 +16,15 @@ class DiaryAIChatPage extends StatefulWidget {
 }
 
 class _DiaryAIChatPageState extends State<DiaryAIChatPage> {
-  bool disableLeadingButton = false;
-
   @override
   void initState() {
-    // TODO: implement initState
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      DiaryAiChatController diaryAiChatController =
+          Provider.of<DiaryAiChatController>(context, listen: false);
+
+      diaryAiChatController.loadDataAndSetting();
+    });
+
     super.initState();
   }
 
@@ -27,6 +32,7 @@ class _DiaryAIChatPageState extends State<DiaryAIChatPage> {
   Widget build(BuildContext context) {
     DiaryAiChatController diaryAiChatController =
         context.watch<DiaryAiChatController>();
+
     return Scaffold(
       resizeToAvoidBottomInset: true,
       backgroundColor: Colors.transparent,
@@ -37,11 +43,10 @@ class _DiaryAIChatPageState extends State<DiaryAIChatPage> {
           diaryAiChatController.toggleChatOpen();
         },
         onTrailingIconPressed: () {
-          // TODO: 대화 초기화 기능 호출
-          dev.log('wowowowo');
+          showResetDialog(context, diaryAiChatController);
         },
-        disableLeadingButton: disableLeadingButton,
-        disableTrailingButton: false,
+        disableLeadingButton: diaryAiChatController.isChatResponsLoading,
+        disableTrailingButton: diaryAiChatController.isChatResponsLoading,
         isVisibleLeadingButton: true,
         isVisibleTrailingButton: true,
       ),

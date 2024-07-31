@@ -18,14 +18,12 @@ class ChatMessageBar extends StatefulWidget {
 class _ChatMessageBarState extends State<ChatMessageBar> {
   // button pressed state (just for design)
   bool isSendButtonPressed = false;
-  final ScrollController listViewController = ScrollController();
+  late ScrollController listViewController;
 
   @override
   void initState() {
     super.initState();
-    listViewController.addListener(() {
-      setState(() {});
-    });
+    listViewController = ScrollController();
   }
 
   @override
@@ -38,6 +36,15 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
   Widget build(BuildContext context) {
     DiaryAiChatController diaryAiChatController =
         context.watch<DiaryAiChatController>();
+
+    bool sendButtonCondition() {
+      if (diaryAiChatController.chatTextController.text.trim().isEmpty ||
+          diaryAiChatController.isChatResponsLoading) {
+        return true;
+      } else {
+        return false;
+      }
+    }
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -58,7 +65,6 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                   children: [
                     Text(
                       '이렇게 대화를 시작해 보세요!',
-                      // TODO: 폰트 설정이 없음
                       style: BandiFont.headlineSmall(context)?.copyWith(
                         color: BandiColor.neutralColor100(context),
                       ),
@@ -74,7 +80,8 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                 child: ListView.builder(
                   controller: listViewController,
                   physics: (listViewController.hasClients &&
-                          (listViewController.position.maxScrollExtent) <
+                          (listViewController.position.maxScrollExtent +
+                                  MediaQuery.of(context).size.width) <=
                               MediaQuery.of(context).size.width)
                       ? const NeverScrollableScrollPhysics()
                       : const AlwaysScrollableScrollPhysics()
@@ -166,10 +173,7 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                   Padding(
                     padding: const EdgeInsets.only(right: 5.5),
                     child: GestureDetector(
-                      onTapDown: (diaryAiChatController.chatTextController.text
-                                  .trim()
-                                  .isEmpty ||
-                              diaryAiChatController.isChatResponsLoading)
+                      onTapDown: (sendButtonCondition())
                           ? null
                           : (_) {
                               dev.log('눌림!');
@@ -177,27 +181,16 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                                 isSendButtonPressed = true;
                               });
                             },
-                      onTapUp: (diaryAiChatController.chatTextController.text
-                                  .trim()
-                                  .isEmpty ||
-                              diaryAiChatController.isChatResponsLoading)
+                      onTapUp: (sendButtonCondition())
                           ? null
                           : (_) {
                               dev.log('실행!');
                               setState(() {
                                 isSendButtonPressed = false;
                               });
-                              if (diaryAiChatController.chatTextController.text
-                                  .trim()
-                                  .isNotEmpty) {
-                                diaryAiChatController.onMessageSubmitted();
-                              }
+                              diaryAiChatController.onMessageSubmitted();
                             },
-                      onTapCancel: (diaryAiChatController
-                                  .chatTextController.text
-                                  .trim()
-                                  .isEmpty ||
-                              diaryAiChatController.isChatResponsLoading)
+                      onTapCancel: (sendButtonCondition())
                           ? null
                           : () {
                               dev.log('취소!');
@@ -210,10 +203,7 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: (diaryAiChatController.chatTextController.text
-                                      .trim()
-                                      .isEmpty ||
-                                  diaryAiChatController.isChatResponsLoading)
+                          color: (sendButtonCondition())
                               ? BandiColor.neutralColor20(context) // Disabled
                               : (isSendButtonPressed)
                                   ? BandiColor.neutralColor60(
@@ -227,11 +217,7 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                             PhosphorIcons.paperPlaneRight(
                               PhosphorIconsStyle.fill,
                             ),
-                            color: (diaryAiChatController
-                                        .chatTextController.text
-                                        .trim()
-                                        .isEmpty ||
-                                    diaryAiChatController.isChatResponsLoading)
+                            color: (sendButtonCondition())
                                 ? BandiColor.neutralColor20(context) // Disabled
                                 : BandiColor.neutralColor80(context), // Default
                             size: 24,
