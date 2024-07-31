@@ -7,6 +7,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
+import 'controller/emotion_provider.dart';
 import 'controller/home_to_write.dart';
 import 'controller/navigation_toggle_provider.dart';
 import 'firebase_options.dart';

@@ -97,6 +97,7 @@ class _State extends State<FirstStep> {
               expands: true,
             ),
           ),
+          const SizedBox(height: 25,),
           CustomPrimaryButton(
             title: '완료',
             onPrimaryButtonPressed: () {
