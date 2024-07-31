@@ -14,6 +14,10 @@ class ThirdStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final writeProvider = Provider.of<HomeToWrite>(context);
+    TextEditingController titleController =
+        TextEditingController(text: writeProvider.title);
+    TextEditingController contentController =
+    TextEditingController(text: writeProvider.content);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -22,15 +26,14 @@ class ThirdStep extends StatelessWidget {
           mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  writeProvider.title,
-                  style: BandiFont.displaySmall(context)
-                      ?.copyWith(color: BandiColor.neutralColor100(context)),
-                ),
-              ],
+            Expanded(
+              child: TextField(
+                controller: titleController,
+                decoration: const InputDecoration(border: InputBorder.none),
+                cursorColor: BandiColor.neutralColor100(context),
+                style: BandiFont.displaySmall(context)
+                    ?.copyWith(color: BandiColor.neutralColor100(context)),
+              ),
             ),
             GestureDetector(
               onTap: () {
@@ -49,19 +52,24 @@ class ThirdStep extends StatelessWidget {
           height: 32,
         ),
         Expanded(
-          child: Text(
-            writeProvider.content,
+          child: TextField(
+            controller: contentController,
+            cursorColor: BandiColor.neutralColor100(context),
+            decoration: const InputDecoration(border: InputBorder.none),
+            maxLines: null,
+            expands: true,
             style: BandiFont.titleSmall(context)
                 ?.copyWith(color: BandiColor.neutralColor100(context)),
           ),
         ),
+        const SizedBox(height: 15,),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             containerBox(context, "반디가 분석한 감정"),
             GestureDetector(
                 onTap: () {
-                  showMoreBottomSheet(context, writeProvider);
+                  showMoreBottomSheet(context);
                 },
                 child: Text(
                   "더보기",
@@ -93,6 +101,8 @@ class ThirdStep extends StatelessWidget {
           child: CustomPrimaryButton(
             title: '완료',
             onPrimaryButtonPressed: () {
+              // 저장
+
               writeProvider.toggleWrite();
               writeProvider.initialize();
             },
@@ -103,4 +113,3 @@ class ThirdStep extends StatelessWidget {
     );
   }
 }
-
