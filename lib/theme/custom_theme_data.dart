@@ -244,7 +244,7 @@ class CustomThemeData {
     headlineMedium: TextStyle(
       fontFamily: "IBMPlexSansKR",
       fontSize: 16,
-      height: 20 / 16,
+      height: 26 / 16,
       fontWeight: FontWeight.w600, // SemiBold
     ),
     /**Body1 */
