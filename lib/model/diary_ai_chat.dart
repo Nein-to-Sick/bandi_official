@@ -103,6 +103,7 @@ class ChatMessage {
     return timestamp.millisecondsSinceEpoch;
   }
 
+  // time stamp formatting
   static String formatTimestamp(Timestamp timestamp) {
     // Timestamp to DateTime
     DateTime dateTime = timestamp.toDate();
@@ -115,5 +116,13 @@ class ChatMessage {
     String formattedTime = DateFormat('MM월 dd일 EEEE', 'ko').format(dateTime);
 
     return formattedTime;
+  }
+
+  // Function to calculate the difference in days between two timestamps
+  static int calculateDateDifference(
+      Timestamp timestamp1, Timestamp timestamp2) {
+    DateTime date1 = timestamp1.toDate();
+    DateTime date2 = timestamp2.toDate();
+    return (date1.difference(date2).inDays.abs());
   }
 }

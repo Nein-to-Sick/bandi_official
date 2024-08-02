@@ -3,6 +3,7 @@ import 'package:bandi_official/components/dialogue/dialogue.dart';
 import 'package:bandi_official/components/no_reuse/chat_message_bar.dart';
 import 'package:bandi_official/components/no_reuse/reset_dialogue.dart';
 import 'package:bandi_official/controller/diary_ai_chat_controller.dart';
+import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -16,6 +17,8 @@ class DiaryAIChatPage extends StatefulWidget {
 }
 
 class _DiaryAIChatPageState extends State<DiaryAIChatPage> {
+  bool loadMoreData = true;
+
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
@@ -23,6 +26,23 @@ class _DiaryAIChatPageState extends State<DiaryAIChatPage> {
           Provider.of<DiaryAiChatController>(context, listen: false);
 
       diaryAiChatController.loadDataAndSetting();
+
+      // when screen reached nearly top of the list load more past data
+      diaryAiChatController.chatScrollController.addListener(() async {
+        final position = diaryAiChatController.chatScrollController.position;
+        if (loadMoreData && position.atEdge && position.pixels != 0) {
+          if (diaryAiChatController
+                      .chatScrollController.position.userScrollDirection ==
+                  ScrollDirection.reverse &&
+              diaryAiChatController
+                          .chatScrollController.position.maxScrollExtent -
+                      diaryAiChatController
+                          .chatScrollController.position.pixels <=
+                  500) {
+            loadMoreData = await diaryAiChatController.loadMoreChatLogs();
+          }
+        }
+      });
     });
 
     super.initState();

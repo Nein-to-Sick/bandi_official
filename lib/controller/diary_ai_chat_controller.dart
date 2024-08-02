@@ -3,12 +3,12 @@ import 'dart:io';
 
 import 'package:bandi_official/model/diary_ai_chat.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:dart_openai/dart_openai.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:developer' as dev;
 
-import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class DiaryAiChatController with ChangeNotifier {
@@ -32,7 +32,7 @@ class DiaryAiChatController with ChangeNotifier {
   // default chatGPT system prompt
   // TODO: fine-tuning 이후 prompt 수정
   String chatGPTSystemPrompt =
-      "사용자의 감정 상태를 파악하고, 그에 맞는 위로와 공감을 표현하며, 필요한 경우 조언도 제공해 주세요. 사용자가 표현하는 감정과 상황에 따라 적절한 반응을 선택해 주세요. 친근하고 따뜻한 어투로 답해주세요.";
+      "사용자의 감정 상태를 파악하고, 그에 맞는 위로와 공감을 표현하며, 필요한 경우 조언도 제공해. 사용자가 표현하는 감정과 상황에 따라 적절한 반응을 선택해. 친근하고 일관된 어투로 답해.";
 
   // called on initState
   void loadDataAndSetting() {
@@ -110,8 +110,11 @@ class DiaryAiChatController with ChangeNotifier {
     ),
   ];
 
-  // current chat log
+  // current chat log that till displayed on screen
   List<ChatMessage> chatlog = ChatMessage.defaultChatLog();
+
+  // current loaded chat log dates
+  List<String> chatlogDates = [];
 
   // update user chatting
   void updateUserChat() {
@@ -133,19 +136,39 @@ class DiaryAiChatController with ChangeNotifier {
     );
   }
 
+  // update system chatting
+  void updateSystemChat() {
+    chatModel = ChatMessage(
+      message: ChatMessage.formatTimestamp(Timestamp.now()),
+      messenger: Messenger.system,
+      messageType: MessageType.chat,
+      messageTime: Timestamp.now(),
+    );
+  }
+
   // when user message has submitted
   void onMessageSubmitted() {
-    // make user message to ChatMessage model
-    updateUserChat();
     if (!sendFirstMessage) {
       sendFirstMessage = true;
     }
+
+    // when submitted message's date is different with latest message's date
+    if (ChatMessage.calculateDateDifference(
+            chatlog.last.messageTime, Timestamp.now()) >=
+        1) {
+      updateSystemChat();
+      chatlog.add(chatModel);
+    }
+
+    // add user message
+    updateUserChat();
     chatlog.add(chatModel);
     scrollChatScreenToBottom();
     chatTextController.clear();
 
     // call chatGPT response
     getResponse().then((value) {
+      scrollChatScreenToBottom();
       // save the chat log to the local storage
       saveChatLogToLocal();
     });
@@ -165,7 +188,6 @@ class DiaryAiChatController with ChangeNotifier {
       sendFirstMessage = false;
 
       // reset the chatlog (visible chat)
-      chatlog.clear();
       chatlog = ChatMessage.defaultChatLog();
 
       // reset the chat memory (for gpt prompt)
@@ -278,17 +300,29 @@ class DiaryAiChatController with ChangeNotifier {
   }
 
   // read chat log from local storage
-  // TODO: 향후 단위 별로 채팅 기록을 읽어올 수 있도록 개선
   void getChatLogFromLocal() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String>? jsonMessages = prefs.getStringList('localChatLog');
+    List<String> keys =
+        prefs.getKeys().where((key) => key.startsWith('chatLog_')).toList();
 
-    if (jsonMessages != null) {
-      dev.log('read chat log from local');
-      sendFirstMessage = true;
-      chatlog = jsonMessages
-          .map((jsonMessage) => ChatMessage.fromJson(jsonDecode(jsonMessage)))
-          .toList();
+    if (keys.isNotEmpty) {
+      // sorting by time
+      keys.sort();
+      // latest message List's key
+      String latestKey = keys.last;
+      List<String>? jsonMessages = prefs.getStringList(latestKey);
+
+      if (jsonMessages != null) {
+        dev.log('read chat log from local for date $latestKey');
+        sendFirstMessage = true;
+        chatlogDates.add(latestKey);
+        chatlog.clear();
+        chatlog = jsonMessages
+            .map((jsonMessage) => ChatMessage.fromJson(jsonDecode(jsonMessage)))
+            .toList();
+      } else {
+        dev.log('there is no chat data for date $latestKey');
+      }
     } else {
       dev.log('there is no chat data');
     }
@@ -299,17 +333,69 @@ class DiaryAiChatController with ChangeNotifier {
   // update chat log to local storage
   void saveChatLogToLocal() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
+    String todayKey =
+        'chatLog_${DateTime.now().toIso8601String().substring(0, 10)}';
+
+    // only save messages within same day
+    List<ChatMessage> todayMessages = chatlog.where((message) {
+      return ChatMessage.calculateDateDifference(
+              message.messageTime, Timestamp.now()) ==
+          0;
+    }).toList();
+
     List<String> jsonMessages =
-        chatlog.map((message) => jsonEncode(message.toJson())).toList();
-    await prefs.setStringList('localChatLog', jsonMessages);
-    dev.log('save chat log to local');
+        todayMessages.map((message) => jsonEncode(message.toJson())).toList();
+    await prefs.setStringList(todayKey, jsonMessages);
+    dev.log('save chat log to local for date $todayKey');
   }
 
   // delete chat log from local storage
   void deleteChatLogFromLocal() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.remove('localChatLog');
+    List<String> keys =
+        prefs.getKeys().where((key) => key.startsWith('chatLog_')).toList();
+    for (String key in keys) {
+      await prefs.remove(key);
+    }
     dev.log('delete chat log from local');
+  }
+
+  // load more chat logs from past
+  Future<bool> loadMoreChatLogs() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> keys =
+        prefs.getKeys().where((key) => key.startsWith('chatLog_')).toList();
+
+    if (keys.isNotEmpty) {
+      keys.sort();
+      // load older messages
+      for (String key in keys.reversed) {
+        if (!chatlogDates.contains(key)) {
+          List<String>? jsonMessages = prefs.getStringList(key);
+          if (jsonMessages != null) {
+            List<ChatMessage> additionalMessages = jsonMessages
+                .map((jsonMessage) =>
+                    ChatMessage.fromJson(jsonDecode(jsonMessage)))
+                .toList();
+            chatlog.insertAll(0, additionalMessages);
+            chatlogDates.add(key);
+            notifyListeners();
+            dev.log('read older chat log from local for date $key');
+
+            if (keys.indexOf(key) == 0) {
+              dev.log('there is no more older chat data');
+              return false;
+            }
+            break;
+          }
+        }
+      }
+    } else {
+      dev.log('there is no chatLog_');
+      return false;
+    }
+    notifyListeners();
+    return true;
   }
 
   // DB 저장은 향후 유료 기능 등으로 고려하기, 현재로는 로컬에 대화 기록 저장
@@ -320,6 +406,8 @@ class DiaryAiChatController with ChangeNotifier {
         .collection('userChatCollection')
         .add(message.toMap());
   }
+  
+
 
   // read chat log form firebase
   Stream<List<ChatMessage>> getMessagesFromFirebase() {
