@@ -109,19 +109,4 @@ class HomeToWrite with ChangeNotifier {
     cheerText = lst[Random().nextInt(lst.length)];
     notifyListeners();
   }
-
-  //--------------step 3--------------------------------------------------------
-
-  List<String> emotionOptions = ["감동적이다", "감탄하다", "고맙다", "괜찮다", "궁금하다", "기쁘다", "다행스럽다", "든든하다", "만족스럽다", "반갑다", "뿌듯하다", "사랑스럽다", "상쾌하다", "설레다", "신기하다", "신나다", "여유롭다", "열정적이다", "유쾌하다", "자랑스럽다", "자신있다", "좋다", "통쾌하다", "편안하다", "행복하다", "홀가분하다", "활기차다", "훈훈하다", "흠뻑취하다"];
-  List<String> selectedEmotions = [];
-
-  void addEmotion(String emotion) {
-    selectedEmotions.add(emotion);
-    notifyListeners();
-  }
-
-  void removeEmotion(String emotion) {
-    selectedEmotions.remove(emotion);
-    notifyListeners();
-  }
 }
