@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'dart:convert';
+import 'package:intl/intl.dart';
 
 enum Messenger {
   // 유저 메세지
@@ -29,6 +29,23 @@ class ChatMessage {
     required this.messageType,
     required this.messageTime,
   });
+
+  static List<ChatMessage> defaultChatLog() {
+    return [
+      ChatMessage(
+        message: formatTimestamp(Timestamp.now()),
+        messenger: Messenger.system,
+        messageType: MessageType.chat,
+        messageTime: Timestamp.now(),
+      ),
+      ChatMessage(
+        message: '안녕! 무슨 일이야?',
+        messenger: Messenger.ai,
+        messageType: MessageType.chat,
+        messageTime: Timestamp.now(),
+      ),
+    ];
+  }
 
   // make ChatMessage from Firestore documents
   factory ChatMessage.fromFirestore(DocumentSnapshot doc) {
@@ -84,5 +101,28 @@ class ChatMessage {
   //  Timestamp to int
   int timestampToMilliseconds(Timestamp timestamp) {
     return timestamp.millisecondsSinceEpoch;
+  }
+
+  // time stamp formatting
+  static String formatTimestamp(Timestamp timestamp) {
+    // Timestamp to DateTime
+    DateTime dateTime = timestamp.toDate();
+
+    /*
+    String formattedTime =
+         DateFormat('yyyy년 MM월 dd일 EEEE', 'ko').format(dateTime);
+    */
+    // formate date time
+    String formattedTime = DateFormat('MM월 dd일 EEEE', 'ko').format(dateTime);
+
+    return formattedTime;
+  }
+
+  // Function to calculate the difference in days between two timestamps
+  static int calculateDateDifference(
+      Timestamp timestamp1, Timestamp timestamp2) {
+    DateTime date1 = timestamp1.toDate();
+    DateTime date2 = timestamp2.toDate();
+    return (date1.difference(date2).inDays.abs());
   }
 }

@@ -61,7 +61,7 @@ class _CustomResetDialogueState extends State<CustomResetDialogue> {
         borderRadius: BandiEffects.radius(),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 27),
-      backgroundColor: BandiColor.neutralColor10(context),
+      backgroundColor: BandiColor.neutralColor80(context),
       content: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
@@ -69,7 +69,7 @@ class _CustomResetDialogueState extends State<CustomResetDialogue> {
           Text(
             '대화 내용을 리셋하실건가요? 리셋한 대화내용은 다시 볼 수 없어요.',
             style: BandiFont.headlineMedium(context)
-                ?.copyWith(color: BandiColor.foundationColor80(context)),
+                ?.copyWith(color: BandiColor.foundationColor60(context)),
             textAlign: TextAlign.center,
           ),
           const SizedBox(
