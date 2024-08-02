@@ -16,6 +16,8 @@ class FirstStep extends StatefulWidget {
 class _State extends State<FirstStep> {
   late TextEditingController _textEditingController;
   late FocusNode _focusNode;
+  // 사용자가 입력한 값을 저장하는 변수
+  String textContent = "";
 
   @override
   void initState() {
@@ -86,20 +88,23 @@ class _State extends State<FirstStep> {
               ),
               onChanged: (value) {
                 setState(() {
-                  _textEditingController.text = value;
+                  // _textEditingController.text = value;
+                  /* 변경 : 값을 문자열 변수에 업데이트 */
+                  setState(() => textContent = _textEditingController.text);
                 });
               },
               maxLines: null,
               expands: true,
             ),
           ),
+          const SizedBox(height: 25,),
           CustomPrimaryButton(
             title: '완료',
             onPrimaryButtonPressed: () {
-              writeProvider.aiAndSaveDairy(_textEditingController.text);
+              writeProvider.aiAndSaveDairy(textContent);
               writeProvider.nextWrite(2);
             },
-            disableButton: _textEditingController.text.isNotEmpty ? false : true,
+            disableButton: textContent.isNotEmpty ? false : true,
           ),
           const SizedBox(height: 16,),
         ],

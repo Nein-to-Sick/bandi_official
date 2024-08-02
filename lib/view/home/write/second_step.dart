@@ -39,9 +39,14 @@ class SecondStep extends StatelessWidget {
                 )
               ],
             ),
-            PhosphorIcon(
-              PhosphorIcons.pencilSimple(),
-              color: BandiColor.neutralColor40(context),
+            GestureDetector(
+              onTap: () {
+                writeProvider.nextWrite(3);
+              },
+              child: PhosphorIcon(
+                PhosphorIcons.pencilSimple(),
+                color: BandiColor.neutralColor40(context),
+              ),
             )
           ],
         ),
@@ -49,12 +54,15 @@ class SecondStep extends StatelessWidget {
           height: 16,
         ),
         Expanded(
-          child: Text(
-            writeProvider.content,
-            style: BandiFont.titleSmall(context)
-                ?.copyWith(color: BandiColor.neutralColor100(context)),
+          child: SingleChildScrollView(
+            child: Text(
+              writeProvider.content,
+              style: BandiFont.titleSmall(context)
+                  ?.copyWith(color: BandiColor.neutralColor100(context)),
+            ),
           ),
         ),
+        const SizedBox(height: 15,),
         containerBox(context, "반디가 분석한 감정"),
         const SizedBox(
           height: 8,
@@ -91,7 +99,8 @@ class SecondStep extends StatelessWidget {
           child: CustomPrimaryButton(
             title: '확인',
             onPrimaryButtonPressed: () {
-              writeProvider.nextWrite(3);
+              writeProvider.toggleWrite();
+              writeProvider.initialize();
             },
             disableButton: false,
           ),
