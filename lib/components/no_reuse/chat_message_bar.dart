@@ -59,7 +59,7 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                 height: 8,
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 26),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
@@ -92,13 +92,13 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                   itemBuilder: (context, index) {
                     return Padding(
                       padding: EdgeInsets.only(
-                          left: 13,
-                          right: (index ==
-                                  diaryAiChatController
-                                          .assistantMessage.length -
-                                      1)
-                              ? 13
-                              : 0),
+                        left: (index == 0) ? 24 : 12,
+                        right: (index ==
+                                diaryAiChatController.assistantMessage.length -
+                                    1)
+                            ? 24
+                            : 0,
+                      ),
                       child: CustomDialogue(
                         chatMessage:
                             diaryAiChatController.assistantMessage[index],
@@ -154,24 +154,24 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                         keyboardType: TextInputType.multiline,
                         maxLines: null,
                         cursorColor: BandiColor.neutralColor100(context),
-                        style: BandiFont.headlineLarge(context)?.copyWith(
+                        style: BandiFont.labelMedium(context)?.copyWith(
                           color: BandiColor.neutralColor100(context),
                         ),
                         decoration: InputDecoration(
                           hintText: (diaryAiChatController.isChatResponsLoading)
                               ? '답변 중이에요'
                               : '대화를 시작해보세요',
-                          hintStyle: BandiFont.headlineLarge(context)?.copyWith(
-                            color: BandiColor.neutralColor100(context),
+                          hintStyle: BandiFont.labelMedium(context)?.copyWith(
+                            color: BandiColor.neutralColor40(context),
                           ),
                           border: InputBorder.none,
-                          contentPadding: const EdgeInsets.only(left: 5.5),
+                          contentPadding: const EdgeInsets.only(left: 20),
                         ),
                       ),
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(right: 5.5),
+                    padding: const EdgeInsets.only(right: 10),
                     child: GestureDetector(
                       onTapDown: (sendButtonCondition())
                           ? null
