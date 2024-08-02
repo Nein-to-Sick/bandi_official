@@ -88,20 +88,6 @@ class DiaryAiChatController with ChangeNotifier {
     );
   }
 
-  static String formatTimestamp(Timestamp timestamp) {
-    // Timestamp to DateTime
-    DateTime dateTime = timestamp.toDate();
-
-    /*
-    String formattedTime =
-         DateFormat('yyyy년 MM월 dd일 EEEE', 'ko').format(dateTime);
-    */
-    // formate date time
-    String formattedTime = DateFormat('MM월 dd일 EEEE', 'ko').format(dateTime);
-
-    return formattedTime;
-  }
-
   // recommanded system message
   List<ChatMessage> assistantMessage = [
     ChatMessage(
@@ -111,7 +97,7 @@ class DiaryAiChatController with ChangeNotifier {
       messageTime: Timestamp.now(),
     ),
     ChatMessage(
-      message: '오늘 기분이 별로야 응원해 줘',
+      message: '오늘 기분이 별로야... 응원해 줘',
       messenger: Messenger.assistant,
       messageType: MessageType.chat,
       messageTime: Timestamp.now(),
@@ -124,36 +110,8 @@ class DiaryAiChatController with ChangeNotifier {
     ),
   ];
 
-  List<ChatMessage> defaultChatLog = [
-    ChatMessage(
-      message: formatTimestamp(Timestamp.now()),
-      messenger: Messenger.system,
-      messageType: MessageType.chat,
-      messageTime: Timestamp.now(),
-    ),
-    ChatMessage(
-      message: '안녕! 무슨 일이야?',
-      messenger: Messenger.ai,
-      messageType: MessageType.chat,
-      messageTime: Timestamp.now(),
-    ),
-  ];
-
   // current chat log
-  List<ChatMessage> chatlog = [
-    ChatMessage(
-      message: formatTimestamp(Timestamp.now()),
-      messenger: Messenger.system,
-      messageType: MessageType.chat,
-      messageTime: Timestamp.now(),
-    ),
-    ChatMessage(
-      message: '안녕! 무슨 일이야?',
-      messenger: Messenger.ai,
-      messageType: MessageType.chat,
-      messageTime: Timestamp.now(),
-    ),
-  ];
+  List<ChatMessage> chatlog = ChatMessage.defaultChatLog();
 
   // update user chatting
   void updateUserChat() {
@@ -208,7 +166,7 @@ class DiaryAiChatController with ChangeNotifier {
 
       // reset the chatlog (visible chat)
       chatlog.clear();
-      chatlog = defaultChatLog;
+      chatlog = ChatMessage.defaultChatLog();
 
       // reset the chat memory (for gpt prompt)
       chatMemory.clear();
@@ -231,6 +189,8 @@ class DiaryAiChatController with ChangeNotifier {
       // for (int i = 0; i < chatlog.length; i++) {
       //   dev.log(chatlog[i].message);
       // }
+    } else {
+      Navigator.pop(context);
     }
     notifyListeners();
   }
