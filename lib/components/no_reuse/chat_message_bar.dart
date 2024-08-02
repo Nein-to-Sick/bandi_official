@@ -114,11 +114,12 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                   },
                 ),
               ),
+              const SizedBox(
+                height: 15,
+              ),
             ],
           ),
-        const SizedBox(
-          height: 15,
-        ),
+
         // chat message bar and send button
         ClipRRect(
           child: BackdropFilter(
