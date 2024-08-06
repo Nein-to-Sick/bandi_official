@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:bandi_official/model/diary.dart';
@@ -9,31 +10,8 @@ import 'dart:developer' as dev;
 import 'package:intl/intl.dart';
 
 class DiaryAIAnalysisController with ChangeNotifier {
-  late Diary userDairyModel;
-
-  //  TODO: diary controller로 향후 전환 필요?
-  updateUserDiaryContent(String content) {
-    userDairyModel.content = content.trim();
-    notifyListeners();
-  }
-
-  updateUserDiaryTitle(String title) {
-    userDairyModel.title = title.trim();
-    notifyListeners();
-  }
-
-  updateUserDiaryKeyword(List<String> keyword) {
-    userDairyModel.keyword = keyword;
-    notifyListeners();
-  }
-
-  updateUserDiaryDate(String date) {
-    userDairyModel.date = date;
-    notifyListeners();
-  }
-
   //  analyze diary emotion keywords
-  void analyzeDiaryKeyword() async {
+  void analyzeDiaryKeyword(Diary diaryModel) async {
     try {
       // Initializes the package with that API key
       OpenAI.apiKey = dotenv.env['OPENAI_API_KEY']!;
@@ -51,7 +29,7 @@ class DiaryAIAnalysisController with ChangeNotifier {
       final userMessageForKeyword = OpenAIChatCompletionChoiceMessageModel(
         content: [
           OpenAIChatCompletionChoiceMessageContentItemModel.text(
-            userDairyModel.content,
+            diaryModel.content,
           ),
         ],
         role: OpenAIChatMessageRole.user,
@@ -80,18 +58,20 @@ class DiaryAIAnalysisController with ChangeNotifier {
         temperature: 0.8,
       );
 
-      //  TODO: keyword update 함수 호출
       dev.log(keywordCompletion.choices.first.message.content!.first.text!);
+      diaryModel.emotion = extractKeywords(
+          keywordCompletion.choices.first.message.content!.first.text!);
     } on SocketException catch (e) {
       dev.log(e.toString());
     } on RequestFailedException catch (e) {
       dev.log(e.toString());
-      // TODO: keyword update > 비워서 호출
+      diaryModel.emotion = [''];
     }
+    notifyListeners();
   }
 
   //  analyze diary title
-  void analyzeDiaryTitle() async {
+  void analyzeDiaryTitle(Diary diaryModel) async {
     try {
       // Initializes the package with that API key
       OpenAI.apiKey = dotenv.env['OPENAI_API_KEY']!;
@@ -109,7 +89,7 @@ class DiaryAIAnalysisController with ChangeNotifier {
       final userMessageForKeyword = OpenAIChatCompletionChoiceMessageModel(
         content: [
           OpenAIChatCompletionChoiceMessageContentItemModel.text(
-            userDairyModel.content,
+            diaryModel.content,
           ),
         ],
         role: OpenAIChatMessageRole.user,
@@ -138,20 +118,22 @@ class DiaryAIAnalysisController with ChangeNotifier {
         temperature: 0.8,
       );
 
-      //  TODO: title update 함수 호출
       dev.log(titleCompletion.choices.first.message.content!.first.text!);
+      diaryModel.title =
+          titleCompletion.choices.first.message.content!.first.text!;
     } on SocketException catch (e) {
       dev.log(e.toString());
     } on RequestFailedException catch (e) {
       dev.log(e.toString());
       String tempDiaryTitle =
           "${DateFormat('yyyy-MM-dd').format(DateTime.now()).toString()}의 일기";
-      updateUserDiaryTitle(tempDiaryTitle);
+      diaryModel.title = tempDiaryTitle;
     }
+    notifyListeners();
   }
 
   //  analyze diary encouragement
-  void analyzeDiaryEncouragement() async {
+  void analyzeDiaryEncouragement(Diary diaryModel) async {
     try {
       // Initializes the package with that API key
       OpenAI.apiKey = dotenv.env['OPENAI_API_KEY']!;
@@ -160,7 +142,7 @@ class DiaryAIAnalysisController with ChangeNotifier {
       final systemMessageForKeyword = OpenAIChatCompletionChoiceMessageModel(
         content: [
           OpenAIChatCompletionChoiceMessageContentItemModel.text(
-            "Given a diary entry, provide encouragement based on its content in Korean.",
+            "Provide encouragement in one Korean sentence based on the content of the diary entry",
           ),
         ],
         role: OpenAIChatMessageRole.system,
@@ -169,7 +151,7 @@ class DiaryAIAnalysisController with ChangeNotifier {
       final userMessageForKeyword = OpenAIChatCompletionChoiceMessageModel(
         content: [
           OpenAIChatCompletionChoiceMessageContentItemModel.text(
-            userDairyModel.content,
+            diaryModel.content,
           ),
         ],
         role: OpenAIChatMessageRole.user,
@@ -200,11 +182,29 @@ class DiaryAIAnalysisController with ChangeNotifier {
 
       dev.log(
           encouragementCompletion.choices.first.message.content!.first.text!);
+      diaryModel.cheerText =
+          encouragementCompletion.choices.first.message.content!.first.text!;
     } on SocketException catch (e) {
       dev.log(e.toString());
     } on RequestFailedException catch (e) {
       dev.log(e.toString());
-      // TODO: 임시 문구 or 예외 처리 방법 고안
+      // 비어있을 경우 화면에 보이지 않음
+      diaryModel.cheerText = "";
     }
+    notifyListeners();
+  }
+
+  List<String> extractKeywords(String jsonString) {
+    // JSON 문자열을 Map으로 변환
+    Map<String, dynamic> jsonMap = jsonDecode(jsonString);
+
+    // 'emotions' 필드 값을 가져와서 문자열로 저장
+    String emotionsString = jsonMap['emotions'];
+
+    // 문자열을 ','로 분리하고, 공백을 제거하여 리스트로 변환
+    List<String> emotionsList =
+        emotionsString.split(',').map((e) => e.trim()).toList();
+
+    return emotionsList;
   }
 }

@@ -7,7 +7,7 @@ import '../../../controller/home_to_write.dart';
 import '../../../theme/custom_theme_data.dart';
 
 class FirstStep extends StatefulWidget {
-  const FirstStep ({Key? key}) : super(key: key);
+  const FirstStep({Key? key}) : super(key: key);
 
   @override
   State<FirstStep> createState() => _State();
@@ -16,8 +16,6 @@ class FirstStep extends StatefulWidget {
 class _State extends State<FirstStep> {
   late TextEditingController _textEditingController;
   late FocusNode _focusNode;
-  // 사용자가 입력한 값을 저장하는 변수
-  String textContent = "";
 
   @override
   void initState() {
@@ -90,23 +88,29 @@ class _State extends State<FirstStep> {
                 setState(() {
                   // _textEditingController.text = value;
                   /* 변경 : 값을 문자열 변수에 업데이트 */
-                  setState(() => textContent = _textEditingController.text);
+                  setState(() => writeProvider.diaryModel.content =
+                      _textEditingController.text);
                 });
               },
               maxLines: null,
               expands: true,
             ),
           ),
-          const SizedBox(height: 25,),
+          const SizedBox(
+            height: 25,
+          ),
           CustomPrimaryButton(
             title: '완료',
             onPrimaryButtonPressed: () {
-              writeProvider.aiAndSaveDairy(textContent);
+              writeProvider.aiAndSaveDairy(context);
               writeProvider.nextWrite(2);
             },
-            disableButton: textContent.isNotEmpty ? false : true,
+            disableButton:
+                writeProvider.diaryModel.content.isNotEmpty ? false : true,
           ),
-          const SizedBox(height: 16,),
+          const SizedBox(
+            height: 16,
+          ),
         ],
       ),
     );
