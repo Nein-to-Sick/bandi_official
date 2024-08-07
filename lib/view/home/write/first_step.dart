@@ -85,12 +85,8 @@ class _State extends State<FirstStep> {
                 ),
               ),
               onChanged: (value) {
-                setState(() {
-                  // _textEditingController.text = value;
-                  /* 변경 : 값을 문자열 변수에 업데이트 */
-                  setState(() => writeProvider.diaryModel.content =
-                      _textEditingController.text);
-                });
+                setState(() => writeProvider.diaryModel.content =
+                    _textEditingController.text);
               },
               maxLines: null,
               expands: true,
