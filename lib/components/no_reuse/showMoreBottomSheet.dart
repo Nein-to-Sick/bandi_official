@@ -20,7 +20,7 @@ class _EmotionBottomSheetState extends State<EmotionBottomSheet> {
         builder: (context, provider, child) {
           double flag = 0;
           int index = provider.emotionKeys.indexOf(provider.selectedEmotion);
-          if(index < 3) {
+          if (index < 3) {
             flag = 3;
           } else if (index == 3) {
             flag = 1;
@@ -61,9 +61,11 @@ class _EmotionBottomSheetState extends State<EmotionBottomSheet> {
                                     style: BandiFont.headlineMedium(context)
                                         ?.copyWith(
                                       color: provider.selectedEmotion ==
-                                          provider.emotionKeys[i]
-                                          ? BandiColor.foundationColor100(context)
-                                          : BandiColor.foundationColor20(context),
+                                              provider.emotionKeys[i]
+                                          ? BandiColor.foundationColor100(
+                                              context)
+                                          : BandiColor.foundationColor20(
+                                              context),
                                     ),
                                   ),
                                   const SizedBox(height: 8),
@@ -80,58 +82,78 @@ class _EmotionBottomSheetState extends State<EmotionBottomSheet> {
                               duration: const Duration(milliseconds: 300),
                               curve: Curves.easeInOut,
                               bottom: 0,
-                              left: (MediaQuery.of(context).size.width - 25) / 6 *
-                                  provider.emotionKeys
-                                      .indexOf(provider.selectedEmotion) + 22 + flag * (provider.emotionKeys
-                                  .indexOf(provider.selectedEmotion)),
+                              left: (MediaQuery.of(context).size.width - 25) /
+                                      6 *
+                                      provider.emotionKeys
+                                          .indexOf(provider.selectedEmotion) +
+                                  22 +
+                                  flag *
+                                      (provider.emotionKeys
+                                          .indexOf(provider.selectedEmotion)),
                               child: Container(
-                                width: (MediaQuery.of(context).size.width - 115) / 6,
+                                width:
+                                    (MediaQuery.of(context).size.width - 115) /
+                                        6,
                                 height: 2,
                                 color: BandiColor.foundationColor100(context),
                               ),
                             ),
-                            Divider(height: 1, color: BandiColor.foundationColor10(context)),
-                            Container(height: 2,)
+                            Divider(
+                                height: 1,
+                                color: BandiColor.foundationColor10(context)),
+                            Container(
+                              height: 2,
+                            )
                           ],
                         ),
                       ),
-            
                     ],
                   ),
                   Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 24, left: 24, right: 24),
-                      child: Wrap(
-                        spacing: 8.0,
-                        runSpacing: 8.0,
-                        children: provider.emotionOptions.map<Widget>((emotion) {
-                          return GestureDetector(
-                            onTap: () {
-                              if (provider.selectedEmotions.contains(emotion)) {
-                                provider.removeEmotion(emotion);
-                              } else {
-                                provider.addEmotion(emotion);
-                              }
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(8.0),
-                              decoration: BoxDecoration(
-                                color: provider.selectedEmotions.contains(emotion)
-                                    ? BandiColor.foundationColor100(context) // selected color
-                                    : BandiColor.foundationColor10(context), // unselected color
-                                borderRadius: BandiEffects.radius(),
-                              ),
-                              child: Text(
-                                emotion,
-                                style: BandiFont.bodySmall(context)?.copyWith(
-                                  color: provider.selectedEmotions.contains(emotion)
-                                      ? BandiColor.neutralColor80(context) // selected text color
-                                      : BandiColor.foundationColor20(context), // unselected text color
+                    child: SingleChildScrollView(
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                            top: 24, left: 24, right: 24, bottom: 24),
+                        child: Wrap(
+                          spacing: 8.0,
+                          runSpacing: 8.0,
+                          children:
+                              provider.emotionOptions.map<Widget>((emotion) {
+                            return GestureDetector(
+                              onTap: () {
+                                if (provider.selectedEmotions
+                                    .contains(emotion)) {
+                                  provider.removeEmotion(emotion);
+                                } else {
+                                  provider.addEmotion(emotion);
+                                }
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(8.0),
+                                decoration: BoxDecoration(
+                                  color: provider.selectedEmotions
+                                          .contains(emotion)
+                                      ? BandiColor.foundationColor100(
+                                          context) // selected color
+                                      : BandiColor.foundationColor10(
+                                          context), // unselected color
+                                  borderRadius: BandiEffects.radius(),
+                                ),
+                                child: Text(
+                                  emotion,
+                                  style: BandiFont.bodySmall(context)?.copyWith(
+                                    color: provider.selectedEmotions
+                                            .contains(emotion)
+                                        ? BandiColor.neutralColor80(
+                                            context) // selected text color
+                                        : BandiColor.foundationColor20(
+                                            context), // unselected text color
+                                  ),
                                 ),
                               ),
-                            ),
-                          );
-                        }).toList(),
+                            );
+                          }).toList(),
+                        ),
                       ),
                     ),
                   ),

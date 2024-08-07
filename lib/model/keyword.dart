@@ -119,4 +119,33 @@ class Keyword {
       "없음",
     ],
   };
+
+  Map<String, List<String>> getEmotionChipOptions() {
+    final Map<String, List<String>> emotionChipOptions = {};
+
+    emotionMap.forEach((emotion, keywords) {
+      switch (emotion) {
+        case Emotion.happiness:
+          emotionChipOptions[largeCategories[0]] = keywords;
+          break;
+        case Emotion.fear:
+          emotionChipOptions[largeCategories[1]] = keywords;
+          break;
+        case Emotion.discomfort:
+          emotionChipOptions[largeCategories[2]] = keywords;
+          break;
+        case Emotion.anger:
+          emotionChipOptions[largeCategories[3]] = keywords;
+          break;
+        case Emotion.sadness:
+          emotionChipOptions[largeCategories[4]] = keywords;
+          break;
+        case Emotion.unknown:
+          emotionChipOptions[largeCategories[5]] = keywords;
+          break;
+      }
+    });
+
+    return emotionChipOptions;
+  }
 }

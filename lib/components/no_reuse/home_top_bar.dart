@@ -21,9 +21,12 @@ class HomeTopBar extends StatelessWidget {
       children: [
         // 일기 open
         AnimatedOpacity(
-            opacity: writeProvider.write ? 1.0 : 0.0,
-            duration: const Duration(milliseconds: 300),
-            child: writeProvider.write ? const WriteDiary() : Container()),
+          opacity: writeProvider.write ? 1.0 : 0.0,
+          duration: const Duration(milliseconds: 300),
+          child: writeProvider.write
+              ? const WriteDiary()
+              : const SizedBox.shrink(),
+        ),
         // ai chat open
         AnimatedOpacity(
           opacity: (diaryAiChatController.isChatOpen) ? 1.0 : 0.0,
