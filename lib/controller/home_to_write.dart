@@ -50,24 +50,16 @@ class HomeToWrite with ChangeNotifier {
 
   //--------------step 2--------------------------------------------------------
 
-  String title = "";
-  List emotion = [];
-  String content = "";
-  String cheerText = "";
   void initialize() {
     // model을 빈 변수로 초기화
     diaryModel.initializeFields();
-    title = "";
-    emotion = [];
-    content = "";
-    cheerText = "";
     step = 1;
     notifyListeners();
   }
 
   Future<void> aiAndSaveDairy(BuildContext context) async {
     await aiDiary(context);
-    await saveDiary(title, content, emotion);
+    await saveDiary();
   }
 
   Future<void> aiDiary(BuildContext context) async {
@@ -76,15 +68,14 @@ class HomeToWrite with ChangeNotifier {
 
     // 각 analysis 함수에서 diary 모델의 변수를 초기화 하고 notifyListeners()를 호출합니다.
     // 화면에 보여지는 변수를 model의 변수로 변경하면 됩니다.
-    diaryAIAnalysisController.analyzeDiaryKeyword(diaryModel);
-    diaryAIAnalysisController.analyzeDiaryTitle(diaryModel);
-    diaryAIAnalysisController.analyzeDiaryEncouragement(diaryModel);
+    await diaryAIAnalysisController.analyzeDiaryKeyword(diaryModel);
+    await diaryAIAnalysisController.analyzeDiaryTitle(diaryModel);
+    await diaryAIAnalysisController.analyzeDiaryEncouragement(diaryModel);
 
-    this.content = content;
     notifyListeners();
   }
 
-  Future<void> saveDiary(String title, String content, List emotion) async {
+  Future<void> saveDiary() async {
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
     final userId = "21jPhIHrf7iBwVAh92ZW"; // 실제 사용자 ID로 교체 필요
 
@@ -112,9 +103,9 @@ class HomeToWrite with ChangeNotifier {
       // Create the diary data
       final diaryData = {
         'userId': userId,
-        'title': title,
-        'content': content,
-        'emotion': emotion,
+        'title': diaryModel.title,
+        'content': diaryModel.content,
+        'emotion': diaryModel.emotion,
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
         'reaction': [0, 0, 0],

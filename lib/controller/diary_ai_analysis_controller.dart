@@ -11,7 +11,7 @@ import 'package:intl/intl.dart';
 
 class DiaryAIAnalysisController with ChangeNotifier {
   //  analyze diary emotion keywords
-  void analyzeDiaryKeyword(Diary diaryModel) async {
+  Future<void> analyzeDiaryKeyword(Diary diaryModel) async {
     try {
       // Initializes the package with that API key
       OpenAI.apiKey = dotenv.env['OPENAI_API_KEY']!;
@@ -71,7 +71,7 @@ class DiaryAIAnalysisController with ChangeNotifier {
   }
 
   //  analyze diary title
-  void analyzeDiaryTitle(Diary diaryModel) async {
+  Future<void> analyzeDiaryTitle(Diary diaryModel) async {
     try {
       // Initializes the package with that API key
       OpenAI.apiKey = dotenv.env['OPENAI_API_KEY']!;
@@ -133,7 +133,7 @@ class DiaryAIAnalysisController with ChangeNotifier {
   }
 
   //  analyze diary encouragement
-  void analyzeDiaryEncouragement(Diary diaryModel) async {
+  Future<void> analyzeDiaryEncouragement(Diary diaryModel) async {
     try {
       // Initializes the package with that API key
       OpenAI.apiKey = dotenv.env['OPENAI_API_KEY']!;

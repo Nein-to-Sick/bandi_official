@@ -25,7 +25,9 @@ class SecondStep extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  writeProvider.title,
+                  writeProvider.diaryModel.title == "title"
+                      ? "제목 생성 중...."
+                      : writeProvider.diaryModel.title,
                   style: BandiFont.displaySmall(context)
                       ?.copyWith(color: BandiColor.neutralColor100(context)),
                 ),
@@ -56,30 +58,41 @@ class SecondStep extends StatelessWidget {
         Expanded(
           child: SingleChildScrollView(
             child: Text(
-              writeProvider.content,
+              writeProvider.diaryModel.content,
               style: BandiFont.titleSmall(context)
                   ?.copyWith(color: BandiColor.neutralColor100(context)),
             ),
           ),
         ),
-        const SizedBox(height: 15,),
+        const SizedBox(
+          height: 15,
+        ),
         containerBox(context, "반디가 분석한 감정"),
         const SizedBox(
           height: 8,
         ),
-        Row(
-          children: [
-            for (String emotion in writeProvider.emotion)
-              Padding(
-                padding: const EdgeInsets.only(right: 8.0),
-                child: Text(
-                  "#$emotion",
-                  style: BandiFont.titleSmall(context)
-                      ?.copyWith(color: BandiColor.neutralColor100(context)),
+        (writeProvider.diaryModel.emotion.length == 1 && writeProvider.diaryModel.emotion[0] == "emotion")
+            ? Text(
+                "감정 파악 중...",
+                style: BandiFont.titleSmall(context)
+                    ?.copyWith(color: BandiColor.neutralColor100(context)),
+              )
+            : SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    for (String emotion in writeProvider.diaryModel.emotion)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: Text(
+                          "#$emotion",
+                          style: BandiFont.titleSmall(context)?.copyWith(
+                              color: BandiColor.neutralColor100(context)),
+                        ),
+                      ),
+                  ],
                 ),
               ),
-          ],
-        ),
         const SizedBox(
           height: 16,
         ),
@@ -88,7 +101,9 @@ class SecondStep extends StatelessWidget {
           height: 8,
         ),
         Text(
-          "\"${writeProvider.cheerText}\"",
+          writeProvider.diaryModel.cheerText == ''
+              ? "할 말 생각중..."
+              : "\"${writeProvider.diaryModel.cheerText}\"",
           style: BandiFont.titleSmall(context)
               ?.copyWith(color: BandiColor.neutralColor100(context)),
         ),
