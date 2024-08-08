@@ -15,9 +15,9 @@ class ThirdStep extends StatelessWidget {
   Widget build(BuildContext context) {
     final writeProvider = Provider.of<HomeToWrite>(context);
     TextEditingController titleController =
-        TextEditingController(text: writeProvider.title);
+        TextEditingController(text: writeProvider.diaryModel.title);
     TextEditingController contentController =
-    TextEditingController(text: writeProvider.content);
+    TextEditingController(text: writeProvider.diaryModel.content);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -81,18 +81,21 @@ class ThirdStep extends StatelessWidget {
         const SizedBox(
           height: 8,
         ),
-        Row(
-          children: [
-            for (String emotion in writeProvider.emotion)
-              Padding(
-                padding: const EdgeInsets.only(right: 8.0),
-                child: Text(
-                  "#$emotion",
-                  style: BandiFont.titleSmall(context)
-                      ?.copyWith(color: BandiColor.neutralColor100(context)),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              for (String emotion in writeProvider.diaryModel.emotion)
+                Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: Text(
+                    "#$emotion",
+                    style: BandiFont.titleSmall(context)
+                        ?.copyWith(color: BandiColor.neutralColor100(context)),
+                  ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
         const SizedBox(
           height: 24,

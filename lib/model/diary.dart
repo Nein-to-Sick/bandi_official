@@ -20,6 +20,7 @@ class Diary {
     required this.updatedAt,
     required this.reaction,
     required this.diaryId,
+    this.cheerText = ''
   });
 
   // Factory constructor to create a Diary instance from a Firestore snapshot
@@ -75,5 +76,6 @@ class Diary {
     updatedAt = Timestamp.now();
     reaction = [0, 0, 0];
     diaryId = '';
+    cheerText = '';
   }
 }
