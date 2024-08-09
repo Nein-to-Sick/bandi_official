@@ -58,7 +58,7 @@ class _DiaryAIChatPageState extends State<DiaryAIChatPage> {
       backgroundColor: Colors.transparent,
       appBar: CustomAppBar(
         title: '반디와 대화하기',
-        trailingIcon: PhosphorIcons.arrowCounterClockwise,
+        trailingIcon: PhosphorIcons.arrowCounterClockwise(PhosphorIconsStyle.regular),
         onLeadingIconPressed: () {
           diaryAiChatController.toggleChatOpen();
         },
