@@ -43,6 +43,7 @@ flutter:
   assets:
    - assets/images/
    - assets/images/backgrounds/
+   - assets/images/icons/
    - assets/fonts/
    - assets/config/
 

@@ -265,7 +265,7 @@ class CustomThemeData {
     headlineSmall: TextStyle(
       fontFamily: "IBMPlexSansKR",
       fontSize: 12,
-      height: 22 / 12,
+      height: 16 / 12,
       fontWeight: FontWeight.w400, // Regular
     ),
     /**Normal */
@@ -307,7 +307,7 @@ class CustomThemeData {
     labelSmall: TextStyle(
       fontFamily: "IBMPlexSansKR",
       fontSize: 11,
-      height: 22 / 11,
+      height: 24 / 11,
       fontWeight: FontWeight.w400, // Regular
     ),
     /**Mobile & Field */
