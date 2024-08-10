@@ -6,19 +6,32 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../theme/custom_theme_data.dart';
 
 class DiaryList extends StatelessWidget {
-  const DiaryList({super.key});
+  final DateTime? selectedDate;
+
+  const DiaryList({super.key, this.selectedDate});
 
   @override
   Widget build(BuildContext context) {
     final userId = '21jPhIHrf7iBwVAh92ZW'; // 예시 사용자 ID, 실제로는 사용자 인증을 통해 가져와야 함
 
+    Query diaryQuery = FirebaseFirestore.instance
+        .collection('allDiary')
+        .where(FieldPath.documentId, isGreaterThanOrEqualTo: userId)
+        .where(FieldPath.documentId, isLessThan: '$userId\uf8ff')
+        .orderBy('createdAt', descending: true);
+
+    // 필터링된 날짜가 있다면 해당 날짜의 일기만 필터링
+    if (selectedDate != null) {
+      final startOfDay = DateTime(selectedDate!.year, selectedDate!.month, selectedDate!.day);
+      final endOfDay = startOfDay.add(const Duration(days: 1));
+
+      diaryQuery = diaryQuery
+          .where('createdAt', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
+          .where('createdAt', isLessThan: Timestamp.fromDate(endOfDay));
+    }
+
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('allDiary')
-          .where(FieldPath.documentId, isGreaterThanOrEqualTo: userId)
-          .where(FieldPath.documentId, isLessThan: '$userId\uf8ff')
-          .orderBy('createdAt', descending: true) // 날짜 순서대로 정렬
-          .snapshots(),
+      stream: diaryQuery.snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -34,8 +47,12 @@ class DiaryList extends StatelessWidget {
         for (var doc in diaryDocs) {
           final diaryData = doc.data() as Map<String, dynamic>;
           DateTime createdAt = (diaryData['createdAt'] as Timestamp).toDate();
-          String currentMonth = DateFormat('yyyy년 M월').format(createdAt);
-
+          String currentMonth;
+          if(selectedDate != null) {
+            currentMonth = DateFormat('yyyy년 M월 d일').format(selectedDate!);
+          } else {
+            currentMonth = DateFormat('yyyy년 M월').format(createdAt);
+          }
           if (currentMonth != lastDisplayedMonth) {
             groupedDiaries.add({'isHeader': true, 'header': currentMonth});
             lastDisplayedMonth = currentMonth;

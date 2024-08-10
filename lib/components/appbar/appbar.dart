@@ -36,6 +36,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
   @override
   Widget build(BuildContext context) {
     return AppBar(
+      scrolledUnderElevation: 0,
       backgroundColor: BandiColor.transparent(context),
       title: Padding(
         padding: const EdgeInsets.symmetric(
@@ -55,10 +56,25 @@ class _CustomAppBarState extends State<CustomAppBar> {
                 vertical: 8,
                 horizontal: 16,
               ),
-              child: CustomIconButton(
-                onIconButtonPressed: widget.onLeadingIconPressed,
-                disableButton: widget.disableLeadingButton,
-              ),
+              child: widget.title == "나의 일기"
+                  ? IconButton(
+                      icon: PhosphorIcon(
+                        PhosphorIcons.arrowUDownLeft(),
+                        color: widget.disableLeadingButton
+                            ? BandiColor.neutralColor20(context)
+                            : BandiColor.neutralColor80(context),
+                        size: 24,
+                      ),
+                      onPressed: () {
+                        (widget.disableLeadingButton)
+                            ? null
+                            : widget.onLeadingIconPressed();
+                      },
+                    )
+                  : CustomIconButton(
+                      onIconButtonPressed: widget.onLeadingIconPressed,
+                      disableButton: widget.disableLeadingButton,
+                    ),
             )
           : const SizedBox.shrink(),
       actions: [
