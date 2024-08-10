@@ -4,6 +4,8 @@ import '../../components/appbar/appbar.dart';
 import 'calendar.dart';
 import 'diary_list.dart';
 
+DateTime? _selectedDate;
+
 class ListPage extends StatefulWidget {
   const ListPage({super.key});
 
@@ -12,7 +14,6 @@ class ListPage extends StatefulWidget {
 }
 
 class _ListPageState extends State<ListPage> {
-  DateTime? _selectedDate;
 
   @override
   Widget build(BuildContext context) {
