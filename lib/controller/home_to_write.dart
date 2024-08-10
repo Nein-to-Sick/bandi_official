@@ -54,6 +54,7 @@ class HomeToWrite with ChangeNotifier {
     // model을 빈 변수로 초기화
     diaryModel.initializeFields();
     step = 1;
+    gotoDirectListPage = false;
     notifyListeners();
   }
 
@@ -122,5 +123,15 @@ class HomeToWrite with ChangeNotifier {
     } catch (e) {
       developer.log("Error saving diary: $e");
     }
+  }
+
+  //--------------나의 일기--------------------------------------------------------
+
+  bool gotoDirectListPage = false;
+  Future<void> readMyDiary(Diary dairy) async {
+    step = 2;
+    diaryModel = dairy;
+    gotoDirectListPage = true;
+    notifyListeners();
   }
 }
