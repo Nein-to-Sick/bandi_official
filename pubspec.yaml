@@ -28,8 +28,8 @@ dependencies:
   # CONVENIENCE
   phosphor_flutter: ^2.1.0
   intl: ^0.19.0
-  shared_preferences: ^2.2.3
-
+  shared_preferences: ^2.3.1
+  assets_audio_player: ^3.1.1
 
 
 dev_dependencies:
@@ -46,6 +46,7 @@ flutter:
    - assets/images/icons/
    - assets/fonts/
    - assets/config/
+   - assets/bgm/
 
 fonts:
   - family: IBMPlexSansKR
