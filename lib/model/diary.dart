@@ -4,10 +4,10 @@ class Diary {
   late String userId;
   late String title;
   late String content;
-  late List<dynamic> emotion;
+  late List<String> emotion;
   late Timestamp createdAt;
   late Timestamp updatedAt;
-  late List<dynamic> reaction;
+  late List<int> reaction;
   late String diaryId;
   late String cheerText;
 
@@ -55,9 +55,9 @@ class Diary {
   void update({
     required String title,
     required String content,
-    required List<dynamic> emotion,
+    required List<String> emotion,
     required Timestamp updatedAt,
-    required List<dynamic> reaction,
+    required List<int> reaction,
   }) {
     this.title = title;
     this.content = content;

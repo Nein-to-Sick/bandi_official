@@ -134,4 +134,14 @@ class HomeToWrite with ChangeNotifier {
     gotoDirectListPage = true;
     notifyListeners();
   }
+
+  //--------------수정하기--------------------------------------------------------
+  // diaryModel 값 변경
+  void changeDiaryValue(List<String> newEmotions) {
+    diaryModel.emotion = newEmotions;
+    notifyListeners();
+  }
+
+  // DB 변경
+
 }
