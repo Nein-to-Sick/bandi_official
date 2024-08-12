@@ -69,7 +69,7 @@ class ThirdStep extends StatelessWidget {
             containerBox(context, "반디가 분석한 감정"),
             GestureDetector(
                 onTap: () {
-                  showMoreBottomSheet(context);
+                  showMoreBottomSheet(context, writeProvider);
                 },
                 child: Text(
                   "더보기",
