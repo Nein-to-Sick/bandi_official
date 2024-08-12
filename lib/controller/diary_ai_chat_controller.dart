@@ -223,18 +223,14 @@ class DiaryAiChatController with ChangeNotifier {
   // send and get response from chatGPT (chatting model)
   // 추후 stream으로 답변 받아오기로 변경 고려
   Future<void> getResponse() async {
-    dev.log("111");
     toggleChatResponseLodaing(true);
-    dev.log("222");
     updateChatMemory();
-    dev.log("333");
 
     try {
       // Initializes the package with that API key
       OpenAI.apiKey = dotenv.env['OPENAI_API_KEY']!;
 
       // the actual request.
-      dev.log("444");
       OpenAIChatCompletionModel chatCompletion =
           await OpenAI.instance.chat.create(
         model: "ft:gpt-4o-mini-2024-07-18:personal:chatbot-model002:9vJrHxA4",
@@ -252,7 +248,6 @@ class DiaryAiChatController with ChangeNotifier {
         // An alternative to sampling with temperature
         topP: 1.0,
       );
-      dev.log("555");
       toggleChatResponseLodaing(false);
       updateAIChat(chatCompletion.choices.first.message.content!.first.text!);
     } on SocketException catch (e) {
