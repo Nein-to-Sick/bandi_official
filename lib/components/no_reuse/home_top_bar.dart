@@ -5,11 +5,20 @@ import 'package:bandi_official/view/diary_ai_chat/diary_ai_chat_view.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../view/home/write_diary.dart';
+import '../../view/navigation.dart';
 
-class HomeTopBar extends StatelessWidget {
+
+class HomeTopBar extends StatefulWidget {
   const HomeTopBar({super.key});
+
+  @override
+  State<HomeTopBar> createState() => _HomeTopBarState();
+}
+
+class _HomeTopBarState extends State<HomeTopBar> {
 
   @override
   Widget build(BuildContext context) {
@@ -48,10 +57,27 @@ class HomeTopBar extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          PhosphorIcon(
-                            PhosphorIcons.speakerSimpleHigh(
-                                PhosphorIconsStyle.fill),
-                            color: BandiColor.neutralColor100(context),
+                          GestureDetector(
+                            onTap: () async {
+                              setState(() {
+                                speakerOn = !speakerOn;
+                              });
+                              final prefs = await SharedPreferences.getInstance();
+                              await prefs.setBool('speakerOn', speakerOn);
+
+                              // Adjust audio based on the new setting
+                              if (speakerOn) {
+                                assetsAudioPlayer.play();
+                              } else {
+                                assetsAudioPlayer.pause();
+                              }
+                            },
+                            child: PhosphorIcon(
+                              speakerOn ? PhosphorIcons.speakerSimpleHigh(
+                                  PhosphorIconsStyle.fill) : PhosphorIcons.speakerSimpleSlash(
+                                  PhosphorIconsStyle.fill),
+                              color: BandiColor.neutralColor100(context),
+                            ),
                           ),
                           Row(
                             children: [
