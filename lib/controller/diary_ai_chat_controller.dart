@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:bandi_official/model/diary_ai_chat.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:dart_openai/dart_openai.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -15,6 +14,8 @@ class DiaryAiChatController with ChangeNotifier {
   late ChatMessage chatModel;
   // maximun number of reading documents in once
   int rememberableChatlogLimit = 10;
+// maximum number of chat log dates to load at once
+  int maxChatlogDatesToLoad = 3;
   // chat message text controller
   final TextEditingController chatTextController = TextEditingController();
   // chat focus node
@@ -30,9 +31,8 @@ class DiaryAiChatController with ChangeNotifier {
   // for chat system message (today's date)
   late String todayDate = '';
   // default chatGPT system prompt
-  // TODO: fine-tuning 이후 prompt 수정
   String chatGPTSystemPrompt =
-      "사용자의 감정 상태를 파악하고, 그에 맞는 위로와 공감을 표현하며, 필요한 경우 조언도 제공해. 사용자가 표현하는 감정과 상황에 따라 적절한 반응을 선택해. 친근하고 일관된 어투로 답해.";
+      "You are a friendly chatbot offering emotional support for personal concerns. Respond warmly in Korean, focusing on empathy. Offer practical suggestions only if explicitly requested. Maintain a casual, friendly tone, like a close friend, and limit responses to 3 sentences.";
 
   // called on initState
   void loadDataAndSetting() {
@@ -233,20 +233,21 @@ class DiaryAiChatController with ChangeNotifier {
       // the actual request.
       OpenAIChatCompletionModel chatCompletion =
           await OpenAI.instance.chat.create(
-        model: "gpt-4o",
+        model: "ft:gpt-4o-mini-2024-07-18:personal:chatbot-model002:9vJrHxA4",
         messages: chatMemory,
         // 답변할 종류의 수
         n: 1,
         // 답변에 사용할 최대 토큰의 크기
-        maxTokens: 350,
+        maxTokens: 256,
         // 같은 답변 반복 (0.1~1.0일 수록 감소)
-        frequencyPenalty: 0.5,
+        frequencyPenalty: 0,
         // 새로운 주제 제시 (>0 수록 새로운 주제 확률 상승)
-        presencePenalty: 0.5,
+        presencePenalty: 0,
         // 답변의 일관성 (낮을 수록 집중됨)
-        temperature: 0.9,
+        temperature: 1.0,
+        // An alternative to sampling with temperature
+        topP: 1.0,
       );
-
       toggleChatResponseLodaing(false);
       updateAIChat(chatCompletion.choices.first.message.content!.first.text!);
     } on SocketException catch (e) {
@@ -299,7 +300,7 @@ class DiaryAiChatController with ChangeNotifier {
     }
   }
 
-  // read chat log from local storage
+  // read chat log from local storage at the first stage
   void getChatLogFromLocal() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     List<String> keys =
@@ -308,20 +309,28 @@ class DiaryAiChatController with ChangeNotifier {
     if (keys.isNotEmpty) {
       // sorting by time
       keys.sort();
-      // latest message List's key
-      String latestKey = keys.last;
-      List<String>? jsonMessages = prefs.getStringList(latestKey);
+      // latest 3 message List's keys
+      List<String> latestKeys =
+          keys.skip(keys.length - maxChatlogDatesToLoad).toList().toList();
+      chatlogDates.clear();
+      chatlog.clear();
 
-      if (jsonMessages != null) {
-        dev.log('read chat log from local for date $latestKey');
-        sendFirstMessage = true;
-        chatlogDates.add(latestKey);
-        chatlog.clear();
-        chatlog = jsonMessages
-            .map((jsonMessage) => ChatMessage.fromJson(jsonDecode(jsonMessage)))
-            .toList();
-      } else {
-        dev.log('there is no chat data for date $latestKey');
+      for (String key in latestKeys) {
+        List<String>? jsonMessages = prefs.getStringList(key);
+
+        if (jsonMessages != null) {
+          dev.log('read chat log from local for date $key');
+          sendFirstMessage = true;
+          chatlogDates.add(key);
+          chatlog.addAll(
+            jsonMessages
+                .map((jsonMessage) =>
+                    ChatMessage.fromJson(jsonDecode(jsonMessage)))
+                .toList(),
+          );
+        } else {
+          dev.log('there is no chat data for date $key');
+        }
       }
     } else {
       dev.log('there is no chat data');

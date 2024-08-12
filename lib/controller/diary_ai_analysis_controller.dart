@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:bandi_official/model/diary.dart';
+import 'package:bandi_official/model/keyword.dart';
 import 'package:flutter/material.dart';
 import 'package:dart_openai/dart_openai.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -142,7 +143,7 @@ class DiaryAIAnalysisController with ChangeNotifier {
       final systemMessageForKeyword = OpenAIChatCompletionChoiceMessageModel(
         content: [
           OpenAIChatCompletionChoiceMessageContentItemModel.text(
-            "Provide encouragement in one Korean sentence based on the content of the diary entry",
+            "Please limit your response to a single complete sentence(within 50 token) and provide encouragement in Korean based on the content of the diary entry.",
           ),
         ],
         role: OpenAIChatMessageRole.system,
@@ -171,7 +172,7 @@ class DiaryAIAnalysisController with ChangeNotifier {
         // 답변할 종류의 수
         n: 1,
         // 답변에 사용할 최대 토큰의 크기
-        maxTokens: 50,
+        maxTokens: 60,
         // 같은 답변 반복 (0.1~1.0일 수록 감소)
         frequencyPenalty: 0.1,
         // 새로운 주제 제시 (>0 수록 새로운 주제 확률 상승)
@@ -205,6 +206,12 @@ class DiaryAIAnalysisController with ChangeNotifier {
     List<String> emotionsList =
         emotionsString.split(',').map((e) => e.trim()).toList();
 
-    return emotionsList;
+    final Set<String> allEmotionsSet =
+        Keyword().emotionMap.values.expand((list) => list).toSet();
+    final List<String> commonEmotions = emotionsList
+        .where((emotion) => allEmotionsSet.contains(emotion))
+        .toList();
+
+    return commonEmotions;
   }
 }
