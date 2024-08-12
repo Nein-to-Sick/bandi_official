@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../../../components/button/primary_button.dart';
 import '../../../controller/home_to_write.dart';
+import '../../../controller/navigation_toggle_provider.dart';
 
 class SecondStep extends StatelessWidget {
   const SecondStep({super.key});
@@ -13,7 +14,8 @@ class SecondStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final writeProvider = Provider.of<HomeToWrite>(context);
-
+    final navigationToggleProvider =
+    Provider.of<NavigationToggleProvider>(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -114,8 +116,12 @@ class SecondStep extends StatelessWidget {
           child: CustomPrimaryButton(
             title: '확인',
             onPrimaryButtonPressed: () {
-              writeProvider.toggleWrite();
+              if(writeProvider.gotoDirectListPage) {
+                navigationToggleProvider.selectIndex(1);
+              }
               writeProvider.initialize();
+              writeProvider.toggleWrite();
+
             },
             disableButton: false,
           ),
