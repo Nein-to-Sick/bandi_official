@@ -31,9 +31,8 @@ class DiaryAiChatController with ChangeNotifier {
   // for chat system message (today's date)
   late String todayDate = '';
   // default chatGPT system prompt
-  // TODO: fine-tuning 이후 prompt 수정
   String chatGPTSystemPrompt =
-      "You are a friendly and empathetic chatbot providing advice and support for personal concerns. Respond in Korean with warmth and understanding, focusing mainly on emotional support but offering practical suggestions if asked. Use a casual, approachable tone similar to a close friend, and keep responses within 3 sentences without using emojis.";
+      "You are a friendly chatbot offering emotional support for personal concerns. Respond warmly in Korean, focusing on empathy. Offer practical suggestions only if explicitly requested. Maintain a casual, friendly tone, like a close friend, and limit responses to 3 sentences.";
 
   // called on initState
   void loadDataAndSetting() {
@@ -224,30 +223,36 @@ class DiaryAiChatController with ChangeNotifier {
   // send and get response from chatGPT (chatting model)
   // 추후 stream으로 답변 받아오기로 변경 고려
   Future<void> getResponse() async {
+    dev.log("111");
     toggleChatResponseLodaing(true);
+    dev.log("222");
     updateChatMemory();
+    dev.log("333");
 
     try {
       // Initializes the package with that API key
       OpenAI.apiKey = dotenv.env['OPENAI_API_KEY']!;
 
       // the actual request.
+      dev.log("444");
       OpenAIChatCompletionModel chatCompletion =
           await OpenAI.instance.chat.create(
-        model: "gpt-4o",
+        model: "ft:gpt-4o-mini-2024-07-18:personal:chatbot-model002:9vJrHxA4",
         messages: chatMemory,
         // 답변할 종류의 수
         n: 1,
         // 답변에 사용할 최대 토큰의 크기
-        maxTokens: 350,
+        maxTokens: 256,
         // 같은 답변 반복 (0.1~1.0일 수록 감소)
-        frequencyPenalty: 0.5,
+        frequencyPenalty: 0,
         // 새로운 주제 제시 (>0 수록 새로운 주제 확률 상승)
-        presencePenalty: 0.5,
+        presencePenalty: 0,
         // 답변의 일관성 (낮을 수록 집중됨)
-        temperature: 0.9,
+        temperature: 1.0,
+        // An alternative to sampling with temperature
+        topP: 1.0,
       );
-
+      dev.log("555");
       toggleChatResponseLodaing(false);
       updateAIChat(chatCompletion.choices.first.message.content!.first.text!);
     } on SocketException catch (e) {
