@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>412733276283-jem29nvr12sa9ln1luk18eqtsngfkerr.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.412733276283-jem29nvr12sa9ln1luk18eqtsngfkerr</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>412733276283-ub79h8131qdv0stpdfj207llt6q6g3de.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyDBPbpIQbGmZbVx5jdQ730haEJoVbw6Mew</string>
+	<key>GCM_SENDER_ID</key>
+	<string>412733276283</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.example.bandiOfficial</string>
+	<key>PROJECT_ID</key>
+	<string>bandi-official</string>
+	<key>STORAGE_BUCKET</key>
+	<string>bandi-official.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:412733276283:ios:7c522acc7737aee4cda2de</string>
+</dict>
+</plist>
