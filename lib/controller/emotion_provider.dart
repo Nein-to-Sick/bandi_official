@@ -21,7 +21,6 @@ class EmotionProvider with ChangeNotifier {
   void selectEmotion(String emotion) {
     _selectedEmotion = emotion;
     _emotionOptions = _emotionChipOptions[emotion] ?? [];
-    _selectedEmotions.clear();
     notifyListeners();
   }
 
