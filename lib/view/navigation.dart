@@ -2,8 +2,10 @@ import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:bandi_official/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/view/home/home_view.dart';
 import 'package:bandi_official/view/list/list_view.dart';
+import 'package:bandi_official/view/login/login_view.dart';
 import 'package:bandi_official/view/mail/mail_view.dart';
 import 'package:bandi_official/view/user/user_view.dart';
+import 'package:bandi_official/view/login/login_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -70,24 +72,27 @@ class _NavigationState extends State<Navigation> {
         body: Stack(
           children: [
             const FireFly(),
-            navigationToggleProvider.selectedIndex == 0
-                ? const HomePage()
-                : navigationToggleProvider.selectedIndex == 1
-                    ? const ListPage()
-                    : navigationToggleProvider.selectedIndex == 2
-                        ? const MailView()
-                        : const UserView(),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  (!writeProvider.write && !diaryAiChatController.isChatOpen)
-                      ? navigationBar(context)
-                      : Container()
-                ],
+            navigationToggleProvider.selectedIndex == -1
+                ? const LoginView()
+                : navigationToggleProvider.selectedIndex == 0
+                    ? const HomePage()
+                    : navigationToggleProvider.selectedIndex == 1
+                        ? const ListPage()
+                        : navigationToggleProvider.selectedIndex == 2
+                            ? const MailView()
+                            : const UserView(),
+            if (navigationToggleProvider.selectedIndex != -1)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    (!writeProvider.write && !diaryAiChatController.isChatOpen)
+                        ? navigationBar(context)
+                        : Container()
+                  ],
+                ),
               ),
-            ),
           ],
         ),
       ),
