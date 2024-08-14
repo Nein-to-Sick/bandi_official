@@ -7,7 +7,7 @@ import '../button/primary_button.dart';
 
 class EmotionBottomSheet extends StatefulWidget {
   const EmotionBottomSheet({super.key, required this.emotion, required this.writeProvider});
-  final List<String> emotion;
+  final List<dynamic> emotion;
   final HomeToWrite writeProvider;
 
   @override

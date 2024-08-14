@@ -6,19 +6,48 @@ import 'package:provider/provider.dart';
 import '../../../components/button/primary_button.dart';
 import '../../../components/no_reuse/showMoreBottomSheet.dart';
 import '../../../controller/home_to_write.dart';
+import '../../../controller/navigation_toggle_provider.dart';
 import '../../../theme/custom_theme_data.dart';
 
-class ThirdStep extends StatelessWidget {
+class ThirdStep extends StatefulWidget {
   const ThirdStep({super.key});
+
+  @override
+  State<ThirdStep> createState() => _ThirdStepState();
+}
+
+class _ThirdStepState extends State<ThirdStep> {
+  late TextEditingController titleController;
+  late TextEditingController contentController;
+  String titleText = "";
+  String contentText = "";
+
+  @override
+  void initState() {
+    super.initState();
+
+    final writeProvider = Provider.of<HomeToWrite>(context, listen: false);
+
+    titleController =
+        TextEditingController(text: writeProvider.diaryModel.title);
+    contentController =
+        TextEditingController(text: writeProvider.diaryModel.content);
+    titleText = writeProvider.diaryModel.title;
+    contentText = writeProvider.diaryModel.content;
+  }
+
+  @override
+  void dispose() {
+    titleController.dispose();
+    contentController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final writeProvider = Provider.of<HomeToWrite>(context);
-    TextEditingController titleController =
-        TextEditingController(text: writeProvider.diaryModel.title);
-    TextEditingController contentController =
-    TextEditingController(text: writeProvider.diaryModel.content);
-
+    final navigationToggleProvider =
+    Provider.of<NavigationToggleProvider>(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -33,6 +62,9 @@ class ThirdStep extends StatelessWidget {
                 cursorColor: BandiColor.neutralColor100(context),
                 style: BandiFont.displaySmall(context)
                     ?.copyWith(color: BandiColor.neutralColor100(context)),
+                onChanged: (value) {
+                  setState(() => titleText = value);
+                },
               ),
             ),
             GestureDetector(
@@ -60,9 +92,14 @@ class ThirdStep extends StatelessWidget {
             expands: true,
             style: BandiFont.titleSmall(context)
                 ?.copyWith(color: BandiColor.neutralColor100(context)),
+            onChanged: (value) {
+              setState(() => contentText = value);
+            },
           ),
         ),
-        const SizedBox(height: 15,),
+        const SizedBox(
+          height: 15,
+        ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -103,13 +140,21 @@ class ThirdStep extends StatelessWidget {
         Center(
           child: CustomPrimaryButton(
             title: '완료',
-            onPrimaryButtonPressed: () {
+            onPrimaryButtonPressed: () async {
               // 저장
-
+              writeProvider
+                  .modifyDatabaseDiaryValue(titleText, contentText, writeProvider.diaryModel.diaryId);
+              if(writeProvider.gotoDirectListPage) {
+                navigationToggleProvider.selectIndex(1);
+              }
               writeProvider.toggleWrite();
               writeProvider.initialize();
             },
-            disableButton: false,
+            disableButton: (writeProvider.diaryModel.title == titleText &&
+                    writeProvider.diaryModel.content == contentText &&
+                    writeProvider.flag == 0)
+                ? true
+                : false,
           ),
         )
       ],
