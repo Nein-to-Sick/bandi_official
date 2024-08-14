@@ -31,6 +31,8 @@ class HomeToWrite with ChangeNotifier {
     diaryId: 'diaryId',
   );
 
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+
   //--------------step 1--------------------------------------------------------
 
   bool _write = false;
@@ -77,7 +79,6 @@ class HomeToWrite with ChangeNotifier {
   }
 
   Future<void> saveDiary() async {
-    final FirebaseFirestore firestore = FirebaseFirestore.instance;
     final userId = "21jPhIHrf7iBwVAh92ZW"; // 실제 사용자 ID로 교체 필요
 
     try {
@@ -99,7 +100,7 @@ class HomeToWrite with ChangeNotifier {
       int diaryCount = myDiaryId.length;
 
       // Generate a new diary ID
-      String newDiaryId = "${userId}${diaryCount + 1}";
+      String newDiaryId = "$userId${diaryCount + 1}";
 
       // Create the diary data
       final diaryData = {
@@ -111,6 +112,7 @@ class HomeToWrite with ChangeNotifier {
         'updatedAt': FieldValue.serverTimestamp(),
         'reaction': [0, 0, 0],
         'diaryId': newDiaryId,
+        'cheerText': diaryModel.cheerText
       };
 
       // Add the new diary to the allDiary collection
@@ -137,11 +139,26 @@ class HomeToWrite with ChangeNotifier {
 
   //--------------수정하기--------------------------------------------------------
   // diaryModel 값 변경
+  int flag = 0;
   void changeDiaryValue(List<String> newEmotions) {
     diaryModel.emotion = newEmotions;
+    flag = 1;
     notifyListeners();
   }
 
   // DB 변경
-
+  Future<void> modifyDatabaseDiaryValue(String titleText, String contentText, String diaryId) async {
+    diaryModel.update(title: titleText, content: contentText, updatedAt: Timestamp.now());
+    try {
+      final diaryData = {
+        'title': diaryModel.title,
+        'content': diaryModel.content,
+        'emotion': diaryModel.emotion,
+        'updatedAt': diaryModel.updatedAt,
+      };
+      await firestore.collection('allDiary').doc(diaryId).update(diaryData);
+    } catch (e) {
+      developer.log("Error saving diary: $e");
+    }
+  }
 }

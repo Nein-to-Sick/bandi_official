@@ -4,10 +4,10 @@ class Diary {
   late String userId;
   late String title;
   late String content;
-  late List<String> emotion;
+  late List<dynamic> emotion;
   late Timestamp createdAt;
   late Timestamp updatedAt;
-  late List<int> reaction;
+  late List<dynamic> reaction;
   late String diaryId;
   late String cheerText;
 
@@ -34,6 +34,7 @@ class Diary {
       createdAt: data['createdAt'],
       updatedAt: data['updatedAt'],
       reaction: data['reaction'],
+      cheerText: data['cheerText'],
       diaryId: snap.id,
     );
   }
@@ -55,15 +56,11 @@ class Diary {
   void update({
     required String title,
     required String content,
-    required List<String> emotion,
     required Timestamp updatedAt,
-    required List<int> reaction,
   }) {
     this.title = title;
     this.content = content;
-    this.emotion = emotion;
     this.updatedAt = updatedAt;
-    this.reaction = reaction;
   }
 
   // Initialize field values
