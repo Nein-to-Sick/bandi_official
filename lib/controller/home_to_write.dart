@@ -115,6 +115,10 @@ class HomeToWrite with ChangeNotifier {
         'cheerText': diaryModel.cheerText
       };
 
+      diaryModel.userId = userId;
+      diaryModel.diaryId = newDiaryId;
+      notifyListeners();
+
       // Add the new diary to the allDiary collection
       await firestore.collection('allDiary').doc(newDiaryId).set(diaryData);
 
@@ -158,7 +162,7 @@ class HomeToWrite with ChangeNotifier {
       };
       await firestore.collection('allDiary').doc(diaryId).update(diaryData);
     } catch (e) {
-      developer.log("Error saving diary: $e");
+      developer.log("Error modifying diary: $e");
     }
   }
 }
