@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:bandi_official/view/home/write/first_step.dart';
 import 'package:bandi_official/view/home/write/second_step.dart';
-import 'package:bandi_official/view/home/write/third_step.dart';
+import 'package:bandi_official/view/home/write/modify_step.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../controller/home_to_write.dart';
