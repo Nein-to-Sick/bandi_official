@@ -1,15 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../controller/emotion_provider.dart';
+import '../../controller/home_to_write.dart';
 import '../../theme/custom_theme_data.dart';
 import '../button/primary_button.dart';
 
 class EmotionBottomSheet extends StatefulWidget {
+  const EmotionBottomSheet({super.key, required this.emotion, required this.writeProvider});
+  final List<dynamic> emotion;
+  final HomeToWrite writeProvider;
+
   @override
   _EmotionBottomSheetState createState() => _EmotionBottomSheetState();
 }
 
 class _EmotionBottomSheetState extends State<EmotionBottomSheet> {
+
+  @override
+  void initState() {
+    super.initState();
+    final emotionProvider = Provider.of<EmotionProvider>(context, listen: false);
+
+    for(String emotion in widget.emotion) {
+      if (!emotionProvider.selectedEmotions.contains(emotion)) {
+        emotionProvider.selectedEmotions.add(emotion);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final emotionProvider = Provider.of<EmotionProvider>(context);
@@ -44,7 +62,6 @@ class _EmotionBottomSheetState extends State<EmotionBottomSheet> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  // 상단 키워드
                   Stack(
                     children: [
                       Row(
@@ -62,11 +79,11 @@ class _EmotionBottomSheetState extends State<EmotionBottomSheet> {
                                     style: BandiFont.headlineMedium(context)
                                         ?.copyWith(
                                       color: provider.selectedEmotion ==
-                                              provider.emotionKeys[i]
+                                          provider.emotionKeys[i]
                                           ? BandiColor.foundationColor100(
-                                              context)
+                                          context)
                                           : BandiColor.foundationColor20(
-                                              context),
+                                          context),
                                     ),
                                   ),
                                   const SizedBox(height: 8),
@@ -84,17 +101,17 @@ class _EmotionBottomSheetState extends State<EmotionBottomSheet> {
                               curve: Curves.easeInOut,
                               bottom: 0,
                               left: (MediaQuery.of(context).size.width - 25) /
-                                      6 *
-                                      provider.emotionKeys
-                                          .indexOf(provider.selectedEmotion) +
+                                  6 *
+                                  provider.emotionKeys
+                                      .indexOf(provider.selectedEmotion) +
                                   22 +
                                   flag *
                                       (provider.emotionKeys
                                           .indexOf(provider.selectedEmotion)),
                               child: Container(
                                 width:
-                                    (MediaQuery.of(context).size.width - 115) /
-                                        6,
+                                (MediaQuery.of(context).size.width - 115) /
+                                    6,
                                 height: 2,
                                 color: BandiColor.foundationColor100(context),
                               ),
@@ -110,7 +127,6 @@ class _EmotionBottomSheetState extends State<EmotionBottomSheet> {
                       ),
                     ],
                   ),
-                  // emotion sets
                   Expanded(
                     child: SingleChildScrollView(
                       child: Column(
@@ -141,11 +157,11 @@ class _EmotionBottomSheetState extends State<EmotionBottomSheet> {
                                           padding: const EdgeInsets.all(8.0),
                                           decoration: BoxDecoration(
                                             color: provider.selectedEmotions
-                                                    .contains(emotion)
+                                                .contains(emotion)
                                                 ? BandiColor.foundationColor100(
-                                                    context) // selected color
+                                                context)
                                                 : BandiColor.foundationColor10(
-                                                    context), // unselected color
+                                                context),
                                             borderRadius: BandiEffects.radius(),
                                           ),
                                           child: Text(
@@ -153,11 +169,12 @@ class _EmotionBottomSheetState extends State<EmotionBottomSheet> {
                                             style: BandiFont.bodySmall(context)
                                                 ?.copyWith(
                                               color: provider.selectedEmotions
-                                                      .contains(emotion)
+                                                  .contains(emotion)
                                                   ? BandiColor.neutralColor80(
-                                                      context) // selected text color
-                                                  : BandiColor.foundationColor20(
-                                                      context), // unselected text color
+                                                  context)
+                                                  : BandiColor
+                                                  .foundationColor20(
+                                                  context),
                                             ),
                                           ),
                                         ),
@@ -182,6 +199,8 @@ class _EmotionBottomSheetState extends State<EmotionBottomSheet> {
                           child: CustomPrimaryButton(
                             title: '확인',
                             onPrimaryButtonPressed: () {
+                              widget.writeProvider.changeDiaryValue(provider.selectedEmotions);
+
                               Navigator.pop(context);
                             },
                             disableButton: false,
@@ -200,7 +219,7 @@ class _EmotionBottomSheetState extends State<EmotionBottomSheet> {
   }
 }
 
-void showMoreBottomSheet(BuildContext context) {
+void showMoreBottomSheet(BuildContext context, HomeToWrite writeProvider) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -209,7 +228,7 @@ void showMoreBottomSheet(BuildContext context) {
         ChangeNotifierProvider(
           create: (context) => EmotionProvider(),
         ),
-      ], child: EmotionBottomSheet());
+      ], child: EmotionBottomSheet(writeProvider: writeProvider, emotion: writeProvider.diaryModel.emotion,));
     },
   );
 }

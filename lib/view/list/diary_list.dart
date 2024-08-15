@@ -113,7 +113,9 @@ class DiaryList extends StatelessWidget {
                         createdAt: diaryData['createdAt'],
                         updatedAt: diaryData['updatedAt'],
                         reaction: diaryData['reaction'],
-                        diaryId: diaryData['diaryId']);
+                        diaryId: diaryData['diaryId'],
+                      cheerText: diaryData['cheerText']
+                    );
                     writeProvider.readMyDiary(diary);
                     navigationToggleProvider.selectIndex(0);
                     writeProvider.toggleWrite();

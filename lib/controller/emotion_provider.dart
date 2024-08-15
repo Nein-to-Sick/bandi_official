@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class EmotionProvider with ChangeNotifier {
   String _selectedEmotion = "기쁨";
   List<String> _emotionOptions = [];
-  List<String> _selectedEmotions = [];
+  final List<String> _selectedEmotions = [];
 
   final _emotionChipOptions = Keyword().getEmotionChipOptions();
 
@@ -21,7 +21,6 @@ class EmotionProvider with ChangeNotifier {
   void selectEmotion(String emotion) {
     _selectedEmotion = emotion;
     _emotionOptions = _emotionChipOptions[emotion] ?? [];
-    _selectedEmotions.clear();
     notifyListeners();
   }
 
