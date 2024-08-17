@@ -1,5 +1,6 @@
 import 'package:bandi_official/controller/diary_ai_analysis_controller.dart';
 import 'package:bandi_official/controller/diary_ai_chat_controller.dart';
+import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/theme/custom_theme_mode.dart';
 import 'package:bandi_official/view/navigation.dart';
@@ -57,6 +58,9 @@ class MainApp extends StatelessWidget {
               ),
               ChangeNotifierProvider(
                 create: (context) => HomeToWrite(),
+              ),
+              ChangeNotifierProvider(
+                create: (context) => MailController(),
               ),
             ],
             child: const Navigation(),
