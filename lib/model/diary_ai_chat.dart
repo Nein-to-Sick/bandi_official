@@ -76,8 +76,8 @@ class ChatMessage {
         'messageTime': timestampToMilliseconds(messageTime),
       };
 
-  // JSON to ChatMessage model
-  factory ChatMessage.fromJson(Map<String, dynamic> json) {
+  // JSON to ChatMessage model from local
+  factory ChatMessage.fromJsonLocal(Map<String, dynamic> json) {
     return ChatMessage(
       message: json['message'],
       messenger: Messenger.values[json['messenger']],
@@ -85,6 +85,16 @@ class ChatMessage {
       messageTime: Timestamp.fromDate(
         DateTime.fromMillisecondsSinceEpoch(json['messageTime'], isUtc: true),
       ),
+    );
+  }
+
+  // JSON to ChatMessage model form DB
+  factory ChatMessage.fromJsonDB(Map<String, dynamic> json) {
+    return ChatMessage(
+      message: json['message'],
+      messenger: Messenger.values[json['messenger']],
+      messageType: MessageType.values[json['messageType']],
+      messageTime: json['messageTime'],
     );
   }
 

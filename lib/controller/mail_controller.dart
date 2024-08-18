@@ -1,179 +1,469 @@
+import 'dart:convert';
+
+import 'package:bandi_official/model/diary.dart';
+import 'package:bandi_official/model/letter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as dev;
 
-class MailController with ChangeNotifier {
-  final FirebaseFirestore firestore = FirebaseFirestore.instance;
-  DocumentSnapshot? lastDocumentForLetter;
-  DocumentSnapshot? lastDocumentForlikedDiary;
+import 'package:shared_preferences/shared_preferences.dart';
 
+//TODO: 비동기로 snapshot을 읽어 리턴하지 않고 쿼리 결과를 배열에 누적하는 방식으로 전환 필요!
+
+class MailController with ChangeNotifier {
   // Get current user from FirebaseAuth
   User? get currentUser => FirebaseAuth.instance.currentUser;
+  bool loadLikedDiaryDataOnce = false;
+  bool loadLetterDataOnce = false;
 
-  // Last fetched index for pagination
-  int _lastFetchedIndex = 0;
-  // maximun fetch limit
-  int fetchItemLimit = 10;
+  // maximum number of data to load at once
+  int maxDataToLoad = 10;
 
-  Stream<List<DocumentSnapshot>> getLettersStream() {
-    final user = currentUser;
-    if (user == null) {
-      throw Exception('User is not logged in');
+  // liked diary and letter models
+  List<Diary> likedDiaryList = Diary.defaultLikedDiaryList();
+  List<String> likedDiaryListDates = [];
+
+  List<Letter> letterList = Letter.defaultLetterList();
+  List<String> letterListDates = [];
+
+  // manage the page scroll
+  final everyMailScrollController = ScrollController();
+  final letterScrollController = ScrollController();
+  final likedDiaryScrollController = ScrollController();
+
+  // keyword filter variable
+  final List<String> chipLabels = ['전체', '응원해요', '공감해요', '함께해요'];
+  int filteredKeywordValue = 0;
+
+  // called on initState
+  void loadDataAndSetting() {
+    if (!loadLikedDiaryDataOnce || !loadLetterDataOnce) {
+      if (!loadLikedDiaryDataOnce) {
+        getLikedDiaryFromLocal();
+      }
+      if (!loadLetterDataOnce) {
+        getLetterFromLocal();
+      }
+    } else {
+      dev.log('did not read data');
     }
-    return firestore
-        .collection('users')
-        //.doc(userId!.uid)
-        .doc('21jPhIHrf7iBwVAh92ZW')
-        .collection('letters')
-        .orderBy('date', descending: true)
-        .limit(fetchItemLimit)
-        .snapshots()
-        .map((snapshot) => snapshot.docs);
   }
 
-  Future<List<DocumentSnapshot>> fetchLetters() async {
-    final user = currentUser;
-    if (user == null) {
-      throw Exception('User is not logged in');
-    }
-
-    Query query = firestore
-        .collection('users')
-        //.doc(currentUser!.uid)
-        .doc('21jPhIHrf7iBwVAh92ZW')
-        .collection('letters')
-        .orderBy('date', descending: true)
-        .limit(fetchItemLimit);
-
-    if (lastDocumentForLetter != null) {
-      query = query.startAfterDocument(lastDocumentForLetter!);
-    }
-
-    QuerySnapshot querySnapshot = await query.get();
-
-    // Update lastDocumentForLetter for the next fetch
-    if (querySnapshot.docs.isNotEmpty) {
-      lastDocumentForLetter = querySnapshot.docs.last;
-    }
-
-    return querySnapshot.docs;
+  // Filter for liked Diary
+  void updateFilter(String value) {
+    filteredKeywordValue = chipLabels.indexOf(value);
+    notifyListeners();
   }
 
-  Future<void> deleteLetter(String letterId) async {
-    final user = currentUser;
-    if (user == null) {
-      throw Exception('User is not logged in');
+  // read chat log from local storage at the first stage
+  void getLikedDiaryFromLocal() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> keys = prefs
+        .getKeys()
+        .where((key) => key.startsWith('likedDiaryList_'))
+        .toList();
+
+    if (keys.isNotEmpty) {
+      // sorting by time
+      keys.sort();
+      // latest maxDataToLoad message List's keys
+      List<String> latestKeys = keys
+          .skip((keys.length - maxDataToLoad) > 0
+              ? keys.length - maxDataToLoad
+              : 0)
+          .toList()
+          .toList();
+      likedDiaryListDates.clear();
+      likedDiaryList.clear();
+
+      for (String key in latestKeys) {
+        List<String>? jsonMessages = prefs.getStringList(key);
+
+        if (jsonMessages != null) {
+          dev.log('read liked Diary log from local for date $key');
+          loadLikedDiaryDataOnce = true;
+          likedDiaryListDates.add(key);
+          likedDiaryList.addAll(
+            jsonMessages.map((jsonMessage) {
+              final jsonMap = jsonDecode(jsonMessage);
+              // Create and return the Diary instance
+              return Diary.fromJsonLocal(jsonMap, jsonMap['otherUserReaction']);
+            }).toList(),
+          );
+        } else {
+          dev.log('there is no liked Diary data for date $key');
+        }
+      }
+    } else {
+      dev.log('there is no liked Diary data');
+      await fetchLikedDiariesAndSaveFromDB();
     }
+
+    notifyListeners();
+  }
+
+  Future<void> fetchLikedDiariesAndSaveFromDB() async {
+    dev.log('trying to fetch liked Diary from DB');
+    likedDiaryListDates.clear();
+    likedDiaryList.clear();
 
     try {
-      await firestore
+      // Firestore 인스턴스 가져오기
+      final FirebaseFirestore firestore = FirebaseFirestore.instance;
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+      // 현재 날짜를 키로 사용하기 위해 ISO 형식의 날짜 문자열 생성
+      String todayKey =
+          'likedDiaryList_${DateTime.now().toIso8601String().substring(0, 10)}';
+
+      // 특정 사용자의 likedDiaryIds 가져오기
+      DocumentSnapshot userDoc = await firestore
           .collection('users')
           //.doc(currentUser!.uid)
-          .doc('21jPhIHrf7iBwVAh92ZW')
-          .collection('letters')
-          .doc(letterId)
-          .delete();
-    } catch (e) {
-      dev.log("Error deleting letter: $e");
-    }
-  }
-
-  // Stream to fetch the first 10 likedDiaryId items and their corresponding documents from 'allDiary'
-  Stream<List<DocumentSnapshot>> getLikedDiariesStream() async* {
-    final user = currentUser;
-    if (user == null) {
-      throw Exception('User is not logged in');
-    }
-
-    try {
-      // Get the likedDiaryIds from the user's document
-      DocumentSnapshot userDoc = await firestore
-          .collection('users') //.doc(currentUser!.uid)
           .doc('21jPhIHrf7iBwVAh92ZW')
           .get();
 
       List<String> likedDiaryIds = List<String>.from(userDoc['likedDiaryId']);
+      // 순수 id 값을 추출한 리스트 생성
+      List<String> pureIds = likedDiaryIds.map((entry) {
+        return entry.split('_')[2];
+      }).toList();
 
-      // First 10 likedDiaryIds
-      List<String> firstLikedDiaryIds =
-          likedDiaryIds.take(fetchItemLimit).toList();
+      // likedDiaryIds에 해당하는 다이어리들 조회
+      QuerySnapshot diarySnapshot = await firestore
+          .collection('allDiary')
+          .where(FieldPath.documentId, whereIn: pureIds)
+          .get();
 
-      if (firstLikedDiaryIds.isNotEmpty) {
-        Query query = firestore
-            .collection('allDiary')
-            .where(FieldPath.documentId, whereIn: firstLikedDiaryIds)
-            .orderBy('createdAt', descending: true);
+      loadLikedDiaryDataOnce = true;
 
-        QuerySnapshot querySnapshot = await query.get();
-        // Update the lastDocument with the last fetched document
-        if (querySnapshot.docs.isNotEmpty) {
-          lastDocumentForlikedDiary = querySnapshot.docs.last;
-        }
+      // Create a map for quick lookups of documents by their 'diaryId'
+      Map<String, QueryDocumentSnapshot> docMap = {
+        for (var doc in diarySnapshot.docs) doc.get('diaryId'): doc
+      };
 
-        yield querySnapshot.docs;
-      } else {
-        yield [];
-      }
+      // 'idsFromLikedDiaryIds' 리스트의 순서에 맞춰 'diarySnapshot.docs' 리스트를 정렬
+      List<QueryDocumentSnapshot<Object?>?> sortedSnapshot = pureIds
+          .map((id) => docMap[id]) // Look up the document in the map
+          .where((doc) => doc != null) // Filter out null values
+          .toList();
+
+      // 조회된 다이어리들을 likedDiaryList에 추가
+      likedDiaryList = sortedSnapshot.map((doc) {
+        // Extract `diaryId` from the document data
+        final diaryId = likedDiaryIds.firstWhere((id) {
+          if (id.split('_')[2] == doc!['diaryId']) {
+            // dev.log(id);
+            // dev.log(doc['diaryId']);
+          }
+          return id.split('_')[2] == doc['diaryId'];
+        });
+
+        // Extract and convert the first character of `diaryId` to an integer
+        final otherUserReaction = int.tryParse(diaryId.substring(0, 1)) ?? 0;
+
+        return Diary.fromJsonDB(
+            doc?.data() as Map<String, dynamic>, otherUserReaction);
+      }).toList();
+
+      likedDiaryListDates.add(todayKey);
+
+      // 병합된 리스트를 로컬 저장소에 저장
+      List<String> jsonMessages = likedDiaryList
+          .map((message) => jsonEncode(message.toJson()))
+          .toList();
+      await prefs.setStringList(todayKey, jsonMessages);
+
+      dev.log(
+          'Fetched and saved ${likedDiaryList.length} liked diaries for date $todayKey.');
     } catch (e) {
-      dev.log("Error fetching liked diaries: $e");
-      yield [];
+      dev.log('Error fetching liked diaries: $e');
     }
   }
 
-  Future<List<DocumentSnapshot>> fetchLikedDiaries() async {
-    final user = currentUser;
-    if (user == null) {
-      throw Exception('User is not logged in');
+  // update liked diary to local storage
+  // TODO: 공감 일기 추가할 때 호출하기
+  void saveLikedDiaryToLocal(Diary likedDiary, int prefixNumber) async {
+    // Firestore 업데이트 로직 추가
+    DocumentReference userDocRef = FirebaseFirestore.instance
+        .collection('users')
+        //.doc(currentUser!.uid)
+        .doc('21jPhIHrf7iBwVAh92ZW');
+
+    // 날짜 형식 생성
+    String dateString =
+        "${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}-${DateTime.now().day.toString().padLeft(2, '0')}";
+
+    // id 앞에 번호(prefixNumber)를 붙이고 뒤에 날짜를 추가
+    String formattedId = "${prefixNumber}_${likedDiary.diaryId}_$dateString";
+
+    // Firestore likedDiaryId 배열에 formattedId 추가
+    await userDocRef.update({
+      'likedDiaryId': FieldValue.arrayUnion([formattedId])
+    });
+
+    dev.log('Added formatted likedDiary id $formattedId to Firestore');
+
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    String todayKey = 'likedDiaryList_$dateString}';
+
+    // 로컬 저장소에서 오늘의 메시지들을 불러오기
+    List<String>? storedMessages = prefs.getStringList(todayKey);
+    List<Diary> todayMessages = [];
+
+    if (storedMessages != null) {
+      todayMessages = storedMessages
+          .map((jsonMessage) => Diary.fromJsonLocal(jsonDecode(jsonMessage),
+              int.tryParse(formattedId.substring(0, 1)) ?? 0))
+          .toList();
     }
 
-    if (lastDocumentForlikedDiary == null) {
-      return [];
-    }
+    // 인수로 받은 likedDiary 추가
+    todayMessages.add(likedDiary);
 
-    DocumentSnapshot userDoc = await firestore
-        .collection('users') //.doc(currentUser!.uid)
-        .doc('21jPhIHrf7iBwVAh92ZW')
-        .get();
-
-    List<String> likedDiaryIds = List<String>.from(userDoc['likedDiaryId']);
-    List<String> nextLikedDiaryIds =
-        likedDiaryIds.skip(_lastFetchedIndex).take(fetchItemLimit).toList();
-
-    Query query = firestore
-        .collection('allDiary')
-        .where(FieldPath.documentId, whereIn: nextLikedDiaryIds)
-        .orderBy('createdAt', descending: true)
-        .limit(fetchItemLimit);
-
-    QuerySnapshot querySnapshot = await query.get();
-
-    if (querySnapshot.docs.isNotEmpty) {
-      lastDocumentForlikedDiary = querySnapshot.docs.last;
-    }
-
-    // Update index for the next fetch
-    _lastFetchedIndex += fetchItemLimit;
-
-    return querySnapshot.docs;
+    List<String> jsonMessages =
+        todayMessages.map((message) => jsonEncode(message.toJson())).toList();
+    await prefs.setStringList(todayKey, jsonMessages);
+    dev.log('save liked Diary to local for date $todayKey');
+    loadLikedDiaryDataOnce = false;
   }
 
-  // Delete a single likedDiaryId array item
-  Future<void> deleteLikedDiary(String diaryId) async {
-    final user = currentUser;
-    if (user == null) {
-      throw Exception('User is not logged in');
+  // load more liked diary from past
+  Future<bool> loadMoreLikedDiary() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> keys = prefs
+        .getKeys()
+        .where((key) => key.startsWith('likedDiaryList_'))
+        .toList();
+
+    if (keys.isNotEmpty) {
+      keys.sort();
+      // load older messages
+      for (String key in keys.reversed) {
+        if (!likedDiaryListDates.contains(key)) {
+          List<String>? jsonMessages = prefs.getStringList(key);
+          if (jsonMessages != null) {
+            List<Diary> additionalMessages = jsonMessages.map((jsonMessage) {
+              final jsonMap = jsonDecode(jsonMessage);
+              // Create and return the Diary instance
+              return Diary.fromJsonLocal(jsonMap, jsonMap['otherUserReaction']);
+            }).toList();
+
+            likedDiaryList.insertAll(0, additionalMessages);
+            likedDiaryListDates.add(key);
+            notifyListeners();
+            dev.log('read older liked Diary from local for date $key');
+
+            if (keys.indexOf(key) == 0) {
+              dev.log('there is no more older liked Diary data');
+              return false;
+            }
+            break;
+          }
+        } else {
+          if (keys.indexOf(key) == 0) {
+            dev.log('there is no more older liked Diary data');
+            return false;
+          }
+          break;
+        }
+      }
+    } else {
+      dev.log('there is no likedDiaryList_');
+      return false;
     }
+    notifyListeners();
+    return true;
+  }
+
+  // read letter from local storage at the first stage
+  void getLetterFromLocal() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> keys =
+        prefs.getKeys().where((key) => key.startsWith('letterList_')).toList();
+
+    if (keys.isNotEmpty) {
+      // sorting by time
+      keys.sort();
+      // latest maxDataToLoad message List's keys
+      List<String> latestKeys = keys
+          .skip((keys.length - maxDataToLoad) > 0
+              ? keys.length - maxDataToLoad
+              : 0)
+          .toList()
+          .toList();
+
+      letterListDates.clear();
+      letterList.clear();
+
+      for (String key in latestKeys) {
+        List<String>? jsonMessages = prefs.getStringList(key);
+
+        if (jsonMessages != null) {
+          dev.log('read letter log from local for date $key');
+          loadLetterDataOnce = true;
+          letterListDates.add(key);
+          letterList.addAll(
+            jsonMessages
+                .map((jsonMessage) =>
+                    Letter.fromJsonLocal(jsonDecode(jsonMessage)))
+                .toList(),
+          );
+        } else {
+          dev.log('there is no letter data for date $key');
+        }
+      }
+    } else {
+      dev.log('there is no letter data');
+      await fetchLettersAndSaveFromDB();
+    }
+
+    notifyListeners();
+  }
+
+  Future<void> fetchLettersAndSaveFromDB() async {
+    dev.log('trying to fetch letter from DB');
+    letterListDates.clear();
+    letterList.clear();
 
     try {
-      await firestore
-          .collection('users') //.doc(currentUser!.uid)
+      // Firestore 인스턴스 가져오기
+      final FirebaseFirestore firestore = FirebaseFirestore.instance;
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+      // 현재 날짜를 키로 사용하기 위해 ISO 형식의 날짜 문자열 생성
+      String todayKey =
+          'letterList_${DateTime.now().toIso8601String().substring(0, 10)}';
+
+      // Firestore에서 특정 사용자의 letters 컬렉션의 문서들을 가져오기
+      QuerySnapshot lettersSnapshot = await firestore
+          .collection('users')
+          //.doc(currentUser!.uid)
           .doc('21jPhIHrf7iBwVAh92ZW')
-          .update({
-        'likedDiaryId': FieldValue.arrayRemove([diaryId]),
-      });
+          .collection('letters')
+          .orderBy('date', descending: true)
+          .get();
+
+      loadLetterDataOnce = true;
+      // 조회된 다이어리들을 letterList에 추가
+      letterList = lettersSnapshot.docs.map((doc) {
+        return Letter.fromJsonDB(doc.data() as Map<String, dynamic>);
+      }).toList();
+
+      letterListDates.add(todayKey);
+      List<Letter> todayMessages = [];
+
+      // Firestore에서 가져온 letterList와 로컬에 저장된 todayMessages를 병합
+      todayMessages = letterList;
+
+      // 병합된 리스트를 로컬 저장소에 저장
+      List<String> jsonMessages =
+          todayMessages.map((message) => jsonEncode(message.toJson())).toList();
+      await prefs.setStringList(todayKey, jsonMessages);
+
+      dev.log(
+          'Fetched and saved ${letterList.length} letters for date $todayKey.');
     } catch (e) {
-      dev.log("Error deleting liked diary: $e");
+      dev.log('Error fetching letters: $e');
     }
+  }
+
+  // update liked diary to local storage
+  // TODO: function 함수에 해당함
+  void saveLetterToLocal(Letter letter) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    String todayKey =
+        'letterList_${DateTime.now().toIso8601String().substring(0, 10)}';
+
+    // 로컬 저장소에서 오늘의 메시지들을 불러오기
+    List<String>? storedMessages = prefs.getStringList(todayKey);
+    List<Letter> todayMessages = [];
+
+    if (storedMessages != null) {
+      todayMessages = storedMessages
+          .map((jsonMessage) => Letter.fromJsonLocal(jsonDecode(jsonMessage)))
+          .toList();
+    }
+
+    // 인수로 받은 letter 추가
+    todayMessages.add(letter);
+
+    List<String> jsonMessages =
+        todayMessages.map((message) => jsonEncode(message.toJson())).toList();
+    await prefs.setStringList(todayKey, jsonMessages);
+    dev.log('save letter to local for date $todayKey');
+    loadLetterDataOnce = false;
+  }
+
+  // load more liked diary from past
+  Future<bool> loadMoreLetter() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> keys =
+        prefs.getKeys().where((key) => key.startsWith('letterList_')).toList();
+
+    if (keys.isNotEmpty) {
+      keys.sort();
+      // load older messages
+      for (String key in keys.reversed) {
+        if (!letterListDates.contains(key)) {
+          List<String>? jsonMessages = prefs.getStringList(key);
+          if (jsonMessages != null) {
+            List<Letter> additionalMessages = jsonMessages
+                .map((jsonMessage) =>
+                    Letter.fromJsonLocal(jsonDecode(jsonMessage)))
+                .toList();
+            letterList.insertAll(0, additionalMessages);
+            letterListDates.add(key);
+            notifyListeners();
+            dev.log('read older letter from local for date $key');
+
+            if (keys.indexOf(key) == 0) {
+              dev.log('there is no more older letter data');
+              return false;
+            }
+            break;
+          }
+        } else {
+          if (keys.indexOf(key) == 0) {
+            dev.log('there is no more older letter data');
+            return false;
+          }
+          break;
+        }
+      }
+    } else {
+      dev.log('there is no letterList_');
+      return false;
+    }
+    notifyListeners();
+    return true;
+  }
+
+  // delete all data from local storage
+  void deleteEveryMailDataFromLocal() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> keys = prefs
+        .getKeys()
+        .where((key) => key.startsWith('likedDiaryList_'))
+        .toList();
+    for (String key in keys) {
+      await prefs.remove(key);
+    }
+
+    keys =
+        prefs.getKeys().where((key) => key.startsWith('letterList_')).toList();
+    for (String key in keys) {
+      await prefs.remove(key);
+    }
+
+    loadLetterDataOnce = false;
+    loadLikedDiaryDataOnce = false;
+    likedDiaryList.clear();
+    likedDiaryListDates.clear();
+    letterList.clear();
+    letterListDates.clear();
+
+    dev.log('delete liked Diary and Letter from local');
   }
 }
