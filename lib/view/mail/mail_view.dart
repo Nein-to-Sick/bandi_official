@@ -1,15 +1,20 @@
 import 'package:bandi_official/components/appbar/appbar.dart';
+import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
+import 'package:bandi_official/view/mail/every_mail_view.dart';
 import 'package:bandi_official/view/mail/letters_view.dart';
 import 'package:bandi_official/view/mail/liked_diary_view.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:provider/provider.dart';
 
 class MailView extends StatelessWidget {
   const MailView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    MailController mailController = context.watch<MailController>();
+
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -17,11 +22,14 @@ class MailView extends StatelessWidget {
           title: '보관함',
           trailingIcon: PhosphorIcons.x(PhosphorIconsStyle.fill),
           onLeadingIconPressed: () {},
-          onTrailingIconPressed: () {},
+          onTrailingIconPressed: () {
+            // For test delete finction
+            mailController.deleteEveryMailDataFromLocal();
+          },
           disableLeadingButton: false,
           disableTrailingButton: false,
           isVisibleLeadingButton: false,
-          isVisibleTrailingButton: false,
+          isVisibleTrailingButton: true,
         ),
         body: Padding(
           padding: EdgeInsets.only(
@@ -44,19 +52,15 @@ class MailView extends StatelessWidget {
                     tabs: const [
                       Tab(text: "전체"),
                       Tab(text: "편지"),
-                      Tab(text: "공감한 일기"),
+                      Tab(
+                        text: "공감한 일기",
+                      ),
                     ],
                   ),
                   const Expanded(
                     child: TabBarView(
                       children: [
-                        SingleChildScrollView(
-                            child: Center(
-                                child: Column(
-                          children: [
-                            Text("Screen 1"),
-                          ],
-                        ))),
+                        EveryMailPage(),
                         MyLettersPage(),
                         LikedDiaryPage(),
                       ],
