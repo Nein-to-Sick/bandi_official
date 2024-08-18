@@ -1,3 +1,4 @@
+import 'package:bandi_official/components/loading/loading_page.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
@@ -97,25 +98,29 @@ class _LikedDiaryPageState extends State<LikedDiaryPage> {
   Widget build(BuildContext context) {
     MailController mailController = context.watch<MailController>();
 
-    return Column(
-      children: [
-        const SizedBox(height: 16),
-        filterChips(mailController),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.only(top: 10),
-            child: ListView.builder(
-              controller: mailController.likedDiaryScrollController,
-              itemCount: mailController.likedDiaryList.length,
-              itemBuilder: (context, index) {
-                Diary diary = mailController.likedDiaryList[index];
-                return likedDiaryWidget(diary, mailController, context);
-              },
-            ),
-          ),
-        ),
-      ],
-    );
+    return (mailController.isLoading)
+        ? const MyFireFlyProgressbar(
+            loadingText: '로딩 중...',
+          )
+        : Column(
+            children: [
+              const SizedBox(height: 16),
+              filterChips(mailController),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: ListView.builder(
+                    controller: mailController.likedDiaryScrollController,
+                    itemCount: mailController.likedDiaryList.length,
+                    itemBuilder: (context, index) {
+                      Diary diary = mailController.likedDiaryList[index];
+                      return likedDiaryWidget(diary, mailController, context);
+                    },
+                  ),
+                ),
+              ),
+            ],
+          );
   }
 }
 

@@ -1,3 +1,4 @@
+import 'package:bandi_official/components/loading/loading_page.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/model/letter.dart';
@@ -69,23 +70,27 @@ class _EveryMailPageState extends State<EveryMailPage> {
     // 최신순으로 정렬
     combinedList.sort((a, b) => b['timestamp'].compareTo(a['timestamp']));
 
-    return Padding(
-      padding: const EdgeInsets.only(top: 16),
-      child: ListView.builder(
-        controller: mailController.everyMailScrollController,
-        itemCount: combinedList.length,
-        itemBuilder: (context, index) {
-          final item = combinedList[index];
-          if (item['type'] == 'letter') {
-            final Letter letter = item['data'];
-            return lettersWidget(letter, context);
-          } else if (item['type'] == 'diary') {
-            final Diary diary = item['data'];
-            return likedDiaryWidget(diary, mailController, context);
-          }
-          return const SizedBox.shrink(); // This should never be reached
-        },
-      ),
-    );
+    return (mailController.isLoading)
+        ? const MyFireFlyProgressbar(
+            loadingText: '로딩 중...',
+          )
+        : Padding(
+            padding: const EdgeInsets.only(top: 16),
+            child: ListView.builder(
+              controller: mailController.everyMailScrollController,
+              itemCount: combinedList.length,
+              itemBuilder: (context, index) {
+                final item = combinedList[index];
+                if (item['type'] == 'letter') {
+                  final Letter letter = item['data'];
+                  return lettersWidget(letter, context);
+                } else if (item['type'] == 'diary') {
+                  final Diary diary = item['data'];
+                  return likedDiaryWidget(diary, mailController, context);
+                }
+                return const SizedBox.shrink(); // This should never be reached
+              },
+            ),
+          );
   }
 }
