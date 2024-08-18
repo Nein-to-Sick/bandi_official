@@ -9,8 +9,6 @@ import 'dart:developer' as dev;
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-//TODO: 비동기로 snapshot을 읽어 리턴하지 않고 쿼리 결과를 배열에 누적하는 방식으로 전환 필요!
-
 class MailController with ChangeNotifier {
   // Get current user from FirebaseAuth
   User? get currentUser => FirebaseAuth.instance.currentUser;
@@ -36,9 +34,13 @@ class MailController with ChangeNotifier {
   final List<String> chipLabels = ['전체', '응원해요', '공감해요', '함께해요'];
   int filteredKeywordValue = 0;
 
+  // while loading
+  bool isLoading = false;
+
   // called on initState
   void loadDataAndSetting() {
     if (!loadLikedDiaryDataOnce || !loadLetterDataOnce) {
+      toggleLoading(true);
       if (!loadLikedDiaryDataOnce) {
         getLikedDiaryFromLocal();
       }
@@ -53,6 +55,11 @@ class MailController with ChangeNotifier {
   // Filter for liked Diary
   void updateFilter(String value) {
     filteredKeywordValue = chipLabels.indexOf(value);
+    notifyListeners();
+  }
+
+  void toggleLoading(value) {
+    isLoading = value;
     notifyListeners();
   }
 
@@ -100,6 +107,7 @@ class MailController with ChangeNotifier {
       await fetchLikedDiariesAndSaveFromDB();
     }
 
+    toggleLoading(false);
     notifyListeners();
   }
 
@@ -319,6 +327,7 @@ class MailController with ChangeNotifier {
       await fetchLettersAndSaveFromDB();
     }
 
+    toggleLoading(false);
     notifyListeners();
   }
 

@@ -27,9 +27,9 @@ class MailView extends StatelessWidget {
             mailController.deleteEveryMailDataFromLocal();
           },
           disableLeadingButton: false,
-          disableTrailingButton: false,
+          disableTrailingButton: true,
           isVisibleLeadingButton: false,
-          isVisibleTrailingButton: true,
+          isVisibleTrailingButton: false,
         ),
         body: Padding(
           padding: EdgeInsets.only(

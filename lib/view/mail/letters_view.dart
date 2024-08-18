@@ -1,3 +1,4 @@
+import 'package:bandi_official/components/loading/loading_page.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/model/letter.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
@@ -42,17 +43,21 @@ class _MyLettersPageState extends State<MyLettersPage> {
   @override
   Widget build(BuildContext context) {
     MailController mailController = context.watch<MailController>();
-    return Padding(
-      padding: const EdgeInsets.only(top: 16),
-      child: ListView.builder(
-        controller: mailController.letterScrollController,
-        itemCount: mailController.letterList.length,
-        itemBuilder: (context, index) {
-          Letter letter = mailController.letterList[index];
-          return lettersWidget(letter, context);
-        },
-      ),
-    );
+    return (mailController.isLoading)
+        ? const MyFireFlyProgressbar(
+            loadingText: '로딩 중...',
+          )
+        : Padding(
+            padding: const EdgeInsets.only(top: 16),
+            child: ListView.builder(
+              controller: mailController.letterScrollController,
+              itemCount: mailController.letterList.length,
+              itemBuilder: (context, index) {
+                Letter letter = mailController.letterList[index];
+                return lettersWidget(letter, context);
+              },
+            ),
+          );
   }
 }
 
