@@ -31,14 +31,8 @@ class _DiaryAIChatPageState extends State<DiaryAIChatPage> {
       diaryAiChatController.chatScrollController.addListener(() async {
         final position = diaryAiChatController.chatScrollController.position;
         if (loadMoreData && position.atEdge && position.pixels != 0) {
-          if (diaryAiChatController
-                      .chatScrollController.position.userScrollDirection ==
-                  ScrollDirection.reverse &&
-              diaryAiChatController
-                          .chatScrollController.position.maxScrollExtent -
-                      diaryAiChatController
-                          .chatScrollController.position.pixels <=
-                  500) {
+          if (position.userScrollDirection == ScrollDirection.reverse &&
+              position.maxScrollExtent - position.pixels <= 500) {
             loadMoreData = await diaryAiChatController.loadMoreChatLogs();
           }
         }
@@ -58,7 +52,8 @@ class _DiaryAIChatPageState extends State<DiaryAIChatPage> {
       backgroundColor: Colors.transparent,
       appBar: CustomAppBar(
         title: '반디와 대화하기',
-        trailingIcon: PhosphorIcons.arrowCounterClockwise(PhosphorIconsStyle.regular),
+        trailingIcon:
+            PhosphorIcons.arrowCounterClockwise(PhosphorIconsStyle.regular),
         onLeadingIconPressed: () {
           diaryAiChatController.toggleChatOpen();
         },
