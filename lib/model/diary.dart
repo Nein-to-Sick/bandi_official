@@ -10,6 +10,7 @@ class Diary {
   late List<dynamic> reaction;
   late String diaryId;
   late String cheerText;
+  late int otherUserReaction;
 
   Diary({
     required this.userId,
@@ -20,7 +21,8 @@ class Diary {
     required this.updatedAt,
     required this.reaction,
     required this.diaryId,
-    this.cheerText = ''
+    this.cheerText = '',
+    this.otherUserReaction = -1,
   });
 
   // Factory constructor to create a Diary instance from a Firestore snapshot
@@ -74,5 +76,69 @@ class Diary {
     reaction = [0, 0, 0];
     diaryId = '';
     cheerText = '';
+  }
+
+  static List<Diary> defaultLikedDiaryList() {
+    return [
+      // Diary(
+      //     userId: '',
+      //     title: '',
+      //     content: '',
+      //     emotion: [],
+      //     createdAt: Timestamp.now(),
+      //     updatedAt: Timestamp.now(),
+      //     reaction: [],
+      //     diaryId: ''),
+    ];
+  }
+
+  Map<String, dynamic> toJson() => {
+        'userId': userId,
+        'title': title,
+        'content': content,
+        'emotion': emotion,
+        'createdAt': timestampToMilliseconds(createdAt),
+        'updatedAt': timestampToMilliseconds(updatedAt),
+        'reaction': reaction,
+        'diaryId': diaryId,
+        'otherUserReaction': otherUserReaction,
+      };
+
+  factory Diary.fromJsonLocal(
+      Map<String, dynamic> json, int otherUserReaction) {
+    return Diary(
+      userId: json['userId'],
+      title: json['title'],
+      content: json['content'],
+      emotion: json['emotion'],
+      createdAt: Timestamp.fromDate(
+        DateTime.fromMillisecondsSinceEpoch(json['createdAt'], isUtc: true),
+      ),
+      updatedAt: Timestamp.fromDate(
+        DateTime.fromMillisecondsSinceEpoch(json['updatedAt'], isUtc: true),
+      ),
+      reaction: json['reaction'],
+      diaryId: json['diaryId'],
+      otherUserReaction: otherUserReaction,
+    );
+  }
+
+  factory Diary.fromJsonDB(Map<String, dynamic> json, int otherUserReaction) {
+    return Diary(
+      userId: json['userId'],
+      title: json['title'],
+      content: json['content'],
+      emotion: json['emotion'],
+      createdAt: json['createdAt'],
+      updatedAt: json['updatedAt'],
+      reaction: json['reaction'],
+      diaryId: json['diaryId'],
+      otherUserReaction: otherUserReaction,
+    );
+  }
+
+  //  Timestamp to int
+  int timestampToMilliseconds(Timestamp timestamp) {
+    return timestamp.millisecondsSinceEpoch;
   }
 }
