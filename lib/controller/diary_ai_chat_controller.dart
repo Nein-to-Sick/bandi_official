@@ -14,7 +14,7 @@ class DiaryAiChatController with ChangeNotifier {
   late ChatMessage chatModel;
   // maximun number of reading documents in once
   int rememberableChatlogLimit = 10;
-// maximum number of chat log dates to load at once
+  // maximum number of chat log dates to load at once
   int maxChatlogDatesToLoad = 3;
   // chat message text controller
   final TextEditingController chatTextController = TextEditingController();
@@ -189,6 +189,7 @@ class DiaryAiChatController with ChangeNotifier {
 
       // reset the chatlog (visible chat)
       chatlog = ChatMessage.defaultChatLog();
+      chatlogDates.clear();
 
       // reset the chat memory (for gpt prompt)
       chatMemory.clear();
@@ -310,8 +311,12 @@ class DiaryAiChatController with ChangeNotifier {
       // sorting by time
       keys.sort();
       // latest 3 message List's keys
-      List<String> latestKeys =
-          keys.skip(keys.length - maxChatlogDatesToLoad).toList().toList();
+      List<String> latestKeys = keys
+          .skip((keys.length - maxChatlogDatesToLoad) > 0
+              ? keys.length - maxChatlogDatesToLoad
+              : 0)
+          .toList()
+          .toList();
       chatlogDates.clear();
       chatlog.clear();
 
@@ -325,7 +330,7 @@ class DiaryAiChatController with ChangeNotifier {
           chatlog.addAll(
             jsonMessages
                 .map((jsonMessage) =>
-                    ChatMessage.fromJson(jsonDecode(jsonMessage)))
+                    ChatMessage.fromJsonLocal(jsonDecode(jsonMessage)))
                 .toList(),
           );
         } else {
@@ -374,7 +379,6 @@ class DiaryAiChatController with ChangeNotifier {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     List<String> keys =
         prefs.getKeys().where((key) => key.startsWith('chatLog_')).toList();
-
     if (keys.isNotEmpty) {
       keys.sort();
       // load older messages
@@ -384,7 +388,7 @@ class DiaryAiChatController with ChangeNotifier {
           if (jsonMessages != null) {
             List<ChatMessage> additionalMessages = jsonMessages
                 .map((jsonMessage) =>
-                    ChatMessage.fromJson(jsonDecode(jsonMessage)))
+                    ChatMessage.fromJsonLocal(jsonDecode(jsonMessage)))
                 .toList();
             chatlog.insertAll(0, additionalMessages);
             chatlogDates.add(key);
@@ -397,12 +401,19 @@ class DiaryAiChatController with ChangeNotifier {
             }
             break;
           }
+        } else {
+          if (keys.indexOf(key) == 0) {
+            dev.log('there is no more older chat data');
+            return false;
+          }
+          break;
         }
       }
     } else {
       dev.log('there is no chatLog_');
       return false;
     }
+
     notifyListeners();
     return true;
   }

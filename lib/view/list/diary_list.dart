@@ -1,3 +1,4 @@
+import 'package:bandi_official/components/loading/loading_page.dart';
 import 'package:bandi_official/view/home/write_diary.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +21,7 @@ class DiaryList extends StatelessWidget {
     final userId = '21jPhIHrf7iBwVAh92ZW'; // 예시 사용자 ID, 실제로는 사용자 인증을 통해 가져와야 함
     final writeProvider = Provider.of<HomeToWrite>(context);
     final navigationToggleProvider =
-    Provider.of<NavigationToggleProvider>(context);
+        Provider.of<NavigationToggleProvider>(context);
 
     Query diaryQuery = FirebaseFirestore.instance
         .collection('allDiary')
@@ -30,13 +31,13 @@ class DiaryList extends StatelessWidget {
 
     // 필터링된 날짜가 있다면 해당 날짜의 일기만 필터링
     if (selectedDate != null) {
-      final startOfDay = DateTime(
-          selectedDate!.year, selectedDate!.month, selectedDate!.day);
+      final startOfDay =
+          DateTime(selectedDate!.year, selectedDate!.month, selectedDate!.day);
       final endOfDay = startOfDay.add(const Duration(days: 1));
 
       diaryQuery = diaryQuery
-          .where(
-          'createdAt', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
+          .where('createdAt',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
           .where('createdAt', isLessThan: Timestamp.fromDate(endOfDay));
     }
 
@@ -44,7 +45,9 @@ class DiaryList extends StatelessWidget {
       stream: diaryQuery.snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(
+            child: MyFireFlyProgressbar(loadingText: '로딩 중...'),
+          );
         }
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return const Center(child: Text('일기가 없습니다.'));
@@ -81,17 +84,17 @@ class DiaryList extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 18, top: 10),
                 child: Center(
                     child: Container(
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(100),
-                          color: BandiColor.foundationColor40(context)),
-                      child: Padding(
-                        padding:
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(100),
+                      color: BandiColor.foundationColor40(context)),
+                  child: Padding(
+                    padding:
                         const EdgeInsets.symmetric(vertical: 5, horizontal: 31),
-                        child: Text(item['header'],
-                            style: BandiFont.headlineSmall(context)?.copyWith(
-                                color: BandiColor.neutralColor100(context))),
-                      ),
-                    )),
+                    child: Text(item['header'],
+                        style: BandiFont.headlineSmall(context)?.copyWith(
+                            color: BandiColor.neutralColor100(context))),
+                  ),
+                )),
               );
             } else {
               final diaryData = item['data'] as Map<String, dynamic>;
@@ -99,14 +102,15 @@ class DiaryList extends StatelessWidget {
 
               // Combine the emotions with a space in between
               String combinedEmotions =
-              (diaryData['emotion'] as List<dynamic>).join(', ');
+                  (diaryData['emotion'] as List<dynamic>).join(', ');
 
               return Padding(
                 padding:
-                const EdgeInsets.symmetric(vertical: 8.0, horizontal: 24.0),
+                    const EdgeInsets.symmetric(vertical: 8.0, horizontal: 24.0),
                 child: GestureDetector(
                   onTap: () {
-                    Diary diary = Diary(userId: diaryData['userId'],
+                    Diary diary = Diary(
+                        userId: diaryData['userId'],
                         title: diaryData['title'],
                         content: diaryData['content'],
                         emotion: diaryData['emotion'],
@@ -114,8 +118,7 @@ class DiaryList extends StatelessWidget {
                         updatedAt: diaryData['updatedAt'],
                         reaction: diaryData['reaction'],
                         diaryId: diaryData['diaryId'],
-                      cheerText: diaryData['cheerText']
-                    );
+                        cheerText: diaryData['cheerText']);
                     writeProvider.readMyDiary(diary);
                     navigationToggleProvider.selectIndex(0);
                     writeProvider.toggleWrite();
@@ -133,9 +136,8 @@ class DiaryList extends StatelessWidget {
                           diaryData['content'] ?? '내용 없음',
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: BandiFont.headlineSmall(context)
-                              ?.copyWith(color: BandiColor.neutralColor60(
-                              context)),
+                          style: BandiFont.headlineSmall(context)?.copyWith(
+                              color: BandiColor.neutralColor60(context)),
                         ),
                         const SizedBox(height: 8),
                         Row(
@@ -149,8 +151,10 @@ class DiaryList extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 combinedEmotions,
-                                style: BandiFont.headlineSmall(context)?.copyWith(
-                                    color: BandiColor.neutralColor60(context)),
+                                style: BandiFont.headlineSmall(context)
+                                    ?.copyWith(
+                                        color:
+                                            BandiColor.neutralColor60(context)),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
@@ -197,7 +201,9 @@ class DiaryList extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 16),
-                        Divider(color: BandiColor.neutralColor20(context),),
+                        Divider(
+                          color: BandiColor.neutralColor20(context),
+                        ),
                       ],
                     ),
                   ),
