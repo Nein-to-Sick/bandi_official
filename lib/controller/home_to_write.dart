@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer' as developer;
 import 'dart:math';
 
@@ -6,6 +7,7 @@ import 'package:bandi_official/model/diary.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'dart:developer' as dev;
 
@@ -32,6 +34,7 @@ class HomeToWrite with ChangeNotifier {
   );
 
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  final userId = "21jPhIHrf7iBwVAh92ZW"; // 실제 사용자 ID로 교체 필요
 
   //--------------step 1--------------------------------------------------------
 
@@ -63,6 +66,7 @@ class HomeToWrite with ChangeNotifier {
   Future<void> aiAndSaveDairy(BuildContext context) async {
     await aiDiary(context);
     await saveDiary();
+    await otherDiaries(diaryModel.emotion);
   }
 
   Future<void> aiDiary(BuildContext context) async {
@@ -79,8 +83,6 @@ class HomeToWrite with ChangeNotifier {
   }
 
   Future<void> saveDiary() async {
-    final userId = "21jPhIHrf7iBwVAh92ZW"; // 실제 사용자 ID로 교체 필요
-
     try {
       // Get the current user's document
       DocumentSnapshot userDoc =
@@ -131,9 +133,88 @@ class HomeToWrite with ChangeNotifier {
     }
   }
 
+
+  bool otherDiaryOpen = false;
+  String otherDiaryTitle = "";
+  String otherDiaryContent = "";
+  String otherDiaryDay = "";
+  String otherDiaryId = "";
+  List<dynamic> otherDiaryReaction = [];
+  void offDiaryOpen() {
+    otherDiaryOpen = false;
+    otherDiaryTitle = "";
+    otherDiaryContent = "";
+    otherDiaryDay = "";
+    otherDiaryId = "";
+    otherDiaryReaction = [];
+    notifyListeners();
+  }
+
+  Future<void> otherDiaries(List emotionList) async {
+    // 1차적으로 emotionList 중 하나라도 포함된 일기들을 가져옵니다.
+    QuerySnapshot allDiarySnapshot = await firestore
+        .collection('allDiary')
+        .where('userId', isNotEqualTo: userId)
+        .where('emotion', arrayContainsAny: emotionList)
+        .get();
+    List<QueryDocumentSnapshot> matchingDiaries;
+    if (allDiarySnapshot.docs.isEmpty) {
+      // 2차적으로 emotion 리스트가 정확히 일치하는지 필터링합니다.
+      //TODO: 나중에 알고 즘 수정, 받은 일기 제외 추가
+      matchingDiaries = allDiarySnapshot.docs.where((doc) {
+        List<String> diaryEmotions = List<String>.from(doc['emotion']);
+        return _listsAreEqual(diaryEmotions, emotionList);
+      }).toList();
+    } else {
+      matchingDiaries = allDiarySnapshot.docs;
+    }
+    if (matchingDiaries.isNotEmpty) {
+      // 무작위로 일기 하나 선택
+      var randomIndex = Random().nextInt(matchingDiaries.length);
+      var selectedDiary = matchingDiaries[randomIndex];
+
+      otherDiaryId = selectedDiary['diaryId'];
+
+      //ToDo: combinationDiaryId 조합하기
+      String combinationDiaryId = otherDiaryId;
+
+      // user 컬렉션의 userId 문서의 otherDiary 컬렉션에 추가
+      await firestore.collection('users').doc(userId).update({
+        'likedDiaryId': FieldValue.arrayUnion([combinationDiaryId]),
+      });
+
+      otherDiaryOpen = true;
+      otherDiaryTitle = selectedDiary['title'];
+      otherDiaryContent = selectedDiary['content'];
+      otherDiaryDay = DateFormat('yyyy년 M월 d일').format(selectedDiary['createdAt'].toDate());
+      otherDiaryReaction = selectedDiary['reaction'];
+      notifyListeners();
+
+      print("일기가 성공적으로 추가되었습니다.");
+    } else {
+      print("해당 감정에 해당하는 일기가 없습니다.");
+    }
+  }
+
+  // 두 리스트가 동일한지 비교하는 함수
+  bool _listsAreEqual(List list1, List list2) {
+    if (list1.length != list2.length) {
+      return false;
+    }
+    list1.sort();
+    list2.sort();
+    for (int i = 0; i < list1.length; i++) {
+      if (list1[i] != list2[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   //--------------나의 일기--------------------------------------------------------
 
   bool gotoDirectListPage = false;
+
   Future<void> readMyDiary(Diary dairy) async {
     step = 2;
     diaryModel = dairy;
@@ -144,6 +225,7 @@ class HomeToWrite with ChangeNotifier {
   //--------------수정하기--------------------------------------------------------
   // diaryModel 값 변경
   int flag = 0;
+
   void changeDiaryValue(List<String> newEmotions) {
     diaryModel.emotion = newEmotions;
     flag = 1;
@@ -151,8 +233,10 @@ class HomeToWrite with ChangeNotifier {
   }
 
   // DB 변경
-  Future<void> modifyDatabaseDiaryValue(String titleText, String contentText, String diaryId) async {
-    diaryModel.update(title: titleText, content: contentText, updatedAt: Timestamp.now());
+  Future<void> modifyDatabaseDiaryValue(
+      String titleText, String contentText, String diaryId) async {
+    diaryModel.update(
+        title: titleText, content: contentText, updatedAt: Timestamp.now());
     try {
       final diaryData = {
         'title': diaryModel.title,
