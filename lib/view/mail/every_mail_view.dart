@@ -4,6 +4,7 @@ import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/model/letter.dart';
 import 'package:bandi_official/view/mail/letters_view.dart';
 import 'package:bandi_official/view/mail/liked_diary_view.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
@@ -63,12 +64,20 @@ class _EveryMailPageState extends State<EveryMailPage> {
     }
 
     for (var diary in mailController.likedDiaryList) {
-      combinedList
-          .add({'type': 'diary', 'data': diary, 'timestamp': diary.createdAt});
+      combinedList.add({
+        'type': 'diary',
+        'data': diary,
+        'timestamp': Timestamp.fromDate(DateTime.parse(diary.otherUserLikedAt))
+      });
     }
 
     // 최신순으로 정렬
-    combinedList.sort((a, b) => b['timestamp'].compareTo(a['timestamp']));
+    combinedList.sort((a, b) {
+      Timestamp timestampA = a['timestamp'];
+      Timestamp timestampB = b['timestamp'];
+
+      return timestampB.compareTo(timestampA);
+    });
 
     return (mailController.isLoading)
         ? const MyFireFlyProgressbar(

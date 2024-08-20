@@ -95,7 +95,8 @@ class MailController with ChangeNotifier {
             jsonMessages.map((jsonMessage) {
               final jsonMap = jsonDecode(jsonMessage);
               // Create and return the Diary instance
-              return Diary.fromJsonLocal(jsonMap, jsonMap['otherUserReaction']);
+              return Diary.fromJsonLocal(jsonMap, jsonMap['otherUserReaction'],
+                  jsonMap['otherUserLikedAt']);
             }).toList(),
           );
         } else {
@@ -170,9 +171,10 @@ class MailController with ChangeNotifier {
 
         // Extract and convert the first character of `diaryId` to an integer
         final otherUserReaction = int.tryParse(diaryId.substring(0, 1)) ?? 0;
+        final otherUserLikedAt = diaryId.substring(2, 12);
 
-        return Diary.fromJsonDB(
-            doc?.data() as Map<String, dynamic>, otherUserReaction);
+        return Diary.fromJsonDB(doc?.data() as Map<String, dynamic>,
+            otherUserReaction, otherUserLikedAt);
       }).toList();
 
       likedDiaryListDates.add(todayKey);
@@ -204,7 +206,7 @@ class MailController with ChangeNotifier {
         "${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}-${DateTime.now().day.toString().padLeft(2, '0')}";
 
     // id 앞에 번호(prefixNumber)를 붙이고 뒤에 날짜를 추가
-    String formattedId = "${prefixNumber}_${likedDiary.diaryId}_$dateString";
+    String formattedId = "${prefixNumber}_${dateString}_${likedDiary.diaryId}";
 
     // Firestore likedDiaryId 배열에 formattedId 추가
     await userDocRef.update({
@@ -222,13 +224,31 @@ class MailController with ChangeNotifier {
 
     if (storedMessages != null) {
       todayMessages = storedMessages
-          .map((jsonMessage) => Diary.fromJsonLocal(jsonDecode(jsonMessage),
-              int.tryParse(formattedId.substring(0, 1)) ?? 0))
+          .map(
+            (jsonMessage) => Diary.fromJsonLocal(
+              jsonDecode(jsonMessage),
+              (int.tryParse(formattedId.substring(0, 1)) ?? 0),
+              formattedId.substring(2, 12),
+            ),
+          )
           .toList();
     }
 
+    Diary updatedDiary = Diary(
+      userId: likedDiary.userId,
+      title: likedDiary.title,
+      content: likedDiary.content,
+      emotion: likedDiary.emotion,
+      createdAt: likedDiary.createdAt,
+      updatedAt: likedDiary.updatedAt,
+      reaction: likedDiary.reaction,
+      diaryId: likedDiary.diaryId,
+      otherUserReaction: prefixNumber,
+      otherUserLikedAt: dateString,
+    );
+
     // 인수로 받은 likedDiary 추가
-    todayMessages.add(likedDiary);
+    todayMessages.add(updatedDiary);
 
     List<String> jsonMessages =
         todayMessages.map((message) => jsonEncode(message.toJson())).toList();
@@ -255,7 +275,8 @@ class MailController with ChangeNotifier {
             List<Diary> additionalMessages = jsonMessages.map((jsonMessage) {
               final jsonMap = jsonDecode(jsonMessage);
               // Create and return the Diary instance
-              return Diary.fromJsonLocal(jsonMap, jsonMap['otherUserReaction']);
+              return Diary.fromJsonLocal(jsonMap, jsonMap['otherUserReaction'],
+                  jsonMap['otherUserLikedAt']);
             }).toList();
 
             likedDiaryList.insertAll(0, additionalMessages);

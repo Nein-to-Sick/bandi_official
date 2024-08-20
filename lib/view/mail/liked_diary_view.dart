@@ -113,7 +113,8 @@ class _LikedDiaryPageState extends State<LikedDiaryPage> {
                     controller: mailController.likedDiaryScrollController,
                     itemCount: mailController.likedDiaryList.length,
                     itemBuilder: (context, index) {
-                      Diary diary = mailController.likedDiaryList[index];
+                      Diary diary = mailController.likedDiaryList[
+                          mailController.likedDiaryList.length - index - 1];
                       return likedDiaryWidget(diary, mailController, context);
                     },
                   ),
@@ -154,8 +155,7 @@ Widget likedDiaryWidget(
                   Row(
                     children: [
                       Text(
-                        DateFormat('yyyy.M.d')
-                            .format((diary.createdAt).toDate()),
+                        diary.otherUserLikedAt,
                         style: BandiFont.headlineSmall(context)?.copyWith(
                             color: BandiColor.neutralColor60(context)),
                       ),
