@@ -25,7 +25,6 @@ class Navigation extends StatefulWidget {
 }
 
 class _NavigationState extends State<Navigation> {
-
   @override
   void initState() {
     super.initState();
@@ -36,7 +35,8 @@ class _NavigationState extends State<Navigation> {
   Future<void> _loadSpeakerPreference() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      speakerOn = prefs.getBool('speakerOn') ?? true; // Default to true if not found
+      speakerOn =
+          prefs.getBool('speakerOn') ?? true; // Default to true if not found
     });
     _initializeAudio();
   }
@@ -81,7 +81,7 @@ class _NavigationState extends State<Navigation> {
                         : navigationToggleProvider.selectedIndex == 2
                             ? const MailView()
                             : const UserView(),
-            if (navigationToggleProvider.selectedIndex != -1)
+            if (navigationToggleProvider.selectedIndex >= 0)
               Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Column(

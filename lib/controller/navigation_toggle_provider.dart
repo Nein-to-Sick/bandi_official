@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 class NavigationToggleProvider with ChangeNotifier {
+  // _selectedIndex == -2 : 설정페이지 바텀 네비 없어야할떄
   // _selectedIndex == -1 : 로그인
   // _selectedIndex == 0 : 홈
   // _selectedIndex == 1 : 일기
