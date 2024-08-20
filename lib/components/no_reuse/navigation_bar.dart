@@ -5,13 +5,13 @@ import 'package:provider/provider.dart';
 import '../../controller/navigation_toggle_provider.dart';
 
 Widget buildNavigationItem(
-    BuildContext context,
-    NavigationToggleProvider navigationToggleProvider,
-    int index,
-    IconData iconFill,
-    IconData iconRegular,
-    String? label,
-    ) {
+  BuildContext context,
+  NavigationToggleProvider navigationToggleProvider,
+  int index,
+  IconData iconFill,
+  IconData iconRegular,
+  String? label,
+) {
   return GestureDetector(
     onTap: () {
       navigationToggleProvider.selectIndex(index);
@@ -20,10 +20,14 @@ Widget buildNavigationItem(
       mainAxisSize: MainAxisSize.min,
       children: [
         PhosphorIcon(
-          navigationToggleProvider.selectedIndex == index ? iconFill : iconRegular,
-          color: navigationToggleProvider.selectedIndex == index
-              ? BandiColor.neutralColor100(context)
-              : BandiColor.neutralColor60(context),
+          navigationToggleProvider.selectedIndex == index
+              ? iconFill
+              : iconRegular,
+          color: navigationToggleProvider.selectedIndex == 3
+              ? BandiColor.foundationColor60(context)
+              : navigationToggleProvider.selectedIndex == index
+                  ? BandiColor.neutralColor100(context)
+                  : BandiColor.neutralColor60(context),
           size: 24,
         ),
         if (label != null) ...[
@@ -31,9 +35,11 @@ Widget buildNavigationItem(
           Text(
             label,
             style: BandiFont.labelSmall(context)?.copyWith(
-              color: navigationToggleProvider.selectedIndex == index
-                  ? BandiColor.neutralColor100(context)
-                  : BandiColor.neutralColor60(context),
+              color: navigationToggleProvider.selectedIndex == 3
+                  ? BandiColor.foundationColor60(context)
+                  : navigationToggleProvider.selectedIndex == index
+                      ? BandiColor.neutralColor100(context)
+                      : BandiColor.neutralColor60(context),
             ),
           ),
         ],
@@ -43,7 +49,8 @@ Widget buildNavigationItem(
 }
 
 Widget navigationBar(BuildContext context) {
-  final navigationToggleProvider = Provider.of<NavigationToggleProvider>(context);
+  final navigationToggleProvider =
+      Provider.of<NavigationToggleProvider>(context);
 
   return SafeArea(
     child: Center(
