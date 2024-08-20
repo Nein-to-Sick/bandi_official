@@ -4,6 +4,7 @@ import 'package:bandi_official/view/home/home_view.dart';
 import 'package:bandi_official/view/list/list_view.dart';
 import 'package:bandi_official/view/login/login_view.dart';
 import 'package:bandi_official/view/mail/mail_view.dart';
+import 'package:bandi_official/view/otherDiary.dart';
 import 'package:bandi_official/view/user/user_view.dart';
 import 'package:bandi_official/view/login/login_view.dart';
 import 'package:flutter/material.dart';
@@ -72,6 +73,8 @@ class _NavigationState extends State<Navigation> {
         body: Stack(
           children: [
             const FireFly(),
+            (writeProvider.otherDiaryOpen == true && writeProvider.step == 1) ?
+               OtherDiary(writeProvider: writeProvider,) :
             navigationToggleProvider.selectedIndex == -1
                 ? const LoginView()
                 : navigationToggleProvider.selectedIndex == 0
@@ -87,12 +90,14 @@ class _NavigationState extends State<Navigation> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    (!writeProvider.write && !diaryAiChatController.isChatOpen)
+                    (!writeProvider.write && !diaryAiChatController.isChatOpen) && !(writeProvider.otherDiaryOpen == true && writeProvider.step == 1)
                         ? navigationBar(context)
                         : Container()
                   ],
                 ),
               ),
+
+
           ],
         ),
       ),
