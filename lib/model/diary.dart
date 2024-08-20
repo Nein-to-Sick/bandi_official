@@ -11,6 +11,7 @@ class Diary {
   late String diaryId;
   late String cheerText;
   late int otherUserReaction;
+  late String otherUserLikedAt;
 
   Diary({
     required this.userId,
@@ -23,6 +24,7 @@ class Diary {
     required this.diaryId,
     this.cheerText = '',
     this.otherUserReaction = -1,
+    this.otherUserLikedAt = '',
   });
 
   // Factory constructor to create a Diary instance from a Firestore snapshot
@@ -102,10 +104,14 @@ class Diary {
         'reaction': reaction,
         'diaryId': diaryId,
         'otherUserReaction': otherUserReaction,
+        'otherUserLikedAt': otherUserLikedAt,
       };
 
   factory Diary.fromJsonLocal(
-      Map<String, dynamic> json, int otherUserReaction) {
+    Map<String, dynamic> json,
+    int otherUserReaction,
+    String otherUserLikedAt,
+  ) {
     return Diary(
       userId: json['userId'],
       title: json['title'],
@@ -120,10 +126,15 @@ class Diary {
       reaction: json['reaction'],
       diaryId: json['diaryId'],
       otherUserReaction: otherUserReaction,
+      otherUserLikedAt: otherUserLikedAt,
     );
   }
 
-  factory Diary.fromJsonDB(Map<String, dynamic> json, int otherUserReaction) {
+  factory Diary.fromJsonDB(
+    Map<String, dynamic> json,
+    int otherUserReaction,
+    String otherUserLikedAt,
+  ) {
     return Diary(
       userId: json['userId'],
       title: json['title'],
@@ -134,6 +145,7 @@ class Diary {
       reaction: json['reaction'],
       diaryId: json['diaryId'],
       otherUserReaction: otherUserReaction,
+      otherUserLikedAt: otherUserLikedAt,
     );
   }
 
