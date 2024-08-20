@@ -193,7 +193,6 @@ class MailController with ChangeNotifier {
   }
 
   // update liked diary to local storage
-  // TODO: 공감 일기 추가할 때 호출하기
   void saveLikedDiaryToLocal(Diary likedDiary, int prefixNumber) async {
     // Firestore 업데이트 로직 추가
     DocumentReference userDocRef = FirebaseFirestore.instance
