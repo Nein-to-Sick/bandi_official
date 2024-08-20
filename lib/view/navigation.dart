@@ -73,6 +73,8 @@ class _NavigationState extends State<Navigation> {
         body: Stack(
           children: [
             const FireFly(),
+            (writeProvider.otherDiaryOpen == true && writeProvider.step == 1) ?
+               OtherDiary(writeProvider: writeProvider,) :
             navigationToggleProvider.selectedIndex == -1
                 ? const LoginView()
                 : navigationToggleProvider.selectedIndex == 0
@@ -88,13 +90,13 @@ class _NavigationState extends State<Navigation> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    (!writeProvider.write && !diaryAiChatController.isChatOpen)
+                    (!writeProvider.write && !diaryAiChatController.isChatOpen) && !(writeProvider.otherDiaryOpen == true && writeProvider.step == 1)
                         ? navigationBar(context)
                         : Container()
                   ],
                 ),
               ),
-            // const OtherDiary(),
+
 
           ],
         ),
