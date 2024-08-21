@@ -1,5 +1,6 @@
 import 'package:bandi_official/components/appbar/appbar.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
+import 'package:bandi_official/test_view.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/mail/every_mail_view.dart';
 import 'package:bandi_official/view/mail/letters_view.dart';
@@ -35,16 +36,20 @@ class _MailViewState extends State<MailView>
         backgroundColor: Colors.transparent,
         appBar: CustomAppBar(
           title: '보관함',
-          trailingIcon: PhosphorIcons.x(PhosphorIconsStyle.fill),
+          trailingIcon: PhosphorIcons.flask(PhosphorIconsStyle.fill),
           onLeadingIconPressed: () {},
           onTrailingIconPressed: () {
             // For test delete finction
-            mailController.deleteEveryMailDataFromLocal();
+            //mailController.deleteEveryMailDataFromLocal();
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const TestViewPage()),
+            );
           },
           disableLeadingButton: false,
-          disableTrailingButton: true,
+          disableTrailingButton: false,
           isVisibleLeadingButton: false,
-          isVisibleTrailingButton: false,
+          isVisibleTrailingButton: true,
         ),
         body: Padding(
           padding: EdgeInsets.only(
@@ -77,9 +82,9 @@ class _MailViewState extends State<MailView>
                     child: TabBarView(
                       controller: mailController.tabController,
                       children: [
-                        EveryMailPage(),
-                        MyLettersPage(),
-                        LikedDiaryPage(),
+                        const EveryMailPage(),
+                        const MyLettersPage(),
+                        const LikedDiaryPage(),
                       ],
                     ),
                   ),
