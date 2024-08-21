@@ -32,6 +32,7 @@ dependencies:
   shared_preferences: ^2.3.1
   assets_audio_player: ^3.1.1
   google_sign_in_ios: ^5.7.6
+  http: ^1.2.2
 
 
 dev_dependencies:
