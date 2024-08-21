@@ -8,8 +8,23 @@ import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 
-class MailView extends StatelessWidget {
+class MailView extends StatefulWidget {
   const MailView({super.key});
+
+  @override
+  State<MailView> createState() => _MailViewState();
+}
+
+class _MailViewState extends State<MailView>
+    with SingleTickerProviderStateMixin {
+  @override
+  void initState() {
+    super.initState();
+
+    MailController mailController =
+        Provider.of<MailController>(context, listen: false);
+    mailController.initController(this, 3); // 3은 탭의 개수입니다.
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +56,7 @@ class MailView extends StatelessWidget {
               child: Column(
                 children: [
                   TabBar(
+                    controller: mailController.tabController,
                     labelColor: BandiColor.neutralColor100(context),
                     unselectedLabelColor: BandiColor.neutralColor40(context),
                     labelStyle: BandiFont.headlineMedium(context)?.copyWith(
@@ -57,8 +73,9 @@ class MailView extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const Expanded(
+                  Expanded(
                     child: TabBarView(
+                      controller: mailController.tabController,
                       children: [
                         EveryMailPage(),
                         MyLettersPage(),

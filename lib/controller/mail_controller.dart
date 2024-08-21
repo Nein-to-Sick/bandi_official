@@ -37,6 +37,23 @@ class MailController with ChangeNotifier {
   // while loading
   bool isLoading = false;
 
+  // mail view page controller
+  late TabController _tabController;
+
+  TabController get tabController => _tabController;
+
+  void initController(TickerProvider vsync, int length) {
+    _tabController = TabController(length: length, vsync: vsync);
+
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        notifyListeners();
+      }
+    });
+  }
+
+  int get currentIndex => _tabController.index;
+
   // called on initState
   void loadDataAndSetting() {
     if (!loadLikedDiaryDataOnce || !loadLetterDataOnce) {

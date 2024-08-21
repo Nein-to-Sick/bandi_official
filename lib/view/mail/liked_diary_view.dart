@@ -127,7 +127,8 @@ class _LikedDiaryPageState extends State<LikedDiaryPage> {
 Widget likedDiaryWidget(
     Diary diary, MailController mailController, BuildContext context) {
   String combinedEmotions = (diary.emotion).join(', ');
-  return (mailController.filteredKeywordValue == 0 ||
+  return (mailController.currentIndex == 0 ||
+          mailController.filteredKeywordValue == 0 ||
           mailController.filteredKeywordValue == diary.otherUserReaction + 1)
       ? Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
