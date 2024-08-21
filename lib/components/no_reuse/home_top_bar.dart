@@ -1,7 +1,10 @@
 import 'package:bandi_official/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/controller/home_to_write.dart';
+import 'package:bandi_official/controller/mail_controller.dart';
+import 'package:bandi_official/test_view.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/diary_ai_chat/diary_ai_chat_view.dart';
+import 'package:bandi_official/view/mail/detail_view.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
@@ -9,7 +12,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../view/home/write_diary.dart';
 import '../../view/navigation.dart';
-
 
 class HomeTopBar extends StatefulWidget {
   const HomeTopBar({super.key});
@@ -19,12 +21,12 @@ class HomeTopBar extends StatefulWidget {
 }
 
 class _HomeTopBarState extends State<HomeTopBar> {
-
   @override
   Widget build(BuildContext context) {
     final writeProvider = Provider.of<HomeToWrite>(context);
     final DiaryAiChatController diaryAiChatController =
         context.watch<DiaryAiChatController>();
+    final MailController mailController = context.watch<MailController>();
 
     return Stack(
       children: [
@@ -44,8 +46,16 @@ class _HomeTopBarState extends State<HomeTopBar> {
               ? const DiaryAIChatPage()
               : const SizedBox.shrink(),
         ),
+        // mail page detail view open
+        AnimatedOpacity(
+          opacity: (mailController.isDetailViewShowing) ? 1.0 : 0.0,
+          duration: const Duration(milliseconds: 300),
+          child: const SizedBox.shrink(),
+        ),
         // home
-        (!writeProvider.write && !diaryAiChatController.isChatOpen)
+        (!writeProvider.write &&
+                !diaryAiChatController.isChatOpen &&
+                !mailController.isDetailViewShowing)
             ? SafeArea(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -62,7 +72,8 @@ class _HomeTopBarState extends State<HomeTopBar> {
                               setState(() {
                                 speakerOn = !speakerOn;
                               });
-                              final prefs = await SharedPreferences.getInstance();
+                              final prefs =
+                                  await SharedPreferences.getInstance();
                               await prefs.setBool('speakerOn', speakerOn);
 
                               // Adjust audio based on the new setting
@@ -73,9 +84,11 @@ class _HomeTopBarState extends State<HomeTopBar> {
                               }
                             },
                             child: PhosphorIcon(
-                              speakerOn ? PhosphorIcons.speakerSimpleHigh(
-                                  PhosphorIconsStyle.fill) : PhosphorIcons.speakerSimpleSlash(
-                                  PhosphorIconsStyle.fill),
+                              speakerOn
+                                  ? PhosphorIcons.speakerSimpleHigh(
+                                      PhosphorIconsStyle.fill)
+                                  : PhosphorIcons.speakerSimpleSlash(
+                                      PhosphorIconsStyle.fill),
                               color: BandiColor.neutralColor100(context),
                             ),
                           ),
@@ -87,7 +100,7 @@ class _HomeTopBarState extends State<HomeTopBar> {
                                   color: BandiColor.neutralColor100(context),
                                 ),
                                 onPressed: () {
-                                  diaryAiChatController.toggleChatOpen();
+                                  diaryAiChatController.toggleChatOpen(true);
                                 },
                               ),
                               const SizedBox(

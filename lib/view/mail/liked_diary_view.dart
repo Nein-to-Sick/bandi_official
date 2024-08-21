@@ -135,6 +135,7 @@ Widget likedDiaryWidget(
           child: GestureDetector(
             // 일기 열람 기능 추가
             onTap: () {
+              mailController.toggleDetailView(true);
               showDialog(
                 context: context,
                 barrierDismissible: false,
@@ -142,6 +143,7 @@ Widget likedDiaryWidget(
                 builder: (BuildContext context) {
                   return DetailView(
                     item: diary,
+                    mailController: mailController,
                   );
                 },
               );
