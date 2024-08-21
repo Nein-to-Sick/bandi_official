@@ -37,7 +37,10 @@ class MailController with ChangeNotifier {
   // while loading
   bool isLoading = false;
 
-  // mail view page controller
+  // while detail view is shown
+  bool isDetailViewShowing = false;
+
+  // mail view tab controller
   late TabController _tabController;
 
   TabController get tabController => _tabController;
@@ -75,8 +78,15 @@ class MailController with ChangeNotifier {
     notifyListeners();
   }
 
+  // toggle the loading value
   void toggleLoading(value) {
     isLoading = value;
+    notifyListeners();
+  }
+
+  // toggle the detail view value
+  void toggleDetailView(value) {
+    isDetailViewShowing = value;
     notifyListeners();
   }
 

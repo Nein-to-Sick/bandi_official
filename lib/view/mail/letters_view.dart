@@ -55,19 +55,21 @@ class _MyLettersPageState extends State<MyLettersPage> {
               itemCount: mailController.letterList.length,
               itemBuilder: (context, index) {
                 Letter letter = mailController.letterList[index];
-                return lettersWidget(letter, context);
+                return lettersWidget(letter, mailController, context);
               },
             ),
           );
   }
 }
 
-Widget lettersWidget(Letter letter, BuildContext context) {
+Widget lettersWidget(
+    Letter letter, MailController mailController, BuildContext context) {
   return Padding(
     padding: const EdgeInsets.symmetric(vertical: 8),
     child: GestureDetector(
       // 편지 열람 기능 추가
       onTap: () {
+        mailController.toggleDetailView(true);
         showDialog(
           context: context,
           barrierDismissible: false,
@@ -75,6 +77,7 @@ Widget lettersWidget(Letter letter, BuildContext context) {
           builder: (BuildContext context) {
             return DetailView(
               item: letter,
+              mailController: mailController,
             );
           },
         );

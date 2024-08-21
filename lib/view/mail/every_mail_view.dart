@@ -92,7 +92,7 @@ class _EveryMailPageState extends State<EveryMailPage> {
                 final item = combinedList[index];
                 if (item['type'] == 'letter') {
                   final Letter letter = item['data'];
-                  return lettersWidget(letter, context);
+                  return lettersWidget(letter, mailController, context);
                 } else if (item['type'] == 'diary') {
                   final Diary diary = item['data'];
                   return likedDiaryWidget(diary, mailController, context);

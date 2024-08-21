@@ -1,5 +1,6 @@
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:bandi_official/controller/diary_ai_chat_controller.dart';
+import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/view/home/home_view.dart';
 import 'package:bandi_official/view/list/list_view.dart';
 import 'package:bandi_official/view/login/login_view.dart';
@@ -26,7 +27,6 @@ class Navigation extends StatefulWidget {
 }
 
 class _NavigationState extends State<Navigation> {
-
   @override
   void initState() {
     super.initState();
@@ -37,7 +37,8 @@ class _NavigationState extends State<Navigation> {
   Future<void> _loadSpeakerPreference() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      speakerOn = prefs.getBool('speakerOn') ?? true; // Default to true if not found
+      speakerOn =
+          prefs.getBool('speakerOn') ?? true; // Default to true if not found
     });
     _initializeAudio();
   }
@@ -59,6 +60,7 @@ class _NavigationState extends State<Navigation> {
     final writeProvider = Provider.of<HomeToWrite>(context);
     final DiaryAiChatController diaryAiChatController =
         context.watch<DiaryAiChatController>();
+    final MailController mailController = context.watch<MailController>();
 
     return Container(
       decoration: const BoxDecoration(
@@ -73,31 +75,37 @@ class _NavigationState extends State<Navigation> {
         body: Stack(
           children: [
             const FireFly(),
-            (writeProvider.otherDiaryOpen == true && writeProvider.step == 1) ?
-               OtherDiary(writeProvider: writeProvider,) :
-            navigationToggleProvider.selectedIndex == -1
-                ? const LoginView()
-                : navigationToggleProvider.selectedIndex == 0
-                    ? const HomePage()
-                    : navigationToggleProvider.selectedIndex == 1
-                        ? const ListPage()
-                        : navigationToggleProvider.selectedIndex == 2
-                            ? const MailView()
-                            : const UserView(),
+            (writeProvider.otherDiaryOpen == true && writeProvider.step == 1)
+                ? OtherDiary(
+                    writeProvider: writeProvider,
+                  )
+                : navigationToggleProvider.selectedIndex == -1
+                    ? const LoginView()
+                    : navigationToggleProvider.selectedIndex == 0
+                        ? const HomePage()
+                        : navigationToggleProvider.selectedIndex == 1
+                            ? const ListPage()
+                            : navigationToggleProvider.selectedIndex == 2
+                                ? (!mailController.isDetailViewShowing)
+                                    ? const MailView()
+                                    : const SizedBox.shrink()
+                                : const UserView(),
             if (navigationToggleProvider.selectedIndex != -1)
               Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    (!writeProvider.write && !diaryAiChatController.isChatOpen) && !(writeProvider.otherDiaryOpen == true && writeProvider.step == 1)
+                    (!writeProvider.write &&
+                                !diaryAiChatController.isChatOpen &&
+                                !mailController.isDetailViewShowing) &&
+                            !(writeProvider.otherDiaryOpen == true &&
+                                writeProvider.step == 1)
                         ? navigationBar(context)
                         : Container()
                   ],
                 ),
               ),
-
-
           ],
         ),
       ),
