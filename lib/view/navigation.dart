@@ -90,7 +90,7 @@ class _NavigationState extends State<Navigation> {
                                     ? const MailView()
                                     : const SizedBox.shrink()
                                 : const UserView(),
-            if (navigationToggleProvider.selectedIndex != -1)
+            if (navigationToggleProvider.selectedIndex >= 0)
               Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Column(
