@@ -71,10 +71,21 @@ class _MailViewState extends State<MailView>
                     indicatorSize: TabBarIndicatorSize.tab,
                     dividerColor: BandiColor.neutralColor40(context),
                     tabs: const [
-                      Tab(text: "전체"),
-                      Tab(text: "편지"),
-                      Tab(
-                        text: "공감한 일기",
+                      FittedBox(
+                        fit: BoxFit.contain,
+                        child: Tab(text: "전체"),
+                      ),
+                      FittedBox(
+                        fit: BoxFit.contain,
+                        child: Tab(
+                          text: "편지",
+                        ),
+                      ),
+                      FittedBox(
+                        fit: BoxFit.contain,
+                        child: Tab(
+                          text: "공감한 일기",
+                        ),
                       ),
                     ],
                   ),
