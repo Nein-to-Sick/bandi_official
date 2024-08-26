@@ -1,10 +1,13 @@
 import 'dart:ui';
 
 import 'package:bandi_official/controller/home_to_write.dart';
+import 'package:bandi_official/controller/mail_controller.dart';
+import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:provider/provider.dart';
 
 import '../components/button/primary_button.dart';
 import '../components/button/reaction_button.dart';
@@ -31,7 +34,7 @@ class _OtherDiaryState extends State<OtherDiary> {
   Widget build(BuildContext context) {
     return showFirstPage
         ? firstPage(context, widget.writeProvider)
-        : secondPage(widget.writeProvider);
+        : secondPage(context, widget.writeProvider);
   }
 
   Widget firstPage(context, HomeToWrite writeProvider) {
@@ -101,10 +104,13 @@ class _OtherDiaryState extends State<OtherDiary> {
     );
   }
 
-  Widget secondPage(HomeToWrite writeProvider) {
+  Widget secondPage(BuildContext context, HomeToWrite writeProvider) {
     bool reaction1 = false;
     bool reaction2 = false;
     bool reaction3 = false;
+    int reactionValue = -1;
+
+    MailController mailController = context.watch<MailController>();
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
       child: SafeArea(
@@ -125,6 +131,27 @@ class _OtherDiaryState extends State<OtherDiary> {
                         children: [
                           GestureDetector(
                               onTap: () {
+                                Diary updatedDiary = Diary(
+                                  userId: writeProvider.userId,
+                                  title: writeProvider.otherDiaryTitle,
+                                  content: writeProvider.otherDiaryContent,
+                                  emotion: writeProvider.otherDiaryEmotion,
+                                  createdAt: writeProvider.otherDiaryCreatedDay,
+                                  updatedAt: writeProvider.otherDiaryUpdatedDay,
+                                  reaction: writeProvider.otherDiaryReaction,
+                                  diaryId: writeProvider.otherDiaryId,
+                                );
+
+                                if (reaction1) {
+                                  reactionValue = 0;
+                                } else if (reaction2) {
+                                  reactionValue = 1;
+                                } else if (reaction3) {
+                                  reactionValue = 2;
+                                }
+
+                                mailController.saveLikedDiaryToLocal(
+                                    updatedDiary, reactionValue);
                                 saveReactionInDB(
                                     writeProvider.otherDiaryId,
                                     writeProvider.otherDiaryReaction,

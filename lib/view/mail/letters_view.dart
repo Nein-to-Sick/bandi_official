@@ -2,6 +2,7 @@ import 'package:bandi_official/components/loading/loading_page.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/model/letter.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
+import 'package:bandi_official/view/mail/detail_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
@@ -54,19 +55,33 @@ class _MyLettersPageState extends State<MyLettersPage> {
               itemCount: mailController.letterList.length,
               itemBuilder: (context, index) {
                 Letter letter = mailController.letterList[index];
-                return lettersWidget(letter, context);
+                return lettersWidget(letter, mailController, context);
               },
             ),
           );
   }
 }
 
-Widget lettersWidget(Letter letter, BuildContext context) {
+Widget lettersWidget(
+    Letter letter, MailController mailController, BuildContext context) {
   return Padding(
     padding: const EdgeInsets.symmetric(vertical: 8),
     child: GestureDetector(
       // 편지 열람 기능 추가
-      onTap: () {},
+      onTap: () {
+        mailController.toggleDetailView(true);
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          barrierColor: Colors.transparent,
+          builder: (BuildContext context) {
+            return DetailView(
+              item: letter,
+              mailController: mailController,
+            );
+          },
+        );
+      },
       child: Container(
         color: Colors.transparent,
         child: Column(

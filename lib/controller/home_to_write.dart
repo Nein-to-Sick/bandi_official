@@ -133,13 +133,16 @@ class HomeToWrite with ChangeNotifier {
     }
   }
 
-
   bool otherDiaryOpen = false;
   String otherDiaryTitle = "";
   String otherDiaryContent = "";
   String otherDiaryDay = "";
+  late Timestamp otherDiaryCreatedDay;
+  late Timestamp otherDiaryUpdatedDay;
   String otherDiaryId = "";
   List<dynamic> otherDiaryReaction = [];
+  List<dynamic> otherDiaryEmotion = [];
+
   void offDiaryOpen() {
     otherDiaryOpen = false;
     otherDiaryTitle = "";
@@ -175,19 +178,23 @@ class HomeToWrite with ChangeNotifier {
 
       otherDiaryId = selectedDiary['diaryId'];
 
-      //ToDo: combinationDiaryId 조합하기
-      String combinationDiaryId = otherDiaryId;
+      // //ToDo: combinationDiaryId 조합하기
+      // String combinationDiaryId = otherDiaryId;
 
-      // user 컬렉션의 userId 문서의 otherDiary 컬렉션에 추가
-      await firestore.collection('users').doc(userId).update({
-        'likedDiaryId': FieldValue.arrayUnion([combinationDiaryId]),
-      });
+      // // user 컬렉션의 userId 문서의 otherDiary 컬렉션에 추가
+      // await firestore.collection('users').doc(userId).update({
+      //   'likedDiaryId': FieldValue.arrayUnion([combinationDiaryId]),
+      // });
 
       otherDiaryOpen = true;
       otherDiaryTitle = selectedDiary['title'];
       otherDiaryContent = selectedDiary['content'];
-      otherDiaryDay = DateFormat('yyyy년 M월 d일').format(selectedDiary['createdAt'].toDate());
+      otherDiaryDay =
+          DateFormat('yyyy년 M월 d일').format(selectedDiary['createdAt'].toDate());
       otherDiaryReaction = selectedDiary['reaction'];
+      otherDiaryEmotion = selectedDiary['emotion'];
+      otherDiaryUpdatedDay = selectedDiary['updatedAt'];
+      otherDiaryCreatedDay = selectedDiary['createdAt'];
       notifyListeners();
 
       print("일기가 성공적으로 추가되었습니다.");

@@ -2,9 +2,9 @@ import 'package:bandi_official/components/loading/loading_page.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
+import 'package:bandi_official/view/mail/detail_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'dart:developer' as dev;
 
@@ -18,7 +18,6 @@ class LikedDiaryPage extends StatefulWidget {
 class _LikedDiaryPageState extends State<LikedDiaryPage> {
   bool loadMoreData = true;
 
-  // TODO: 추후 버튼 작동 방식 확인 후 수정 필요, 임시 구현
   Widget filterChips(MailController mailController) {
     return Align(
       alignment: Alignment.centerLeft,
@@ -113,7 +112,8 @@ class _LikedDiaryPageState extends State<LikedDiaryPage> {
                     controller: mailController.likedDiaryScrollController,
                     itemCount: mailController.likedDiaryList.length,
                     itemBuilder: (context, index) {
-                      Diary diary = mailController.likedDiaryList[index];
+                      Diary diary = mailController.likedDiaryList[
+                          mailController.likedDiaryList.length - index - 1];
                       return likedDiaryWidget(diary, mailController, context);
                     },
                   ),
@@ -127,13 +127,27 @@ class _LikedDiaryPageState extends State<LikedDiaryPage> {
 Widget likedDiaryWidget(
     Diary diary, MailController mailController, BuildContext context) {
   String combinedEmotions = (diary.emotion).join(', ');
-  return (mailController.filteredKeywordValue == 0 ||
+  return (mailController.currentIndex == 0 ||
+          mailController.filteredKeywordValue == 0 ||
           mailController.filteredKeywordValue == diary.otherUserReaction + 1)
       ? Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: GestureDetector(
             // 일기 열람 기능 추가
-            onTap: () {},
+            onTap: () {
+              mailController.toggleDetailView(true);
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                barrierColor: Colors.transparent,
+                builder: (BuildContext context) {
+                  return DetailView(
+                    item: diary,
+                    mailController: mailController,
+                  );
+                },
+              );
+            },
             child: Container(
               color: Colors.transparent,
               child: Column(
@@ -154,8 +168,7 @@ Widget likedDiaryWidget(
                   Row(
                     children: [
                       Text(
-                        DateFormat('yyyy.M.d')
-                            .format((diary.createdAt).toDate()),
+                        diary.otherUserLikedAt,
                         style: BandiFont.headlineSmall(context)?.copyWith(
                             color: BandiColor.neutralColor60(context)),
                       ),
