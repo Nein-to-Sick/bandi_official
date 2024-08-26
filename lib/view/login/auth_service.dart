@@ -58,15 +58,18 @@ class AuthService {
     if (snapshot.exists) {
     } else {
       await docRef.set({
-        "nickname": "",
-        "email": userEmail,
         "created_at": FieldValue.serverTimestamp(),
-        "isAgreed": false,
-        "last_agreed_at": null,
+        "email": userEmail,
+        "nickname": "",
+        "likedDiaryId": [], // Empty string array
+        "myDiaryId": [], // Empty string array
+        "socialLoginProvider": "google",
+        "updatedAt": FieldValue.serverTimestamp(),
+        "userId": userId,
       });
     }
 
-    // final dateDocRef = docRef.collection("mailBox").doc("firstMessage");
+    final dateDocRef = docRef.collection("mailBox").doc("");
     //finally, lets sign in
 
     return FirebaseAuth.instance.currentUser;
