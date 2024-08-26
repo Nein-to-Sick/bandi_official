@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:bandi_official/model/diary.dart';
@@ -79,13 +80,13 @@ class MailController with ChangeNotifier {
   }
 
   // toggle the loading value
-  void toggleLoading(value) {
+  void toggleLoading(bool value) {
     isLoading = value;
     notifyListeners();
   }
 
   // toggle the detail view value
-  void toggleDetailView(value) {
+  void toggleDetailView(bool value) {
     isDetailViewShowing = value;
     notifyListeners();
   }
@@ -444,12 +445,12 @@ class MailController with ChangeNotifier {
 
     // 인수로 받은 letter 추가
     todayMessages.add(letter);
+    letterList.add(letter);
 
     List<String> jsonMessages =
         todayMessages.map((message) => jsonEncode(message.toJson())).toList();
     await prefs.setStringList(todayKey, jsonMessages);
     dev.log('save letter to local for date $todayKey');
-    loadLetterDataOnce = false;
   }
 
   // load more liked diary from past
