@@ -41,15 +41,17 @@ class _MailViewState extends State<MailView>
           onTrailingIconPressed: () {
             // For test delete finction
             //mailController.deleteEveryMailDataFromLocal();
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const TestViewPage()),
-            );
+
+            // For Firebase Function deploy test
+            // Navigator.push(
+            //   context,
+            //   MaterialPageRoute(builder: (context) => const TestViewPage()),
+            // );
           },
           disableLeadingButton: false,
-          disableTrailingButton: false,
+          disableTrailingButton: true,
           isVisibleLeadingButton: false,
-          isVisibleTrailingButton: true,
+          isVisibleTrailingButton: false,
         ),
         body: Padding(
           padding: EdgeInsets.only(
@@ -92,10 +94,10 @@ class _MailViewState extends State<MailView>
                   Expanded(
                     child: TabBarView(
                       controller: mailController.tabController,
-                      children: [
-                        const EveryMailPage(),
-                        const MyLettersPage(),
-                        const LikedDiaryPage(),
+                      children: const [
+                        EveryMailPage(),
+                        MyLettersPage(),
+                        LikedDiaryPage(),
                       ],
                     ),
                   ),

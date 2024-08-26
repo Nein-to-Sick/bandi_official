@@ -28,16 +28,9 @@ admin.initializeApp();
 const db = admin.firestore();
 
 // OpenAI API Configuration
-const configuration = new OpenAI({
-    apiKey: process.env["OPENAI_API_KEY"],
+const openai = new OpenAI({
+    apiKey: functions.config().openai.key,
 });
-
-// OpenAI API Configuration
-// const configuration = new Configuration({
-//     apiKey: process.env.OPENAI_API_KEY,
-// });
-
-const openai = new OpenAI(configuration);
 
 // 매월 마지막 날 실행되는 PubSub 트리거 설정
 // exports.monthlyDiaryReview = functions.region("asia-northeast3").pubsub.schedule('0 0 28-31 * *')
@@ -48,10 +41,10 @@ exports.testDiaryReview = functions.region("asia-northeast3").pubsub.schedule("*
         const currentMonth = today.toISOString().slice(0, 7); // "YYYY-MM"
         const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
-        // 달의 마지막 날인지 확인
+        // 오늘이 달의 마지막 날인지 확인
         if (today.getDate() !== lastDayOfMonth.getDate()) {
-            console.log("오늘은 달의 마지막 날이 아닙니다. 함수 종료.");
-            return null;
+            console.log("[Exit] Today is not the last day of month.");
+            // return null;
         }
 
         const usersRef = db.collection("users");
@@ -87,8 +80,10 @@ exports.testDiaryReview = functions.region("asia-northeast3").pubsub.schedule("*
             const filteredEntries = validEntries.filter((entry) => entry !== null);
 
             if (filteredEntries.length < 5) {
-                console.log(`User ${userDoc.id} does not have enough valid diary entries for the current month. Skipping.`);
+                console.log(`[Skipping] User ${userDoc.id} does not have enough valid diary entries for the current month.`);
                 return;
+            } else {
+                console.log(`[Proceed] User ${userDoc.id} has enough valid diary entries for the current month.`);
             }
 
             // 다이어리 텍스트 구성
@@ -96,33 +91,53 @@ exports.testDiaryReview = functions.region("asia-northeast3").pubsub.schedule("*
                 return `Diary: ${entry.content}\nEmotions: ${entry.emotion.join(", ")}`;
             }).join("\n\n");
 
-            const prompt = `Here are some recent diary entries with their emotions:\n\n${diaryText}\n\nPlease write an encouraging and empathetic letter based on these entries in Korean.`;
+
+            // TODO: 추후 모델 학습 or 프롬프트 개선 필요
+            const systemMessage = {
+                content:
+                    "You are a helpful assistant. Please write an encouraging and empathetic letter in Korean based on the diary entries and the emotions expressed in them.",
+
+                role: "system",
+            };
+
+            const userDiarySet = {
+                content:
+                    `Here are some recent diary entries with their emotions:\n\n${diaryText}`,
+
+                role: "user",
+            };
+
+            const requestMessages = [
+                systemMessage,
+                userDiarySet,
+            ];
 
             try {
-                const response = await openai.createCompletion({
-                    model: "gpt-4o-mini",
-                    prompt: prompt,
-                    n: 1,
-                    maxTokens: 512,
-                    frequencyPenalty: 0,
-                    presencePenalty: 0,
-                    temperature: 1.0,
-                    topP: 1.0,
-                });
-
-                const letterContent = response.data.choices[0].text.trim();
                 const lettersRef = db.collection("users").doc(userDoc.id).collection("letters");
 
+                const existingLetterSnapshot = await lettersRef.where("title", "==", `${today.getFullYear()}년 ${today.getMonth() + 1}월의 편지`).get();
+
+                if (!existingLetterSnapshot.empty) {
+                    console.log(`[Skipping] User ${userDoc.id} already has a letter for this month.`);
+                    return;
+                } else {
+                    console.log(`[Proceed] User ${userDoc.id} does not have a letter for this month.`);
+                }
+
+                const response = await openai.chat.completions.create({
+                    model: "gpt-4o-mini",
+                    messages: requestMessages,
+                    n: 1,
+                    max_tokens: 512,
+                    frequency_penalty: 0,
+                    presence_penalty: 0,
+                    temperature: 1.0,
+                    top_p: 1.0,
+                });
+
+                const letterContent = response.choices[0].message.content.trim();
+
                 await db.runTransaction(async (transaction) => {
-                    const existingLetterSnapshot = await transaction.get(
-                        lettersRef.where("title", "==", `${today.getFullYear()}년 ${today.getMonth() + 1}월의 편지`),
-                    );
-
-                    if (!existingLetterSnapshot.empty) {
-                        console.log(`User ${userDoc.id} already has a letter for this month. Skipping.`);
-                        return;
-                    }
-
                     const letterId = lettersRef.doc().id;
 
                     transaction.set(lettersRef.doc(letterId), {
@@ -133,13 +148,25 @@ exports.testDiaryReview = functions.region("asia-northeast3").pubsub.schedule("*
                     });
                 });
 
-                console.log(`Encouragement letter for user ${userDoc.id} created successfully.`);
+                console.log(`[Success] Encouragement letter for user ${userDoc.id} created successfully.`);
             } catch (error) {
-                console.error(`Failed to create encouragement letter for user ${userDoc.id}:`, error);
+                if (error instanceof OpenAI.APIError) {
+                    console.error(`[Fail] Failed to create encouragement letter for user ${userDoc.id}:`, error.message);
+                } else {
+                    // Non-API error
+                    console.log(error);
+                }
             }
         });
 
-        await Promise.all(tasks);
+        try {
+            await Promise.all(tasks);
+            console.log(`[Exit] All tasks have been completed successfully.`);
+        } catch (error) {
+            console.error(`[Error] An error occurred while executing tasks:`, error);
+        }
+
+        console.log(`[Exit] Function execution completed.`);
 
         return null;
     });
