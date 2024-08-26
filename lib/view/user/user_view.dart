@@ -1,4 +1,5 @@
 import 'package:bandi_official/components/button/secondary_button.dart';
+import 'package:bandi_official/components/field/custom_text_field.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -219,7 +220,11 @@ class _UserViewState extends State<UserView> {
             buildSettingOption(
               icon: PhosphorIcons.user(),
               text: "닉네임",
-              onTap: () {},
+              onTap: () {
+                setState(() {
+                  settings = 6;
+                });
+              },
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -719,6 +724,52 @@ class _UserViewState extends State<UserView> {
           ],
         ));
 
+    Widget changeNickname = Scaffold(
+      backgroundColor: BandiColor.neutralColor80(context).withOpacity(0.8),
+      // custom appbar 일단 임시로 leading icon 변경
+      appBar: AppBar(
+        scrolledUnderElevation: 0,
+        backgroundColor: BandiColor.transparent(context),
+        leading: IconButton(
+          icon: Icon(
+            PhosphorIcons.caretLeft(),
+          ),
+          onPressed: () {
+            setState(() {
+              settings = 1;
+            });
+
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              navigationToggleProvider.selectIndex(3);
+            });
+          },
+        ),
+        title: Padding(
+          padding: const EdgeInsets.symmetric(
+            vertical: 16,
+          ),
+          child: Text(
+            "닉네임 변경",
+            style: BandiFont.displaySmall(context)?.copyWith(
+              color: BandiColor.foundationColor80(context),
+            ),
+          ),
+        ),
+        centerTitle: true,
+      ),
+      body: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 23.0),
+        child: ListView(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).size.height * 0.1,
+          ),
+          children: [
+            Expanded(child: CustomTextField()),
+          ],
+        ),
+      ),
+    );
+
     return settings == 0
         ? settingHome
         : settings == 1
@@ -729,7 +780,9 @@ class _UserViewState extends State<UserView> {
                     ? termsOfUse
                     : settings == 4
                         ? privacypolicy
-                        : companyInfoView;
+                        : settings == 5
+                            ? companyInfoView
+                            : changeNickname;
   }
 
   //ossLicensesScreen
