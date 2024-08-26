@@ -34,6 +34,7 @@ dependencies:
   google_sign_in_ios: ^5.7.6
   http: ^1.2.2
   wrapped_korean_text: ^0.0.3
+  firebase_messaging: ^15.0.4
 
 
 dev_dependencies:

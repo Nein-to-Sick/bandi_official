@@ -18,11 +18,11 @@
 //     response.send("Hello from Firebase!");
 // });
 
+// 최대 추출할 일기 ID 수를 정의하는 상수
+const MAX_DIARY_COUNT = 5;
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const { OpenAI } = require("openai");
-const path = require("path");
-require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -54,8 +54,8 @@ exports.testDiaryReview = functions.region("asia-northeast3").pubsub.schedule("*
             const userData = userDoc.data();
             const myDiaryId = userData.myDiaryId || [];
 
-            // 뒤에서부터 5개의 일기 ID 추출
-            const lastFiveDiaryIds = myDiaryId.slice(-5);
+            // 일기 ID 배열의 뒤에서부터 MAX_DIARY_COUNT개의 ID를 추출
+            const lastFiveDiaryIds = myDiaryId.slice(-MAX_DIARY_COUNT);
 
             // 다이어리 데이터를 가져오고 날짜 검증
             const validEntries = await Promise.all(lastFiveDiaryIds.map(async (diaryId) => {
@@ -144,14 +144,35 @@ exports.testDiaryReview = functions.region("asia-northeast3").pubsub.schedule("*
                         content: letterContent,
                         date: admin.firestore.FieldValue.serverTimestamp(),
                         letterId: letterId,
-                        title: `${today.getFullYear()}년 ${today.getMonth() + 1}월의 편지`,
+                        title: `${today.getFullYear()}년 ${today.getMonth() + 1}월 편지`,
                     });
                 });
 
                 console.log(`[Success] Encouragement letter for user ${userDoc.id} created successfully.`);
+
+                // // 유저에게 FCM 토큰으로 알림 전송
+                // const fcmToken = userData.fcmToken;
+                // if (fcmToken) {
+                //     const message = {
+                //         notification: {
+                //             title: "새로운 편지가 도착했어요!",
+                //             body: "이번 달의 편지를 확인하세요.",
+                //         },
+                //         token: fcmToken,
+                //     };
+
+                //     try {
+                //         await admin.messaging().send(message);
+                //         console.log(`[Success] Notification sent to user ${userDoc.id}`);
+                //     } catch (error) {
+                //         console.error(`[Error] Failed to send notification to user ${userDoc.id}:`, error);
+                //     }
+                // } else {
+                //     console.log(`[Info] No FCM token found for user ${userDoc.id}, notification not sent.`);
+                // }
             } catch (error) {
                 if (error instanceof OpenAI.APIError) {
-                    console.error(`[Fail] Failed to create encouragement letter for user ${userDoc.id}:`, error.message);
+                    console.error(`[Error] Failed to create encouragement letter for user ${userDoc.id}:`, error.message);
                 } else {
                     // Non-API error
                     console.log(error);
