@@ -22,6 +22,7 @@ dependencies:
   firebase_auth: ^5.1.1
   firebase_storage: ^12.1.0
   cloud_firestore: ^5.0.2
+  cloud_functions: ^5.0.4
   # OPENAI CHATGPT
   flutter_dotenv: ^5.1.0
   dart_openai: ^5.1.0
@@ -31,8 +32,9 @@ dependencies:
   shared_preferences: ^2.3.1
   assets_audio_player: ^3.1.1
   google_sign_in_ios: ^5.7.6
+  http: ^1.2.2
   wrapped_korean_text: ^0.0.3
-
+  firebase_messaging: ^15.0.4
 
 
 dev_dependencies:

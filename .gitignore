@@ -70,3 +70,4 @@ lib/generated_plugin_registrant.dart
 assets/config/.env
 
 # End of https://www.toptal.com/developers/gitignore/api/flutter
+functions/.env

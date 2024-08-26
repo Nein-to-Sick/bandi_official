@@ -44,8 +44,8 @@ class DiaryAiChatController with ChangeNotifier {
   }
 
   // toggle the chat page view
-  void toggleChatOpen() {
-    isChatOpen = !isChatOpen;
+  void toggleChatOpen(value) {
+    isChatOpen = value;
     notifyListeners();
   }
 

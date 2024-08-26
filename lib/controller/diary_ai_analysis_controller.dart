@@ -45,7 +45,8 @@ class DiaryAIAnalysisController with ChangeNotifier {
       // the actual request.
       OpenAIChatCompletionModel keywordCompletion =
           await OpenAI.instance.chat.create(
-        model: "ft:gpt-3.5-turbo-0125:personal:second-fine-tuned:9k5K0x2W",
+        model:
+            "ft:gpt-4o-mini-2024-07-18:personal:emotion-analysis-model002:9zJC7AS6",
         messages: requestMessages,
         // 답변할 종류의 수
         n: 1,
@@ -105,7 +106,8 @@ class DiaryAIAnalysisController with ChangeNotifier {
       // the actual request.
       OpenAIChatCompletionModel titleCompletion =
           await OpenAI.instance.chat.create(
-        model: "ft:gpt-3.5-turbo-0125:personal:title-summary-01:9l7qOBbh",
+        model:
+            "ft:gpt-4o-mini-2024-07-18:personal:title-summary-model001:9zJ0yNAC",
         messages: requestMessages,
         // 답변할 종류의 수
         n: 1,
@@ -167,7 +169,7 @@ class DiaryAIAnalysisController with ChangeNotifier {
       // the actual request.
       OpenAIChatCompletionModel encouragementCompletion =
           await OpenAI.instance.chat.create(
-        model: "gpt-3.5-turbo",
+        model: "gpt-4o-mini",
         messages: requestMessages,
         // 답변할 종류의 수
         n: 1,

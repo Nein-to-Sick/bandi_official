@@ -1,5 +1,6 @@
 import 'package:bandi_official/components/appbar/appbar.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
+import 'package:bandi_official/test_view.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/mail/every_mail_view.dart';
 import 'package:bandi_official/view/mail/letters_view.dart';
@@ -8,8 +9,23 @@ import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 
-class MailView extends StatelessWidget {
+class MailView extends StatefulWidget {
   const MailView({super.key});
+
+  @override
+  State<MailView> createState() => _MailViewState();
+}
+
+class _MailViewState extends State<MailView>
+    with SingleTickerProviderStateMixin {
+  @override
+  void initState() {
+    super.initState();
+
+    MailController mailController =
+        Provider.of<MailController>(context, listen: false);
+    mailController.initController(this, 3); // 3은 탭의 개수입니다.
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,11 +36,17 @@ class MailView extends StatelessWidget {
         backgroundColor: Colors.transparent,
         appBar: CustomAppBar(
           title: '보관함',
-          trailingIcon: PhosphorIcons.x(PhosphorIconsStyle.fill),
+          trailingIcon: PhosphorIcons.flask(PhosphorIconsStyle.fill),
           onLeadingIconPressed: () {},
           onTrailingIconPressed: () {
             // For test delete finction
-            mailController.deleteEveryMailDataFromLocal();
+            //mailController.deleteEveryMailDataFromLocal();
+
+            // For Firebase Function deploy test
+            // Navigator.push(
+            //   context,
+            //   MaterialPageRoute(builder: (context) => const TestViewPage()),
+            // );
           },
           disableLeadingButton: false,
           disableTrailingButton: true,
@@ -41,6 +63,7 @@ class MailView extends StatelessWidget {
               child: Column(
                 children: [
                   TabBar(
+                    controller: mailController.tabController,
                     labelColor: BandiColor.neutralColor100(context),
                     unselectedLabelColor: BandiColor.neutralColor40(context),
                     labelStyle: BandiFont.headlineMedium(context)?.copyWith(
@@ -50,16 +73,28 @@ class MailView extends StatelessWidget {
                     indicatorSize: TabBarIndicatorSize.tab,
                     dividerColor: BandiColor.neutralColor40(context),
                     tabs: const [
-                      Tab(text: "전체"),
-                      Tab(text: "편지"),
-                      Tab(
-                        text: "공감한 일기",
+                      FittedBox(
+                        fit: BoxFit.contain,
+                        child: Tab(text: "전체"),
+                      ),
+                      FittedBox(
+                        fit: BoxFit.contain,
+                        child: Tab(
+                          text: "편지",
+                        ),
+                      ),
+                      FittedBox(
+                        fit: BoxFit.contain,
+                        child: Tab(
+                          text: "공감한 일기",
+                        ),
                       ),
                     ],
                   ),
-                  const Expanded(
+                  Expanded(
                     child: TabBarView(
-                      children: [
+                      controller: mailController.tabController,
+                      children: const [
                         EveryMailPage(),
                         MyLettersPage(),
                         LikedDiaryPage(),

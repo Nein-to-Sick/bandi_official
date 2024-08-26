@@ -17,6 +17,17 @@ class Letter {
     return [];
   }
 
+  // Firestore의 DocumentSnapshot을 바탕으로 Letter 인스턴스를 생성하는 메서드
+  factory Letter.fromSnapshot(DocumentSnapshot snapshot) {
+    final data = snapshot.data() as Map<String, dynamic>;
+    return Letter(
+      title: data['title'] as String,
+      content: data['content'] as String,
+      date: data['date'] as Timestamp,
+      letterId: data['letterId'] as String,
+    );
+  }
+
   Map<String, dynamic> toJson() => {
         'title': title,
         'content': content,
