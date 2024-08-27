@@ -78,18 +78,18 @@ class _LoginViewState extends State<LoginView> {
                               ))),
                           onPressed: () async {
                             AuthService()
-                                .signInWithGoogle()
+                                .signInWithGoogle(context) // context를 전달합니다.
                                 .then((value) async {
                               setState(() {
                                 user = value;
                               });
 
-                              if (user != null) {
-                                WidgetsBinding.instance
-                                    .addPostFrameCallback((_) {
-                                  navigationToggleProvider.selectIndex(0);
-                                });
-                              }
+                              // if (user != null) {
+                              //   WidgetsBinding.instance
+                              //       .addPostFrameCallback((_) {
+                              //     navigationToggleProvider.selectIndex(0);
+                              //   });
+                              // }
                             });
                           },
                           child: Row(

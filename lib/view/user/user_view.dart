@@ -1,5 +1,8 @@
+import 'dart:developer';
+
 import 'package:bandi_official/components/button/secondary_button.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +13,7 @@ import 'package:wrapped_korean_text/wrapped_korean_text.dart';
 import '../../components/appbar/appbar.dart';
 import '../../components/button/primary_button.dart';
 import '../../controller/navigation_toggle_provider.dart';
+import '../../controller/user_info_controller.dart';
 import '../../model/oss_licenses_model.dart';
 import '../../model/settingsInfos.dart';
 
@@ -28,6 +32,8 @@ class _UserViewState extends State<UserView> {
   Widget build(BuildContext context) {
     var navigationToggleProvider =
         Provider.of<NavigationToggleProvider>(context);
+
+    var userInfo = Provider.of<UserInfoValueModel>(context);
 
     Widget settingHome = Scaffold(
       backgroundColor: BandiColor.neutralColor80(context).withOpacity(0.8),
@@ -243,7 +249,22 @@ class _UserViewState extends State<UserView> {
             ),
             CustomPrimaryButton(
               title: '로그아웃',
-              onPrimaryButtonPressed: () {},
+              onPrimaryButtonPressed: () async {
+                // Firebase에서 로그아웃
+                await FirebaseAuth.instance.signOut();
+
+                // 사용자 정보 초기화
+                final userInfoProvider =
+                    Provider.of<UserInfoValueModel>(context, listen: false);
+                userInfoProvider.clearUserInfo();
+
+                // NavigationToggleProvider를 사용하여 로그인 페이지로 이동
+                final navigationToggleProvider =
+                    Provider.of<NavigationToggleProvider>(context,
+                        listen: false);
+                navigationToggleProvider.selectIndex(-1); // 로그인 페이지로 이동
+                log("로그아웃");
+              },
               disableButton: false,
             ),
             const SizedBox(
@@ -251,8 +272,39 @@ class _UserViewState extends State<UserView> {
             ),
             CustomSecondaryButton(
               title: '계정 탈퇴',
-              onSecondaryButtonPressed: () {},
-              disableButton: true,
+              onSecondaryButtonPressed: () async {
+                try {
+                  // Firebase 인증 객체
+                  User? user = FirebaseAuth.instance.currentUser;
+
+                  if (user != null) {
+                    // Firestore에서 사용자 데이터 삭제
+                    final userCollection =
+                        FirebaseFirestore.instance.collection("users");
+                    await userCollection.doc(user.uid).delete();
+
+                    // Firebase에서 사용자 삭제
+                    await user.delete();
+
+                    // 사용자 정보 초기화
+                    final userInfoProvider =
+                        Provider.of<UserInfoValueModel>(context, listen: false);
+                    userInfoProvider.clearUserInfo();
+
+                    // NavigationToggleProvider를 사용하여 로그인 페이지로 이동
+                    final navigationToggleProvider =
+                        Provider.of<NavigationToggleProvider>(context,
+                            listen: false);
+                    navigationToggleProvider.selectIndex(-1); // 로그인 페이지로 이동
+                    log("게정 탈퇴 완료");
+                  }
+                } catch (e) {
+                  // 에러 처리 (예: 사용자 재인증 필요 등)
+                  log("Error deleting account: $e");
+                  // 사용자에게 재인증을 요구하거나 오류 메시지를 표시할 수 있습니다.
+                }
+              },
+              disableButton: false,
             ),
           ],
         ),
