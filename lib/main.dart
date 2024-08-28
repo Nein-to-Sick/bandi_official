@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 import 'controller/emotion_provider.dart';
 import 'controller/home_to_write.dart';
 import 'controller/navigation_toggle_provider.dart';
+import 'controller/user_info_controller.dart';
 import 'firebase_options.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -58,6 +59,9 @@ class MainApp extends StatelessWidget {
               ),
               ChangeNotifierProvider(
                 create: (context) => HomeToWrite(),
+              ),
+              ChangeNotifierProvider(
+                create: (context) => UserInfoValueModel(),
               ),
               ChangeNotifierProvider(
                 create: (context) => MailController(),

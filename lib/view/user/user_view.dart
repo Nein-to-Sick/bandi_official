@@ -1,5 +1,8 @@
+import 'dart:developer';
+
 import 'package:bandi_official/components/button/secondary_button.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +12,9 @@ import 'package:wrapped_korean_text/wrapped_korean_text.dart';
 
 import '../../components/appbar/appbar.dart';
 import '../../components/button/primary_button.dart';
+import '../../components/field/field.dart';
 import '../../controller/navigation_toggle_provider.dart';
+import '../../controller/user_info_controller.dart';
 import '../../model/oss_licenses_model.dart';
 import '../../model/settingsInfos.dart';
 
@@ -23,11 +28,14 @@ class UserView extends StatefulWidget {
 class _UserViewState extends State<UserView> {
   int settings = 0; //0 = home, 1 = 계정관리, 2 = 닉네임 변경, 3
   bool _isSwitched = false;
+  String newNickname = '';
 
   @override
   Widget build(BuildContext context) {
     var navigationToggleProvider =
         Provider.of<NavigationToggleProvider>(context);
+
+    var userInfo = Provider.of<UserInfoValueModel>(context);
 
     Widget settingHome = Scaffold(
       backgroundColor: BandiColor.neutralColor80(context).withOpacity(0.8),
@@ -204,7 +212,7 @@ class _UserViewState extends State<UserView> {
               text: "이메일",
               onTap: () {},
               trailing: Text(
-                "xxx.gmail.com",
+                userInfo.userEmail.isNotEmpty ? userInfo.userEmail : "이메일 없음",
                 style: BandiFont.bodyMedium(context)?.copyWith(
                   color: BandiColor.foundationColor40(context),
                 ),
@@ -219,13 +227,17 @@ class _UserViewState extends State<UserView> {
             buildSettingOption(
               icon: PhosphorIcons.user(),
               text: "닉네임",
-              onTap: () {},
+              onTap: () {
+                setState(() {
+                  settings = 6;
+                });
+              },
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
-                    "반디",
+                    userInfo.nickname.isNotEmpty ? userInfo.nickname : "닉네임 없음",
                     style: BandiFont.bodyMedium(context)?.copyWith(
                       color: BandiColor.foundationColor60(context),
                     ),
@@ -243,7 +255,22 @@ class _UserViewState extends State<UserView> {
             ),
             CustomPrimaryButton(
               title: '로그아웃',
-              onPrimaryButtonPressed: () {},
+              onPrimaryButtonPressed: () async {
+                // Firebase에서 로그아웃
+                await FirebaseAuth.instance.signOut();
+
+                // 사용자 정보 초기화
+                final userInfoProvider =
+                    Provider.of<UserInfoValueModel>(context, listen: false);
+                userInfoProvider.clearUserInfo();
+
+                // NavigationToggleProvider를 사용하여 로그인 페이지로 이동
+                final navigationToggleProvider =
+                    Provider.of<NavigationToggleProvider>(context,
+                        listen: false);
+                navigationToggleProvider.selectIndex(-1); // 로그인 페이지로 이동
+                log("로그아웃");
+              },
               disableButton: false,
             ),
             const SizedBox(
@@ -251,10 +278,139 @@ class _UserViewState extends State<UserView> {
             ),
             CustomSecondaryButton(
               title: '계정 탈퇴',
-              onSecondaryButtonPressed: () {},
-              disableButton: true,
+              onSecondaryButtonPressed: () async {
+                try {
+                  // Firebase 인증 객체
+                  User? user = FirebaseAuth.instance.currentUser;
+
+                  if (user != null) {
+                    // Firestore에서 사용자 데이터 삭제
+                    final userCollection =
+                        FirebaseFirestore.instance.collection("users");
+                    await userCollection.doc(user.uid).delete();
+
+                    // Firebase에서 사용자 삭제
+                    await user.delete();
+
+                    // 사용자 정보 초기화
+                    final userInfoProvider =
+                        Provider.of<UserInfoValueModel>(context, listen: false);
+                    userInfoProvider.clearUserInfo();
+
+                    // NavigationToggleProvider를 사용하여 로그인 페이지로 이동
+                    final navigationToggleProvider =
+                        Provider.of<NavigationToggleProvider>(context,
+                            listen: false);
+                    navigationToggleProvider.selectIndex(-1); // 로그인 페이지로 이동
+                    log("게정 탈퇴 완료");
+                  }
+                } catch (e) {
+                  // 에러 처리 (예: 사용자 재인증 필요 등)
+                  log("Error deleting account: $e");
+                  // 사용자에게 재인증을 요구하거나 오류 메시지를 표시할 수 있습니다.
+                }
+              },
+              disableButton: false,
             ),
           ],
+        ),
+      ),
+    );
+
+    void _updateNickname(BuildContext context, String newNickname) async {
+      // 프로바이더에서 닉네임을 가져옴
+      var userInfoProvider =
+          Provider.of<UserInfoValueModel>(context, listen: false);
+
+      // Firebase Firestore에서 현재 사용자 문서를 업데이트
+      String? userId = FirebaseAuth.instance.currentUser?.uid;
+      if (userId != null) {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .update({
+          'nickname': newNickname,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      }
+
+      // 설정 화면으로 돌아감
+      settings = 1;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        navigationToggleProvider.selectIndex(-2);
+      });
+    }
+
+    Widget changeNickName = Scaffold(
+      backgroundColor: BandiColor.neutralColor80(context).withOpacity(0.8),
+      appBar: AppBar(
+        scrolledUnderElevation: 0,
+        backgroundColor: BandiColor.transparent(context),
+        leading: IconButton(
+          icon: Icon(
+            PhosphorIcons.caretLeft(),
+          ),
+          onPressed: () {
+            setState(() {
+              settings = 1;
+            });
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              navigationToggleProvider.selectIndex(-2);
+            });
+          },
+        ),
+        title: Padding(
+          padding: const EdgeInsets.symmetric(
+            vertical: 16,
+          ),
+          child: Text(
+            "닉네임 변경",
+            style: BandiFont.displaySmall(context)?.copyWith(
+              color: BandiColor.foundationColor80(context),
+            ),
+          ),
+        ),
+        centerTitle: true,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 23.0),
+        child: StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            String _nickname =
+                Provider.of<UserInfoValueModel>(context, listen: false)
+                    .nickname;
+
+            return ListView(
+              children: [
+                const SizedBox(height: 17),
+                CustomField(
+                  initialValue: _nickname,
+                  onChanged: (value) {
+                    setState(() {
+                      _nickname = value;
+                    });
+                    // 프로바이더의 닉네임을 업데이트
+                    Provider.of<UserInfoValueModel>(context, listen: false)
+                        .updateNickname(value);
+                  },
+                  isPassword: false,
+                  isEnabled: true,
+                ),
+                const SizedBox(height: 17),
+                CustomPrimaryButton(
+                  title: '확인',
+                  onPrimaryButtonPressed: () {
+                    if (_nickname.isNotEmpty) {
+                      // 비동기 작업을 호출하는 동기 함수로 래핑
+                      _updateNickname(context, _nickname);
+                    }
+                  },
+                  disableButton: _nickname.isEmpty,
+                ),
+                const SizedBox(height: 16),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -379,20 +535,20 @@ class _UserViewState extends State<UserView> {
         appBar: AppBar(
           scrolledUnderElevation: 0,
           backgroundColor: BandiColor.transparent(context),
-          // leading: IconButton(
-          //   icon: Icon(
-          //     PhosphorIcons.caretLeft(),
-          //   ),
-          //   onPressed: () {
-          //     setState(() {
-          //       settings = 0;
-          //     });
+          leading: IconButton(
+            icon: Icon(
+              PhosphorIcons.caretLeft(),
+            ),
+            onPressed: () {
+              setState(() {
+                settings = 0;
+              });
 
-          //     WidgetsBinding.instance.addPostFrameCallback((_) {
-          //       navigationToggleProvider.selectIndex(3);
-          //     });
-          //   },
-          // ),
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                navigationToggleProvider.selectIndex(3);
+              });
+            },
+          ),
           title: Padding(
             padding: const EdgeInsets.symmetric(
               vertical: 16,
@@ -406,60 +562,42 @@ class _UserViewState extends State<UserView> {
           ),
           centerTitle: true,
         ),
-        body: Column(
-          children: [
-            Expanded(
-                child: SingleChildScrollView(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 23.0),
-                child: Column(
-                  children: [
-                    for (int i = 0; i < CompanyInfo().termsOfUse.length; i++)
-                      Column(
-                        children: [
-                          if (i != 0) const SizedBox(height: 80),
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width,
-                            child: WrappedKoreanText(
-                              CompanyInfo().termsOfUse[i][0],
-                              style:
-                                  BandiFont.headlineMedium(context)?.copyWith(
-                                color: BandiColor.foundationColor80(context),
-                              ),
-                            ),
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 23.0),
+            child: Column(
+              children: [
+                for (int i = 0; i < CompanyInfo().termsOfUse.length; i++)
+                  Column(
+                    children: [
+                      if (i != 0) const SizedBox(height: 80),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width,
+                        child: WrappedKoreanText(
+                          CompanyInfo().termsOfUse[i][0],
+                          style: BandiFont.headlineMedium(context)?.copyWith(
+                            color: BandiColor.foundationColor80(context),
                           ),
-                          const SizedBox(height: 11),
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width,
-                            child: WrappedKoreanText(
-                              CompanyInfo().termsOfUse[i][1],
-                              style: BandiFont.bodySmall(context)?.copyWith(
-                                color: BandiColor.foundationColor80(context),
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
-                  ],
-                ),
-              ),
-            )),
-            const SizedBox(height: 10),
-            CustomPrimaryButton(
-              title: '닫기',
-              onPrimaryButtonPressed: () {
-                setState(() {
-                  settings = 0;
-                });
-
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  navigationToggleProvider.selectIndex(3);
-                });
-              },
-              disableButton: false,
+                      const SizedBox(height: 11),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width,
+                        child: WrappedKoreanText(
+                          CompanyInfo().termsOfUse[i][1],
+                          style: BandiFont.bodySmall(context)?.copyWith(
+                            color: BandiColor.foundationColor80(context),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                const SizedBox(
+                  height: 50,
+                )
+              ],
             ),
-            const SizedBox(height: 32),
-          ],
+          ),
         ));
 
     Widget privacypolicy = Scaffold(
@@ -468,20 +606,20 @@ class _UserViewState extends State<UserView> {
         appBar: AppBar(
           scrolledUnderElevation: 0,
           backgroundColor: BandiColor.transparent(context),
-          // leading: IconButton(
-          //   icon: Icon(
-          //     PhosphorIcons.caretLeft(),
-          //   ),
-          //   onPressed: () {
-          //     setState(() {
-          //       settings = 0;
-          //     });
+          leading: IconButton(
+            icon: Icon(
+              PhosphorIcons.caretLeft(),
+            ),
+            onPressed: () {
+              setState(() {
+                settings = 0;
+              });
 
-          //     WidgetsBinding.instance.addPostFrameCallback((_) {
-          //       navigationToggleProvider.selectIndex(3);
-          //     });
-          //   },
-          // ),
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                navigationToggleProvider.selectIndex(3);
+              });
+            },
+          ),
           title: Padding(
             padding: const EdgeInsets.symmetric(
               vertical: 16,
@@ -495,69 +633,49 @@ class _UserViewState extends State<UserView> {
           ),
           centerTitle: true,
         ),
-        body: Column(
-          children: [
-            Expanded(
-                child: SingleChildScrollView(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 23.0),
-                child: Column(
-                  children: [
-                    for (int i = 0; i < CompanyInfo().privacyPolicy.length; i++)
-                      Column(
-                        children: [
-                          if (i != 0) const SizedBox(height: 44),
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width,
-                            child: WrappedKoreanText(
-                              CompanyInfo().privacyPolicy[i][0],
-                              style:
-                                  BandiFont.headlineMedium(context)?.copyWith(
-                                color: BandiColor.foundationColor80(context),
-                              ),
-                            ),
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 23.0),
+            child: Column(
+              children: [
+                for (int i = 0; i < CompanyInfo().privacyPolicy.length; i++)
+                  Column(
+                    children: [
+                      if (i != 0) const SizedBox(height: 44),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width,
+                        child: WrappedKoreanText(
+                          CompanyInfo().privacyPolicy[i][0],
+                          style: BandiFont.headlineMedium(context)?.copyWith(
+                            color: BandiColor.foundationColor80(context),
                           ),
-                          const SizedBox(height: 11),
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width,
-                            child: WrappedKoreanText(
-                              CompanyInfo().privacyPolicy[i][1],
-                              style: BandiFont.bodySmall(context)?.copyWith(
-                                color: BandiColor.foundationColor80(context),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width,
-                      child: WrappedKoreanText(
-                        CompanyInfo().privacyPolicyExplain,
-                        style: BandiFont.bodySmall(context)?.copyWith(
-                          color: BandiColor.foundationColor80(context),
                         ),
                       ),
+                      const SizedBox(height: 11),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width,
+                        child: WrappedKoreanText(
+                          CompanyInfo().privacyPolicy[i][1],
+                          style: BandiFont.bodySmall(context)?.copyWith(
+                            color: BandiColor.foundationColor80(context),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  child: WrappedKoreanText(
+                    CompanyInfo().privacyPolicyExplain,
+                    style: BandiFont.bodySmall(context)?.copyWith(
+                      color: BandiColor.foundationColor80(context),
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            )),
-            const SizedBox(height: 10),
-            CustomPrimaryButton(
-              title: '닫기',
-              onPrimaryButtonPressed: () {
-                setState(() {
-                  settings = 0;
-                });
-
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  navigationToggleProvider.selectIndex(3);
-                });
-              },
-              disableButton: false,
+                const SizedBox(height: 60),
+              ],
             ),
-            const SizedBox(height: 32),
-          ],
+          ),
         ));
 
     Widget companyInfoView = Scaffold(
@@ -566,20 +684,20 @@ class _UserViewState extends State<UserView> {
         appBar: AppBar(
           scrolledUnderElevation: 0,
           backgroundColor: BandiColor.transparent(context),
-          // leading: IconButton(
-          //   icon: Icon(
-          //     PhosphorIcons.caretLeft(),
-          //   ),
-          //   onPressed: () {
-          //     setState(() {
-          //       settings = 0;
-          //     });
+          leading: IconButton(
+            icon: Icon(
+              PhosphorIcons.caretLeft(),
+            ),
+            onPressed: () {
+              setState(() {
+                settings = 0;
+              });
 
-          //     WidgetsBinding.instance.addPostFrameCallback((_) {
-          //       navigationToggleProvider.selectIndex(3);
-          //     });
-          //   },
-          // ),
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                navigationToggleProvider.selectIndex(3);
+              });
+            },
+          ),
           title: Padding(
             padding: const EdgeInsets.symmetric(
               vertical: 16,
@@ -593,130 +711,110 @@ class _UserViewState extends State<UserView> {
           ),
           centerTitle: true,
         ),
-        body: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 23.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        CompanyInfo().companyName,
-                        style: BandiFont.headlineLarge(context)?.copyWith(
-                          color: BandiColor.foundationColor80(context),
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 15,
-                      ),
-                      Divider(
-                        height: 1.0,
-                        color: BandiColor.foundationColor10(context),
-                      ),
-                      const SizedBox(
-                        height: 15,
-                      ),
-                      Text(
-                        "대표",
-                        style: BandiFont.headlineMedium(context)?.copyWith(
-                          color: BandiColor.foundationColor80(context),
-                        ),
-                      ),
-                      Text(
-                        CompanyInfo().ceo,
-                        style: BandiFont.bodySmall(context)?.copyWith(
-                          color: BandiColor.foundationColor80(context),
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 15,
-                      ),
-                      Divider(
-                        height: 1.0,
-                        color: BandiColor.foundationColor10(context),
-                      ),
-                      const SizedBox(
-                        height: 15,
-                      ),
-                      Text(
-                        "주소",
-                        style: BandiFont.headlineMedium(context)?.copyWith(
-                          color: BandiColor.foundationColor80(context),
-                        ),
-                      ),
-                      Text(
-                        CompanyInfo().address,
-                        style: BandiFont.bodySmall(context)?.copyWith(
-                          color: BandiColor.foundationColor80(context),
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 15,
-                      ),
-                      Divider(
-                        height: 1.0,
-                        color: BandiColor.foundationColor10(context),
-                      ),
-                      const SizedBox(
-                        height: 15,
-                      ),
-                      Text(
-                        "전화",
-                        style: BandiFont.headlineMedium(context)?.copyWith(
-                          color: BandiColor.foundationColor80(context),
-                        ),
-                      ),
-                      Text(
-                        CompanyInfo().pn,
-                        style: BandiFont.bodySmall(context)?.copyWith(
-                          color: BandiColor.foundationColor80(context),
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 15,
-                      ),
-                      Divider(
-                        height: 1.0,
-                        color: BandiColor.foundationColor10(context),
-                      ),
-                      const SizedBox(
-                        height: 15,
-                      ),
-                      Text(
-                        "이메일",
-                        style: BandiFont.headlineMedium(context)?.copyWith(
-                          color: BandiColor.foundationColor80(context),
-                        ),
-                      ),
-                      Text(
-                        CompanyInfo().email,
-                        style: BandiFont.bodySmall(context)?.copyWith(
-                          color: BandiColor.foundationColor80(context),
-                        ),
-                      ),
-                    ],
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 23.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  CompanyInfo().companyName,
+                  style: BandiFont.headlineLarge(context)?.copyWith(
+                    color: BandiColor.foundationColor80(context),
                   ),
                 ),
-              ),
+                const SizedBox(
+                  height: 15,
+                ),
+                Divider(
+                  height: 1.0,
+                  color: BandiColor.foundationColor10(context),
+                ),
+                const SizedBox(
+                  height: 15,
+                ),
+                Text(
+                  "대표",
+                  style: BandiFont.headlineMedium(context)?.copyWith(
+                    color: BandiColor.foundationColor80(context),
+                  ),
+                ),
+                Text(
+                  CompanyInfo().ceo,
+                  style: BandiFont.bodySmall(context)?.copyWith(
+                    color: BandiColor.foundationColor80(context),
+                  ),
+                ),
+                const SizedBox(
+                  height: 15,
+                ),
+                Divider(
+                  height: 1.0,
+                  color: BandiColor.foundationColor10(context),
+                ),
+                const SizedBox(
+                  height: 15,
+                ),
+                Text(
+                  "주소",
+                  style: BandiFont.headlineMedium(context)?.copyWith(
+                    color: BandiColor.foundationColor80(context),
+                  ),
+                ),
+                Text(
+                  CompanyInfo().address,
+                  style: BandiFont.bodySmall(context)?.copyWith(
+                    color: BandiColor.foundationColor80(context),
+                  ),
+                ),
+                const SizedBox(
+                  height: 15,
+                ),
+                Divider(
+                  height: 1.0,
+                  color: BandiColor.foundationColor10(context),
+                ),
+                const SizedBox(
+                  height: 15,
+                ),
+                Text(
+                  "전화",
+                  style: BandiFont.headlineMedium(context)?.copyWith(
+                    color: BandiColor.foundationColor80(context),
+                  ),
+                ),
+                Text(
+                  CompanyInfo().pn,
+                  style: BandiFont.bodySmall(context)?.copyWith(
+                    color: BandiColor.foundationColor80(context),
+                  ),
+                ),
+                const SizedBox(
+                  height: 15,
+                ),
+                Divider(
+                  height: 1.0,
+                  color: BandiColor.foundationColor10(context),
+                ),
+                const SizedBox(
+                  height: 15,
+                ),
+                Text(
+                  "이메일",
+                  style: BandiFont.headlineMedium(context)?.copyWith(
+                    color: BandiColor.foundationColor80(context),
+                  ),
+                ),
+                Text(
+                  CompanyInfo().email,
+                  style: BandiFont.bodySmall(context)?.copyWith(
+                    color: BandiColor.foundationColor80(context),
+                  ),
+                ),
+                const SizedBox(height: 50),
+              ],
             ),
-            const SizedBox(height: 10),
-            CustomPrimaryButton(
-              title: '닫기',
-              onPrimaryButtonPressed: () {
-                setState(() {
-                  settings = 0;
-                });
-
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  navigationToggleProvider.selectIndex(3);
-                });
-              },
-              disableButton: false,
-            ),
-            const SizedBox(height: 32),
-          ],
+          ),
         ));
 
     return settings == 0
@@ -729,7 +827,9 @@ class _UserViewState extends State<UserView> {
                     ? termsOfUse
                     : settings == 4
                         ? privacypolicy
-                        : companyInfoView;
+                        : settings == 5
+                            ? companyInfoView
+                            : changeNickName;
   }
 
   //ossLicensesScreen
