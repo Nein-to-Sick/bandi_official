@@ -2,32 +2,18 @@ import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:provider/provider.dart';
+
+import '../../controller/navigation_toggle_provider.dart';
+import '../../controller/user_info_controller.dart';
 
 class AuthService {
   final auth = FirebaseAuth.instance;
   final googleSignIn = GoogleSignIn();
 
-  // signInWithGoogle() async {
-  //   try {
-  //     final GoogleSignInAccount? googleSignInAccount =
-  //         await googleSignIn.signIn();
-
-  //     if (googleSignInAccount != null) {
-  //       final GoogleSignInAuthentication googleSignInAuthentication =
-  //           await googleSignInAccount.authentication;
-  //       final AuthCredential authCredential = GoogleAuthProvider.credential(
-  //           accessToken: googleSignInAuthentication.accessToken,
-  //           idToken: googleSignInAuthentication.idToken);
-  //       await auth.signInWithCredential(authCredential);
-  //     }
-  //   } on FirebaseAuthException catch (e) {
-  //     log(e.toString());
-  //   }
-  // }
-
-  Future signInWithGoogle() async {
-    //begin interactive sign in process
+  Future signInWithGoogle(BuildContext context) async {
     GoogleSignIn _googleSignIn = GoogleSignIn();
     GoogleSignInAccount? gUser = await _googleSignIn.signIn();
 
@@ -35,17 +21,14 @@ class AuthService {
       return null;
     }
 
-    //obtain auth details from request
     final GoogleSignInAuthentication gAuth = await gUser.authentication;
-
-    //create a new credential for user
     final credential = GoogleAuthProvider.credential(
       accessToken: gAuth.accessToken,
       idToken: gAuth.idToken,
     );
 
-    // final userCredential =
-    await FirebaseAuth.instance.signInWithCredential(credential);
+    UserCredential userCredential =
+        await FirebaseAuth.instance.signInWithCredential(credential);
 
     final userCollection = FirebaseFirestore.instance.collection("users");
 
@@ -55,22 +38,35 @@ class AuthService {
     final docRef = userCollection.doc(userId);
     DocumentSnapshot snapshot = await docRef.get();
 
-    if (snapshot.exists) {
-    } else {
+    final userInfoProvider =
+        Provider.of<UserInfoValueModel>(context, listen: false);
+    userInfoProvider.updateUserEmail(userEmail ?? '');
+    userInfoProvider.userId = userId ?? '';
+    userInfoProvider.setValueEntered();
+
+    // NavigationToggleProvider를 사용하여 화면 전환
+    final navigationToggleProvider =
+        Provider.of<NavigationToggleProvider>(context, listen: false);
+
+    if (!snapshot.exists) {
+      // 처음 로그인한 사용자라면
       await docRef.set({
         "created_at": FieldValue.serverTimestamp(),
         "email": userEmail,
         "nickname": "",
-        "likedDiaryId": [], // Empty string array
-        "myDiaryId": [], // Empty string array
+        "likedDiaryId": [],
+        "myDiaryId": [],
         "socialLoginProvider": "google",
         "updatedAt": FieldValue.serverTimestamp(),
         "userId": userId,
       });
-    }
 
-    final dateDocRef = docRef.collection("mailBox").doc("");
-    //finally, lets sign in
+      // 온보딩 페이지로 이동
+      navigationToggleProvider.selectIndex(-3);
+    } else {
+      // 기존 사용자라면 바로 홈 페이지로 이동
+      navigationToggleProvider.selectIndex(0);
+    }
 
     return FirebaseAuth.instance.currentUser;
   }
