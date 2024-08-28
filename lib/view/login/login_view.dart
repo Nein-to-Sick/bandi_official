@@ -84,12 +84,10 @@ class _LoginViewState extends State<LoginView> {
                                 user = value;
                               });
 
-                              // if (user != null) {
-                              //   WidgetsBinding.instance
-                              //       .addPostFrameCallback((_) {
-                              //     navigationToggleProvider.selectIndex(0);
-                              //   });
-                              // }
+                              if (user != null) {
+                                WidgetsBinding.instance
+                                    .addPostFrameCallback((_) {});
+                              }
                             });
                           },
                           child: Row(
