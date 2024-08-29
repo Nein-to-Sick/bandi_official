@@ -1,6 +1,5 @@
 import 'package:bandi_official/components/appbar/appbar.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
-import 'package:bandi_official/test_view.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/mail/every_mail_view.dart';
 import 'package:bandi_official/view/mail/letters_view.dart';
@@ -8,6 +7,7 @@ import 'package:bandi_official/view/mail/liked_diary_view.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
+import 'dart:developer' as dev;
 
 class MailView extends StatefulWidget {
   const MailView({super.key});
@@ -18,13 +18,26 @@ class MailView extends StatefulWidget {
 
 class _MailViewState extends State<MailView>
     with SingleTickerProviderStateMixin {
+  MailController? mailController;
+
   @override
   void initState() {
     super.initState();
 
-    MailController mailController =
-        Provider.of<MailController>(context, listen: false);
-    mailController.initController(this, 3); // 3은 탭의 개수입니다.
+    mailController = Provider.of<MailController>(context, listen: false);
+    mailController?.initTabController(
+        this, 3, mailController!.savedCurrentIndex);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // BuildContext를 안전하게 사용하여 MailController에 접근
+    mailController = Provider.of<MailController>(context, listen: false);
+
+    // mailController 초기화
+    mailController?.initScrollControllers();
   }
 
   @override

@@ -25,6 +25,7 @@ class _MyLettersPageState extends State<MyLettersPage> {
           Provider.of<MailController>(context, listen: false);
 
       mailController.loadDataAndSetting();
+      mailController.restoreLetterScrollPosition();
 
       // when screen reached nearly top of the list load more past data
       mailController.letterScrollController.addListener(() async {

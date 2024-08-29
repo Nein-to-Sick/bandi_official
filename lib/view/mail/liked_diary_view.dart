@@ -77,6 +77,7 @@ class _LikedDiaryPageState extends State<LikedDiaryPage> {
           Provider.of<MailController>(context, listen: false);
 
       mailController.loadDataAndSetting();
+      mailController.restoreLikedDiaryScrollPosition();
 
       // when screen reached nearly top of the list load more past data
       mailController.likedDiaryScrollController.addListener(() async {

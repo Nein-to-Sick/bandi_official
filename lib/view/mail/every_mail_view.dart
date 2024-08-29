@@ -28,6 +28,7 @@ class _EveryMailPageState extends State<EveryMailPage> {
           Provider.of<MailController>(context, listen: false);
 
       mailController.loadDataAndSetting();
+      mailController.restoreEveryMailScrollPosition();
 
       // when screen reached nearly top of the list load more past data
       mailController.everyMailScrollController.addListener(() async {
