@@ -89,9 +89,14 @@ class _NavigationState extends State<Navigation> {
                         : navigationToggleProvider.selectedIndex == 1
                             ? const ListPage()
                             : navigationToggleProvider.selectedIndex == 2
-                                ? (!mailController.isDetailViewShowing)
-                                    ? const MailView()
-                                    : const SizedBox.shrink()
+                                ? AnimatedOpacity(
+                                    opacity:
+                                        (!mailController.isDetailViewShowing)
+                                            ? 1.0
+                                            : 0.0,
+                                    duration: const Duration(milliseconds: 300),
+                                    child: const MailView(),
+                                  )
                                 : const UserView(),
             if (navigationToggleProvider.selectedIndex >= 0)
               Padding(

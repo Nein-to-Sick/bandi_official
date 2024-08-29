@@ -1,12 +1,10 @@
 import 'package:bandi_official/components/button/primary_button.dart';
-import 'package:bandi_official/components/button/reaction_button.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/model/letter.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 
 class DetailView extends StatelessWidget {
   final Object item;

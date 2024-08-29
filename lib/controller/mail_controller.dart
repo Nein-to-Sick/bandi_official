@@ -29,10 +29,58 @@ class MailController with ChangeNotifier {
   List<Letter> letterList = Letter.defaultLetterList();
   List<String> letterListDates = [];
 
-  // manage the page scroll
-  final everyMailScrollController = ScrollController();
-  final letterScrollController = ScrollController();
-  final likedDiaryScrollController = ScrollController();
+// Manage the page scroll
+  late ScrollController _everyMailScrollController;
+  ScrollController get everyMailScrollController => _everyMailScrollController;
+  double everyMailScrollPosition = 0.0;
+
+  late ScrollController _letterScrollController;
+  ScrollController get letterScrollController => _letterScrollController;
+  double letterScrollPosition = 0.0;
+
+  late ScrollController _likedDiaryScrollController;
+  ScrollController get likedDiaryScrollController =>
+      _likedDiaryScrollController;
+  double likedDiaryScrollPosition = 0.0;
+
+  void initScrollControllers() {
+    _everyMailScrollController = ScrollController();
+    _letterScrollController = ScrollController();
+    _likedDiaryScrollController = ScrollController();
+
+    // Add listener to save scroll position for everyMail
+    _everyMailScrollController.addListener(() {
+      everyMailScrollPosition = _everyMailScrollController.position.pixels;
+    });
+
+    // Add listener to save scroll position for letter
+    _letterScrollController.addListener(() {
+      letterScrollPosition = _letterScrollController.position.pixels;
+    });
+
+    // Add listener to save scroll position for likedDiary
+    _likedDiaryScrollController.addListener(() {
+      likedDiaryScrollPosition = _likedDiaryScrollController.position.pixels;
+    });
+  }
+
+  void restoreEveryMailScrollPosition() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _everyMailScrollController.jumpTo(everyMailScrollPosition);
+    });
+  }
+
+  void restoreLetterScrollPosition() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _letterScrollController.jumpTo(letterScrollPosition);
+    });
+  }
+
+  void restoreLikedDiaryScrollPosition() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _likedDiaryScrollController.jumpTo(likedDiaryScrollPosition);
+    });
+  }
 
   // keyword filter variable
   final List<String> chipLabels = ['전체', '응원해요', '공감해요', '함께해요'];
@@ -47,13 +95,18 @@ class MailController with ChangeNotifier {
   // mail view tab controller
   late TabController _tabController;
 
+  // to save current index page
+  int savedCurrentIndex = 0;
+
   TabController get tabController => _tabController;
 
-  void initController(TickerProvider vsync, int length) {
-    _tabController = TabController(length: length, vsync: vsync);
+  void initTabController(TickerProvider vsync, int length, int initialIndex) {
+    _tabController =
+        TabController(length: length, vsync: vsync, initialIndex: initialIndex);
 
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
+        savedCurrentIndex = tabController.index;
         notifyListeners();
       }
     });
@@ -79,6 +132,8 @@ class MailController with ChangeNotifier {
   // Filter for liked Diary
   void updateFilter(String value) {
     filteredKeywordValue = chipLabels.indexOf(value);
+    // Scroll to the top of the list
+    likedDiaryScrollController.jumpTo(0);
     notifyListeners();
   }
 
