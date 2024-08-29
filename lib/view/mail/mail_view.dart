@@ -33,7 +33,7 @@ class _MailViewState extends State<MailView>
 
     return SafeArea(
       child: Scaffold(
-        backgroundColor: Colors.transparent,
+        backgroundColor: BandiColor.transparent(context),
         appBar: CustomAppBar(
           title: '보관함',
           trailingIcon: PhosphorIcons.flask(PhosphorIconsStyle.fill),

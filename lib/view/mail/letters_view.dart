@@ -67,13 +67,12 @@ Widget lettersWidget(
   return Padding(
     padding: const EdgeInsets.symmetric(vertical: 8),
     child: GestureDetector(
-      // 편지 열람 기능 추가
       onTap: () {
         mailController.toggleDetailView(true);
         showDialog(
           context: context,
           barrierDismissible: false,
-          barrierColor: Colors.transparent,
+          barrierColor: BandiColor.transparent(context),
           builder: (BuildContext context) {
             return DetailView(
               item: letter,
@@ -83,7 +82,7 @@ Widget lettersWidget(
         );
       },
       child: Container(
-        color: Colors.transparent,
+        color: BandiColor.transparent(context),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
