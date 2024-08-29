@@ -124,7 +124,7 @@ class DiaryList extends StatelessWidget {
                     writeProvider.toggleWrite();
                   },
                   child: Container(
-                    color: Colors.transparent,
+                    color: BandiColor.transparent(context),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

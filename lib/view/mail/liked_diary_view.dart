@@ -139,7 +139,7 @@ Widget likedDiaryWidget(
               showDialog(
                 context: context,
                 barrierDismissible: false,
-                barrierColor: Colors.transparent,
+                barrierColor: BandiColor.transparent(context),
                 builder: (BuildContext context) {
                   return DetailView(
                     item: diary,
@@ -149,7 +149,7 @@ Widget likedDiaryWidget(
               );
             },
             child: Container(
-              color: Colors.transparent,
+              color: BandiColor.transparent(context),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

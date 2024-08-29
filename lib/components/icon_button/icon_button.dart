@@ -7,9 +7,11 @@ class CustomIconButton extends StatefulWidget {
     super.key,
     required this.onIconButtonPressed,
     required this.disableButton,
+    this.iconColor,
   });
   final Function onIconButtonPressed;
   final bool disableButton;
+  final Color? iconColor;
 
   @override
   State<CustomIconButton> createState() => _CustomIconButtonState();
@@ -24,9 +26,11 @@ class _CustomIconButtonState extends State<CustomIconButton> {
       },
       icon: PhosphorIcon(
         PhosphorIcons.caretLeft(PhosphorIconsStyle.regular),
-        color: widget.disableButton
-            ? BandiColor.neutralColor20(context)
-            : BandiColor.neutralColor80(context),
+        color: (widget.iconColor != null)
+            ? widget.iconColor
+            : widget.disableButton
+                ? BandiColor.neutralColor20(context)
+                : BandiColor.neutralColor80(context),
         size: 24,
       ),
     );

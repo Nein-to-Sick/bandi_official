@@ -21,7 +21,7 @@ class _LoginViewState extends State<LoginView> {
         Provider.of<NavigationToggleProvider>(context);
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: BandiColor.transparent(context),
       body: SafeArea(
           child: Center(
         child: Column(

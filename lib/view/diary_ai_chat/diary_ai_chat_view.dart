@@ -3,6 +3,7 @@ import 'package:bandi_official/components/dialogue/dialogue.dart';
 import 'package:bandi_official/components/no_reuse/chat_message_bar.dart';
 import 'package:bandi_official/components/no_reuse/reset_dialogue.dart';
 import 'package:bandi_official/controller/diary_ai_chat_controller.dart';
+import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
@@ -54,7 +55,7 @@ class _DiaryAIChatPageState extends State<DiaryAIChatPage> {
       },
       child: Scaffold(
         resizeToAvoidBottomInset: true,
-        backgroundColor: Colors.transparent,
+        backgroundColor: BandiColor.transparent(context),
         appBar: CustomAppBar(
           title: '반디와 대화하기',
           trailingIcon:

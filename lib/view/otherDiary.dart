@@ -48,9 +48,9 @@ class _OtherDiaryState extends State<OtherDiary> {
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: SafeArea(
             child: Scaffold(
-              backgroundColor: Colors.transparent,
+              backgroundColor: BandiColor.transparent(context),
               appBar: AppBar(
-                backgroundColor: Colors.transparent,
+                backgroundColor: BandiColor.transparent(context),
                 actions: [
                   GestureDetector(
                     onTap: () {

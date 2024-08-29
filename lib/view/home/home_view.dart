@@ -1,3 +1,4 @@
+import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:flutter/material.dart';
 import '../../components/no_reuse/home_top_bar.dart';
 
@@ -6,8 +7,8 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Colors.transparent,
+    return Scaffold(
+      backgroundColor: BandiColor.transparent(context),
       body: HomeTopBar(),
     );
   }

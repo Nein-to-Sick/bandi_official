@@ -1,3 +1,4 @@
+import 'package:bandi_official/controller/alarm_controller.dart';
 import 'package:bandi_official/controller/diary_ai_analysis_controller.dart';
 import 'package:bandi_official/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
@@ -65,6 +66,9 @@ class MainApp extends StatelessWidget {
               ),
               ChangeNotifierProvider(
                 create: (context) => MailController(),
+              ),
+              ChangeNotifierProvider(
+                create: (context) => AlarmController(),
               ),
             ],
             child: const Navigation(),
