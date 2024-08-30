@@ -25,8 +25,8 @@ class _MailViewState extends State<MailView>
     super.initState();
 
     mailController = Provider.of<MailController>(context, listen: false);
-    mailController?.initTabController(
-        this, 3, mailController!.savedCurrentIndex);
+    mailController!
+        .initTabController(this, 3, mailController!.savedCurrentIndex);
   }
 
   @override

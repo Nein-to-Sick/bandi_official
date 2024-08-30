@@ -62,7 +62,7 @@ class DiaryAiChatController with ChangeNotifier {
           message: '. . .',
           messenger: Messenger.ai,
           messageType: MessageType.chat,
-          messageTime: timestampToKst(Timestamp.now()),
+          messageTime: timestampToLocal(Timestamp.now()),
         ),
       );
     } else {
@@ -98,19 +98,19 @@ class DiaryAiChatController with ChangeNotifier {
       message: '오늘 기분이 좋은데 넌 어때?',
       messenger: Messenger.assistant,
       messageType: MessageType.chat,
-      messageTime: timestampToKst(Timestamp.now()),
+      messageTime: timestampToLocal(Timestamp.now()),
     ),
     ChatMessage(
       message: '오늘 기분이 별로야... 응원해 줘',
       messenger: Messenger.assistant,
       messageType: MessageType.chat,
-      messageTime: timestampToKst(Timestamp.now()),
+      messageTime: timestampToLocal(Timestamp.now()),
     ),
     ChatMessage(
       message: '지난 내 기록을 보여줘',
       messenger: Messenger.assistant,
       messageType: MessageType.chat,
-      messageTime: timestampToKst(Timestamp.now()),
+      messageTime: timestampToLocal(Timestamp.now()),
     ),
   ];
 
@@ -126,7 +126,7 @@ class DiaryAiChatController with ChangeNotifier {
       message: chatTextController.text.trim(),
       messenger: Messenger.user,
       messageType: MessageType.chat,
-      messageTime: timestampToKst(Timestamp.now()),
+      messageTime: timestampToLocal(Timestamp.now()),
     );
   }
 
@@ -136,17 +136,17 @@ class DiaryAiChatController with ChangeNotifier {
       message: message,
       messenger: Messenger.ai,
       messageType: MessageType.chat,
-      messageTime: timestampToKst(Timestamp.now()),
+      messageTime: timestampToLocal(Timestamp.now()),
     );
   }
 
   // update system chatting
   void updateSystemChat() {
     chatModel = ChatMessage(
-      message: ChatMessage.formatTimestamp(timestampToKst(Timestamp.now())),
+      message: ChatMessage.formatTimestamp(timestampToLocal(Timestamp.now())),
       messenger: Messenger.system,
       messageType: MessageType.chat,
-      messageTime: timestampToKst(Timestamp.now()),
+      messageTime: timestampToLocal(Timestamp.now()),
     );
   }
 
@@ -160,7 +160,7 @@ class DiaryAiChatController with ChangeNotifier {
 
     // when submitted message's date is different with latest message's date
     if (ChatMessage.calculateDateDifference(
-            chatlog.last.messageTime, timestampToKst(Timestamp.now())) >=
+            chatlog.last.messageTime, timestampToLocal(Timestamp.now())) >=
         1) {
       updateSystemChat();
       chatlog.add(chatModel);
@@ -368,7 +368,7 @@ class DiaryAiChatController with ChangeNotifier {
       // only save messages within same day
       List<ChatMessage> todayMessages = chatlog.where((message) {
         return ChatMessage.calculateDateDifference(
-                message.messageTime, timestampToKst(Timestamp.now())) ==
+                message.messageTime, timestampToLocal(Timestamp.now())) ==
             0;
       }).toList();
 

@@ -33,8 +33,9 @@ const openai = new OpenAI({
 });
 
 // 매월 마지막 날 실행되는 PubSub 트리거 설정
-// exports.monthlyDiaryReview = functions.region("asia-northeast3").pubsub.schedule('0 0 28-31 * *')
-exports.testDiaryReview = functions.region("asia-northeast3").pubsub.schedule("*/2 * * * *") // 매 2분마다 실행하는 테스트 조건
+exports.monthlyDiaryReview = functions.region("asia-northeast3").pubsub.schedule("0 0 28-31 * *")
+    // 매 2분마다 실행하는 테스트 조건
+    // exports.testDiaryReview = functions.region("asia-northeast3").pubsub.schedule("*/2 * * * *")
     .timeZone("Asia/Seoul")
     .onRun(async (context) => {
         const today = new Date();
@@ -44,7 +45,7 @@ exports.testDiaryReview = functions.region("asia-northeast3").pubsub.schedule("*
         // 오늘이 달의 마지막 날인지 확인
         if (today.getDate() !== lastDayOfMonth.getDate()) {
             console.log("[Exit] Today is not the last day of month.");
-            // return null;
+            return null;
         }
 
         const usersRef = db.collection("users");
@@ -146,6 +147,31 @@ exports.testDiaryReview = functions.region("asia-northeast3").pubsub.schedule("*
                         letterId: letterId,
                         title: `${today.getFullYear()}년 ${today.getMonth() + 1}월 편지`,
                     });
+
+                    // 새로운 편지 플래그 설정 (편지 생성됨 변수)
+                    transaction.update(db.collection("users").doc(userDoc.id), {
+                        newLetterAvailable: true,
+                    });
+
+                    // // 각 편지의 id를 담은 대표 문서 생성 로직
+                    // // Reference to the summary document
+                    // // 문서 이름을 콜렉션의 맨 앞에 항상 정렬 0000_~~~
+                    // const summaryDocRef = lettersRef.doc('0000_docSummary');
+
+                    // // Get the summary document
+                    // const summaryDoc = await transaction.get(summaryDocRef);
+
+                    // if (!summaryDoc.exists) {
+                    //     // If the summary document does not exist, create it with the new letter ID
+                    //     transaction.set(summaryDocRef, {
+                    //         letterIds: [letterId]
+                    //     });
+                    // } else {
+                    //     // If the summary document exists, update the letterIds array
+                    //     transaction.update(summaryDocRef, {
+                    //         letterIds: admin.firestore.FieldValue.arrayUnion(letterId)
+                    //     });
+                    // }
                 });
 
                 console.log(`[Success] Encouragement letter for user ${userDoc.id} created successfully.`);
@@ -191,3 +217,46 @@ exports.testDiaryReview = functions.region("asia-northeast3").pubsub.schedule("*
 
         return null;
     });
+
+// 유저 정보의 모든 관련 콜렉션을 삭제하는 함수
+// TODO: 추후 계정 탈퇴 관련 함수 수정 요청하기
+exports.deleteUserDataAndDoc = functions.https.onCall(async (data, context) => {
+    const userId = data.userId;
+    const userRef = admin.firestore().collection('users').doc(userId);
+
+    // 하위 컬렉션 삭제
+    async function deleteSubCollection(subCollectionName) {
+        const subCollection = await userRef.collection(subCollectionName).get();
+        const deletePromises = subCollection.docs.map((doc) => doc.ref.delete());
+        return Promise.all(deletePromises);
+    }
+
+    try {
+        // Delete sub-collections first
+        await deleteSubCollection('letters');
+        await deleteSubCollection('otherDiary');
+
+        // Then delete the user document itself
+        await userRef.delete();
+
+        console.log(`User document and sub-collections for ${userId} deleted.`);
+        return { success: true };
+    } catch (error) {
+        console.error(`Error deleting user data: ${userId}`, error);
+        return { success: false, error: error.message };
+    }
+});
+
+// Firebase Authentication 계정 삭제 함수
+exports.deleteAuthUser = functions.https.onCall(async (data, context) => {
+    const userId = data.userId;
+
+    try {
+        await admin.auth().deleteUser(userId);
+        console.log(`Successfully deleted user: ${userId}`);
+        return { success: true };
+    } catch (error) {
+        console.error(`Error deleting user: ${userId}`, error);
+        return { success: false, error: error.message };
+    }
+});

@@ -69,8 +69,9 @@ class _LoginViewState extends State<LoginView> {
                           style: ButtonStyle(
                               backgroundColor: WidgetStateProperty.all(
                                   BandiColor.neutralColor80(context)),
-                              shadowColor:
-                                  WidgetStateProperty.all(Colors.transparent),
+                              shadowColor: WidgetStateProperty.all(
+                                BandiColor.transparent(context),
+                              ),
                               shape: WidgetStateProperty.all<
                                       RoundedRectangleBorder>(
                                   RoundedRectangleBorder(
@@ -123,8 +124,9 @@ class _LoginViewState extends State<LoginView> {
                           style: ButtonStyle(
                               backgroundColor: WidgetStateProperty.all(
                                   BandiColor.foundationColor100(context)),
-                              shadowColor:
-                                  WidgetStateProperty.all(Colors.transparent),
+                              shadowColor: WidgetStateProperty.all(
+                                BandiColor.transparent(context),
+                              ),
                               shape: WidgetStateProperty.all<
                                       RoundedRectangleBorder>(
                                   RoundedRectangleBorder(
