@@ -1,6 +1,7 @@
 import 'package:bandi_official/components/loading/loading_page.dart';
 import 'package:bandi_official/view/home/write_diary.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -18,7 +19,7 @@ class DiaryList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userId = '21jPhIHrf7iBwVAh92ZW'; // 예시 사용자 ID, 실제로는 사용자 인증을 통해 가져와야 함
+    final userId = FirebaseAuth.instance.currentUser!.uid;
     final writeProvider = Provider.of<HomeToWrite>(context);
     final navigationToggleProvider =
         Provider.of<NavigationToggleProvider>(context);

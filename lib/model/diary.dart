@@ -74,8 +74,8 @@ class Diary {
     title = '';
     content = '';
     emotion = [];
-    createdAt = timestampToKst(Timestamp.now());
-    updatedAt = timestampToKst(Timestamp.now());
+    createdAt = timestampToLocal(Timestamp.now());
+    updatedAt = timestampToLocal(Timestamp.now());
     reaction = [0, 0, 0];
     diaryId = '';
     cheerText = '';
@@ -88,8 +88,8 @@ class Diary {
       //     title: '',
       //     content: '',
       //     emotion: [],
-      //     createdAt: timestampToKst(Timestamp.now()),
-      //     updatedAt: timestampToKst(Timestamp.now()),
+      //     createdAt: timestampToLocal(Timestamp.now()),
+      //     updatedAt: timestampToLocal(Timestamp.now()),
       //     reaction: [],
       //     diaryId: ''),
     ];

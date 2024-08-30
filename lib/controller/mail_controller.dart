@@ -11,12 +11,12 @@ import 'dart:developer' as dev;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MailController with ChangeNotifier {
-  // Get current user from FirebaseAuth
-  User? get currentUser => FirebaseAuth.instance.currentUser;
+  // load data one when navigate to the view at the first time
   bool loadLikedDiaryDataOnce = false;
   bool loadLetterDataOnce = false;
+  bool loadNewLetterDataOnce = false;
 
-  // firebase user uid
+  // Get current user from FirebaseAuth
   String? get userId => FirebaseAuth.instance.currentUser!.uid;
 
   // maximum number of data to load at once
@@ -29,7 +29,7 @@ class MailController with ChangeNotifier {
   List<Letter> letterList = Letter.defaultLetterList();
   List<String> letterListDates = [];
 
-// Manage the page scroll
+  // Manage the page scroll
   late ScrollController _everyMailScrollController;
   ScrollController get everyMailScrollController => _everyMailScrollController;
   double everyMailScrollPosition = 0.0;
@@ -92,6 +92,17 @@ class MailController with ChangeNotifier {
   // while detail view is shown
   bool isDetailViewShowing = false;
 
+  // // for new letter model
+  // late Letter newLetter;
+
+  // for new letter model
+  late Letter newLetter = Letter(
+    title: 'yyyy년 m월 편지',
+    content: 'test' * 100,
+    date: Timestamp.now(),
+    letterId: 'letterId',
+  );
+
   // mail view tab controller
   late TabController _tabController;
 
@@ -149,6 +160,11 @@ class MailController with ChangeNotifier {
     notifyListeners();
   }
 
+  void updateSavedCurrentIndex(int value) {
+    savedCurrentIndex = value;
+    notifyListeners();
+  }
+
   // read chat log from local storage at the first stage
   void getLikedDiaryFromLocal() async {
     if (userId!.isNotEmpty) {
@@ -176,7 +192,7 @@ class MailController with ChangeNotifier {
 
           if (jsonMessages != null) {
             dev.log(
-                'read liked Diary log from local for date ${key.split('_').skip(1).join('_')}');
+                'read liked Diary log from local for date ${key.split('_').skip(1).join('_').toString()}');
             loadLikedDiaryDataOnce = true;
             likedDiaryListDates.add(key);
             likedDiaryList.addAll(
@@ -211,6 +227,7 @@ class MailController with ChangeNotifier {
       likedDiaryList.clear();
 
       try {
+        loadLikedDiaryDataOnce = true;
         // Firestore 인스턴스 가져오기
         final FirebaseFirestore firestore = FirebaseFirestore.instance;
         final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -220,13 +237,17 @@ class MailController with ChangeNotifier {
             '${userId}_likedDiaryList_${DateTime.now().toIso8601String().substring(0, 10)}';
 
         // 특정 사용자의 likedDiaryIds 가져오기
-        DocumentSnapshot userDoc = await firestore
-            .collection('users')
-            //.doc(currentUser!.uid)
-            .doc('21jPhIHrf7iBwVAh92ZW')
-            .get();
+        DocumentSnapshot userDoc =
+            await firestore.collection('users').doc(userId).get();
 
         List<String> likedDiaryIds = List<String>.from(userDoc['likedDiaryId']);
+
+        // 데이터가 없을 경우 종료
+        if (likedDiaryIds.isEmpty) {
+          dev.log('No liked diaries found for user.');
+          return;
+        }
+
         // 순수 id 값을 추출한 리스트 생성
         List<String> pureIds = likedDiaryIds.map((entry) {
           return entry.split('_')[2];
@@ -237,8 +258,6 @@ class MailController with ChangeNotifier {
             .collection('allDiary')
             .where(FieldPath.documentId, whereIn: pureIds)
             .get();
-
-        loadLikedDiaryDataOnce = true;
 
         // Create a map for quick lookups of documents by their 'diaryId'
         Map<String, QueryDocumentSnapshot> docMap = {
@@ -292,10 +311,8 @@ class MailController with ChangeNotifier {
   void saveLikedDiaryToLocal(Diary likedDiary, int prefixNumber) async {
     if (userId!.isNotEmpty) {
       // Firestore 업데이트 로직 추가
-      DocumentReference userDocRef = FirebaseFirestore.instance
-          .collection('users')
-          //.doc(currentUser!.uid)
-          .doc('21jPhIHrf7iBwVAh92ZW');
+      DocumentReference userDocRef =
+          FirebaseFirestore.instance.collection('users').doc(userId);
 
       // 날짜 형식 생성
       String dateString =
@@ -473,6 +490,7 @@ class MailController with ChangeNotifier {
       letterList.clear();
 
       try {
+        loadLetterDataOnce = true;
         // Firestore 인스턴스 가져오기
         final FirebaseFirestore firestore = FirebaseFirestore.instance;
         final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -484,13 +502,17 @@ class MailController with ChangeNotifier {
         // Firestore에서 특정 사용자의 letters 컬렉션의 문서들을 가져오기
         QuerySnapshot lettersSnapshot = await firestore
             .collection('users')
-            //.doc(currentUser!.uid)
-            .doc('21jPhIHrf7iBwVAh92ZW')
+            .doc(userId)
             .collection('letters')
             .orderBy('date', descending: true)
             .get();
 
-        loadLetterDataOnce = true;
+        // 쿼리 결과가 비어 있는 경우 종료
+        if (lettersSnapshot.docs.isEmpty) {
+          dev.log('No letters found for user.');
+          return;
+        }
+
         // 조회된 다이어리들을 letterList에 추가
         letterList = lettersSnapshot.docs.map((doc) {
           return Letter.fromJsonDB(doc.data() as Map<String, dynamic>);
@@ -519,9 +541,39 @@ class MailController with ChangeNotifier {
   }
 
   // update liked diary to local storage
-  // TODO: function 함수에 해당함
-  void saveLetterToLocal(Letter letter) async {
+  Future<bool> checkForNewLetterAndsaveLetterToLocal() async {
     if (userId!.isNotEmpty) {
+      loadNewLetterDataOnce = true;
+
+      // 사용자의 문서를 가져옴
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+
+      dev.log('check for new letter is arrived');
+
+      // 새로운 편지가 도착했는지 확인
+      if (userDoc.exists && userDoc.data()!['newLetterAvailable'] == false) {
+        dev.log('there is no new letter');
+        return false;
+      }
+
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('letters')
+          .orderBy('date', descending: true)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isEmpty) {
+        dev.log('there is new letter but cannot find new letter querySnapshot');
+        return false;
+      }
+
+      newLetter = Letter.fromSnapshot(querySnapshot.docs.first);
+
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       String todayKey =
           '${userId}_letterList_${DateTime.now().toIso8601String().substring(0, 10)}';
@@ -537,17 +589,29 @@ class MailController with ChangeNotifier {
       }
 
       // 인수로 받은 letter 추가
-      todayMessages.add(letter);
-      letterList.add(letter);
+      todayMessages.add(newLetter);
+      letterList.add(newLetter);
 
       List<String> jsonMessages =
           todayMessages.map((message) => jsonEncode(message.toJson())).toList();
       await prefs.setStringList(todayKey, jsonMessages);
+
       dev.log(
           'save letter to local for date ${todayKey.split('_').skip(1).join('_')}');
+
+      // 유저의 새 편지 변수 초기화
+      await FirebaseFirestore.instance.collection('users').doc(userId).update({
+        'newLetterAvailable': false,
+      });
+
+      dev.log('update "newLetterAvailable" field from user document');
     } else {
       dev.log('there is no firebase uid');
+      return false;
     }
+
+    notifyListeners();
+    return true;
   }
 
   // load more liked diary from past

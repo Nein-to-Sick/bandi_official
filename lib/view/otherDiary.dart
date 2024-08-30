@@ -132,7 +132,7 @@ class _OtherDiaryState extends State<OtherDiary> {
                           GestureDetector(
                               onTap: () {
                                 Diary updatedDiary = Diary(
-                                  userId: writeProvider.userId,
+                                  userId: writeProvider.userId!,
                                   title: writeProvider.otherDiaryTitle,
                                   content: writeProvider.otherDiaryContent,
                                   emotion: writeProvider.otherDiaryEmotion,

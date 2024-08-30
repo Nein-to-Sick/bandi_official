@@ -6,6 +6,7 @@ import 'package:bandi_official/controller/diary_ai_analysis_controller.dart';
 import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/utils/time_utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
@@ -28,14 +29,14 @@ class HomeToWrite with ChangeNotifier {
     title: 'title',
     content: 'content',
     emotion: ['emotion'],
-    createdAt: timestampToKst(Timestamp.now()),
-    updatedAt: timestampToKst(Timestamp.now()),
+    createdAt: timestampToLocal(Timestamp.now()),
+    updatedAt: timestampToLocal(Timestamp.now()),
     reaction: [0, 0, 0],
     diaryId: 'diaryId',
   );
 
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
-  final userId = "21jPhIHrf7iBwVAh92ZW"; // 실제 사용자 ID로 교체 필요
+  String? get userId => FirebaseAuth.instance.currentUser!.uid;
 
   //--------------step 1--------------------------------------------------------
 
@@ -118,7 +119,7 @@ class HomeToWrite with ChangeNotifier {
         'cheerText': diaryModel.cheerText
       };
 
-      diaryModel.userId = userId;
+      diaryModel.userId = userId!;
       diaryModel.diaryId = newDiaryId;
       notifyListeners();
 
@@ -246,7 +247,7 @@ class HomeToWrite with ChangeNotifier {
     diaryModel.update(
         title: titleText,
         content: contentText,
-        updatedAt: timestampToKst(Timestamp.now()));
+        updatedAt: timestampToLocal(Timestamp.now()));
     try {
       final diaryData = {
         'title': diaryModel.title,

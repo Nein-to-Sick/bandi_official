@@ -34,16 +34,16 @@ class ChatMessage {
   static List<ChatMessage> defaultChatLog() {
     return [
       ChatMessage(
-        message: formatTimestamp(timestampToKst(Timestamp.now())),
+        message: formatTimestamp(timestampToLocal(Timestamp.now())),
         messenger: Messenger.system,
         messageType: MessageType.chat,
-        messageTime: timestampToKst(Timestamp.now()),
+        messageTime: timestampToLocal(Timestamp.now()),
       ),
       ChatMessage(
         message: '안녕! 무슨 일이야?',
         messenger: Messenger.ai,
         messageType: MessageType.chat,
-        messageTime: timestampToKst(Timestamp.now()),
+        messageTime: timestampToLocal(Timestamp.now()),
       ),
     ];
   }
@@ -55,7 +55,7 @@ class ChatMessage {
       message: data['message'] ?? '',
       messenger: Messenger.values[data['messenger']],
       messageType: MessageType.values[data['messageType']],
-      messageTime: data['messageTime'] ?? timestampToKst(Timestamp.now()),
+      messageTime: data['messageTime'] ?? timestampToLocal(Timestamp.now()),
     );
   }
 

@@ -104,14 +104,14 @@ class _NavigationState extends State<Navigation> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    (!writeProvider.write &&
+                    ((!writeProvider.write &&
                                 !diaryAiChatController.isChatOpen &&
                                 !mailController.isDetailViewShowing &&
                                 !alarmController.isAlarmOpen) &&
                             !(writeProvider.otherDiaryOpen == true &&
-                                writeProvider.step == 1)
+                                writeProvider.step == 1))
                         ? navigationBar(context)
-                        : Container()
+                        : const SizedBox.shrink()
                   ],
                 ),
               ),
