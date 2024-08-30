@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:bandi_official/controller/diary_ai_analysis_controller.dart';
 import 'package:bandi_official/model/diary.dart';
+import 'package:bandi_official/utils/time_utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -27,8 +28,8 @@ class HomeToWrite with ChangeNotifier {
     title: 'title',
     content: 'content',
     emotion: ['emotion'],
-    createdAt: Timestamp.now(),
-    updatedAt: Timestamp.now(),
+    createdAt: timestampToKst(Timestamp.now()),
+    updatedAt: timestampToKst(Timestamp.now()),
     reaction: [0, 0, 0],
     diaryId: 'diaryId',
   );
@@ -243,7 +244,9 @@ class HomeToWrite with ChangeNotifier {
   Future<void> modifyDatabaseDiaryValue(
       String titleText, String contentText, String diaryId) async {
     diaryModel.update(
-        title: titleText, content: contentText, updatedAt: Timestamp.now());
+        title: titleText,
+        content: contentText,
+        updatedAt: timestampToKst(Timestamp.now()));
     try {
       final diaryData = {
         'title': diaryModel.title,
