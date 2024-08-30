@@ -150,14 +150,20 @@ class _OtherDiaryState extends State<OtherDiary> {
                                   reactionValue = 2;
                                 }
 
-                                mailController.saveLikedDiaryToLocal(
-                                    updatedDiary, reactionValue);
-                                saveReactionInDB(
-                                    writeProvider.otherDiaryId,
-                                    writeProvider.otherDiaryReaction,
-                                    reaction1,
-                                    reaction2,
-                                    reaction3);
+                                // 반응을 추가한 경우에만 기록
+                                if (reactionValue != -1) {
+                                  mailController.saveLikedDiaryToLocal(
+                                      updatedDiary, reactionValue);
+
+                                  // TODO: 상대에게 알림 보내는 로직 추가
+                                  saveReactionInDB(
+                                      writeProvider.otherDiaryId,
+                                      writeProvider.otherDiaryReaction,
+                                      reaction1,
+                                      reaction2,
+                                      reaction3);
+                                }
+
                                 writeProvider.offDiaryOpen();
                               },
                               child: PhosphorIcon(

@@ -28,7 +28,7 @@ class DetailView extends StatelessWidget {
       title = diary.title;
       DateTime dateTime =
           DateFormat('yyyy-MM-dd').parse(diary.otherUserLikedAt);
-      date = DateFormat('yyyy년 MM월 dd일').format(dateTime);
+      date = '추가한 날짜: ${DateFormat('yyyy년 MM월 dd일').format(dateTime)}';
       content = diary.content;
     } else {
       title = 'title';

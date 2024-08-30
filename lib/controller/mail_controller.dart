@@ -192,7 +192,7 @@ class MailController with ChangeNotifier {
 
           if (jsonMessages != null) {
             dev.log(
-                'read liked Diary log from local for date ${key.split('_').skip(1).join('_').toString()}');
+                'read liked Diary log from local for date ${key.split('_').skip(1).join('_')}');
             loadLikedDiaryDataOnce = true;
             likedDiaryListDates.add(key);
             likedDiaryList.addAll(
@@ -337,15 +337,19 @@ class MailController with ChangeNotifier {
       List<Diary> todayMessages = [];
 
       if (storedMessages != null) {
-        todayMessages = storedMessages
-            .map(
-              (jsonMessage) => Diary.fromJsonLocal(
-                jsonDecode(jsonMessage),
-                (int.tryParse(formattedId.substring(0, 1)) ?? 0),
-                formattedId.substring(2, 12),
-              ),
-            )
-            .toList();
+        todayMessages = storedMessages.map(
+          (jsonMessage) {
+            // JSON 문자열을 한 번만 디코드하여 Map<String, dynamic> 객체로 변환
+            final decodedJson = jsonDecode(jsonMessage);
+
+            // 디코드된 객체를 재사용하여 Diary 객체 생성
+            return Diary.fromJsonLocal(
+              decodedJson,
+              decodedJson['otherUserReaction'],
+              formattedId.substring(2, 12),
+            );
+          },
+        ).toList();
       }
 
       Diary updatedDiary = Diary(
