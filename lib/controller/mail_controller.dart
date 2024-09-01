@@ -11,6 +11,7 @@ import 'dart:developer' as dev;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MailController with ChangeNotifier {
+  final userId = FirebaseAuth.instance.currentUser?.uid;
   // Get current user from FirebaseAuth
   User? get currentUser => FirebaseAuth.instance.currentUser;
   bool loadLikedDiaryDataOnce = false;
@@ -158,7 +159,7 @@ class MailController with ChangeNotifier {
       DocumentSnapshot userDoc = await firestore
           .collection('users')
           //.doc(currentUser!.uid)
-          .doc('21jPhIHrf7iBwVAh92ZW')
+          .doc(userId)
           .get();
 
       List<String> likedDiaryIds = List<String>.from(userDoc['likedDiaryId']);
@@ -226,7 +227,7 @@ class MailController with ChangeNotifier {
     DocumentReference userDocRef = FirebaseFirestore.instance
         .collection('users')
         //.doc(currentUser!.uid)
-        .doc('21jPhIHrf7iBwVAh92ZW');
+        .doc(userId);
 
     // 날짜 형식 생성
     String dateString =
@@ -397,7 +398,7 @@ class MailController with ChangeNotifier {
       QuerySnapshot lettersSnapshot = await firestore
           .collection('users')
           //.doc(currentUser!.uid)
-          .doc('21jPhIHrf7iBwVAh92ZW')
+          .doc(userId)
           .collection('letters')
           .orderBy('date', descending: true)
           .get();
