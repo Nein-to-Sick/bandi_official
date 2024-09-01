@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 
+// TODO: 공감한 일기 추가, 편지 발송 시 알람 전송 구현 필요
+// 구현 방법 논의 필요
 class AlarmView extends StatelessWidget {
   const AlarmView({super.key});
 

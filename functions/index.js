@@ -22,7 +22,9 @@
 const MAX_DIARY_COUNT = 5;
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
-const { OpenAI } = require("openai");
+const {OpenAI} = require("openai");
+const moment = require("moment-timezone"); // moment-timezone을 사용해야 합니다.
+const timeZone = "Asia/Seoul"; // 한국 시간대 설정
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -38,14 +40,21 @@ exports.monthlyDiaryReview = functions.region("asia-northeast3").pubsub.schedule
     // exports.testDiaryReview = functions.region("asia-northeast3").pubsub.schedule("*/2 * * * *")
     .timeZone("Asia/Seoul")
     .onRun(async (context) => {
-        const today = new Date();
-        const currentMonth = today.toISOString().slice(0, 7); // "YYYY-MM"
-        const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        // 현재 UTC 시간을 가져오고, 이를 서울 시간대로 변환
+        const today = moment.tz(timeZone); // moment 객체를 한국 시간대로 생성
+        const currentMonth = today.format("YYYY-MM"); // "YYYY-MM" 형식으로 현재 월 가져오기
+        const lastDayOfMonth = today.clone().endOf("month"); // 달의 마지막 날을 가져오기
+
+        // 오늘과 마지막 날을 읽기 쉬운 형식으로 변환
+        const todayFormatted = today.format("yyyy-MM-dd HH:mm:ssZ"); // moment의 format 사용
+        const lastDayFormatted = lastDayOfMonth.format("yyyy-MM-dd HH:mm:ssZ"); // moment의 format 사용
 
         // 오늘이 달의 마지막 날인지 확인
-        if (today.getDate() !== lastDayOfMonth.getDate()) {
-            console.log("[Exit] Today is not the last day of month.");
+        if (today.date() !== lastDayOfMonth.date()) {
+            console.log(`[Exit] Today (${todayFormatted}) is not the last day of month. Last day of month was (${lastDayFormatted}).`);
             return null;
+        } else {
+            console.log(`[Proceed] Today (${todayFormatted}) is the last day of the month.`);
         }
 
         const usersRef = db.collection("users");
@@ -116,7 +125,7 @@ exports.monthlyDiaryReview = functions.region("asia-northeast3").pubsub.schedule
             try {
                 const lettersRef = db.collection("users").doc(userDoc.id).collection("letters");
 
-                const existingLetterSnapshot = await lettersRef.where("title", "==", `${today.getFullYear()}년 ${today.getMonth() + 1}월의 편지`).get();
+                const existingLetterSnapshot = await lettersRef.where("title", "==", `${today.toDate().getFullYear()}년 ${today.toDate().getMonth() + 1}월 편지`).get();
 
                 if (!existingLetterSnapshot.empty) {
                     console.log(`[Skipping] User ${userDoc.id} already has a letter for this month.`);
@@ -145,7 +154,7 @@ exports.monthlyDiaryReview = functions.region("asia-northeast3").pubsub.schedule
                         content: letterContent,
                         date: admin.firestore.FieldValue.serverTimestamp(),
                         letterId: letterId,
-                        title: `${today.getFullYear()}년 ${today.getMonth() + 1}월 편지`,
+                        title: `${today.toDate().getFullYear()}년 ${today.toDate().getMonth() + 1}월 편지`,
                     });
 
                     // 새로운 편지 플래그 설정 (편지 생성됨 변수)
@@ -222,9 +231,14 @@ exports.monthlyDiaryReview = functions.region("asia-northeast3").pubsub.schedule
 // TODO: 추후 계정 탈퇴 관련 함수 수정 요청하기
 exports.deleteUserDataAndDoc = functions.https.onCall(async (data, context) => {
     const userId = data.userId;
-    const userRef = admin.firestore().collection('users').doc(userId);
+    const userRef = admin.firestore().collection("users").doc(userId);
 
-    // 하위 컬렉션 삭제
+    /**
+     * Deletes all documents in a specified sub-collection.
+     *
+     * @param {string} subCollectionName - The name of the sub-collection to delete.
+     * @return {Promise<void[]>} A promise that resolves when all documents in the sub-collection are deleted.
+     */
     async function deleteSubCollection(subCollectionName) {
         const subCollection = await userRef.collection(subCollectionName).get();
         const deletePromises = subCollection.docs.map((doc) => doc.ref.delete());
@@ -233,30 +247,31 @@ exports.deleteUserDataAndDoc = functions.https.onCall(async (data, context) => {
 
     try {
         // Delete sub-collections first
-        await deleteSubCollection('letters');
-        await deleteSubCollection('otherDiary');
+        await deleteSubCollection("letters");
+        await deleteSubCollection("otherDiary");
 
         // Then delete the user document itself
         await userRef.delete();
 
         console.log(`User document and sub-collections for ${userId} deleted.`);
-        return { success: true };
+        return {success: true};
     } catch (error) {
         console.error(`Error deleting user data: ${userId}`, error);
-        return { success: false, error: error.message };
+        return {success: false, error: error.message};
     }
 });
 
 // Firebase Authentication 계정 삭제 함수
+// TODO: 추후 계정 탈퇴 관련 함수 수정 요청하기
 exports.deleteAuthUser = functions.https.onCall(async (data, context) => {
     const userId = data.userId;
 
     try {
         await admin.auth().deleteUser(userId);
         console.log(`Successfully deleted user: ${userId}`);
-        return { success: true };
+        return {success: true};
     } catch (error) {
         console.error(`Error deleting user: ${userId}`, error);
-        return { success: false, error: error.message };
+        return {success: false, error: error.message};
     }
 });
