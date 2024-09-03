@@ -5,11 +5,11 @@ import 'dart:math';
 import 'package:bandi_official/controller/diary_ai_analysis_controller.dart';
 import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/utils/time_utils.dart';
+import 'package:bandi_official/model/keyword.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'dart:developer' as dev;
 
@@ -68,7 +68,18 @@ class HomeToWrite with ChangeNotifier {
   Future<void> aiAndSaveDairy(BuildContext context) async {
     await aiDiary(context);
     await saveDiary();
-    await otherDiaries(diaryModel.emotion);
+    if (diaryModel.emotion.length >= 2) {
+      //키워드가 2개 이상 있을 경우
+      //분류하기
+      Emotion emotion = classifyEmotion(diaryModel.emotion);
+      if (emotion != Emotion.unknown) {
+        print(emotion);
+        String emotionString = emotion.toString().split('.').last;
+        String returnDiaryId = await scanAndCompareEmotionTimestamps(
+            emotionString, diaryModel.diaryId);
+        sendOtherDiary(returnDiaryId);
+      }
+    }
   }
 
   Future<void> aiDiary(BuildContext context) async {
@@ -135,89 +146,158 @@ class HomeToWrite with ChangeNotifier {
     }
   }
 
+  Emotion classifyEmotion(List<dynamic> emotion) {
+    // 각 감정의 카운트를 저장할 Map
+    Map<Emotion, int> sixEmotionsCounts = {
+      Emotion.happiness: 0,
+      Emotion.fear: 0,
+      Emotion.discomfort: 0,
+      Emotion.anger: 0,
+      Emotion.sadness: 0,
+      Emotion.unknown: 0,
+    };
+
+    // Keyword 클래스의 인스턴스 생성
+    Keyword keyword = Keyword();
+
+    // emotionMap을 순회
+    for (var entry in keyword.emotionMap.entries) {
+      Emotion emotionKey = entry.key; // 감정
+      List<String> categories = entry.value; // 해당 감정에 해당하는 카테고리 리스트
+
+      // emotion 리스트 내의 각 문자열을 순회
+      for (String e in emotion) {
+        // 카테고리 리스트와 일치하는지 확인
+        if (categories.contains(e)) {
+          // 일치하면 해당 감정의 카운트를 증가
+          sixEmotionsCounts[emotionKey] =
+              (sixEmotionsCounts[emotionKey] ?? 0) + 1;
+        }
+      }
+    }
+    Emotion maxKey = sixEmotionsCounts.keys.first;
+    int maxValue = sixEmotionsCounts[maxKey]!;
+    sixEmotionsCounts.forEach((key, value) {
+      if (value > maxValue) {
+        maxKey = key;
+        maxValue = value;
+      }
+    });
+    return maxKey;
+  }
+
+  Future<String> scanAndCompareEmotionTimestamps(
+      String emotion, String diaryId) async {
+    // Firestore 인스턴스 생성
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+    try {
+      // 특정 emotion 값을 가진 문서를 가져옴
+      DocumentSnapshot documentSnapshot = await firestore
+          .collection('representativeDocument')
+          .doc(emotion)
+          .get();
+
+      if (documentSnapshot.exists) {
+        Map<String, dynamic>? data =
+            documentSnapshot.data() as Map<String, dynamic>?;
+
+        if (data != null) {
+          print('Document ID: ${documentSnapshot.id}');
+
+          DateTime now = DateTime.now();
+          bool updated = false;
+
+          for (int i = 1; i <= 4; i++) {
+            String timeFieldKey = '$emotion${i}_time';
+            String idFieldKey = '$emotion${i}_id';
+
+            if (data.containsKey(timeFieldKey) &&
+                data[timeFieldKey] is Timestamp) {
+              Timestamp timestamp = data[timeFieldKey];
+              DateTime fieldTime = timestamp.toDate();
+
+              // 현재 시간과 비교하여 24시간 이상 차이가 나는 경우 업데이트
+              if (now.difference(fieldTime).inHours >= 24) {
+                String id = data[idFieldKey];
+                // 업데이트할 데이터
+                Map<String, dynamic> updates = {
+                  timeFieldKey: Timestamp.now(),
+                  idFieldKey: diaryId,
+                };
+
+                // Firestore에 업데이트
+                await firestore
+                    .collection('representativeDocument')
+                    .doc(emotion)
+                    .update(updates);
+
+                updated = true;
+                return id;
+              }
+            }
+          }
+
+          if (!updated) {
+            return data['$emotion${Random().nextInt(4) + 1}_id'];
+          } else {
+            return "null";
+          }
+        } else {
+          print('No data found for document with ID: ${documentSnapshot.id}');
+          return "null";
+        }
+      } else {
+        print('No document found with ID: $emotion');
+        return "null";
+      }
+    } catch (e) {
+      print('Error scanning and updating document: $e');
+      return "null";
+    }
+  }
+
+  Diary otherDiaryModel = Diary(
+    userId: 'userId',
+    title: 'title',
+    content: 'content',
+    emotion: ['emotion'],
+    createdAt: Timestamp.now(),
+    updatedAt: Timestamp.now(),
+    reaction: [0, 0, 0],
+    diaryId: 'diaryId',
+  );
   bool otherDiaryOpen = false;
-  String otherDiaryTitle = "";
-  String otherDiaryContent = "";
-  String otherDiaryDay = "";
-  late Timestamp otherDiaryCreatedDay;
-  late Timestamp otherDiaryUpdatedDay;
-  String otherDiaryId = "";
-  List<dynamic> otherDiaryReaction = [];
-  List<dynamic> otherDiaryEmotion = [];
+
+  Future<void> sendOtherDiary(String diaryId) async {
+    DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
+        .collection('allDiary')
+        .doc(diaryId)
+        .get();
+
+    if (documentSnapshot.exists) {
+      Diary diary = Diary.fromSnapshot(documentSnapshot);
+      otherDiaryModel = diary;
+      otherDiaryOpen = true;
+      notifyListeners();
+    } else {
+      print('Diary with ID $diaryId does not exist.');
+    }
+  }
 
   void offDiaryOpen() {
     otherDiaryOpen = false;
-    otherDiaryTitle = "";
-    otherDiaryContent = "";
-    otherDiaryDay = "";
-    otherDiaryId = "";
-    otherDiaryReaction = [];
+    otherDiaryModel = Diary(
+      userId: 'userId',
+      title: 'title',
+      content: 'content',
+      emotion: ['emotion'],
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+      reaction: [0, 0, 0],
+      diaryId: 'diaryId',
+    );
     notifyListeners();
-  }
-
-  Future<void> otherDiaries(List emotionList) async {
-    // 1차적으로 emotionList 중 하나라도 포함된 일기들을 가져옵니다.
-    QuerySnapshot allDiarySnapshot = await firestore
-        .collection('allDiary')
-        .where('userId', isNotEqualTo: userId)
-        .where('emotion', arrayContainsAny: emotionList)
-        .get();
-    List<QueryDocumentSnapshot> matchingDiaries;
-    if (allDiarySnapshot.docs.isEmpty) {
-      // 2차적으로 emotion 리스트가 정확히 일치하는지 필터링합니다.
-      //TODO: 나중에 알고 즘 수정, 받은 일기 제외 추가
-      matchingDiaries = allDiarySnapshot.docs.where((doc) {
-        List<String> diaryEmotions = List<String>.from(doc['emotion']);
-        return _listsAreEqual(diaryEmotions, emotionList);
-      }).toList();
-    } else {
-      matchingDiaries = allDiarySnapshot.docs;
-    }
-    if (matchingDiaries.isNotEmpty) {
-      // 무작위로 일기 하나 선택
-      var randomIndex = Random().nextInt(matchingDiaries.length);
-      var selectedDiary = matchingDiaries[randomIndex];
-
-      otherDiaryId = selectedDiary['diaryId'];
-
-      // //ToDo: combinationDiaryId 조합하기
-      // String combinationDiaryId = otherDiaryId;
-
-      // // user 컬렉션의 userId 문서의 otherDiary 컬렉션에 추가
-      // await firestore.collection('users').doc(userId).update({
-      //   'likedDiaryId': FieldValue.arrayUnion([combinationDiaryId]),
-      // });
-
-      otherDiaryOpen = true;
-      otherDiaryTitle = selectedDiary['title'];
-      otherDiaryContent = selectedDiary['content'];
-      otherDiaryDay =
-          DateFormat('yyyy년 M월 d일').format(selectedDiary['createdAt'].toDate());
-      otherDiaryReaction = selectedDiary['reaction'];
-      otherDiaryEmotion = selectedDiary['emotion'];
-      otherDiaryUpdatedDay = selectedDiary['updatedAt'];
-      otherDiaryCreatedDay = selectedDiary['createdAt'];
-      notifyListeners();
-
-      print("일기가 성공적으로 추가되었습니다.");
-    } else {
-      print("해당 감정에 해당하는 일기가 없습니다.");
-    }
-  }
-
-  // 두 리스트가 동일한지 비교하는 함수
-  bool _listsAreEqual(List list1, List list2) {
-    if (list1.length != list2.length) {
-      return false;
-    }
-    list1.sort();
-    list2.sort();
-    for (int i = 0; i < list1.length; i++) {
-      if (list1[i] != list2[i]) {
-        return false;
-      }
-    }
-    return true;
   }
 
   //--------------나의 일기--------------------------------------------------------

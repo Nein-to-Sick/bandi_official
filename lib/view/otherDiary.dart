@@ -6,6 +6,7 @@ import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 
@@ -164,6 +165,15 @@ class _OtherDiaryState extends State<OtherDiary> {
                                       reaction3);
                                 }
 
+                                mailController.saveLikedDiaryToLocal(
+                                    writeProvider.otherDiaryModel,
+                                    reactionValue);
+                                saveReactionInDB(
+                                    writeProvider.otherDiaryModel.diaryId,
+                                    writeProvider.otherDiaryModel.reaction,
+                                    reaction1,
+                                    reaction2,
+                                    reaction3);
                                 writeProvider.offDiaryOpen();
                               },
                               child: PhosphorIcon(
@@ -179,7 +189,7 @@ class _OtherDiaryState extends State<OtherDiary> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            writeProvider.otherDiaryTitle,
+                            writeProvider.otherDiaryModel.title,
                             style: BandiFont.displaySmall(context)?.copyWith(
                                 color: BandiColor.foundationColor100(context)),
                           ),
@@ -187,7 +197,9 @@ class _OtherDiaryState extends State<OtherDiary> {
                             height: 4,
                           ),
                           Text(
-                            writeProvider.otherDiaryDay,
+                            DateFormat('yyyy년 M월 d일').format(writeProvider
+                                .otherDiaryModel.createdAt
+                                .toDate()),
                             style: BandiFont.headlineSmall(context)?.copyWith(
                                 color: BandiColor.foundationColor100(context)),
                           ),
@@ -196,7 +208,7 @@ class _OtherDiaryState extends State<OtherDiary> {
                           ),
                           SingleChildScrollView(
                               child: Text(
-                            writeProvider.otherDiaryContent,
+                            writeProvider.otherDiaryModel.content,
                             style: BandiFont.titleSmall(context)?.copyWith(
                                 color: BandiColor.foundationColor100(context)),
                           )),
