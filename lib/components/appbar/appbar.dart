@@ -7,7 +7,10 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   const CustomAppBar({
     super.key,
     required this.title,
+    this.titleColor,
     required this.trailingIcon,
+    this.leadingIconColor,
+    this.trailingIconColor,
     required this.onLeadingIconPressed,
     required this.onTrailingIconPressed,
     required this.disableLeadingButton,
@@ -17,7 +20,10 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   });
 
   final String title;
+  final Color? titleColor;
   final PhosphorIconData trailingIcon;
+  final Color? leadingIconColor;
+  final Color? trailingIconColor;
   final Function onLeadingIconPressed;
   final Function onTrailingIconPressed;
   final bool disableLeadingButton;
@@ -45,7 +51,9 @@ class _CustomAppBarState extends State<CustomAppBar> {
         child: Text(
           widget.title,
           style: BandiFont.displaySmall(context)?.copyWith(
-            color: BandiColor.neutralColor100(context),
+            color: (widget.titleColor != null)
+                ? widget.titleColor
+                : BandiColor.neutralColor100(context),
           ),
         ),
       ),
@@ -60,9 +68,9 @@ class _CustomAppBarState extends State<CustomAppBar> {
                   ? IconButton(
                       icon: PhosphorIcon(
                         PhosphorIcons.arrowUDownLeft(),
-                        color: widget.disableLeadingButton
+                        color: (widget.disableLeadingButton
                             ? BandiColor.neutralColor20(context)
-                            : BandiColor.neutralColor80(context),
+                            : BandiColor.neutralColor80(context)),
                         size: 24,
                       ),
                       onPressed: () {
@@ -74,6 +82,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
                   : CustomIconButton(
                       onIconButtonPressed: widget.onLeadingIconPressed,
                       disableButton: widget.disableLeadingButton,
+                      iconColor: widget.leadingIconColor,
                     ),
             )
           : const SizedBox.shrink(),
@@ -87,9 +96,11 @@ class _CustomAppBarState extends State<CustomAppBar> {
             child: IconButton(
               icon: PhosphorIcon(
                 widget.trailingIcon,
-                color: widget.disableTrailingButton
-                    ? BandiColor.neutralColor20(context)
-                    : BandiColor.neutralColor80(context),
+                color: (widget.trailingIconColor != null)
+                    ? widget.trailingIconColor
+                    : widget.disableTrailingButton
+                        ? BandiColor.neutralColor20(context)
+                        : BandiColor.neutralColor80(context),
                 size: 24,
               ),
               onPressed: () {

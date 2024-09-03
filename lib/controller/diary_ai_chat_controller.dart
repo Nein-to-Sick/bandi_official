@@ -2,7 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:bandi_official/model/diary_ai_chat.dart';
+import 'package:bandi_official/utils/time_utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:dart_openai/dart_openai.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -33,6 +35,8 @@ class DiaryAiChatController with ChangeNotifier {
   // default chatGPT system prompt
   String chatGPTSystemPrompt =
       "You are a friendly chatbot offering emotional support for personal concerns. Respond warmly in Korean, focusing on empathy. Offer practical suggestions only if explicitly requested. Maintain a casual, friendly tone, like a close friend, and limit responses to 3 sentences.";
+  // firebase user uid
+  String? get userId => FirebaseAuth.instance.currentUser!.uid;
 
   // called on initState
   void loadDataAndSetting() {
@@ -58,7 +62,7 @@ class DiaryAiChatController with ChangeNotifier {
           message: '. . .',
           messenger: Messenger.ai,
           messageType: MessageType.chat,
-          messageTime: Timestamp.now(),
+          messageTime: timestampToLocal(Timestamp.now()),
         ),
       );
     } else {
@@ -94,19 +98,19 @@ class DiaryAiChatController with ChangeNotifier {
       message: '오늘 기분이 좋은데 넌 어때?',
       messenger: Messenger.assistant,
       messageType: MessageType.chat,
-      messageTime: Timestamp.now(),
+      messageTime: timestampToLocal(Timestamp.now()),
     ),
     ChatMessage(
       message: '오늘 기분이 별로야... 응원해 줘',
       messenger: Messenger.assistant,
       messageType: MessageType.chat,
-      messageTime: Timestamp.now(),
+      messageTime: timestampToLocal(Timestamp.now()),
     ),
     ChatMessage(
       message: '지난 내 기록을 보여줘',
       messenger: Messenger.assistant,
       messageType: MessageType.chat,
-      messageTime: Timestamp.now(),
+      messageTime: timestampToLocal(Timestamp.now()),
     ),
   ];
 
@@ -122,7 +126,7 @@ class DiaryAiChatController with ChangeNotifier {
       message: chatTextController.text.trim(),
       messenger: Messenger.user,
       messageType: MessageType.chat,
-      messageTime: Timestamp.now(),
+      messageTime: timestampToLocal(Timestamp.now()),
     );
   }
 
@@ -132,17 +136,17 @@ class DiaryAiChatController with ChangeNotifier {
       message: message,
       messenger: Messenger.ai,
       messageType: MessageType.chat,
-      messageTime: Timestamp.now(),
+      messageTime: timestampToLocal(Timestamp.now()),
     );
   }
 
   // update system chatting
   void updateSystemChat() {
     chatModel = ChatMessage(
-      message: ChatMessage.formatTimestamp(Timestamp.now()),
+      message: ChatMessage.formatTimestamp(timestampToLocal(Timestamp.now())),
       messenger: Messenger.system,
       messageType: MessageType.chat,
-      messageTime: Timestamp.now(),
+      messageTime: timestampToLocal(Timestamp.now()),
     );
   }
 
@@ -152,9 +156,11 @@ class DiaryAiChatController with ChangeNotifier {
       sendFirstMessage = true;
     }
 
+    dev.log(chatlog.last.messageTime.toString());
+
     // when submitted message's date is different with latest message's date
     if (ChatMessage.calculateDateDifference(
-            chatlog.last.messageTime, Timestamp.now()) >=
+            chatlog.last.messageTime, timestampToLocal(Timestamp.now())) >=
         1) {
       updateSystemChat();
       chatlog.add(chatModel);
@@ -303,42 +309,50 @@ class DiaryAiChatController with ChangeNotifier {
 
   // read chat log from local storage at the first stage
   void getChatLogFromLocal() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String> keys =
-        prefs.getKeys().where((key) => key.startsWith('chatLog_')).toList();
-
-    if (keys.isNotEmpty) {
-      // sorting by time
-      keys.sort();
-      // latest 3 message List's keys
-      List<String> latestKeys = keys
-          .skip((keys.length - maxChatlogDatesToLoad) > 0
-              ? keys.length - maxChatlogDatesToLoad
-              : 0)
-          .toList()
+    if (userId!.isNotEmpty) {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      List<String> keys = prefs
+          .getKeys()
+          .where((key) => key.startsWith('${userId}_chatLog_'))
           .toList();
-      chatlogDates.clear();
-      chatlog.clear();
 
-      for (String key in latestKeys) {
-        List<String>? jsonMessages = prefs.getStringList(key);
+      if (keys.isNotEmpty) {
+        // sorting by time
+        keys.sort();
+        // latest 3 message List's keys
+        List<String> latestKeys = keys
+            .skip((keys.length - maxChatlogDatesToLoad) > 0
+                ? keys.length - maxChatlogDatesToLoad
+                : 0)
+            .toList()
+            .toList();
+        chatlogDates.clear();
+        chatlog.clear();
 
-        if (jsonMessages != null) {
-          dev.log('read chat log from local for date $key');
-          sendFirstMessage = true;
-          chatlogDates.add(key);
-          chatlog.addAll(
-            jsonMessages
-                .map((jsonMessage) =>
-                    ChatMessage.fromJsonLocal(jsonDecode(jsonMessage)))
-                .toList(),
-          );
-        } else {
-          dev.log('there is no chat data for date $key');
+        for (String key in latestKeys) {
+          List<String>? jsonMessages = prefs.getStringList(key);
+
+          if (jsonMessages != null) {
+            dev.log(
+                'read chat log from local for date ${key.split('_').skip(1).join('_')}');
+            sendFirstMessage = true;
+            chatlogDates.add(key);
+            chatlog.addAll(
+              jsonMessages
+                  .map((jsonMessage) =>
+                      ChatMessage.fromJsonLocal(jsonDecode(jsonMessage)))
+                  .toList(),
+            );
+          } else {
+            dev.log(
+                'there is no chat data for date ${key.split('_').skip(1).join('_')}');
+          }
         }
+      } else {
+        dev.log('there is no chat data');
       }
     } else {
-      dev.log('there is no chat data');
+      dev.log('there is no firebase uid');
     }
 
     notifyListeners();
@@ -346,72 +360,90 @@ class DiaryAiChatController with ChangeNotifier {
 
   // update chat log to local storage
   void saveChatLogToLocal() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    String todayKey =
-        'chatLog_${DateTime.now().toIso8601String().substring(0, 10)}';
+    if (userId!.isNotEmpty) {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      String todayKey =
+          '${userId}_chatLog_${DateTime.now().toIso8601String().substring(0, 10)}';
 
-    // only save messages within same day
-    List<ChatMessage> todayMessages = chatlog.where((message) {
-      return ChatMessage.calculateDateDifference(
-              message.messageTime, Timestamp.now()) ==
-          0;
-    }).toList();
+      // only save messages within same day
+      List<ChatMessage> todayMessages = chatlog.where((message) {
+        return ChatMessage.calculateDateDifference(
+                message.messageTime, timestampToLocal(Timestamp.now())) ==
+            0;
+      }).toList();
 
-    List<String> jsonMessages =
-        todayMessages.map((message) => jsonEncode(message.toJson())).toList();
-    await prefs.setStringList(todayKey, jsonMessages);
-    dev.log('save chat log to local for date $todayKey');
+      List<String> jsonMessages =
+          todayMessages.map((message) => jsonEncode(message.toJson())).toList();
+      await prefs.setStringList(todayKey, jsonMessages);
+      dev.log(
+          'save chat log to local for date ${todayKey.split('_').skip(1).join('_')}');
+    } else {
+      dev.log('there is no firebase uid');
+    }
   }
 
   // delete chat log from local storage
   void deleteChatLogFromLocal() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String> keys =
-        prefs.getKeys().where((key) => key.startsWith('chatLog_')).toList();
-    for (String key in keys) {
-      await prefs.remove(key);
+    if (userId!.isNotEmpty) {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      List<String> keys = prefs
+          .getKeys()
+          .where((key) => key.startsWith('${userId}_chatLog_'))
+          .toList();
+      for (String key in keys) {
+        await prefs.remove(key);
+      }
+      dev.log('delete chat log from local');
+    } else {
+      dev.log('there is no firebase uid');
     }
-    dev.log('delete chat log from local');
   }
 
   // load more chat logs from past
   Future<bool> loadMoreChatLogs() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String> keys =
-        prefs.getKeys().where((key) => key.startsWith('chatLog_')).toList();
-    if (keys.isNotEmpty) {
-      keys.sort();
-      // load older messages
-      for (String key in keys.reversed) {
-        if (!chatlogDates.contains(key)) {
-          List<String>? jsonMessages = prefs.getStringList(key);
-          if (jsonMessages != null) {
-            List<ChatMessage> additionalMessages = jsonMessages
-                .map((jsonMessage) =>
-                    ChatMessage.fromJsonLocal(jsonDecode(jsonMessage)))
-                .toList();
-            chatlog.insertAll(0, additionalMessages);
-            chatlogDates.add(key);
-            notifyListeners();
-            dev.log('read older chat log from local for date $key');
+    if (userId!.isNotEmpty) {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      List<String> keys = prefs
+          .getKeys()
+          .where((key) => key.startsWith('${userId}_chatLog_'))
+          .toList();
+      if (keys.isNotEmpty) {
+        keys.sort();
+        // load older messages
+        for (String key in keys.reversed) {
+          if (!chatlogDates.contains(key)) {
+            List<String>? jsonMessages = prefs.getStringList(key);
+            if (jsonMessages != null) {
+              List<ChatMessage> additionalMessages = jsonMessages
+                  .map((jsonMessage) =>
+                      ChatMessage.fromJsonLocal(jsonDecode(jsonMessage)))
+                  .toList();
+              chatlog.insertAll(0, additionalMessages);
+              chatlogDates.add(key);
+              notifyListeners();
+              dev.log(
+                  'read older chat log from local for date ${key.split('_').skip(1).join('_')}');
 
+              if (keys.indexOf(key) == 0) {
+                dev.log('there is no more older chat data');
+                return false;
+              }
+              break;
+            }
+          } else {
             if (keys.indexOf(key) == 0) {
               dev.log('there is no more older chat data');
               return false;
             }
             break;
           }
-        } else {
-          if (keys.indexOf(key) == 0) {
-            dev.log('there is no more older chat data');
-            return false;
-          }
-          break;
         }
+      } else {
+        dev.log('there is no ${userId}_chatLog_');
+        return false;
       }
     } else {
-      dev.log('there is no chatLog_');
-      return false;
+      dev.log('there is no firebase uid');
     }
 
     notifyListeners();
