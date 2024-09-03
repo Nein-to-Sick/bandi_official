@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/model/letter.dart';
+import 'package:bandi_official/utils/time_utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -99,7 +100,7 @@ class MailController with ChangeNotifier {
   late Letter newLetter = Letter(
     title: 'yyyy년 m월 편지',
     content: 'test' * 100,
-    date: Timestamp.now(),
+    date: timestampToLocal(Timestamp.now()),
     letterId: 'letterId',
   );
 
