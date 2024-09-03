@@ -1,12 +1,10 @@
 import 'package:bandi_official/components/button/primary_button.dart';
-import 'package:bandi_official/components/button/reaction_button.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/model/letter.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 
 class DetailView extends StatelessWidget {
   final Object item;
@@ -30,7 +28,7 @@ class DetailView extends StatelessWidget {
       title = diary.title;
       DateTime dateTime =
           DateFormat('yyyy-MM-dd').parse(diary.otherUserLikedAt);
-      date = DateFormat('yyyy년 MM월 dd일').format(dateTime);
+      date = '추가한 날짜: ${DateFormat('yyyy년 MM월 dd일').format(dateTime)}';
       content = diary.content;
     } else {
       title = 'title';

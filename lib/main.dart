@@ -1,3 +1,4 @@
+import 'package:bandi_official/controller/alarm_controller.dart';
 import 'package:bandi_official/controller/diary_ai_analysis_controller.dart';
 import 'package:bandi_official/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
@@ -41,33 +42,36 @@ class MainApp extends StatelessWidget {
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: CustomThemeMode.themeMode,
       builder: (context, mode, child) {
-        return MaterialApp(
-          debugShowCheckedModeBanner: true,
-          darkTheme: CustomThemeData.dark,
-          theme: CustomThemeData.light,
-          themeMode: CustomThemeMode.themeMode.value,
-          home: MultiProvider(
-            providers: [
-              ChangeNotifierProvider(
-                create: (context) => NavigationToggleProvider(),
-              ),
-              ChangeNotifierProvider(
-                create: (context) => DiaryAIAnalysisController(),
-              ),
-              ChangeNotifierProvider(
-                create: (context) => DiaryAiChatController(),
-              ),
-              ChangeNotifierProvider(
-                create: (context) => HomeToWrite(),
-              ),
-              ChangeNotifierProvider(
-                create: (context) => UserInfoValueModel(),
-              ),
-              ChangeNotifierProvider(
-                create: (context) => MailController(),
-              ),
-            ],
-            child: const Navigation(),
+        return MultiProvider(
+          providers: [
+            ChangeNotifierProvider(
+              create: (context) => NavigationToggleProvider(),
+            ),
+            ChangeNotifierProvider(
+              create: (context) => DiaryAIAnalysisController(),
+            ),
+            ChangeNotifierProvider(
+              create: (context) => DiaryAiChatController(),
+            ),
+            ChangeNotifierProvider(
+              create: (context) => HomeToWrite(),
+            ),
+            ChangeNotifierProvider(
+              create: (context) => UserInfoValueModel(),
+            ),
+            ChangeNotifierProvider(
+              create: (context) => MailController(),
+            ),
+            ChangeNotifierProvider(
+              create: (context) => AlarmController(),
+            ),
+          ],
+          child: MaterialApp(
+            debugShowCheckedModeBanner: true,
+            darkTheme: CustomThemeData.dark,
+            theme: CustomThemeData.light,
+            themeMode: CustomThemeMode.themeMode.value,
+            home: const Navigation(),
           ),
         );
       },

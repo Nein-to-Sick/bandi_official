@@ -1,3 +1,4 @@
+import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../components/appbar/appbar.dart';
@@ -14,12 +15,11 @@ class ListPage extends StatefulWidget {
 }
 
 class _ListPageState extends State<ListPage> {
-
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        backgroundColor: Colors.transparent,
+        backgroundColor: BandiColor.transparent(context),
         // custom appbar 일단 임시로 leading icon 변경
         appBar: CustomAppBar(
           title: '나의 일기',
@@ -36,8 +36,8 @@ class _ListPageState extends State<ListPage> {
           isVisibleTrailingButton: true,
         ),
         body: Padding(
-          padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).size.height * 0.1),
+          padding:
+              EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
           child: DiaryList(selectedDate: _selectedDate),
         ),
       ),
@@ -58,7 +58,8 @@ class _ListPageState extends State<ListPage> {
             onDateSelected: (date) {
               setState(() {
                 _selectedDate = date;
-                Navigator.pop(context); // Close the bottom sheet when a date is selected
+                Navigator.pop(
+                    context); // Close the bottom sheet when a date is selected
               });
             },
           ),

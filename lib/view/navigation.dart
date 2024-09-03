@@ -1,6 +1,8 @@
 import 'package:assets_audio_player/assets_audio_player.dart';
+import 'package:bandi_official/controller/alarm_controller.dart';
 import 'package:bandi_official/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
+import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/home/home_view.dart';
 import 'package:bandi_official/view/list/list_view.dart';
 import 'package:bandi_official/view/login/login_view.dart';
@@ -61,6 +63,7 @@ class _NavigationState extends State<Navigation> {
     final DiaryAiChatController diaryAiChatController =
         context.watch<DiaryAiChatController>();
     final MailController mailController = context.watch<MailController>();
+    final AlarmController alarmController = context.watch<AlarmController>();
 
     return Container(
       decoration: const BoxDecoration(
@@ -71,7 +74,7 @@ class _NavigationState extends State<Navigation> {
         ),
       ),
       child: Scaffold(
-        backgroundColor: Colors.transparent,
+        backgroundColor: BandiColor.transparent(context),
         body: Stack(
           children: [
             const FireFly(),
@@ -86,9 +89,14 @@ class _NavigationState extends State<Navigation> {
                         : navigationToggleProvider.selectedIndex == 1
                             ? const ListPage()
                             : navigationToggleProvider.selectedIndex == 2
-                                ? (!mailController.isDetailViewShowing)
-                                    ? const MailView()
-                                    : const SizedBox.shrink()
+                                ? AnimatedOpacity(
+                                    opacity:
+                                        (!mailController.isDetailViewShowing)
+                                            ? 1.0
+                                            : 0.0,
+                                    duration: const Duration(milliseconds: 300),
+                                    child: const MailView(),
+                                  )
                                 : const UserView(),
             if (navigationToggleProvider.selectedIndex >= 0)
               Padding(
@@ -96,13 +104,14 @@ class _NavigationState extends State<Navigation> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    (!writeProvider.write &&
+                    ((!writeProvider.write &&
                                 !diaryAiChatController.isChatOpen &&
-                                !mailController.isDetailViewShowing) &&
+                                !mailController.isDetailViewShowing &&
+                                !alarmController.isAlarmOpen) &&
                             !(writeProvider.otherDiaryOpen == true &&
-                                writeProvider.step == 1)
+                                writeProvider.step == 1))
                         ? navigationBar(context)
-                        : Container()
+                        : const SizedBox.shrink()
                   ],
                 ),
               ),

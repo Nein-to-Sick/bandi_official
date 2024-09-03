@@ -1,8 +1,10 @@
+import 'package:bandi_official/controller/alarm_controller.dart';
 import 'package:bandi_official/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/controller/home_to_write.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/test_view.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
+import 'package:bandi_official/view/alarm/alarm_view.dart';
 import 'package:bandi_official/view/diary_ai_chat/diary_ai_chat_view.dart';
 import 'package:bandi_official/view/mail/detail_view.dart';
 import 'package:flutter/material.dart';
@@ -27,6 +29,7 @@ class _HomeTopBarState extends State<HomeTopBar> {
     final DiaryAiChatController diaryAiChatController =
         context.watch<DiaryAiChatController>();
     final MailController mailController = context.watch<MailController>();
+    final AlarmController alarmController = context.watch<AlarmController>();
 
     return Stack(
       children: [
@@ -52,10 +55,18 @@ class _HomeTopBarState extends State<HomeTopBar> {
           duration: const Duration(milliseconds: 300),
           child: const SizedBox.shrink(),
         ),
+        // alarm page view open
+        AnimatedOpacity(
+            opacity: (alarmController.isAlarmOpen) ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 300),
+            child: (alarmController.isAlarmOpen)
+                ? const AlarmView()
+                : const SizedBox.shrink()),
         // home
         (!writeProvider.write &&
                 !diaryAiChatController.isChatOpen &&
-                !mailController.isDetailViewShowing)
+                !mailController.isDetailViewShowing &&
+                !alarmController.isAlarmOpen)
             ? SafeArea(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -106,9 +117,14 @@ class _HomeTopBarState extends State<HomeTopBar> {
                               const SizedBox(
                                 width: 20,
                               ),
-                              PhosphorIcon(
-                                PhosphorIcons.bell(PhosphorIconsStyle.fill),
-                                color: BandiColor.neutralColor100(context),
+                              IconButton(
+                                icon: PhosphorIcon(
+                                  PhosphorIcons.bell(PhosphorIconsStyle.fill),
+                                  color: BandiColor.neutralColor100(context),
+                                ),
+                                onPressed: () {
+                                  alarmController.toggleAlarmOpen(true);
+                                },
                               ),
                             ],
                           ),

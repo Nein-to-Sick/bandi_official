@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:bandi_official/controller/diary_ai_analysis_controller.dart';
 import 'package:bandi_official/model/diary.dart';
+import 'package:bandi_official/utils/time_utils.dart';
 import 'package:bandi_official/model/keyword.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -28,14 +29,14 @@ class HomeToWrite with ChangeNotifier {
     title: 'title',
     content: 'content',
     emotion: ['emotion'],
-    createdAt: Timestamp.now(),
-    updatedAt: Timestamp.now(),
+    createdAt: timestampToLocal(Timestamp.now()),
+    updatedAt: timestampToLocal(Timestamp.now()),
     reaction: [0, 0, 0],
     diaryId: 'diaryId',
   );
 
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
-  final userId = FirebaseAuth.instance.currentUser!.uid;
+  String? get userId => FirebaseAuth.instance.currentUser!.uid;
 
   //--------------step 1--------------------------------------------------------
 
@@ -67,13 +68,15 @@ class HomeToWrite with ChangeNotifier {
   Future<void> aiAndSaveDairy(BuildContext context) async {
     await aiDiary(context);
     await saveDiary();
-    if(diaryModel.emotion.length >= 2) { //키워드가 2개 이상 있을 경우
+    if (diaryModel.emotion.length >= 2) {
+      //키워드가 2개 이상 있을 경우
       //분류하기
       Emotion emotion = classifyEmotion(diaryModel.emotion);
-      if(emotion != Emotion.unknown) {
-        print(emotion);
+      if (emotion != Emotion.unknown) {
+        dev.log(emotion.toString());
         String emotionString = emotion.toString().split('.').last;
-        String returnDiaryId = await scanAndCompareEmotionTimestamps(emotionString, diaryModel.diaryId);
+        String returnDiaryId = await scanAndCompareEmotionTimestamps(
+            emotionString, diaryModel.diaryId);
         sendOtherDiary(returnDiaryId);
       }
     }
@@ -127,7 +130,7 @@ class HomeToWrite with ChangeNotifier {
         'cheerText': diaryModel.cheerText
       };
 
-      diaryModel.userId = userId;
+      diaryModel.userId = userId!;
       diaryModel.diaryId = newDiaryId;
       notifyListeners();
 
@@ -167,7 +170,8 @@ class HomeToWrite with ChangeNotifier {
         // 카테고리 리스트와 일치하는지 확인
         if (categories.contains(e)) {
           // 일치하면 해당 감정의 카운트를 증가
-          sixEmotionsCounts[emotionKey] = (sixEmotionsCounts[emotionKey] ?? 0) + 1;
+          sixEmotionsCounts[emotionKey] =
+              (sixEmotionsCounts[emotionKey] ?? 0) + 1;
         }
       }
     }
@@ -182,7 +186,8 @@ class HomeToWrite with ChangeNotifier {
     return maxKey;
   }
 
-  Future<String> scanAndCompareEmotionTimestamps(String emotion, String diaryId) async {
+  Future<String> scanAndCompareEmotionTimestamps(
+      String emotion, String diaryId) async {
     // Firestore 인스턴스 생성
     FirebaseFirestore firestore = FirebaseFirestore.instance;
 
@@ -194,10 +199,11 @@ class HomeToWrite with ChangeNotifier {
           .get();
 
       if (documentSnapshot.exists) {
-        Map<String, dynamic>? data = documentSnapshot.data() as Map<String, dynamic>?;
+        Map<String, dynamic>? data =
+            documentSnapshot.data() as Map<String, dynamic>?;
 
         if (data != null) {
-          print('Document ID: ${documentSnapshot.id}');
+          dev.log('Document ID: ${documentSnapshot.id}');
 
           DateTime now = DateTime.now();
           bool updated = false;
@@ -206,7 +212,8 @@ class HomeToWrite with ChangeNotifier {
             String timeFieldKey = '$emotion${i}_time';
             String idFieldKey = '$emotion${i}_id';
 
-            if (data.containsKey(timeFieldKey) && data[timeFieldKey] is Timestamp) {
+            if (data.containsKey(timeFieldKey) &&
+                data[timeFieldKey] is Timestamp) {
               Timestamp timestamp = data[timeFieldKey];
               DateTime fieldTime = timestamp.toDate();
 
@@ -215,7 +222,7 @@ class HomeToWrite with ChangeNotifier {
                 String id = data[idFieldKey];
                 // 업데이트할 데이터
                 Map<String, dynamic> updates = {
-                  timeFieldKey: Timestamp.now(),
+                  timeFieldKey: timestampToLocal(Timestamp.now()),
                   idFieldKey: diaryId,
                 };
 
@@ -237,15 +244,15 @@ class HomeToWrite with ChangeNotifier {
             return "null";
           }
         } else {
-          print('No data found for document with ID: ${documentSnapshot.id}');
+          dev.log('No data found for document with ID: ${documentSnapshot.id}');
           return "null";
         }
       } else {
-        print('No document found with ID: $emotion');
+        dev.log('No document found with ID: $emotion');
         return "null";
       }
     } catch (e) {
-      print('Error scanning and updating document: $e');
+      dev.log('Error scanning and updating document: $e');
       return "null";
     }
   }
@@ -255,8 +262,8 @@ class HomeToWrite with ChangeNotifier {
     title: 'title',
     content: 'content',
     emotion: ['emotion'],
-    createdAt: Timestamp.now(),
-    updatedAt: Timestamp.now(),
+    createdAt: timestampToLocal(Timestamp.now()),
+    updatedAt: timestampToLocal(Timestamp.now()),
     reaction: [0, 0, 0],
     diaryId: 'diaryId',
   );
@@ -274,7 +281,7 @@ class HomeToWrite with ChangeNotifier {
       otherDiaryOpen = true;
       notifyListeners();
     } else {
-      print('Diary with ID $diaryId does not exist.');
+      dev.log('Diary with ID $diaryId does not exist.');
     }
   }
 
@@ -285,8 +292,8 @@ class HomeToWrite with ChangeNotifier {
       title: 'title',
       content: 'content',
       emotion: ['emotion'],
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now(),
+      createdAt: timestampToLocal(Timestamp.now()),
+      updatedAt: timestampToLocal(Timestamp.now()),
       reaction: [0, 0, 0],
       diaryId: 'diaryId',
     );
@@ -318,7 +325,9 @@ class HomeToWrite with ChangeNotifier {
   Future<void> modifyDatabaseDiaryValue(
       String titleText, String contentText, String diaryId) async {
     diaryModel.update(
-        title: titleText, content: contentText, updatedAt: Timestamp.now());
+        title: titleText,
+        content: contentText,
+        updatedAt: timestampToLocal(Timestamp.now()));
     try {
       final diaryData = {
         'title': diaryModel.title,

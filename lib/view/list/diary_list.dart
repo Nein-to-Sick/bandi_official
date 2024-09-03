@@ -19,7 +19,7 @@ class DiaryList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userId = FirebaseAuth.instance.currentUser?.uid; // 예시 사용자 ID, 실제로는 사용자 인증을 통해 가져와야 함
+    final userId = FirebaseAuth.instance.currentUser!.uid;
     final writeProvider = Provider.of<HomeToWrite>(context);
     final navigationToggleProvider =
         Provider.of<NavigationToggleProvider>(context);
@@ -125,7 +125,7 @@ class DiaryList extends StatelessWidget {
                     writeProvider.toggleWrite();
                   },
                   child: Container(
-                    color: Colors.transparent,
+                    color: BandiColor.transparent(context),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

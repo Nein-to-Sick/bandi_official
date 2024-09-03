@@ -59,6 +59,23 @@ class AuthService {
         "socialLoginProvider": "google",
         "updatedAt": FieldValue.serverTimestamp(),
         "userId": userId,
+        "newLetterAvailable": false,
+      });
+
+      // 하위 컬렉션 생성: letters
+      final lettersCollectionRef = docRef.collection('letters');
+
+      // 하위 컬렉션: letters에 대표 문서 추가
+      await lettersCollectionRef.doc('0000_docSummary').set({
+        // 빈 데이터 또는 초기 데이터
+      });
+
+      // 하위 컬렉션 생성: otherDiary
+      final otherDiaryCollectionRef = docRef.collection('otherDiary');
+
+      // 하위 컬렉션: otherDiary에 빈 문서 추가
+      await otherDiaryCollectionRef.doc('0000_docSummary').set({
+        // 빈 데이터 또는 초기 데이터
       });
 
       // 온보딩 페이지로 이동

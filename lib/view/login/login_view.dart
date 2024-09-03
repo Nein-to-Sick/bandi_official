@@ -21,7 +21,7 @@ class _LoginViewState extends State<LoginView> {
         Provider.of<NavigationToggleProvider>(context);
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: BandiColor.transparent(context),
       body: SafeArea(
           child: Center(
         child: Column(
@@ -69,8 +69,9 @@ class _LoginViewState extends State<LoginView> {
                           style: ButtonStyle(
                               backgroundColor: WidgetStateProperty.all(
                                   BandiColor.neutralColor80(context)),
-                              shadowColor:
-                                  WidgetStateProperty.all(Colors.transparent),
+                              shadowColor: WidgetStateProperty.all(
+                                BandiColor.transparent(context),
+                              ),
                               shape: WidgetStateProperty.all<
                                       RoundedRectangleBorder>(
                                   RoundedRectangleBorder(
@@ -123,8 +124,9 @@ class _LoginViewState extends State<LoginView> {
                           style: ButtonStyle(
                               backgroundColor: WidgetStateProperty.all(
                                   BandiColor.foundationColor100(context)),
-                              shadowColor:
-                                  WidgetStateProperty.all(Colors.transparent),
+                              shadowColor: WidgetStateProperty.all(
+                                BandiColor.transparent(context),
+                              ),
                               shape: WidgetStateProperty.all<
                                       RoundedRectangleBorder>(
                                   RoundedRectangleBorder(

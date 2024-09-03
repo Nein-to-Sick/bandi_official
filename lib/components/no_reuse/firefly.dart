@@ -32,17 +32,17 @@ class FireFlyState extends State<FireFly> with TickerProviderStateMixin {
   AnimationController? _spreadAnimationController;
   Animation<double>? _spreadAnimation;
 
-  late int? greenFieldValue;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  String? userId = FirebaseAuth.instance.currentUser?.uid;
-  late Stream<DocumentSnapshot> _firestoreDocumentStream;
+  // late int? greenFieldValue;
+  // final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  // String? userId = FirebaseAuth.instance.currentUser?.uid;
+  // late Stream<DocumentSnapshot> _firestoreDocumentStream;
 
   @override
   void initState() {
     super.initState();
     fireFlyCount = 20;
-    _firestoreDocumentStream =
-        _firestore.collection('users').doc(userId).snapshots();
+    // _firestoreDocumentStream =
+    //     _firestore.collection('users').doc(userId).snapshots();
     for (int i = 0; i < fireFlyCount; i++) {
       int randomSeconds = Random().nextInt(21) + 30;
       _animationDurations.add(Duration(seconds: randomSeconds));
@@ -121,23 +121,7 @@ class FireFlyState extends State<FireFly> with TickerProviderStateMixin {
       plusOrMinus.add(Random().nextInt(2) * 2 - 1);
     }
 
-    return StreamBuilder<DocumentSnapshot>(
-        stream: _firestoreDocumentStream,
-        builder:
-            (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-          if (snapshot.connectionState == ConnectionState.active) {
-            // get green value from Firestore document
-            try {
-              greenFieldValue = snapshot.data?.get('green') ?? 0;
-            } catch (e) {
-              greenFieldValue = 0;
-            }
-            if (greenFieldValue == 1) {
-              Future.delayed(const Duration(seconds: 20), () async {
-                await snapshot.data!.reference.update({'green': 0});
-              });
-            }
-            return SafeArea(
+    return SafeArea(
               child: Stack(
                 children: [
                   for (int i = 0; i < fireFlyCount; i++)
@@ -157,13 +141,14 @@ class FireFlyState extends State<FireFly> with TickerProviderStateMixin {
                             decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(10),
                                 boxShadow: [
-                                  greenFieldValue == 0
-                                      ? BoxShadow(
-                                      spreadRadius: 1,
-                                      color: fireflyColor,
-                                      blurRadius: 5, // 20
-                                      blurStyle: BlurStyle.normal)
-                                      : BoxShadow(
+                                  // greenFieldValue == 0
+                                  //     ? BoxShadow(
+                                  //     spreadRadius: 1,
+                                  //     color: fireflyColor,
+                                  //     blurRadius: 5, // 20
+                                  //     blurStyle: BlurStyle.normal)
+                                  //     :
+                                   BoxShadow(
                                       spreadRadius: _spreadAnimation!.value,
                                       color: fireflyColor,
                                       blurRadius: 30,
@@ -182,10 +167,6 @@ class FireFlyState extends State<FireFly> with TickerProviderStateMixin {
                 ],
               ),
             );
-          } else {
-            return Container();
-          }
-        });
   }
 
   @override
