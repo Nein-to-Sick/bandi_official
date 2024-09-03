@@ -2,7 +2,6 @@ import 'dart:ui';
 
 import 'package:bandi_official/controller/home_to_write.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
-import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -154,16 +153,6 @@ class _OtherDiaryState extends State<OtherDiary> {
                                       reaction2,
                                       reaction3);
                                 }
-
-                                mailController.saveLikedDiaryToLocal(
-                                    writeProvider.otherDiaryModel,
-                                    reactionValue);
-                                saveReactionInDB(
-                                    writeProvider.otherDiaryModel.diaryId,
-                                    writeProvider.otherDiaryModel.reaction,
-                                    reaction1,
-                                    reaction2,
-                                    reaction3);
                                 writeProvider.offDiaryOpen();
                               },
                               child: PhosphorIcon(
