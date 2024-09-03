@@ -73,7 +73,7 @@ class HomeToWrite with ChangeNotifier {
       //분류하기
       Emotion emotion = classifyEmotion(diaryModel.emotion);
       if (emotion != Emotion.unknown) {
-        print(emotion);
+        dev.log(emotion.toString());
         String emotionString = emotion.toString().split('.').last;
         String returnDiaryId = await scanAndCompareEmotionTimestamps(
             emotionString, diaryModel.diaryId);
@@ -203,7 +203,7 @@ class HomeToWrite with ChangeNotifier {
             documentSnapshot.data() as Map<String, dynamic>?;
 
         if (data != null) {
-          print('Document ID: ${documentSnapshot.id}');
+          dev.log('Document ID: ${documentSnapshot.id}');
 
           DateTime now = DateTime.now();
           bool updated = false;
@@ -222,7 +222,7 @@ class HomeToWrite with ChangeNotifier {
                 String id = data[idFieldKey];
                 // 업데이트할 데이터
                 Map<String, dynamic> updates = {
-                  timeFieldKey: Timestamp.now(),
+                  timeFieldKey: timestampToLocal(Timestamp.now()),
                   idFieldKey: diaryId,
                 };
 
@@ -244,15 +244,15 @@ class HomeToWrite with ChangeNotifier {
             return "null";
           }
         } else {
-          print('No data found for document with ID: ${documentSnapshot.id}');
+          dev.log('No data found for document with ID: ${documentSnapshot.id}');
           return "null";
         }
       } else {
-        print('No document found with ID: $emotion');
+        dev.log('No document found with ID: $emotion');
         return "null";
       }
     } catch (e) {
-      print('Error scanning and updating document: $e');
+      dev.log('Error scanning and updating document: $e');
       return "null";
     }
   }
@@ -262,8 +262,8 @@ class HomeToWrite with ChangeNotifier {
     title: 'title',
     content: 'content',
     emotion: ['emotion'],
-    createdAt: Timestamp.now(),
-    updatedAt: Timestamp.now(),
+    createdAt: timestampToLocal(Timestamp.now()),
+    updatedAt: timestampToLocal(Timestamp.now()),
     reaction: [0, 0, 0],
     diaryId: 'diaryId',
   );
@@ -281,7 +281,7 @@ class HomeToWrite with ChangeNotifier {
       otherDiaryOpen = true;
       notifyListeners();
     } else {
-      print('Diary with ID $diaryId does not exist.');
+      dev.log('Diary with ID $diaryId does not exist.');
     }
   }
 
@@ -292,8 +292,8 @@ class HomeToWrite with ChangeNotifier {
       title: 'title',
       content: 'content',
       emotion: ['emotion'],
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now(),
+      createdAt: timestampToLocal(Timestamp.now()),
+      updatedAt: timestampToLocal(Timestamp.now()),
       reaction: [0, 0, 0],
       diaryId: 'diaryId',
     );

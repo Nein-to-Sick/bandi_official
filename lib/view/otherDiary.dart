@@ -132,17 +132,6 @@ class _OtherDiaryState extends State<OtherDiary> {
                         children: [
                           GestureDetector(
                               onTap: () {
-                                Diary updatedDiary = Diary(
-                                  userId: writeProvider.userId!,
-                                  title: writeProvider.otherDiaryTitle,
-                                  content: writeProvider.otherDiaryContent,
-                                  emotion: writeProvider.otherDiaryEmotion,
-                                  createdAt: writeProvider.otherDiaryCreatedDay,
-                                  updatedAt: writeProvider.otherDiaryUpdatedDay,
-                                  reaction: writeProvider.otherDiaryReaction,
-                                  diaryId: writeProvider.otherDiaryId,
-                                );
-
                                 if (reaction1) {
                                   reactionValue = 0;
                                 } else if (reaction2) {
@@ -154,12 +143,13 @@ class _OtherDiaryState extends State<OtherDiary> {
                                 // 반응을 추가한 경우에만 기록
                                 if (reactionValue != -1) {
                                   mailController.saveLikedDiaryToLocal(
-                                      updatedDiary, reactionValue);
+                                      writeProvider.otherDiaryModel,
+                                      reactionValue);
 
                                   // TODO: 상대에게 알림 보내는 로직 추가
                                   saveReactionInDB(
-                                      writeProvider.otherDiaryId,
-                                      writeProvider.otherDiaryReaction,
+                                      writeProvider.otherDiaryModel.diaryId,
+                                      writeProvider.otherDiaryModel.reaction,
                                       reaction1,
                                       reaction2,
                                       reaction3);
