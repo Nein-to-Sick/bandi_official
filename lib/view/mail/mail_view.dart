@@ -23,21 +23,27 @@ class _MailViewState extends State<MailView>
   @override
   void initState() {
     super.initState();
-
     mailController = Provider.of<MailController>(context, listen: false);
+
+    // InitState of the ScrollControllers
     mailController!
         .initTabController(this, 3, mailController!.savedCurrentIndex);
+
+    // InitState of the TabController
+    mailController?.initScrollControllers();
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
+  void dispose() {
+    // Dispose of the ScrollControllers
+    mailController!.everyMailScrollController.dispose();
+    mailController!.letterScrollController.dispose();
+    mailController!.likedDiaryScrollController.dispose();
 
-    // BuildContext를 안전하게 사용하여 MailController에 접근
-    mailController = Provider.of<MailController>(context, listen: false);
+    // Dispose of the TabController
+    mailController!.tabController.dispose();
 
-    // mailController 초기화
-    mailController?.initScrollControllers();
+    super.dispose();
   }
 
   @override

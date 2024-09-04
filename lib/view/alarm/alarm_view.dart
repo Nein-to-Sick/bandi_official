@@ -48,7 +48,9 @@ class AlarmView extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
                   child: GestureDetector(
-                    onTap: () {},
+                    onTap: () {
+                      // 편지, 공감 페이지 이동
+                    },
                     child: Row(
                       mainAxisSize: MainAxisSize.max,
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,

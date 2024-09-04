@@ -9,7 +9,6 @@ import 'package:bandi_official/view/login/login_view.dart';
 import 'package:bandi_official/view/mail/mail_view.dart';
 import 'package:bandi_official/view/otherDiary.dart';
 import 'package:bandi_official/view/user/user_view.dart';
-import 'package:bandi_official/view/login/login_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';

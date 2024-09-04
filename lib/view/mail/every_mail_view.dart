@@ -18,38 +18,55 @@ class EveryMailPage extends StatefulWidget {
 }
 
 class _EveryMailPageState extends State<EveryMailPage> {
-  bool loadMoreLetter = true;
-  bool loadMoreLikedDiary = true;
+  late MailController mailController;
 
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      MailController mailController =
-          Provider.of<MailController>(context, listen: false);
+      mailController = Provider.of<MailController>(context, listen: false);
 
-      mailController.loadDataAndSetting();
-      mailController.restoreEveryMailScrollPosition();
+      mailController.loadDataAndSetting().then((value) {
+        mailController.restoreEveryMailScrollPosition();
 
-      // when screen reached nearly top of the list load more past data
-      mailController.everyMailScrollController.addListener(() async {
-        final position = mailController.everyMailScrollController.position;
-        if ((loadMoreLetter || loadMoreLikedDiary) &&
-            position.atEdge &&
-            position.pixels != 0) {
-          if (position.userScrollDirection == ScrollDirection.reverse &&
-              position.maxScrollExtent - position.pixels <= 300) {
-            if (loadMoreLetter) {
-              loadMoreLetter = await mailController.loadMoreLetter();
-            }
-            if (loadMoreLikedDiary) {
-              loadMoreLikedDiary = await mailController.loadMoreLikedDiary();
-            }
-          }
+        if (!mailController.isEveryMailListenerAdded) {
+          // when screen reached nearly bottom of the list load more past data
+          WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+            mailController.everyMailScrollController
+                .addListener(_scrollListener);
+            mailController.toggleIsEveryMailListenerAdded(true);
+          });
         }
       });
     });
 
     super.initState();
+  }
+
+  void _scrollListener() async {
+    final position = mailController.everyMailScrollController.position;
+    if ((mailController.loadMoreLetterData ||
+            mailController.loadMoreLikedDiaryData) &&
+        position.atEdge &&
+        position.pixels != 0) {
+      if (position.userScrollDirection == ScrollDirection.reverse &&
+          position.maxScrollExtent - position.pixels <= 300) {
+        if (mailController.loadMoreLetterData) {
+          mailController
+              .toggleLoadMoreLetterData(await mailController.loadMoreLetter());
+        }
+        if (mailController.loadMoreLikedDiaryData) {
+          mailController.toggleLoadMoreLikedDiaryData(
+              await mailController.loadMoreLikedDiary());
+        }
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    mailController.everyMailScrollController.removeListener(_scrollListener);
+    mailController.toggleIsEveryMailListenerAdded(false);
+    super.dispose();
   }
 
   @override
