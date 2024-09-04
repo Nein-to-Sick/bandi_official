@@ -22,7 +22,7 @@
 const MAX_DIARY_COUNT = 5;
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
-const {OpenAI} = require("openai");
+const { OpenAI } = require("openai");
 const moment = require("moment-timezone"); // moment-timezone을 사용해야 합니다.
 const timeZone = "Asia/Seoul"; // 한국 시간대 설정
 
@@ -105,14 +105,14 @@ exports.monthlyDiaryReview = functions.region("asia-northeast3").pubsub.schedule
             // TODO: 추후 모델 학습 or 프롬프트 개선 필요
             const systemMessage = {
                 content:
-                    "You are a helpful assistant. Please write an encouraging and empathetic letter in Korean based on the diary entries and the emotions expressed in them.",
-
+                    `You are a kind assistant. Write an encouraging letter in Korean, addressing the user by their name (${userDoc.nickname} or '친구'), based on their diary entries and emotions. Conclude the letter without a signature or sender's name.`
+                ,
                 role: "system",
             };
 
             const userDiarySet = {
                 content:
-                    `Here are some recent diary entries with their emotions:\n\n${diaryText}`,
+                    `Here are some recent diary entries with their emotions:\n${diaryText}`,
 
                 role: "user",
             };
@@ -254,10 +254,10 @@ exports.deleteUserDataAndDoc = functions.https.onCall(async (data, context) => {
         await userRef.delete();
 
         console.log(`User document and sub-collections for ${userId} deleted.`);
-        return {success: true};
+        return { success: true };
     } catch (error) {
         console.error(`Error deleting user data: ${userId}`, error);
-        return {success: false, error: error.message};
+        return { success: false, error: error.message };
     }
 });
 
@@ -269,9 +269,9 @@ exports.deleteAuthUser = functions.https.onCall(async (data, context) => {
     try {
         await admin.auth().deleteUser(userId);
         console.log(`Successfully deleted user: ${userId}`);
-        return {success: true};
+        return { success: true };
     } catch (error) {
         console.error(`Error deleting user: ${userId}`, error);
-        return {success: false, error: error.message};
+        return { success: false, error: error.message };
     }
 });
