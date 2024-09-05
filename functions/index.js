@@ -22,7 +22,7 @@
 const MAX_DIARY_COUNT = 5;
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
-const { OpenAI } = require("openai");
+const {OpenAI} = require("openai");
 const moment = require("moment-timezone"); // moment-timezone을 사용해야 합니다.
 const timeZone = "Asia/Seoul"; // 한국 시간대 설정
 
@@ -46,8 +46,8 @@ exports.monthlyDiaryReview = functions.region("asia-northeast3").pubsub.schedule
         const lastDayOfMonth = today.clone().endOf("month"); // 달의 마지막 날을 가져오기
 
         // 오늘과 마지막 날을 읽기 쉬운 형식으로 변환
-        const todayFormatted = today.format("yyyy-MM-dd HH:mm:ssZ"); // moment의 format 사용
-        const lastDayFormatted = lastDayOfMonth.format("yyyy-MM-dd HH:mm:ssZ"); // moment의 format 사용
+        const todayFormatted = today.format("YYYY-MM-DD HH:mm:ssZ");
+        const lastDayFormatted = lastDayOfMonth.format("YYYY-MM-DD HH:mm:ssZ");
 
         // 오늘이 달의 마지막 날인지 확인
         if (today.date() !== lastDayOfMonth.date()) {
@@ -105,8 +105,7 @@ exports.monthlyDiaryReview = functions.region("asia-northeast3").pubsub.schedule
             // TODO: 추후 모델 학습 or 프롬프트 개선 필요
             const systemMessage = {
                 content:
-                    `You are a kind assistant. Write an encouraging letter in Korean, addressing the user by their name (${userDoc.nickname} or '친구'), based on their diary entries and emotions. Conclude the letter without a signature or sender's name.`
-                ,
+                    `You are a kind assistant. Write an encouraging letter in Korean, addressing the user by their name (${userDoc.nickname} or '친구'), based on their diary entries and emotions. Conclude the letter without a signature or sender's name.`,
                 role: "system",
             };
 
@@ -254,10 +253,10 @@ exports.deleteUserDataAndDoc = functions.https.onCall(async (data, context) => {
         await userRef.delete();
 
         console.log(`User document and sub-collections for ${userId} deleted.`);
-        return { success: true };
+        return {success: true};
     } catch (error) {
         console.error(`Error deleting user data: ${userId}`, error);
-        return { success: false, error: error.message };
+        return {success: false, error: error.message};
     }
 });
 
@@ -269,9 +268,9 @@ exports.deleteAuthUser = functions.https.onCall(async (data, context) => {
     try {
         await admin.auth().deleteUser(userId);
         console.log(`Successfully deleted user: ${userId}`);
-        return { success: true };
+        return {success: true};
     } catch (error) {
         console.error(`Error deleting user: ${userId}`, error);
-        return { success: false, error: error.message };
+        return {success: false, error: error.message};
     }
 });
