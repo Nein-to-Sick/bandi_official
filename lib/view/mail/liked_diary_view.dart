@@ -107,8 +107,10 @@ class _LikedDiaryPageState extends State<LikedDiaryPage> {
 
   @override
   void dispose() {
-    mailController.likedDiaryScrollController.removeListener(_scrollListener);
-    mailController.toggleIsLikedDiaryListenerAdded(false);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      mailController.likedDiaryScrollController.removeListener(_scrollListener);
+      mailController.toggleIsLikedDiaryListenerAdded(false);
+    });
     super.dispose();
   }
 

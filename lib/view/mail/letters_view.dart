@@ -54,8 +54,10 @@ class _MyLettersPageState extends State<MyLettersPage> {
 
   @override
   void dispose() {
-    mailController.letterScrollController.removeListener(_scrollListener);
-    mailController.toggleIsLettersListenerAdded(false);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      mailController.letterScrollController.removeListener(_scrollListener);
+      mailController.toggleIsLettersListenerAdded(false);
+    });
     super.dispose();
   }
 
