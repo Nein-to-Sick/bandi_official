@@ -64,5 +64,8 @@
 		</dict>
 	</array>
 	<!-- End of the Google Sign-in Section -->
+	<!-- FCM setting -->
+	<key>FirebaseMessagingAutoInitEnabled</key>
+	<false/>
 </dict>
 </plist>

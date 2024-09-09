@@ -4,6 +4,7 @@ import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/mail/every_mail_view.dart';
 import 'package:bandi_official/view/mail/letters_view.dart';
 import 'package:bandi_official/view/mail/liked_diary_view.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
@@ -57,7 +58,10 @@ class _MailViewState extends State<MailView>
           title: '보관함',
           trailingIcon: PhosphorIcons.flask(PhosphorIconsStyle.fill),
           onLeadingIconPressed: () {},
-          onTrailingIconPressed: () {
+          onTrailingIconPressed: () async {
+            // final fcmToken = await FirebaseMessaging.instance.getToken();
+            // dev.log(fcmToken.toString());
+
             // For test delete finction
             //mailController.deleteEveryMailDataFromLocal();
 
