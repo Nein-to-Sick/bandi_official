@@ -14,6 +14,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'controller/home_to_write.dart';
 import 'controller/navigation_toggle_provider.dart';
@@ -37,20 +38,15 @@ Future<void> main() async {
   // Initialize date formatting for the 'ko' locale
   await initializeDateFormatting('ko', null);
 
-  // Firebase messaging setting
-  final fcmToken = await FirebaseMessaging.instance.getToken();
+  // firebase notification setting
+  AlarmController alarmController = AlarmController();
+  alarmController.firebaseOnTokenRefresh();
+  alarmController.firebaseOnMessageListen();
+  alarmController.firebaseOnMesageOpenedListen();
+  alarmController.firebaseGetInitialListen();
 
-  FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) async {
-    dev.log('fcm token database update');
-    // Note: This callback is fired at each app startup and whenever a new token is generated.
-    String userId = FirebaseAuth.instance.currentUser!.uid;
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(userId)
-        .update({'fcmToken': fcmToken});
-  }).onError((err) {
-    // Error getting token.
-  });
+  // local notification setting
+  alarmController.localNotificationInitialization();
 
   runApp(const MainApp());
 }
