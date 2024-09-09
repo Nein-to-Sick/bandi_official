@@ -59,8 +59,8 @@ class _MailViewState extends State<MailView>
           trailingIcon: PhosphorIcons.flask(PhosphorIconsStyle.fill),
           onLeadingIconPressed: () {},
           onTrailingIconPressed: () async {
-            // final fcmToken = await FirebaseMessaging.instance.getToken();
-            // dev.log(fcmToken.toString());
+            final fcmToken = await FirebaseMessaging.instance.getToken();
+            dev.log(fcmToken.toString());
 
             // For test delete finction
             //mailController.deleteEveryMailDataFromLocal();
@@ -72,9 +72,9 @@ class _MailViewState extends State<MailView>
             // );
           },
           disableLeadingButton: false,
-          disableTrailingButton: true,
+          disableTrailingButton: false,
           isVisibleLeadingButton: false,
-          isVisibleTrailingButton: false,
+          isVisibleTrailingButton: true,
         ),
         body: Padding(
           padding: EdgeInsets.only(

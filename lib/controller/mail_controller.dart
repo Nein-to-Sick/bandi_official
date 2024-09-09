@@ -66,20 +66,28 @@ class MailController with ChangeNotifier {
   }
 
   void restoreEveryMailScrollPosition() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (_everyMailScrollController.hasClients) {
       _everyMailScrollController.jumpTo(everyMailScrollPosition);
-    });
+    } else {
+      dev.log('_everyMailScrollController has no clients');
+    }
   }
 
   void restoreLetterScrollPosition() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (_letterScrollController.hasClients) {
       _letterScrollController.jumpTo(letterScrollPosition);
-    });
+    } else {
+      dev.log('_letterScrollController has no clients');
+    }
   }
 
   void restoreLikedDiaryScrollPosition() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _likedDiaryScrollController.jumpTo(likedDiaryScrollPosition);
+      if (_likedDiaryScrollController.hasClients) {
+        _likedDiaryScrollController.jumpTo(likedDiaryScrollPosition);
+      } else {
+        dev.log('_likedDiaryScrollController has no clients');
+      }
     });
   }
 
