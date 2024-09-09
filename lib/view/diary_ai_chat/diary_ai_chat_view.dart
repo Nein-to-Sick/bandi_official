@@ -18,29 +18,47 @@ class DiaryAIChatPage extends StatefulWidget {
 }
 
 class _DiaryAIChatPageState extends State<DiaryAIChatPage> {
-  bool loadMoreData = true;
+  late DiaryAiChatController diaryAiChatController;
 
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      DiaryAiChatController diaryAiChatController =
+      diaryAiChatController =
           Provider.of<DiaryAiChatController>(context, listen: false);
 
-      diaryAiChatController.loadDataAndSetting();
-
-      // when screen reached nearly top of the list load more past data
-      diaryAiChatController.chatScrollController.addListener(() async {
-        final position = diaryAiChatController.chatScrollController.position;
-        if (loadMoreData && position.atEdge && position.pixels != 0) {
-          if (position.userScrollDirection == ScrollDirection.reverse &&
-              position.maxScrollExtent - position.pixels <= 500) {
-            loadMoreData = await diaryAiChatController.loadMoreChatLogs();
-          }
+      diaryAiChatController.loadDataAndSetting().then((value) {
+        if (!diaryAiChatController.isListenerAdded) {
+          // when screen reached nearly top of the list load more past data
+          WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+            diaryAiChatController.chatScrollController
+                .addListener(_scrollListener);
+            diaryAiChatController.toggleIsListenerAdded(true);
+          });
         }
       });
     });
 
     super.initState();
+  }
+
+  void _scrollListener() async {
+    final position = diaryAiChatController.chatScrollController.position;
+    if (diaryAiChatController.loadMoreData &&
+        position.atEdge &&
+        position.pixels != 0) {
+      if (position.userScrollDirection == ScrollDirection.reverse &&
+          position.maxScrollExtent - position.pixels <= 500) {
+        diaryAiChatController
+            .toggleLoadMoreData(await diaryAiChatController.loadMoreChatLogs());
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    diaryAiChatController.chatScrollController.removeListener(_scrollListener);
+    diaryAiChatController.toggleIsListenerAdded(false);
+    super.dispose();
   }
 
   @override

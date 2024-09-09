@@ -16,30 +16,47 @@ class MyLettersPage extends StatefulWidget {
 }
 
 class _MyLettersPageState extends State<MyLettersPage> {
-  bool loadMoreData = true;
+  late MailController mailController;
 
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      MailController mailController =
-          Provider.of<MailController>(context, listen: false);
+      mailController = Provider.of<MailController>(context, listen: false);
 
-      mailController.loadDataAndSetting();
-      mailController.restoreLetterScrollPosition();
+      mailController.loadDataAndSetting().then((value) {
+        mailController.restoreLetterScrollPosition();
 
-      // when screen reached nearly top of the list load more past data
-      mailController.letterScrollController.addListener(() async {
-        final position = mailController.letterScrollController.position;
-        if (loadMoreData && position.atEdge && position.pixels != 0) {
-          if (position.userScrollDirection == ScrollDirection.reverse &&
-              position.maxScrollExtent - position.pixels <= 300) {
-            loadMoreData = await mailController.loadMoreLetter();
-          }
+        if (!mailController.isLettersListenerAdded) {
+          // when screen reached nearly bottom of the list load more past data
+          WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+            mailController.letterScrollController.addListener(_scrollListener);
+            mailController.toggleIsLettersListenerAdded(true);
+          });
         }
       });
     });
 
     super.initState();
+  }
+
+  void _scrollListener() async {
+    final position = mailController.letterScrollController.position;
+    if (mailController.loadMoreLetterData &&
+        position.atEdge &&
+        position.pixels != 0) {
+      if (position.userScrollDirection == ScrollDirection.reverse &&
+          position.maxScrollExtent - position.pixels <= 300) {
+        mailController
+            .toggleLoadMoreLetterData(await mailController.loadMoreLetter());
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    mailController.letterScrollController.removeListener(_scrollListener);
+    mailController.toggleIsLettersListenerAdded(false);
+    super.dispose();
   }
 
   @override

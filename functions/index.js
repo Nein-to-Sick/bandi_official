@@ -46,8 +46,8 @@ exports.monthlyDiaryReview = functions.region("asia-northeast3").pubsub.schedule
         const lastDayOfMonth = today.clone().endOf("month"); // 달의 마지막 날을 가져오기
 
         // 오늘과 마지막 날을 읽기 쉬운 형식으로 변환
-        const todayFormatted = today.format("yyyy-MM-dd HH:mm:ssZ"); // moment의 format 사용
-        const lastDayFormatted = lastDayOfMonth.format("yyyy-MM-dd HH:mm:ssZ"); // moment의 format 사용
+        const todayFormatted = today.format("YYYY-MM-DD HH:mm:ssZ");
+        const lastDayFormatted = lastDayOfMonth.format("YYYY-MM-DD HH:mm:ssZ");
 
         // 오늘이 달의 마지막 날인지 확인
         if (today.date() !== lastDayOfMonth.date()) {
@@ -105,14 +105,13 @@ exports.monthlyDiaryReview = functions.region("asia-northeast3").pubsub.schedule
             // TODO: 추후 모델 학습 or 프롬프트 개선 필요
             const systemMessage = {
                 content:
-                    "You are a helpful assistant. Please write an encouraging and empathetic letter in Korean based on the diary entries and the emotions expressed in them.",
-
+                    `You are a kind assistant. Write an encouraging letter in Korean, addressing the user by their name (${userDoc.nickname} or '친구'), based on their diary entries and emotions. Conclude the letter without a signature or sender's name.`,
                 role: "system",
             };
 
             const userDiarySet = {
                 content:
-                    `Here are some recent diary entries with their emotions:\n\n${diaryText}`,
+                    `Here are some recent diary entries with their emotions:\n${diaryText}`,
 
                 role: "user",
             };
