@@ -93,16 +93,25 @@ class MailController with ChangeNotifier {
   // while detail view is shown
   bool isDetailViewShowing = false;
 
-  // // for new letter model
-  // late Letter newLetter;
+  // Flag variable indicating whether more data needs to be loaded
+  bool loadMoreLetterData = true;
+  bool loadMoreLikedDiaryData = true;
 
-  // for new letter model
-  late Letter newLetter = Letter(
-    title: 'yyyy년 m월 편지',
-    content: 'test' * 100,
-    date: timestampToLocal(Timestamp.now()),
-    letterId: 'letterId',
-  );
+  // Flag variable to track whether the scroll listener has already been added
+  bool isEveryMailListenerAdded = false;
+  bool isLettersListenerAdded = false;
+  bool isLikedDiaryListenerAdded = false;
+
+  // // for new letter model
+  late Letter newLetter;
+
+  // // for new letter model
+  // late Letter newLetter = Letter(
+  //   title: 'yyyy년 m월 편지',
+  //   content: 'test' * 100,
+  //   date: timestampToLocal(Timestamp.now()),
+  //   letterId: 'letterId',
+  // );
 
   // mail view tab controller
   late TabController _tabController;
@@ -127,7 +136,7 @@ class MailController with ChangeNotifier {
   int get currentIndex => _tabController.index;
 
   // called on initState
-  void loadDataAndSetting() {
+  Future<void> loadDataAndSetting() async {
     if (!loadLikedDiaryDataOnce || !loadLetterDataOnce) {
       toggleLoading(true);
       if (!loadLikedDiaryDataOnce) {
@@ -158,6 +167,41 @@ class MailController with ChangeNotifier {
   // toggle the detail view value
   void toggleDetailView(bool value) {
     isDetailViewShowing = value;
+    notifyListeners();
+  }
+
+  // toggle the loadMoreLetterData value
+  void toggleLoadMoreLetterData(value) {
+    // dev.log('편지 데이터 로드 토글: $value');
+    loadMoreLetterData = value;
+    notifyListeners();
+  }
+
+  // toggle the loadMoreLikedDiaryData value
+  void toggleLoadMoreLikedDiaryData(value) {
+    // dev.log('공감 일기 데이터 로드 토글: $value');
+    loadMoreLikedDiaryData = value;
+    notifyListeners();
+  }
+
+  // toggle the isListenerAdded value
+  void toggleIsEveryMailListenerAdded(value) {
+    // dev.log('모든 메일 리스너 토글: $value');
+    isEveryMailListenerAdded = value;
+    notifyListeners();
+  }
+
+  // toggle the isListenerAdded value
+  void toggleIsLettersListenerAdded(value) {
+    // dev.log('편지 리스너 토글: $value');
+    isLettersListenerAdded = value;
+    notifyListeners();
+  }
+
+  // toggle the isListenerAdded value
+  void toggleIsLikedDiaryListenerAdded(value) {
+    // dev.log('공감 일기 메일리스너 토글: $value');
+    isLikedDiaryListenerAdded = value;
     notifyListeners();
   }
 
@@ -410,17 +454,16 @@ class MailController with ChangeNotifier {
                   'read older liked Diary from local for date ${key.split('_').skip(1).join('_')}');
 
               if (keys.indexOf(key) == 0) {
-                dev.log('there is no more older liked Diary data');
+                dev.log('[2] there is no more older liked Diary data');
                 return false;
               }
               break;
             }
           } else {
             if (keys.indexOf(key) == 0) {
-              dev.log('there is no more older liked Diary data');
+              dev.log('[1] there is no more older liked Diary data');
               return false;
             }
-            break;
           }
         }
       } else {
@@ -646,17 +689,16 @@ class MailController with ChangeNotifier {
                   'read older letter from local for date ${key.split('_').skip(1).join('_')}');
 
               if (keys.indexOf(key) == 0) {
-                dev.log('there is no more older letter data');
+                dev.log('[2] there is no more older letter data');
                 return false;
               }
               break;
             }
           } else {
             if (keys.indexOf(key) == 0) {
-              dev.log('there is no more older letter data');
+              dev.log('[1] there is no more older letter data');
               return false;
             }
-            break;
           }
         }
       } else {
