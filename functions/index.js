@@ -22,6 +22,7 @@
 const MAX_DIARY_COUNT = 5;
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
+require("dotenv").config();
 const {OpenAI} = require("openai");
 const moment = require("moment-timezone"); // moment-timezone을 사용해야 합니다.
 const timeZone = "Asia/Seoul"; // 한국 시간대 설정
@@ -31,7 +32,7 @@ const db = admin.firestore();
 
 // OpenAI API Configuration
 const openai = new OpenAI({
-    apiKey: functions.config().openai.key,
+    apiKey: process.env.OPENAI_API_KEY,
 });
 
 // 매월 마지막 날 실행되는 PubSub 트리거 설정
@@ -148,18 +149,44 @@ exports.monthlyDiaryReview = functions.region("asia-northeast3").pubsub.schedule
 
                 await db.runTransaction(async (transaction) => {
                     const letterId = lettersRef.doc().id;
+                    const letterTitle = `${today.toDate().getFullYear()}년 ${today.toDate().getMonth() + 1}월 편지`;
 
                     transaction.set(lettersRef.doc(letterId), {
                         content: letterContent,
                         date: admin.firestore.FieldValue.serverTimestamp(),
                         letterId: letterId,
-                        title: `${today.toDate().getFullYear()}년 ${today.toDate().getMonth() + 1}월 편지`,
+                        title: letterTitle,
                     });
 
                     // 새로운 편지 플래그 설정 (편지 생성됨 변수)
                     transaction.update(db.collection("users").doc(userDoc.id), {
                         newLetterAvailable: true,
                     });
+
+                    // 유저에게 FCM 토큰으로 알림 전송
+                    const fcmToken = userData.fcmToken;
+                    if (fcmToken) {
+                        const message = {
+                            notification: {
+                                title: `${letterTitle}가 도착했어요!`,
+                                body: "이번 달의 편지를 확인하세요.",
+                            },
+                            data: {
+                                screen: "letter_detail",
+                                letterId: letterId,
+                            },
+                            token: fcmToken,
+                        };
+
+                        try {
+                            await admin.messaging().send(message);
+                            console.log(`[Success] Notification sent to user ${userDoc.id}`);
+                        } catch (error) {
+                            console.error(`[Error] Failed to send notification to user ${userDoc.id}: ${error.message}`);
+                        }
+                    } else {
+                        console.log(`[Error] No FCM token found for user ${userDoc.id}, notification not sent.`);
+                    }
 
                     // // 각 편지의 id를 담은 대표 문서 생성 로직
                     // // Reference to the summary document
@@ -183,27 +210,6 @@ exports.monthlyDiaryReview = functions.region("asia-northeast3").pubsub.schedule
                 });
 
                 console.log(`[Success] Encouragement letter for user ${userDoc.id} created successfully.`);
-
-                // // 유저에게 FCM 토큰으로 알림 전송
-                // const fcmToken = userData.fcmToken;
-                // if (fcmToken) {
-                //     const message = {
-                //         notification: {
-                //             title: "새로운 편지가 도착했어요!",
-                //             body: "이번 달의 편지를 확인하세요.",
-                //         },
-                //         token: fcmToken,
-                //     };
-
-                //     try {
-                //         await admin.messaging().send(message);
-                //         console.log(`[Success] Notification sent to user ${userDoc.id}`);
-                //     } catch (error) {
-                //         console.error(`[Error] Failed to send notification to user ${userDoc.id}:`, error);
-                //     }
-                // } else {
-                //     console.log(`[Info] No FCM token found for user ${userDoc.id}, notification not sent.`);
-                // }
             } catch (error) {
                 if (error instanceof OpenAI.APIError) {
                     console.error(`[Error] Failed to create encouragement letter for user ${userDoc.id}:`, error.message);

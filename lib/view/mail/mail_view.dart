@@ -59,11 +59,8 @@ class _MailViewState extends State<MailView>
           trailingIcon: PhosphorIcons.flask(PhosphorIconsStyle.fill),
           onLeadingIconPressed: () {},
           onTrailingIconPressed: () async {
-            final fcmToken = await FirebaseMessaging.instance.getToken();
-            dev.log(fcmToken.toString());
-
             // For test delete finction
-            //mailController.deleteEveryMailDataFromLocal();
+            mailController.deleteEveryMailDataFromLocal();
 
             // For Firebase Function deploy test
             // Navigator.push(

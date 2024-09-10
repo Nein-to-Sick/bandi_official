@@ -56,8 +56,11 @@ class _DiaryAIChatPageState extends State<DiaryAIChatPage> {
 
   @override
   void dispose() {
-    diaryAiChatController.chatScrollController.removeListener(_scrollListener);
-    diaryAiChatController.toggleIsListenerAdded(false);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      diaryAiChatController.chatScrollController
+          .removeListener(_scrollListener);
+      diaryAiChatController.toggleIsListenerAdded(false);
+    });
     super.dispose();
   }
 
