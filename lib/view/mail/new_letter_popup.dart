@@ -26,11 +26,11 @@ class NewLetterPopuView extends StatelessWidget {
     Letter? letter;
 
     if (newLetter == null) {
-      // newLetter가 초기화된 경우
+      // mailController.newLetter가 초기화된 경우
       letter = mailController.newLetter;
       match = regex.firstMatch(letter.title);
     } else {
-      // newLetter가 초기화되지 않은 경우
+      // mailController.newLetter가 초기화되지 않은 경우
       letter = newLetter;
       match = regex.firstMatch(letter!.title);
     }
