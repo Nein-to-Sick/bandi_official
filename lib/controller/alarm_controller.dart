@@ -28,10 +28,10 @@ class AlarmController with ChangeNotifier {
     notifyListeners();
   }
 
+  // This callback is fired at each app startup and whenever a new token is generated.
   void firebaseOnTokenRefresh() {
     FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) async {
       dev.log('fcm token database update');
-      // Note: This callback is fired at each app startup and whenever a new token is generated.
       String userId = FirebaseAuth.instance.currentUser!.uid;
       await FirebaseFirestore.instance
           .collection('users')
@@ -39,6 +39,7 @@ class AlarmController with ChangeNotifier {
           .update({'fcmToken': fcmToken});
     }).onError((err) {
       // Error getting token.
+      dev.log(err);
     });
   }
 
@@ -46,49 +47,44 @@ class AlarmController with ChangeNotifier {
   void firebaseOnMessageListen() async {
     dev.log('foreground message setting done');
     FirebaseMessaging.onMessage.listen((RemoteMessage? message) {
-      if (message != null) {
-        if (message.notification != null) {
-          dev.log('local message receive');
+      if (message != null && message.notification != null) {
+        dev.log('local message received');
 
-          // local notification update
-          NotificationDetails details = const NotificationDetails(
-            iOS: DarwinNotificationDetails(
-              presentAlert: true,
-              presentBadge: true,
-              presentSound: true,
-            ),
-            android: AndroidNotificationDetails(
-              "1",
-              "test",
-              importance: Importance.max,
-              priority: Priority.high,
-            ),
-          );
+        // local notification update
+        NotificationDetails details = const NotificationDetails(
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
+          android: AndroidNotificationDetails(
+            "1",
+            "test",
+            importance: Importance.max,
+            priority: Priority.high,
+          ),
+        );
 
-          final screen = message.data['screen'];
-          final letterId = message.data['letterId'] ?? '';
-          final likedDiaryDetail = message.data['liked_diary_detail'] ?? '';
+        final screen = message.data['screen'];
+        final letterId = message.data['letterId'] ?? '';
+        final likedDiaryDetail = message.data['likedDiaryId'] ?? '';
 
-          final payload = '$screen/$letterId/$likedDiaryDetail';
+        final payload = '$screen/$letterId/$likedDiaryDetail';
 
-          _local.show(1, message.notification!.title!,
-              message.notification!.body!, details,
-              payload: payload);
-        }
+        _local.show(1, message.notification!.title!,
+            message.notification!.body!, details,
+            payload: payload);
       }
     });
   }
 
   // background notification receive
-  void firebaseOnMesageOpenedListen() {
-    dev.log('background message setting done');
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage? message) {
-      if (message != null) {
-        if (message.notification != null) {
-          dev.log('background message receive');
-          dev.log(message.notification!.title!);
-          dev.log(message.notification!.body!);
-        }
+  void firebaseOnMessageOpenedApp() {
+    dev.log('message receive interact setting done');
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      if (message.notification != null) {
+        dev.log('back ground message received');
+        messageInteractionDeclaration(message);
       }
     });
   }
@@ -99,12 +95,8 @@ class AlarmController with ChangeNotifier {
     FirebaseMessaging.instance
         .getInitialMessage()
         .then((RemoteMessage? message) {
-      if (message != null) {
-        if (message.notification != null) {
-          dev.log('terminate message receive');
-          dev.log(message.notification!.title!);
-          dev.log(message.notification!.body!);
-        }
+      if (message != null && message.notification != null) {
+        dev.log('terminate message received');
       }
     });
   }
@@ -112,50 +104,40 @@ class AlarmController with ChangeNotifier {
   // refactor common function for firebase messaging and local notification
   void messageInteractionDeclaration(RemoteMessage message) {
     if (message.data['screen'] == 'letter_detail') {
-      dev.log('letter_detail message received');
-
+      dev.log('read letter_detail message');
       // 편지 데이터 읽기와 보여주기는 mailcontroller에서 구현하여 관리함
       WidgetsBinding.instance.addPostFrameCallback((_) async {
+        // 포그라운드에서만 실행되는 UI 관련 작업
         MailController mailController = Provider.of<MailController>(
             navigatorKey.currentState!.context,
             listen: false);
         Tuple<dynamic, dynamic> result =
             await mailController.checkForNewLetterAndsaveLetterToLocal();
         if (result.item1) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            navigatorKey.currentState?.push(
-              PageRouteBuilder(
-                pageBuilder: (context, animation, secondaryAnimation) =>
-                    NewLetterPopuView(newLetter: result.item2),
-                transitionsBuilder:
-                    (context, animation, secondaryAnimation, child) {
-                  return FadeTransition(
-                    opacity: animation,
-                    child: child,
-                  );
-                },
-                transitionDuration: const Duration(milliseconds: 400),
-              ),
-            );
-          });
+          navigatorKey.currentState?.push(
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) =>
+                  NewLetterPopuView(newLetter: result.item2),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: child,
+                );
+              },
+              transitionDuration: const Duration(milliseconds: 400),
+            ),
+          );
         }
       });
+      WidgetsBinding.instance.ensureVisualUpdate();
     } else if (message.data['screen'] == 'liked_diary_detail') {
-      dev.log('liked_diary_detail message received');
-      String diaryId = message.data['diaryId'];
+      dev.log('read liked_diary_detail message');
+      String likedDiaryId = message.data['likedDiaryId'];
       // TODO: 화면 이동 및 공감 일기 전달 함수 구현
     } else {
       dev.log('message received but there is no related message');
     }
-  }
-
-  // Navigate to the letter detail screen with the provided letterId
-  void setupInteractedMessage() {
-    dev.log('message receive interact setting done');
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      dev.log('message read!');
-      messageInteractionDeclaration(message);
-    });
   }
 
   // local notification setting
@@ -181,32 +163,19 @@ class AlarmController with ChangeNotifier {
 
   // parts[0]: screen
   // parts[1]: letterId
-  // parts[2]: liked_diary_detail
+  // parts[2]: likedDiaryId
   // This should be a top level function
   void onDidReceiveNotificationResponse(
       NotificationResponse notificationResponse) {
     final String? payload = notificationResponse.payload;
 
     if (payload != null) {
-      dev.log('local message read!');
+      dev.log('local message received');
       List<String> parts = payload.split('/');
       RemoteMessage remoteMessage = RemoteMessage(data: {
         'screen': parts[0],
         'letterId': parts[1],
-        'liked_diary_detail': parts[2],
-      });
-      messageInteractionDeclaration(remoteMessage);
-    }
-  }
-
-  Future<void> _onSelectNotification(String? payload) async {
-    if (payload != null) {
-      dev.log('Notification payload received: $payload');
-      List<String> parts = payload.split('/');
-      RemoteMessage remoteMessage = RemoteMessage(data: {
-        'screen': parts[0],
-        'letterId': parts[1],
-        'liked_diary_detail': parts[2],
+        'likedDiaryId': parts[2],
       });
       messageInteractionDeclaration(remoteMessage);
     }

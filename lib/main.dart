@@ -38,11 +38,8 @@ Future<void> main() async {
   // firebase notification setting
   AlarmController alarmController = AlarmController();
   alarmController.firebaseOnMessageListen();
-  alarmController.firebaseOnMesageOpenedListen();
+  alarmController.firebaseOnMessageOpenedApp();
   alarmController.firebaseGetInitialListen();
-
-  // action when alarm selected
-  alarmController.setupInteractedMessage();
 
   // local notification setting
   alarmController.localNotificationInitialization();
