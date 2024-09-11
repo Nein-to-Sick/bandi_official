@@ -60,16 +60,11 @@ class NewLetterPopuView extends StatelessWidget {
           Scaffold(
             backgroundColor: BandiColor.transparent(context),
             appBar: CustomAppBar(
-              title: '',
               trailingIcon: PhosphorIcons.x(),
-              onLeadingIconPressed: () {},
               onTrailingIconPressed: () {
                 Navigator.pop(context);
               },
-              disableLeadingButton: true,
-              disableTrailingButton: false,
               isVisibleLeadingButton: false,
-              isVisibleTrailingButton: true,
             ),
             body: SafeArea(
               child: Center(

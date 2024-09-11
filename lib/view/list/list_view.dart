@@ -30,10 +30,7 @@ class _ListPageState extends State<ListPage> {
             });
           },
           onTrailingIconPressed: () => _showCalendarBottomSheet(context),
-          disableLeadingButton: false,
-          disableTrailingButton: false,
           isVisibleLeadingButton: _selectedDate != null ? true : false,
-          isVisibleTrailingButton: true,
         ),
         body: Padding(
           padding:

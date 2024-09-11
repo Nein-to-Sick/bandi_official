@@ -89,8 +89,6 @@ class _DiaryAIChatPageState extends State<DiaryAIChatPage> {
           },
           disableLeadingButton: diaryAiChatController.isChatResponsLoading,
           disableTrailingButton: diaryAiChatController.isChatResponsLoading,
-          isVisibleLeadingButton: true,
-          isVisibleTrailingButton: true,
         ),
         body: SafeArea(
           child: Column(
