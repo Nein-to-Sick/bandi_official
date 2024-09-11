@@ -1,7 +1,11 @@
+import 'package:bandi_official/controller/home_to_write.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
+import 'package:bandi_official/controller/navigation_toggle_provider.dart';
 import 'package:bandi_official/main.dart';
+import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/view/mail/new_letter_popup.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -134,7 +138,28 @@ class AlarmController with ChangeNotifier {
     } else if (message.data['screen'] == 'liked_diary_detail') {
       dev.log('read liked_diary_detail message');
       String likedDiaryId = message.data['likedDiaryId'];
-      // TODO: 화면 이동 및 공감 일기 전달 함수 구현
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        NavigationToggleProvider navigationToggleProvider =
+            Provider.of<NavigationToggleProvider>(
+                navigatorKey.currentState!.context,
+                listen: false);
+        HomeToWrite writeProvider = Provider.of<HomeToWrite>(
+            navigatorKey.currentState!.context,
+            listen: false);
+
+        final documentSnapshot = await FirebaseFirestore.instance
+            .collection('allDiary')
+            .doc(likedDiaryId)
+            .get();
+
+        // 문서가 존재하면 Diary 객체로 변환 및 열람
+        if (documentSnapshot.exists) {
+          Diary diary = Diary.fromSnapshot(documentSnapshot);
+          writeProvider.readMyDiary(diary);
+          navigationToggleProvider.selectIndex(0);
+          writeProvider.toggleWrite();
+        }
+      });
     } else {
       dev.log('message received but there is no related message');
     }
@@ -178,6 +203,25 @@ class AlarmController with ChangeNotifier {
         'likedDiaryId': parts[2],
       });
       messageInteractionDeclaration(remoteMessage);
+    }
+  }
+
+  // send liked Diary notification
+  void sendLikedDiaryNotification(
+      String likedDiaryId, String fcmToken, String userId) async {
+    final HttpsCallable callable =
+        FirebaseFunctions.instance.httpsCallable('sendLikedDiaryNotification');
+
+    try {
+      final response = await callable.call(<String, dynamic>{
+        'likedDiaryId': likedDiaryId,
+        'fcmToken': fcmToken,
+        'userId': userId,
+      });
+
+      dev.log('Notification sent: ${response.data}');
+    } catch (e) {
+      dev.log('Error sending notification: $e');
     }
   }
 }

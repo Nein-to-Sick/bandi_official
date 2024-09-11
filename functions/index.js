@@ -36,9 +36,9 @@ const openai = new OpenAI({
 });
 
 // 매월 마지막 날 실행되는 PubSub 트리거 설정
-// exports.monthlyDiaryReview = functions.region("asia-northeast3").pubsub.schedule("0 0 28-31 * *")
-// 매 2분마다 실행하는 테스트 조건
-exports.testDiaryReview = functions.region("asia-northeast3").pubsub.schedule("*/2 * * * *")
+exports.monthlyDiaryReview = functions.region("asia-northeast3").pubsub.schedule("0 0 28-31 * *")
+    // 매 2분마다 실행하는 테스트 조건
+    // exports.testDiaryReview = functions.region("asia-northeast3").pubsub.schedule("*/2 * * * *")
     .timeZone("Asia/Seoul")
     .onRun(async (context) => {
         // 현재 UTC 시간을 가져오고, 이를 서울 시간대로 변환
@@ -53,7 +53,7 @@ exports.testDiaryReview = functions.region("asia-northeast3").pubsub.schedule("*
         // 오늘이 달의 마지막 날인지 확인
         if (today.date() !== lastDayOfMonth.date()) {
             console.log(`[Exit] Today (${todayFormatted}) is not the last day of month. Last day of month was (${lastDayFormatted}).`);
-            // return null;
+            return null;
         } else {
             console.log(`[Proceed] Today (${todayFormatted}) is the last day of the month.`);
         }
@@ -231,6 +231,32 @@ exports.testDiaryReview = functions.region("asia-northeast3").pubsub.schedule("*
 
         return null;
     });
+
+// 공감 일기의 알림 전송 함수
+exports.sendLikedDiaryNotification = functions.https.onCall(async (data, context) => {
+    const {likedDiaryId, fcmToken, userId} = data;
+
+    // 알림 메시지 정의
+    const message = {
+        notification: {
+            title: `누군가 나의 기록에 공감했어요!`,
+            body: "나의 기록을 확인해보세요.",
+        },
+        data: {
+            screen: "liked_diary_detail",
+            likedDiaryId: likedDiaryId,
+        },
+        token: fcmToken,
+    };
+
+    try {
+        await admin.messaging().send(message);
+        console.log(`[Success] Notification sent to user ${userId}`);
+    } catch (error) {
+        console.error(`[Error] Failed to send notification to user ${userId}: ${error.message}`);
+    }
+});
+
 
 // 유저 정보의 모든 관련 콜렉션을 삭제하는 함수
 // TODO: 추후 계정 탈퇴 관련 함수 수정 요청하기

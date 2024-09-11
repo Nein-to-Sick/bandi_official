@@ -111,15 +111,16 @@ class DiaryList extends StatelessWidget {
                 child: GestureDetector(
                   onTap: () {
                     Diary diary = Diary(
-                        userId: diaryData['userId'],
-                        title: diaryData['title'],
-                        content: diaryData['content'],
-                        emotion: diaryData['emotion'],
-                        createdAt: diaryData['createdAt'],
-                        updatedAt: diaryData['updatedAt'],
-                        reaction: diaryData['reaction'],
-                        diaryId: diaryData['diaryId'],
-                        cheerText: diaryData['cheerText']);
+                      userId: diaryData['userId'],
+                      title: diaryData['title'],
+                      content: diaryData['content'],
+                      emotion: diaryData['emotion'],
+                      createdAt: diaryData['createdAt'],
+                      updatedAt: diaryData['updatedAt'],
+                      reaction: diaryData['reaction'],
+                      diaryId: diaryData['diaryId'],
+                      cheerText: diaryData['cheerText'],
+                    );
                     writeProvider.readMyDiary(diary);
                     navigationToggleProvider.selectIndex(0);
                     writeProvider.toggleWrite();

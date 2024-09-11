@@ -266,6 +266,7 @@ class HomeToWrite with ChangeNotifier {
     updatedAt: timestampToLocal(Timestamp.now()),
     reaction: [0, 0, 0],
     diaryId: 'diaryId',
+    cheerText: 'cheerText',
   );
   bool otherDiaryOpen = false;
 
@@ -296,6 +297,7 @@ class HomeToWrite with ChangeNotifier {
       updatedAt: timestampToLocal(Timestamp.now()),
       reaction: [0, 0, 0],
       diaryId: 'diaryId',
+      cheerText: 'cheerText',
     );
     notifyListeners();
   }

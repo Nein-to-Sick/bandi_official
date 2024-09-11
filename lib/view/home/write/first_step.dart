@@ -44,70 +44,72 @@ class _State extends State<FirstStep> {
       onTap: () {
         _focusNode.unfocus();
       },
-      child: Column(
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          Row(
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
             mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                "기분이 어떠신가요?",
-                style: BandiFont.displaySmall(context)
-                    ?.copyWith(color: BandiColor.neutralColor100(context)),
+              Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "기분이 어떠신가요?",
+                    style: BandiFont.displaySmall(context)
+                        ?.copyWith(color: BandiColor.neutralColor100(context)),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      writeProvider.toggleWrite();
+                      writeProvider.initialize();
+                    },
+                    child: PhosphorIcon(
+                      PhosphorIcons.x(),
+                      color: BandiColor.neutralColor40(context),
+                      size: 24,
+                    ),
+                  ),
+                ],
               ),
-              GestureDetector(
-                onTap: () {
-                  writeProvider.toggleWrite();
-                  writeProvider.initialize();
-                },
-                child: PhosphorIcon(
-                  PhosphorIcons.x(),
-                  color: BandiColor.neutralColor40(context),
-                  size: 24,
+              const SizedBox(height: 32),
+              Expanded(
+                child: TextField(
+                  controller: _textEditingController,
+                  focusNode: _focusNode,
+                  cursorColor: BandiColor.neutralColor100(context),
+                  style: BandiFont.titleSmall(context)
+                      ?.copyWith(color: BandiColor.neutralColor100(context)),
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    hintText: '겪었던 일과 느꼈던 감정에 대해 써주세요.',
+                    hintStyle: BandiFont.titleSmall(context)?.copyWith(
+                      color: BandiColor.neutralColor40(context),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    setState(() => writeProvider.diaryModel.content =
+                        _textEditingController.text);
+                  },
+                  maxLines: null,
+                  expands: true,
                 ),
+              ),
+              const SizedBox(
+                height: 25,
+              ),
+              CustomPrimaryButton(
+                title: '완료',
+                onPrimaryButtonPressed: () {
+                  writeProvider.aiAndSaveDairy(context);
+                  writeProvider.nextWrite(2);
+                },
+                disableButton:
+                    writeProvider.diaryModel.content.isNotEmpty ? false : true,
               ),
             ],
           ),
-          const SizedBox(height: 32),
-          Expanded(
-            child: TextField(
-              controller: _textEditingController,
-              focusNode: _focusNode,
-              cursorColor: BandiColor.neutralColor100(context),
-              style: BandiFont.titleSmall(context)
-                  ?.copyWith(color: BandiColor.neutralColor100(context)),
-              decoration: InputDecoration(
-                border: InputBorder.none,
-                hintText: '겪었던 일과 느꼈던 감정에 대해 써주세요.',
-                hintStyle: BandiFont.titleSmall(context)?.copyWith(
-                  color: BandiColor.neutralColor40(context),
-                ),
-              ),
-              onChanged: (value) {
-                setState(() => writeProvider.diaryModel.content =
-                    _textEditingController.text);
-              },
-              maxLines: null,
-              expands: true,
-            ),
-          ),
-          const SizedBox(
-            height: 25,
-          ),
-          CustomPrimaryButton(
-            title: '완료',
-            onPrimaryButtonPressed: () {
-              writeProvider.aiAndSaveDairy(context);
-              writeProvider.nextWrite(2);
-            },
-            disableButton:
-                writeProvider.diaryModel.content.isNotEmpty ? false : true,
-          ),
-          const SizedBox(
-            height: 16,
-          ),
-        ],
+        ),
       ),
     );
   }
