@@ -3,13 +3,19 @@ import 'dart:convert';
 
 import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/model/letter.dart';
-import 'package:bandi_official/utils/time_utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as dev;
 
 import 'package:shared_preferences/shared_preferences.dart';
+
+class Tuple<T1, T2> {
+  final T1 item1;
+  final T2 item2;
+
+  Tuple(this.item1, this.item2);
+}
 
 class MailController with ChangeNotifier {
   // load data one when navigate to the view at the first time
@@ -66,20 +72,28 @@ class MailController with ChangeNotifier {
   }
 
   void restoreEveryMailScrollPosition() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (_everyMailScrollController.hasClients) {
       _everyMailScrollController.jumpTo(everyMailScrollPosition);
-    });
+    } else {
+      dev.log('_everyMailScrollController has no clients');
+    }
   }
 
   void restoreLetterScrollPosition() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (_letterScrollController.hasClients) {
       _letterScrollController.jumpTo(letterScrollPosition);
-    });
+    } else {
+      dev.log('_letterScrollController has no clients');
+    }
   }
 
   void restoreLikedDiaryScrollPosition() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _likedDiaryScrollController.jumpTo(likedDiaryScrollPosition);
+      if (_likedDiaryScrollController.hasClients) {
+        _likedDiaryScrollController.jumpTo(likedDiaryScrollPosition);
+      } else {
+        dev.log('_likedDiaryScrollController has no clients');
+      }
     });
   }
 
@@ -589,7 +603,7 @@ class MailController with ChangeNotifier {
   }
 
   // update liked diary to local storage
-  Future<bool> checkForNewLetterAndsaveLetterToLocal() async {
+  Future<Tuple> checkForNewLetterAndsaveLetterToLocal() async {
     if (userId!.isNotEmpty) {
       loadNewLetterDataOnce = true;
 
@@ -604,7 +618,7 @@ class MailController with ChangeNotifier {
       // 새로운 편지가 도착했는지 확인
       if (userDoc.exists && userDoc.data()!['newLetterAvailable'] == false) {
         dev.log('there is no new letter');
-        return false;
+        return Tuple(false, null);
       }
 
       QuerySnapshot querySnapshot = await FirebaseFirestore.instance
@@ -617,7 +631,7 @@ class MailController with ChangeNotifier {
 
       if (querySnapshot.docs.isEmpty) {
         dev.log('there is new letter but cannot find new letter querySnapshot');
-        return false;
+        return Tuple(false, null);
       }
 
       newLetter = Letter.fromSnapshot(querySnapshot.docs.first);
@@ -655,11 +669,11 @@ class MailController with ChangeNotifier {
       dev.log('update "newLetterAvailable" field from user document');
     } else {
       dev.log('there is no firebase uid');
-      return false;
+      return Tuple(false, null);
     }
 
     notifyListeners();
-    return true;
+    return Tuple(true, newLetter);
   }
 
   // load more liked diary from past
@@ -739,6 +753,8 @@ class MailController with ChangeNotifier {
       likedDiaryListDates.clear();
       letterList.clear();
       letterListDates.clear();
+
+      notifyListeners();
 
       dev.log('delete liked Diary and Letter from local');
     } else {

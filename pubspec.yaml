@@ -18,7 +18,7 @@ dependencies:
   # STATE MANAGEMENT
   provider: ^6.1.2
   # FIREBASE
-  firebase_core: ^3.1.1
+  firebase_core: ^3.4.0
   firebase_auth: ^5.1.1
   firebase_storage: ^12.1.0
   cloud_firestore: ^5.0.2
@@ -34,7 +34,10 @@ dependencies:
   google_sign_in_ios: ^5.7.6
   http: ^1.2.2
   wrapped_korean_text: ^0.0.3
-  firebase_messaging: ^15.0.4
+  firebase_messaging: ^15.1.0
+  firebase_analytics: ^11.3.0
+  permission_handler: ^11.3.1
+  flutter_local_notifications: ^17.2.2
 
 
 dev_dependencies:

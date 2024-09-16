@@ -25,17 +25,11 @@ class AlarmView extends StatelessWidget {
         appBar: CustomAppBar(
           title: '알림',
           titleColor: BandiColor.foundationColor80(context),
-          trailingIcon:
-              PhosphorIcons.arrowCounterClockwise(PhosphorIconsStyle.regular),
           leadingIconColor: BandiColor.foundationColor80(context),
           onLeadingIconPressed: () {
             alarmController.toggleAlarmOpen(false);
           },
-          onTrailingIconPressed: () {},
-          disableLeadingButton: false,
-          disableTrailingButton: true,
-          isVisibleLeadingButton: true,
-          isVisibleTrailingButton: true,
+          isVisibleTrailingButton: false,
         ),
         body: SafeArea(
           child: Padding(

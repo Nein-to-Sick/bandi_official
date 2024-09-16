@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
@@ -50,6 +51,7 @@ class AuthService {
 
     if (!snapshot.exists) {
       // 처음 로그인한 사용자라면
+      String? fcmToken = await FirebaseMessaging.instance.getToken();
       await docRef.set({
         "created_at": FieldValue.serverTimestamp(),
         "email": userEmail,
@@ -60,6 +62,7 @@ class AuthService {
         "updatedAt": FieldValue.serverTimestamp(),
         "userId": userId,
         "newLetterAvailable": false,
+        "fcmToken": fcmToken,
       });
 
       // 하위 컬렉션 생성: letters
@@ -81,6 +84,17 @@ class AuthService {
       // 온보딩 페이지로 이동
       navigationToggleProvider.selectIndex(-3);
     } else {
+      String? fcmToken = await FirebaseMessaging.instance.getToken();
+      if (fcmToken != null) {
+        // Check if the current token is different from the one in Firestore
+        if (snapshot["fcmToken"] != fcmToken) {
+          // Update the FCM token in Firestore
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(userId)
+              .update({'fcmToken': fcmToken});
+        }
+      }
       // 기존 사용자라면 바로 홈 페이지로 이동
       navigationToggleProvider.selectIndex(0);
     }

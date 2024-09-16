@@ -54,8 +54,10 @@ class _MyLettersPageState extends State<MyLettersPage> {
 
   @override
   void dispose() {
-    mailController.letterScrollController.removeListener(_scrollListener);
-    mailController.toggleIsLettersListenerAdded(false);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      mailController.letterScrollController.removeListener(_scrollListener);
+      mailController.toggleIsLettersListenerAdded(false);
+    });
     super.dispose();
   }
 
@@ -72,7 +74,8 @@ class _MyLettersPageState extends State<MyLettersPage> {
               controller: mailController.letterScrollController,
               itemCount: mailController.letterList.length,
               itemBuilder: (context, index) {
-                Letter letter = mailController.letterList[index];
+                Letter letter = mailController
+                    .letterList[mailController.letterList.length - index - 1];
                 return lettersWidget(letter, mailController, context);
               },
             ),

@@ -15,118 +15,123 @@ class SecondStep extends StatelessWidget {
   Widget build(BuildContext context) {
     final writeProvider = Provider.of<HomeToWrite>(context);
     final navigationToggleProvider =
-    Provider.of<NavigationToggleProvider>(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        Provider.of<NavigationToggleProvider>(context);
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            Row(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  writeProvider.diaryModel.title == "title"
-                      ? "제목 생성 중...."
-                      : writeProvider.diaryModel.title,
-                  style: BandiFont.displaySmall(context)
-                      ?.copyWith(color: BandiColor.neutralColor100(context)),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      writeProvider.diaryModel.title == "title"
+                          ? "제목 생성 중...."
+                          : writeProvider.diaryModel.title,
+                      style: BandiFont.displaySmall(context)?.copyWith(
+                          color: BandiColor.neutralColor100(context)),
+                    ),
+                    const SizedBox(
+                      height: 4,
+                    ),
+                    Text(
+                      DateFormat('yyyy년 M월 d일').format(DateTime.now()),
+                      style: BandiFont.headlineSmall(context)?.copyWith(
+                          color: BandiColor.neutralColor100(context)),
+                    )
+                  ],
                 ),
-                const SizedBox(
-                  height: 4,
-                ),
-                Text(
-                  DateFormat('yyyy년 M월 d일').format(DateTime.now()),
-                  style: BandiFont.headlineSmall(context)
-                      ?.copyWith(color: BandiColor.neutralColor100(context)),
+                GestureDetector(
+                  onTap: () {
+                    writeProvider.nextWrite(3);
+                  },
+                  child: PhosphorIcon(
+                    PhosphorIcons.pencilSimple(),
+                    color: BandiColor.neutralColor40(context),
+                  ),
                 )
               ],
             ),
-            GestureDetector(
-              onTap: () {
-                writeProvider.nextWrite(3);
-              },
-              child: PhosphorIcon(
-                PhosphorIcons.pencilSimple(),
-                color: BandiColor.neutralColor40(context),
+            const SizedBox(
+              height: 16,
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Text(
+                  writeProvider.diaryModel.content,
+                  style: BandiFont.titleSmall(context)
+                      ?.copyWith(color: BandiColor.neutralColor100(context)),
+                ),
               ),
-            )
-          ],
-        ),
-        const SizedBox(
-          height: 16,
-        ),
-        Expanded(
-          child: SingleChildScrollView(
-            child: Text(
-              writeProvider.diaryModel.content,
+            ),
+            const SizedBox(
+              height: 15,
+            ),
+            containerBox(context, "반디가 분석한 감정"),
+            const SizedBox(
+              height: 8,
+            ),
+            (writeProvider.diaryModel.emotion.length == 1 &&
+                    writeProvider.diaryModel.emotion[0] == "emotion")
+                ? Text(
+                    "감정 파악 중...",
+                    style: BandiFont.titleSmall(context)
+                        ?.copyWith(color: BandiColor.neutralColor100(context)),
+                  )
+                : SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        for (String emotion in writeProvider.diaryModel.emotion)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: Text(
+                              "#$emotion",
+                              style: BandiFont.titleSmall(context)?.copyWith(
+                                  color: BandiColor.neutralColor100(context)),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+            const SizedBox(
+              height: 16,
+            ),
+            containerBox(context, "반디가 건네는 한마디"),
+            const SizedBox(
+              height: 8,
+            ),
+            Text(
+              writeProvider.diaryModel.cheerText == ''
+                  ? "할 말 생각중..."
+                  : "\"${writeProvider.diaryModel.cheerText}\"",
               style: BandiFont.titleSmall(context)
                   ?.copyWith(color: BandiColor.neutralColor100(context)),
             ),
-          ),
-        ),
-        const SizedBox(
-          height: 15,
-        ),
-        containerBox(context, "반디가 분석한 감정"),
-        const SizedBox(
-          height: 8,
-        ),
-        (writeProvider.diaryModel.emotion.length == 1 && writeProvider.diaryModel.emotion[0] == "emotion")
-            ? Text(
-                "감정 파악 중...",
-                style: BandiFont.titleSmall(context)
-                    ?.copyWith(color: BandiColor.neutralColor100(context)),
-              )
-            : SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    for (String emotion in writeProvider.diaryModel.emotion)
-                      Padding(
-                        padding: const EdgeInsets.only(right: 8.0),
-                        child: Text(
-                          "#$emotion",
-                          style: BandiFont.titleSmall(context)?.copyWith(
-                              color: BandiColor.neutralColor100(context)),
-                        ),
-                      ),
-                  ],
-                ),
+            const SizedBox(
+              height: 24,
+            ),
+            Center(
+              child: CustomPrimaryButton(
+                title: '확인',
+                onPrimaryButtonPressed: () {
+                  if (writeProvider.gotoDirectListPage) {
+                    navigationToggleProvider.selectIndex(1);
+                  }
+                  writeProvider.initialize();
+                  writeProvider.toggleWrite();
+                },
+                disableButton: false,
               ),
-        const SizedBox(
-          height: 16,
+            ),
+          ],
         ),
-        containerBox(context, "반디가 건네는 한마디"),
-        const SizedBox(
-          height: 8,
-        ),
-        Text(
-          writeProvider.diaryModel.cheerText == ''
-              ? "할 말 생각중..."
-              : "\"${writeProvider.diaryModel.cheerText}\"",
-          style: BandiFont.titleSmall(context)
-              ?.copyWith(color: BandiColor.neutralColor100(context)),
-        ),
-        const SizedBox(
-          height: 24,
-        ),
-        Center(
-          child: CustomPrimaryButton(
-            title: '확인',
-            onPrimaryButtonPressed: () {
-              if(writeProvider.gotoDirectListPage) {
-                navigationToggleProvider.selectIndex(1);
-              }
-              writeProvider.initialize();
-              writeProvider.toggleWrite();
-
-            },
-            disableButton: false,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

@@ -64,8 +64,10 @@ class _EveryMailPageState extends State<EveryMailPage> {
 
   @override
   void dispose() {
-    mailController.everyMailScrollController.removeListener(_scrollListener);
-    mailController.toggleIsEveryMailListenerAdded(false);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      mailController.toggleIsEveryMailListenerAdded(false);
+      mailController.everyMailScrollController.removeListener(_scrollListener);
+    });
     super.dispose();
   }
 
