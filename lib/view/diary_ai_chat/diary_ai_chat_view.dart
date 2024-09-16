@@ -56,8 +56,11 @@ class _DiaryAIChatPageState extends State<DiaryAIChatPage> {
 
   @override
   void dispose() {
-    diaryAiChatController.chatScrollController.removeListener(_scrollListener);
-    diaryAiChatController.toggleIsListenerAdded(false);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      diaryAiChatController.chatScrollController
+          .removeListener(_scrollListener);
+      diaryAiChatController.toggleIsListenerAdded(false);
+    });
     super.dispose();
   }
 
@@ -86,8 +89,6 @@ class _DiaryAIChatPageState extends State<DiaryAIChatPage> {
           },
           disableLeadingButton: diaryAiChatController.isChatResponsLoading,
           disableTrailingButton: diaryAiChatController.isChatResponsLoading,
-          isVisibleLeadingButton: true,
-          isVisibleTrailingButton: true,
         ),
         body: SafeArea(
           child: Column(

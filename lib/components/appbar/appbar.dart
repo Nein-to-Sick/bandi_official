@@ -6,30 +6,30 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   const CustomAppBar({
     super.key,
-    required this.title,
+    this.title,
     this.titleColor,
-    required this.trailingIcon,
+    this.trailingIcon,
     this.leadingIconColor,
     this.trailingIconColor,
-    required this.onLeadingIconPressed,
-    required this.onTrailingIconPressed,
-    required this.disableLeadingButton,
-    required this.disableTrailingButton,
-    required this.isVisibleLeadingButton,
-    required this.isVisibleTrailingButton,
+    this.onLeadingIconPressed,
+    this.onTrailingIconPressed,
+    this.disableLeadingButton,
+    this.disableTrailingButton,
+    this.isVisibleLeadingButton,
+    this.isVisibleTrailingButton,
   });
 
-  final String title;
+  final String? title;
   final Color? titleColor;
-  final PhosphorIconData trailingIcon;
+  final PhosphorIconData? trailingIcon;
   final Color? leadingIconColor;
   final Color? trailingIconColor;
-  final Function onLeadingIconPressed;
-  final Function onTrailingIconPressed;
-  final bool disableLeadingButton;
-  final bool disableTrailingButton;
-  final bool isVisibleLeadingButton;
-  final bool isVisibleTrailingButton;
+  final Function? onLeadingIconPressed;
+  final Function? onTrailingIconPressed;
+  final bool? disableLeadingButton;
+  final bool? disableTrailingButton;
+  final bool? isVisibleLeadingButton;
+  final bool? isVisibleTrailingButton;
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -49,7 +49,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
           vertical: 16,
         ),
         child: Text(
-          widget.title,
+          widget.title ?? '',
           style: BandiFont.displaySmall(context)?.copyWith(
             color: (widget.titleColor != null)
                 ? widget.titleColor
@@ -58,7 +58,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
         ),
       ),
       centerTitle: true,
-      leading: (widget.isVisibleLeadingButton)
+      leading: (widget.isVisibleLeadingButton ?? true)
           ? Padding(
               padding: const EdgeInsets.symmetric(
                 vertical: 8,
@@ -68,26 +68,26 @@ class _CustomAppBarState extends State<CustomAppBar> {
                   ? IconButton(
                       icon: PhosphorIcon(
                         PhosphorIcons.arrowUDownLeft(),
-                        color: (widget.disableLeadingButton
+                        color: (widget.disableLeadingButton ?? false
                             ? BandiColor.neutralColor20(context)
                             : BandiColor.neutralColor80(context)),
                         size: 24,
                       ),
                       onPressed: () {
-                        (widget.disableLeadingButton)
+                        (widget.disableLeadingButton ?? false)
                             ? null
-                            : widget.onLeadingIconPressed();
+                            : widget.onLeadingIconPressed!();
                       },
                     )
                   : CustomIconButton(
-                      onIconButtonPressed: widget.onLeadingIconPressed,
-                      disableButton: widget.disableLeadingButton,
+                      onIconButtonPressed: widget.onLeadingIconPressed ?? () {},
+                      disableButton: widget.disableLeadingButton ?? false,
                       iconColor: widget.leadingIconColor,
                     ),
             )
           : const SizedBox.shrink(),
       actions: [
-        if (widget.isVisibleTrailingButton)
+        if (widget.isVisibleTrailingButton ?? true)
           Padding(
             padding: const EdgeInsets.symmetric(
               vertical: 8,
@@ -95,18 +95,18 @@ class _CustomAppBarState extends State<CustomAppBar> {
             ),
             child: IconButton(
               icon: PhosphorIcon(
-                widget.trailingIcon,
+                widget.trailingIcon ?? PhosphorIcons.x(PhosphorIconsStyle.fill),
                 color: (widget.trailingIconColor != null)
                     ? widget.trailingIconColor
-                    : widget.disableTrailingButton
+                    : widget.disableTrailingButton ?? false
                         ? BandiColor.neutralColor20(context)
                         : BandiColor.neutralColor80(context),
                 size: 24,
               ),
               onPressed: () {
-                (widget.disableTrailingButton)
+                (widget.disableTrailingButton ?? false)
                     ? null
-                    : widget.onTrailingIconPressed();
+                    : widget.onTrailingIconPressed!();
               },
             ),
           ),
