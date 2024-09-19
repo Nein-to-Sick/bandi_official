@@ -5,7 +5,6 @@ import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/mail/every_mail_view.dart';
 import 'package:bandi_official/view/mail/letters_view.dart';
 import 'package:bandi_official/view/mail/liked_diary_view.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
@@ -60,27 +59,21 @@ class _MailViewState extends State<MailView>
           title: '보관함',
           trailingIcon: PhosphorIcons.flask(PhosphorIconsStyle.fill),
           onTrailingIconPressed: () async {
-            dev.log('wow');
             // to Android notification test
             // String fcmToken =
             //     'fQ_HW18-Spq8KPbBpgGkHP:APA91bHzJSVXFE0InFxgH60gIfgpxsVB5hFZasiVyW-mQA_ip7CkhJ4BZIlt2HrK0sHX_j24umUok1E3m08diwluFWGadxfY2eCMgNeM208L1mw1vcdq_SMj_kdTvqC-42HqO-rwbp3A';
             // to iOS notification test
-            // String fcmToken =
-            //     'dycWe_q930Ggq8SgMlt5wU:APA91bHsDvztA4lt7o5-VBqC__7uOpJJEIYEdzOMQMZa-yghWDJaiAID5wvkIRze7sMkPmpvSaVS29HUilsTdkro7tuRlZfNr3A93ofE46HVJWxuUfdjKA14MICfAIEY2c_OVXePIDJ4';
-            // alarmController.sendLikedDiaryNotification('21jPhIHrf7iBwVAh92ZW1',
-            //     fcmToken, 'writeProvider.otherDiaryModel.userId');
+            String fcmToken =
+                'dycWe_q930Ggq8SgMlt5wU:APA91bHsDvztA4lt7o5-VBqC__7uOpJJEIYEdzOMQMZa-yghWDJaiAID5wvkIRze7sMkPmpvSaVS29HUilsTdkro7tuRlZfNr3A93ofE46HVJWxuUfdjKA14MICfAIEY2c_OVXePIDJ4';
+            String notificationDataId = 'A7w5nxqcdBWJzlmHKBqoVTKRfhD31';
+            alarmController.sendLikedDiaryNotification('21jPhIHrf7iBwVAh92ZW1',
+                fcmToken, 'A7w5nxqcdBWJzlmHKBqoVTKRfhD3');
 
             // For test delete finction
             // mailController.deleteEveryMailDataFromLocal();
-
-            // For Firebase Function deploy test
-            // Navigator.push(
-            //   context,
-            //   MaterialPageRoute(builder: (context) => const TestViewPage()),
-            // );
           },
           isVisibleLeadingButton: false,
-          isVisibleTrailingButton: false,
+          isVisibleTrailingButton: true,
         ),
         body: Padding(
           padding: EdgeInsets.only(

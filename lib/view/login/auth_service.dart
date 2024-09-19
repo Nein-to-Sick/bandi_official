@@ -62,6 +62,7 @@ class AuthService {
         "updatedAt": FieldValue.serverTimestamp(),
         "userId": userId,
         "newLetterAvailable": false,
+        "newNotificationsAvailable": false,
         "fcmToken": fcmToken,
       });
 
@@ -78,6 +79,14 @@ class AuthService {
 
       // 하위 컬렉션: otherDiary에 빈 문서 추가
       await otherDiaryCollectionRef.doc('0000_docSummary').set({
+        // 빈 데이터 또는 초기 데이터
+      });
+
+      // 하위 컬렉션 생성: otherDiary
+      final notificationsCollectionRef = docRef.collection('notifications');
+
+      // 하위 컬렉션: otherDiary에 빈 문서 추가
+      await notificationsCollectionRef.doc('0000_docSummary').set({
         // 빈 데이터 또는 초기 데이터
       });
 
