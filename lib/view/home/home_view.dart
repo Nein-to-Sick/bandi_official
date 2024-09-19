@@ -29,13 +29,13 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void newLetterPageReturn(BuildContext context) async {
+  void checkNewLetterAndNewNotificationsPageReturn(BuildContext context) async {
     MailController mailController = Provider.of<MailController>(context);
 
     // read new letter data once after first login
-    if (!mailController.loadNewLetterDataOnce) {
-      Tuple<dynamic, dynamic> result =
-          await mailController.checkForNewLetterAndsaveLetterToLocal();
+    if (!mailController.loadNewLetterAndNotificationsDataOnce) {
+      Tuple<dynamic, dynamic> result = await mailController
+          .checkForNewLetterNewNotificationsAndSaveLetterToLocal();
       if (result.item1 && mounted) {
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           Navigator.push(
@@ -56,13 +56,13 @@ class _HomePageState extends State<HomePage> {
         });
       }
     } else {
-      dev.log('did not read new letter data');
+      dev.log('did not read new letter and new notifications data');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    newLetterPageReturn(context);
+    checkNewLetterAndNewNotificationsPageReturn(context);
 
     return Scaffold(
       backgroundColor: BandiColor.transparent(context),

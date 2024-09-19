@@ -2,29 +2,33 @@ import 'package:bandi_official/controller/home_to_write.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/controller/navigation_toggle_provider.dart';
 import 'package:bandi_official/main.dart';
+import 'package:bandi_official/model/alarm.dart';
 import 'package:bandi_official/model/diary.dart';
+import 'package:bandi_official/model/letter.dart';
 import 'package:bandi_official/view/mail/new_letter_popup.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'dart:developer' as dev;
-
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:provider/provider.dart';
+import 'dart:developer' as dev;
 
 class AlarmController with ChangeNotifier {
   // determine whether to display the alarm view
   bool isAlarmOpen = false;
+  // Get current user from FirebaseAuth
+  String? get userId => FirebaseAuth.instance.currentUser!.uid;
   // Firebase messaging setting
   final fcmToken = FirebaseMessaging.instance.getToken();
   // local notification setting
   final FlutterLocalNotificationsPlugin _local =
       FlutterLocalNotificationsPlugin();
-
   // manage the page scroll
   final alarmScrollController = ScrollController();
+  // List of Alarm model
+  List<Alarm> alarmList = Alarm.defaultAlarm();
 
   // toggle the chat page view
   void toggleAlarmOpen(value) {
@@ -53,6 +57,13 @@ class AlarmController with ChangeNotifier {
     FirebaseMessaging.onMessage.listen((RemoteMessage? message) {
       if (message != null && message.notification != null) {
         dev.log('local message received');
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          MailController mailController = Provider.of<MailController>(
+              navigatorKey.currentState!.context,
+              listen: false);
+
+          mailController.updateIsNewNotifications(true);
+        });
 
         // local notification update
         NotificationDetails details = const NotificationDetails(
@@ -88,6 +99,14 @@ class AlarmController with ChangeNotifier {
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       if (message.notification != null) {
         dev.log('back ground message received');
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          MailController mailController = Provider.of<MailController>(
+              navigatorKey.currentState!.context,
+              listen: false);
+
+          mailController.updateIsNewNotifications(true);
+        });
+
         messageInteractionDeclaration(message);
       }
     });
@@ -101,6 +120,13 @@ class AlarmController with ChangeNotifier {
         .then((RemoteMessage? message) {
       if (message != null && message.notification != null) {
         dev.log('terminate message received');
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          MailController mailController = Provider.of<MailController>(
+              navigatorKey.currentState!.context,
+              listen: false);
+
+          mailController.updateIsNewNotifications(true);
+        });
       }
     });
   }
@@ -115,8 +141,8 @@ class AlarmController with ChangeNotifier {
         MailController mailController = Provider.of<MailController>(
             navigatorKey.currentState!.context,
             listen: false);
-        Tuple<dynamic, dynamic> result =
-            await mailController.checkForNewLetterAndsaveLetterToLocal();
+        Tuple<dynamic, dynamic> result = await mailController
+            .checkForNewLetterNewNotificationsAndSaveLetterToLocal();
         if (result.item1) {
           navigatorKey.currentState?.push(
             PageRouteBuilder(
@@ -168,8 +194,6 @@ class AlarmController with ChangeNotifier {
   // local notification setting
   void localNotificationInitialization() {
     dev.log('local message receive interact setting done');
-    FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-        FlutterLocalNotificationsPlugin();
     const AndroidInitializationSettings android =
         AndroidInitializationSettings("@mipmap/ic_launcher");
     const DarwinInitializationSettings ios = DarwinInitializationSettings(
@@ -180,7 +204,7 @@ class AlarmController with ChangeNotifier {
 
     const InitializationSettings settings =
         InitializationSettings(android: android, iOS: ios);
-    flutterLocalNotificationsPlugin.initialize(
+    _local.initialize(
       settings,
       onDidReceiveNotificationResponse: onDidReceiveNotificationResponse,
     );
@@ -195,7 +219,7 @@ class AlarmController with ChangeNotifier {
     final String? payload = notificationResponse.payload;
 
     if (payload != null) {
-      dev.log('local message received');
+      dev.log('local message opend');
       List<String> parts = payload.split('/');
       RemoteMessage remoteMessage = RemoteMessage(data: {
         'screen': parts[0],
@@ -223,5 +247,53 @@ class AlarmController with ChangeNotifier {
     } catch (e) {
       dev.log('Error sending notification: $e');
     }
+  }
+
+  Stream<QuerySnapshot<Object?>>? alarmStreamQuery() {
+    return FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('notifications')
+        .orderBy('date', descending: true)
+        .limit(30)
+        .snapshots();
+  }
+
+  String formatTimeAgo(Timestamp timestamp) {
+    final now = DateTime.now();
+    final difference = now.difference(timestamp.toDate());
+
+    if (difference.inDays > 0) {
+      return '${difference.inDays}일 전';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}시간 전';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}분 전';
+    } else {
+      return '방금 전'; // 1분 이내일 경우
+    }
+  }
+
+  Future<Letter> readLetterDataFromDB(String letterId) async {
+    DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('letters')
+        .doc(letterId) // 문서 ID를 doc() 메서드로 전달
+        .get();
+
+    if (documentSnapshot.exists) {
+      return Letter.fromSnapshot(documentSnapshot); // DocumentSnapshot을 바로 전달
+    } else {
+      throw Exception('Letter not found');
+    }
+  }
+
+  Future<Diary> readLikedDiaryDataFromDB(String likedDiaryId) async {
+    final documentSnapshot = await FirebaseFirestore.instance
+        .collection('allDiary')
+        .doc(likedDiaryId)
+        .get();
+    return Diary.fromSnapshot(documentSnapshot);
   }
 }

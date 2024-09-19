@@ -117,14 +117,36 @@ class _HomeTopBarState extends State<HomeTopBar> {
                               const SizedBox(
                                 width: 20,
                               ),
-                              IconButton(
-                                icon: PhosphorIcon(
-                                  PhosphorIcons.bell(PhosphorIconsStyle.fill),
-                                  color: BandiColor.neutralColor100(context),
-                                ),
-                                onPressed: () {
-                                  alarmController.toggleAlarmOpen(true);
-                                },
+                              Stack(
+                                alignment: Alignment.topRight,
+                                children: [
+                                  IconButton(
+                                    icon: PhosphorIcon(
+                                      PhosphorIcons.bell(
+                                          PhosphorIconsStyle.fill),
+                                      color:
+                                          BandiColor.neutralColor100(context),
+                                    ),
+                                    onPressed: () {
+                                      alarmController.toggleAlarmOpen(true);
+                                    },
+                                  ),
+                                  (mailController.isNewNotifications)
+                                      ? Padding(
+                                          padding: const EdgeInsets.only(
+                                              top: 13, right: 13),
+                                          child: ClipOval(
+                                            child: Container(
+                                              width: 10,
+                                              height: 10,
+                                              color:
+                                                  BandiColor.accentColorYellow(
+                                                      context),
+                                            ),
+                                          ),
+                                        )
+                                      : const SizedBox.shrink(),
+                                ],
                               ),
                             ],
                           ),

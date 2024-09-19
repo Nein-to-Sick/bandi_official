@@ -17,7 +17,7 @@ import '../components/no_reuse/navigation_bar.dart';
 import '../controller/home_to_write.dart';
 import '../controller/navigation_toggle_provider.dart';
 
-late AssetsAudioPlayer assetsAudioPlayer = AssetsAudioPlayer.newPlayer();
+AssetsAudioPlayer assetsAudioPlayer = AssetsAudioPlayer.newPlayer();
 bool speakerOn = true; // Default to true
 
 class Navigation extends StatefulWidget {

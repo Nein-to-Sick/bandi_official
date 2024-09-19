@@ -109,7 +109,8 @@ class NewLetterPopuView extends StatelessWidget {
                           Navigator.of(context).pushReplacement(
                             PageRouteBuilder(
                               opaque: false, // 투명 배경을 위해 false로 설정
-                              barrierColor: Colors.transparent, // 배경을 투명하게 설정
+                              barrierColor: BandiColor.transparent(
+                                  context), // 배경을 투명하게 설정
                               transitionDuration:
                                   const Duration(milliseconds: 400),
                               pageBuilder:
@@ -129,7 +130,8 @@ class NewLetterPopuView extends StatelessWidget {
                                           Tween<double>(begin: 1.0, end: 0.0)
                                               .animate(animation),
                                       child: Scaffold(
-                                        backgroundColor: Colors.transparent,
+                                        backgroundColor:
+                                            BandiColor.transparent(context),
                                         body:
                                             Container(), // 기존 페이지 내용이 들어갈 수 있음
                                       ),
