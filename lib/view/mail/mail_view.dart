@@ -59,12 +59,12 @@ class _MailViewState extends State<MailView>
           title: '보관함',
           trailingIcon: PhosphorIcons.flask(PhosphorIconsStyle.fill),
           onTrailingIconPressed: () async {
-            messageTestFunction(alarmController);
+            // messageTestFunction(alarmController);
             // For test delete finction
             // mailController.deleteEveryMailDataFromLocal();
           },
           isVisibleLeadingButton: false,
-          isVisibleTrailingButton: true,
+          isVisibleTrailingButton: false,
         ),
         body: Padding(
           padding: EdgeInsets.only(

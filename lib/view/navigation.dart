@@ -64,6 +64,9 @@ class _NavigationState extends State<Navigation> {
     final MailController mailController = context.watch<MailController>();
     final AlarmController alarmController = context.watch<AlarmController>();
 
+    // save context to show alarm details > alarmView to DetailView
+    alarmController.updateContext(context);
+
     return Container(
       decoration: const BoxDecoration(
         image: DecorationImage(
