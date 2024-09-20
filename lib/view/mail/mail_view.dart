@@ -59,16 +59,7 @@ class _MailViewState extends State<MailView>
           title: '보관함',
           trailingIcon: PhosphorIcons.flask(PhosphorIconsStyle.fill),
           onTrailingIconPressed: () async {
-            // to Android notification test
-            // String fcmToken =
-            //     'fQ_HW18-Spq8KPbBpgGkHP:APA91bHzJSVXFE0InFxgH60gIfgpxsVB5hFZasiVyW-mQA_ip7CkhJ4BZIlt2HrK0sHX_j24umUok1E3m08diwluFWGadxfY2eCMgNeM208L1mw1vcdq_SMj_kdTvqC-42HqO-rwbp3A';
-            // to iOS notification test
-            String fcmToken =
-                'dycWe_q930Ggq8SgMlt5wU:APA91bHsDvztA4lt7o5-VBqC__7uOpJJEIYEdzOMQMZa-yghWDJaiAID5wvkIRze7sMkPmpvSaVS29HUilsTdkro7tuRlZfNr3A93ofE46HVJWxuUfdjKA14MICfAIEY2c_OVXePIDJ4';
-            String notificationDataId = 'A7w5nxqcdBWJzlmHKBqoVTKRfhD31';
-            alarmController.sendLikedDiaryNotification('21jPhIHrf7iBwVAh92ZW1',
-                fcmToken, 'A7w5nxqcdBWJzlmHKBqoVTKRfhD3');
-
+            messageTestFunction(alarmController);
             // For test delete finction
             // mailController.deleteEveryMailDataFromLocal();
           },
@@ -131,4 +122,15 @@ class _MailViewState extends State<MailView>
       ),
     );
   }
+}
+
+void messageTestFunction(AlarmController alarmController) {
+  // to Android notification test
+  // String fcmToken =
+  //     'fQ_HW18-Spq8KPbBpgGkHP:APA91bHzJSVXFE0InFxgH60gIfgpxsVB5hFZasiVyW-mQA_ip7CkhJ4BZIlt2HrK0sHX_j24umUok1E3m08diwluFWGadxfY2eCMgNeM208L1mw1vcdq_SMj_kdTvqC-42HqO-rwbp3A';
+  // to iOS notification test
+  String fcmToken =
+      'dycWe_q930Ggq8SgMlt5wU:APA91bHsDvztA4lt7o5-VBqC__7uOpJJEIYEdzOMQMZa-yghWDJaiAID5wvkIRze7sMkPmpvSaVS29HUilsTdkro7tuRlZfNr3A93ofE46HVJWxuUfdjKA14MICfAIEY2c_OVXePIDJ4';
+  alarmController.sendLikedDiaryNotification(
+      '21jPhIHrf7iBwVAh92ZW1', fcmToken, 'A7w5nxqcdBWJzlmHKBqoVTKRfhD3');
 }

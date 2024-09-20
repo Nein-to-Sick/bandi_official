@@ -13,6 +13,7 @@ import 'package:bandi_official/view/home/home_view.dart';
 import 'package:bandi_official/view/mail/detail_view.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_app_badge_control/flutter_app_badge_control.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 import 'dart:developer' as dev;
@@ -37,6 +38,8 @@ class _AlarmViewState extends State<AlarmView> {
   Future<void> _initializeControllers() async {
     mailController = Provider.of<MailController>(context, listen: false);
     mailController!.updateNotificationsDataToDB();
+    // remove message badge
+    FlutterAppBadgeControl.removeBadge();
   }
 
   @override

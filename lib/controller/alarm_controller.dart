@@ -74,9 +74,10 @@ class AlarmController with ChangeNotifier {
           ),
           android: AndroidNotificationDetails(
             "1",
-            "test",
+            "local notification",
             importance: Importance.max,
             priority: Priority.high,
+            channelShowBadge: true,
           ),
         );
 
