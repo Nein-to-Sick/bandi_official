@@ -8,6 +8,7 @@ import 'package:bandi_official/theme/custom_theme_mode.dart';
 import 'package:bandi_official/view/navigation.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_app_badge_control/flutter_app_badge_control.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'controller/home_to_write.dart';
@@ -42,6 +43,9 @@ Future<void> main() async {
 
   // local notification setting
   alarmController.localNotificationInitialization();
+
+  // remove message badge
+  FlutterAppBadgeControl.removeBadge();
 
   runApp(const MainApp());
 }

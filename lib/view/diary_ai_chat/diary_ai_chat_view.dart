@@ -90,48 +90,46 @@ class _DiaryAIChatPageState extends State<DiaryAIChatPage> {
           disableLeadingButton: diaryAiChatController.isChatResponsLoading,
           disableTrailingButton: diaryAiChatController.isChatResponsLoading,
         ),
-        body: SafeArea(
-          child: Column(
-            children: [
-              Expanded(
-                child: Align(
-                  alignment: Alignment.topCenter,
-                  child: GestureDetector(
-                    onTap: () {
-                      if (diaryAiChatController.chatFocusNode.hasFocus) {
-                        diaryAiChatController.chatFocusNode.unfocus();
-                      }
-                    },
-                    child: ListView.builder(
-                      controller: diaryAiChatController.chatScrollController,
-                      shrinkWrap: true,
-                      reverse: true,
-                      itemCount: diaryAiChatController.chatlog.length,
-                      itemBuilder: (context, index) {
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 10, bottom: 10),
-                          child: IgnorePointer(
-                            ignoring: true,
-                            child: CustomDialogue(
-                              chatMessage: diaryAiChatController.chatlog[
-                                  diaryAiChatController.chatlog.length -
-                                      index -
-                                      1],
-                              onDialoguePressed: () {},
-                            ),
+        body: Column(
+          children: [
+            Expanded(
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: GestureDetector(
+                  onTap: () {
+                    if (diaryAiChatController.chatFocusNode.hasFocus) {
+                      diaryAiChatController.chatFocusNode.unfocus();
+                    }
+                  },
+                  child: ListView.builder(
+                    controller: diaryAiChatController.chatScrollController,
+                    shrinkWrap: true,
+                    reverse: true,
+                    itemCount: diaryAiChatController.chatlog.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 10, bottom: 10),
+                        child: IgnorePointer(
+                          ignoring: true,
+                          child: CustomDialogue(
+                            chatMessage: diaryAiChatController.chatlog[
+                                diaryAiChatController.chatlog.length -
+                                    index -
+                                    1],
+                            onDialoguePressed: () {},
                           ),
-                        );
-                      },
-                    ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),
-              const Align(
-                alignment: Alignment.bottomCenter,
-                child: ChatMessageBar(),
-              ),
-            ],
-          ),
+            ),
+            const Align(
+              alignment: Alignment.bottomCenter,
+              child: ChatMessageBar(),
+            ),
+          ],
         ),
       ),
     );
