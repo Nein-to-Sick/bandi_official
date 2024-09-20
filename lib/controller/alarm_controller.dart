@@ -29,11 +29,17 @@ class AlarmController with ChangeNotifier {
   final alarmScrollController = ScrollController();
   // List of Alarm model
   List<Alarm> alarmList = Alarm.defaultAlarm();
+  // update navigation BuildContext;
+  late BuildContext navigationContext;
 
   // toggle the chat page view
   void toggleAlarmOpen(value) {
     isAlarmOpen = value;
     notifyListeners();
+  }
+
+  void updateContext(BuildContext context) {
+    navigationContext = context;
   }
 
   // This callback is fired at each app startup and whenever a new token is generated.
