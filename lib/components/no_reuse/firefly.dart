@@ -1,12 +1,12 @@
 import 'dart:math';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-Color fireflyColor = const Color(0xffFFDB5B);
+Color fireflyColor = Color.fromARGB(133, 255, 219, 91);
 
 class FireFly extends StatefulWidget {
-  const FireFly({super.key, });
+  const FireFly({
+    super.key,
+  });
 
   // final UserInfoValueModel userInfoController;
 
@@ -40,7 +40,7 @@ class FireFlyState extends State<FireFly> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    fireFlyCount = 20;
+    fireFlyCount = 12;
     // _firestoreDocumentStream =
     //     _firestore.collection('users').doc(userId).snapshots();
     for (int i = 0; i < fireFlyCount; i++) {
@@ -60,14 +60,14 @@ class FireFlyState extends State<FireFly> with TickerProviderStateMixin {
       controller.add(
           AnimationController(vsync: this, duration: _animationDurations[i]));
       Animation<double> curvedAnimation =
-      CurvedAnimation(parent: controller[i], curve: Curves.ease)
-        ..addStatusListener((status) {
-          if (status == AnimationStatus.completed) {
-            controller[i].reverse();
-          } else if (status == AnimationStatus.dismissed) {
-            controller[i].forward();
-          }
-        });
+          CurvedAnimation(parent: controller[i], curve: Curves.ease)
+            ..addStatusListener((status) {
+              if (status == AnimationStatus.completed) {
+                controller[i].reverse();
+              } else if (status == AnimationStatus.dismissed) {
+                controller[i].forward();
+              }
+            });
       animation.add(curvedAnimation);
       controller[i].repeat();
       blurController
@@ -83,17 +83,17 @@ class FireFlyState extends State<FireFly> with TickerProviderStateMixin {
     );
 
     _spreadAnimation =
-    Tween<double>(begin: 10, end: 16).animate(_spreadAnimationController!)
-      ..addListener(() {
-        setState(() {});
-      })
-      ..addStatusListener((status) {
-        if (status == AnimationStatus.completed) {
-          _spreadAnimationController!.reverse();
-        } else if (status == AnimationStatus.dismissed) {
-          _spreadAnimationController!.forward();
-        }
-      });
+        Tween<double>(begin: 10, end: 16).animate(_spreadAnimationController!)
+          ..addListener(() {
+            setState(() {});
+          })
+          ..addStatusListener((status) {
+            if (status == AnimationStatus.completed) {
+              _spreadAnimationController!.reverse();
+            } else if (status == AnimationStatus.dismissed) {
+              _spreadAnimationController!.forward();
+            }
+          });
 
     _spreadAnimationController!.forward();
   }
@@ -122,51 +122,48 @@ class FireFlyState extends State<FireFly> with TickerProviderStateMixin {
     }
 
     return SafeArea(
-              child: Stack(
-                children: [
-                  for (int i = 0; i < fireFlyCount; i++)
-                    AnimatedBuilder(
-                      animation: animation[i],
-                      builder: (context, child) {
-                        double value = animation[i].value;
-                        double newX = _startX[i] +
-                            hundred[i] * sin(value * pi) * plusOrMinus[i];
-                        double newY = _startY[i] +
-                            hundred[i] *
-                                sin((value * onTwo[i]) * pi) *
-                                plusOrMinus[i];
-                        return Transform.translate(
-                          offset: Offset(newX, newY),
-                          child: Container(
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                boxShadow: [
-                                  // greenFieldValue == 0
-                                  //     ? BoxShadow(
-                                  //     spreadRadius: 1,
-                                  //     color: fireflyColor,
-                                  //     blurRadius: 5, // 20
-                                  //     blurStyle: BlurStyle.normal)
-                                  //     :
-                                   BoxShadow(
-                                      spreadRadius: _spreadAnimation!.value,
-                                      color: fireflyColor,
-                                      blurRadius: 30,
-                                      blurStyle: BlurStyle.normal),
-                                ]),
-                            child: CustomPaint(
-                              size: Size(_size[i], _size[i]),
-                              foregroundPainter: CircleBlurPainter(
-                                  circleWidth: 7,
-                                  blurSigma: blurAnimation[i].value),
-                            ),
-                          ),
-                        );
-                      },
-                    )
-                ],
-              ),
-            );
+      child: Stack(
+        children: [
+          for (int i = 0; i < fireFlyCount; i++)
+            AnimatedBuilder(
+              animation: animation[i],
+              builder: (context, child) {
+                double value = animation[i].value;
+                double newX =
+                    _startX[i] + hundred[i] * sin(value * pi) * plusOrMinus[i];
+                double newY = _startY[i] +
+                    hundred[i] * sin((value * onTwo[i]) * pi) * plusOrMinus[i];
+                return Transform.translate(
+                  offset: Offset(newX, newY),
+                  child: Container(
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          // greenFieldValue == 0
+                          //     ? BoxShadow(
+                          //     spreadRadius: 1,
+                          //     color: fireflyColor,
+                          //     blurRadius: 5, // 20
+                          //     blurStyle: BlurStyle.normal)
+                          //     :
+                          BoxShadow(
+                              spreadRadius: _spreadAnimation!.value,
+                              color: fireflyColor,
+                              blurRadius: 30,
+                              blurStyle: BlurStyle.normal),
+                        ]),
+                    child: CustomPaint(
+                      size: Size(_size[i], _size[i]),
+                      foregroundPainter: CircleBlurPainter(
+                          circleWidth: 7, blurSigma: blurAnimation[i].value),
+                    ),
+                  ),
+                );
+              },
+            )
+        ],
+      ),
+    );
   }
 
   @override
