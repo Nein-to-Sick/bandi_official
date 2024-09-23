@@ -14,7 +14,7 @@ dependencies:
   change_app_package_name: ^1.2.0
   cupertino_icons: ^1.0.8
   google_sign_in: ^6.2.1
-  sign_in_with_apple: ^6.1.1
+  sign_in_with_apple: ^6.1.2
   # STATE MANAGEMENT
   provider: ^6.1.2
   # FIREBASE
@@ -52,6 +52,7 @@ flutter:
    - assets/images/icons/
    - assets/images/login/
    - assets/images/new_letter/
+   - assets/images/onboarding/
    - assets/fonts/
    - assets/config/
    - assets/bgm/
