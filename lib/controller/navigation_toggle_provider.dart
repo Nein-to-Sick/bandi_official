@@ -15,4 +15,8 @@ class NavigationToggleProvider with ChangeNotifier {
     _selectedIndex = index;
     notifyListeners();
   }
+
+  int getIndex() {
+    return (_selectedIndex);
+  }
 }
