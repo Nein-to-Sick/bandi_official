@@ -34,7 +34,7 @@ class Alarm {
       type: AlarmType.values.firstWhere(
           (e) => e.toString() == 'AlarmType.${data['type']}',
           orElse: () => AlarmType.letter),
-      alarmTime: data['alarmTime'] ?? Timestamp.now(),
+      alarmTime: data['date'] ?? Timestamp.now(),
     );
   }
 }

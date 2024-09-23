@@ -270,6 +270,8 @@ class AlarmController with ChangeNotifier {
     final now = DateTime.now();
     final difference = now.difference(timestamp.toDate());
 
+    dev.log(timestamp.toString());
+
     if (difference.inDays > 0) {
       return '${difference.inDays}일 전';
     } else if (difference.inHours > 0) {
