@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
 
 import 'user_info_controller.dart';
@@ -10,10 +11,13 @@ class AccountController with ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  final storage = FlutterSecureStorage(); // SecureStorage 초기화
+
   // 로그아웃 함수
   Future<void> signOut(BuildContext context) async {
     await _auth.signOut();
     _clearUserInfo(context);
+    await storage.delete(key: 'token'); // 저장된 토큰 삭제
     _navigateToLogin(context);
   }
 
@@ -23,6 +27,7 @@ class AccountController with ChangeNotifier {
       User? user = _auth.currentUser;
       if (user != null) {
         await _deleteUserData(user.uid);
+        await storage.delete(key: 'token'); // 저장된 토큰 삭제
         await user.delete();
         _clearUserInfo(context);
         _navigateToLogin(context);
