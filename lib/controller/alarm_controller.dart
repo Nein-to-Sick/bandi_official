@@ -262,7 +262,7 @@ class AlarmController with ChangeNotifier {
         .doc(userId)
         .collection('notifications')
         .orderBy('date', descending: true)
-        .limit(30)
+        .limit(15)
         .snapshots();
   }
 

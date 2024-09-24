@@ -122,26 +122,36 @@ class _LikedDiaryPageState extends State<LikedDiaryPage> {
         ? const MyFireFlyProgressbar(
             loadingText: '로딩 중...',
           )
-        : Column(
-            children: [
-              const SizedBox(height: 16),
-              filterChips(mailController),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 10),
-                  child: ListView.builder(
-                    controller: mailController.likedDiaryScrollController,
-                    itemCount: mailController.likedDiaryList.length,
-                    itemBuilder: (context, index) {
-                      Diary diary = mailController.likedDiaryList[
-                          mailController.likedDiaryList.length - index - 1];
-                      return likedDiaryWidget(diary, mailController, context);
-                    },
+        : (mailController.likedDiaryList.isEmpty)
+            ? Center(
+                child: Text(
+                  '공감한 일기가 없습니다',
+                  style: BandiFont.headlineMedium(context)?.copyWith(
+                    color: BandiColor.neutralColor80(context),
                   ),
                 ),
-              ),
-            ],
-          );
+              )
+            : Column(
+                children: [
+                  const SizedBox(height: 16),
+                  filterChips(mailController),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 10),
+                      child: ListView.builder(
+                        controller: mailController.likedDiaryScrollController,
+                        itemCount: mailController.likedDiaryList.length,
+                        itemBuilder: (context, index) {
+                          Diary diary = mailController.likedDiaryList[
+                              mailController.likedDiaryList.length - index - 1];
+                          return likedDiaryWidget(
+                              diary, mailController, context);
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              );
   }
 }
 
