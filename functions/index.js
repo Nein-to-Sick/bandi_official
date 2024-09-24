@@ -163,6 +163,12 @@ exports.monthlyDiaryReview = functions.region("asia-northeast3").pubsub.schedule
                         newLetterAvailable: true,
                     });
 
+                    const notificationTitle = `${letterTitle}가 도착했어요`;
+                    const notificationType = "letter";
+
+                    // 알림 추가 함수 호출
+                    await addNotification(userDoc.id, notificationTitle, notificationType, letterId);
+
                     // 유저에게 FCM 토큰으로 알림 전송
                     const fcmToken = userData.fcmToken;
                     if (fcmToken) {
@@ -255,8 +261,74 @@ exports.sendLikedDiaryNotification = functions.https.onCall(async (data, context
     } catch (error) {
         console.error(`[Error] Failed to send notification to user ${userId}: ${error.message}`);
     }
+
+    const notificationTitle = "누군가 나의 기록에 공감했어요";
+    const notificationType = "likedDiary";
+
+    // 알림 추가 함수 호출
+    await addNotification(userId, notificationTitle, notificationType, likedDiaryId);
 });
 
+/**
+ * 사용자에게 새로운 알림을 추가하는 함수
+ * @param {string} userId - 알림을 받을 사용자의 ID
+ * @param {string} notificationTitle - 알림의 제목
+ * @param {string} notificationType - 알림의 타입
+ * @param {string} notificationDataId - 알림과 관련된 일기 id
+ * @return {Promise<void[]>}
+ */
+async function addNotification(userId, notificationTitle, notificationType, notificationDataId) {
+    try {
+        console.log(`[Proceed] Adding notification for user ${userId}`);
+
+        const notificationsRef = db.collection("users").doc(userId).collection("notifications");
+
+        await db.runTransaction(async (transaction) => {
+            // 알림 ID 생성
+            const notificationId = notificationsRef.doc().id;
+            // 알림 요약 문서 레퍼런스
+            const summaryDocRef = notificationsRef.doc("0000_docSummary");
+
+            // Summary document 읽기
+            const summaryDoc = await transaction.get(summaryDocRef);
+
+            // 알림 생성 (쓰기 작업은 읽기 작업 후에 실행)
+            console.log(`[Proceed] Creating notification for user ${userId}, notificationId: ${notificationId}`);
+            transaction.set(notificationsRef.doc(notificationId), {
+                notificationId: notificationId,
+                type: notificationType,
+                title: notificationTitle,
+                dataId: notificationDataId,
+                date: admin.firestore.FieldValue.serverTimestamp(),
+            });
+
+            // 새로운 알림이 있다는 플래그 설정
+            console.log(`[Proceed] Setting newNotificationsAvailable flag for user ${userId}`);
+            transaction.update(db.collection("users").doc(userId), {
+                newNotificationsAvailable: true,
+            });
+
+            // summary 문서 처리
+            if (!summaryDoc.exists) {
+                console.log(`[Proceed] Summary document does not exist for user ${userId}, creating new summary document`);
+                // summary 문서가 없으면 생성
+                transaction.set(summaryDocRef, {
+                    isNew: 1,
+                });
+            } else {
+                console.log(`[Proceed] Summary document exists for user ${userId}, updating isNew field`);
+                // summary 문서가 있으면 업데이트
+                transaction.update(summaryDocRef, {
+                    isNew: admin.firestore.FieldValue.increment(1),
+                });
+            }
+        });
+
+        console.log(`[Success] Notification added for user ${userId}`);
+    } catch (error) {
+        console.error(`[Error] Failed to add notification for user ${userId}: ${error.message}`);
+    }
+}
 
 // 유저 정보의 모든 관련 콜렉션을 삭제하는 함수
 // TODO: 추후 계정 탈퇴 관련 함수 수정 요청하기
