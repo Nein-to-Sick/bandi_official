@@ -1,7 +1,8 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 
-Color fireflyColor = Color.fromARGB(133, 255, 219, 91);
+// TODO: 색상 수정하기
+Color fireflyColor = const Color(0xffFFDB5B);
 
 class FireFly extends StatefulWidget {
   const FireFly({
@@ -40,7 +41,7 @@ class FireFlyState extends State<FireFly> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    fireFlyCount = 12;
+    fireFlyCount = 10;
     // _firestoreDocumentStream =
     //     _firestore.collection('users').doc(userId).snapshots();
     for (int i = 0; i < fireFlyCount; i++) {
@@ -140,17 +141,16 @@ class FireFlyState extends State<FireFly> with TickerProviderStateMixin {
                         borderRadius: BorderRadius.circular(10),
                         boxShadow: [
                           // greenFieldValue == 0
-                          //     ? BoxShadow(
-                          //     spreadRadius: 1,
-                          //     color: fireflyColor,
-                          //     blurRadius: 5, // 20
-                          //     blurStyle: BlurStyle.normal)
-                          //     :
                           BoxShadow(
-                              spreadRadius: _spreadAnimation!.value,
+                              spreadRadius: 1,
                               color: fireflyColor,
-                              blurRadius: 30,
-                              blurStyle: BlurStyle.normal),
+                              blurRadius: 5, // 20
+                              blurStyle: BlurStyle.normal)
+                          //  BoxShadow(
+                          //     spreadRadius: _spreadAnimation!.value,
+                          //     color: fireflyColor,
+                          //     blurRadius: 30,
+                          //     blurStyle: BlurStyle.normal),
                         ]),
                     child: CustomPaint(
                       size: Size(_size[i], _size[i]),

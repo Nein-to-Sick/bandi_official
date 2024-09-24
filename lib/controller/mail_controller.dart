@@ -21,7 +21,12 @@ class MailController with ChangeNotifier {
   // load data one when navigate to the view at the first time
   bool loadLikedDiaryDataOnce = false;
   bool loadLetterDataOnce = false;
-  bool loadNewLetterDataOnce = false;
+  bool loadNewLetterAndNotificationsDataOnce = false;
+
+  // whether the new notifications are available
+  bool isNewNotifications = false;
+  // number of nre notifications
+  int newNotificationCount = 0;
 
   // Get current user from FirebaseAuth
   String? get userId => FirebaseAuth.instance.currentUser!.uid;
@@ -180,6 +185,7 @@ class MailController with ChangeNotifier {
 
   // toggle the detail view value
   void toggleDetailView(bool value) {
+    dev.log('dhkdhdkdh');
     isDetailViewShowing = value;
     notifyListeners();
   }
@@ -603,9 +609,10 @@ class MailController with ChangeNotifier {
   }
 
   // update liked diary to local storage
-  Future<Tuple> checkForNewLetterAndsaveLetterToLocal() async {
+  Future<Tuple> checkForNewLetterNewNotificationsAndSaveLetterToLocal() async {
+    bool newLetterAvailable = false;
     if (userId!.isNotEmpty) {
-      loadNewLetterDataOnce = true;
+      loadNewLetterAndNotificationsDataOnce = true;
 
       // 사용자의 문서를 가져옴
       final userDoc = await FirebaseFirestore.instance
@@ -613,12 +620,18 @@ class MailController with ChangeNotifier {
           .doc(userId)
           .get();
 
-      dev.log('check for new letter is arrived');
+      dev.log('check for new letter and new notifications are arrived');
 
-      // 새로운 편지가 도착했는지 확인
-      if (userDoc.exists && userDoc.data()!['newLetterAvailable'] == false) {
+      // 새로운 편지와 알림이 도착했는지 확인
+      if (userDoc.exists) {
+        newLetterAvailable = userDoc.data()!['newLetterAvailable'];
+        isNewNotifications = userDoc.data()!['newNotificationsAvailable'];
+        notifyListeners();
+      }
+
+      if (!newLetterAvailable) {
         dev.log('there is no new letter');
-        return Tuple(false, null);
+        return Tuple(newLetterAvailable, null);
       }
 
       QuerySnapshot querySnapshot = await FirebaseFirestore.instance
@@ -631,7 +644,7 @@ class MailController with ChangeNotifier {
 
       if (querySnapshot.docs.isEmpty) {
         dev.log('there is new letter but cannot find new letter querySnapshot');
-        return Tuple(false, null);
+        return Tuple(!newLetterAvailable, null);
       }
 
       newLetter = Letter.fromSnapshot(querySnapshot.docs.first);
@@ -669,11 +682,11 @@ class MailController with ChangeNotifier {
       dev.log('update "newLetterAvailable" field from user document');
     } else {
       dev.log('there is no firebase uid');
-      return Tuple(false, null);
+      return Tuple(newLetterAvailable, null);
     }
 
     notifyListeners();
-    return Tuple(true, newLetter);
+    return Tuple(newLetterAvailable, newLetter);
   }
 
   // load more liked diary from past
@@ -760,5 +773,44 @@ class MailController with ChangeNotifier {
     } else {
       dev.log('there is no firebase uid');
     }
+  }
+
+  void updateNotificationsDataToDB() async {
+    if (isNewNotifications) {
+      isNewNotifications = false;
+      await FirebaseFirestore.instance.collection('users').doc(userId).update({
+        'newNotificationsAvailable': false,
+      });
+
+      var docRef = FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('notifications')
+          .doc('0000_docSummary');
+
+      var docSnapshot = await docRef.get();
+
+      if (docSnapshot.exists) {
+        var data = docSnapshot.data() as Map<String, dynamic>;
+        newNotificationCount = data['isNew'] ?? 0;
+        await docRef.update({'isNew': 0});
+        notifyListeners();
+      }
+
+      dev.log('update "newNotificationsAvailable" field from user document');
+    } else {
+      isNewNotifications = false;
+      dev.log('there is no need to update notification data');
+    }
+  }
+
+  void updateIsNewNotifications(bool value) {
+    isNewNotifications = value;
+    notifyListeners();
+  }
+
+  void initializeNewNotificaitonCount() {
+    newNotificationCount = 0;
+    notifyListeners();
   }
 }
