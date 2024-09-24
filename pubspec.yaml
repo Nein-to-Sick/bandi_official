@@ -55,6 +55,7 @@ flutter:
    - assets/images/icons/
    - assets/images/login/
    - assets/images/new_letter/
+   - assets/images/onboarding/
    - assets/fonts/
    - assets/config/
    - assets/bgm/
