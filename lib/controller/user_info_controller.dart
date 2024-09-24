@@ -4,7 +4,11 @@ class UserInfoValueModel with ChangeNotifier {
   String userId = '';
   String userEmail = '';
   String nickname = '';
-  bool isValueEntered = false;
+
+  void updateUserID(String value) {
+    userId = value;
+    notifyListeners();
+  }
 
   void updateUserEmail(String value) {
     userEmail = value;
@@ -16,16 +20,10 @@ class UserInfoValueModel with ChangeNotifier {
     notifyListeners();
   }
 
-  void setValueEntered() {
-    isValueEntered = true;
-    notifyListeners();
-  }
-
   void clearUserInfo() {
     userId = '';
     userEmail = '';
     nickname = '';
-    isValueEntered = false;
     notifyListeners();
   }
 }
