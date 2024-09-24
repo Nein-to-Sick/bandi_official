@@ -5,6 +5,11 @@ class UserInfoValueModel with ChangeNotifier {
   String userEmail = '';
   String nickname = '';
 
+  void updateUserID(String value) {
+    userId = value;
+    notifyListeners();
+  }
+
   void updateUserEmail(String value) {
     userEmail = value;
     notifyListeners();

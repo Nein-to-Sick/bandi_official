@@ -24,7 +24,11 @@ class NicknameSettingSheet {
         ),
       ),
       builder: (BuildContext context) {
-        return NicknameSettingStateful();
+        return Padding(
+          padding:
+              EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          child: NicknameSettingStateful(),
+        );
       },
     );
   }
