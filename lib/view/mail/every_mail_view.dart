@@ -2,6 +2,7 @@ import 'package:bandi_official/components/loading/loading_page.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/model/letter.dart';
+import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/mail/letters_view.dart';
 import 'package:bandi_official/view/mail/liked_diary_view.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -103,23 +104,34 @@ class _EveryMailPageState extends State<EveryMailPage> {
         ? const MyFireFlyProgressbar(
             loadingText: '로딩 중...',
           )
-        : Padding(
-            padding: const EdgeInsets.only(top: 16),
-            child: ListView.builder(
-              controller: mailController.everyMailScrollController,
-              itemCount: combinedList.length,
-              itemBuilder: (context, index) {
-                final item = combinedList[index];
-                if (item['type'] == 'letter') {
-                  final Letter letter = item['data'];
-                  return lettersWidget(letter, mailController, context);
-                } else if (item['type'] == 'diary') {
-                  final Diary diary = item['data'];
-                  return likedDiaryWidget(diary, mailController, context);
-                }
-                return const SizedBox.shrink(); // This should never be reached
-              },
-            ),
-          );
+        : (mailController.letterList.isEmpty &&
+                mailController.likedDiaryList.isEmpty)
+            ? Center(
+                child: Text(
+                  '보관함이 비었습니다',
+                  style: BandiFont.headlineMedium(context)?.copyWith(
+                    color: BandiColor.neutralColor80(context),
+                  ),
+                ),
+              )
+            : Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: ListView.builder(
+                  controller: mailController.everyMailScrollController,
+                  itemCount: combinedList.length,
+                  itemBuilder: (context, index) {
+                    final item = combinedList[index];
+                    if (item['type'] == 'letter') {
+                      final Letter letter = item['data'];
+                      return lettersWidget(letter, mailController, context);
+                    } else if (item['type'] == 'diary') {
+                      final Diary diary = item['data'];
+                      return likedDiaryWidget(diary, mailController, context);
+                    }
+                    return const SizedBox
+                        .shrink(); // This should never be reached
+                  },
+                ),
+              );
   }
 }

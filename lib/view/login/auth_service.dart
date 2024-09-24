@@ -1,7 +1,8 @@
-import 'dart:developer';
+import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
@@ -30,8 +31,8 @@ class AuthService {
       );
 
       // Firebase 인증
-      UserCredential userCredential =
-          await auth.signInWithCredential(credential);
+      //UserCredential userCredential =
+      await auth.signInWithCredential(credential);
 
       final userCollection = FirebaseFirestore.instance.collection("users");
 
@@ -69,6 +70,7 @@ class AuthService {
       // 사용자 문서가 없으면 새로 생성
       if (!snapshot.exists ||
           (snapshot.data() as Map<String, dynamic>)['nickname'] == null) {
+        String? fcmToken = await FirebaseMessaging.instance.getToken();
         await docRef.set({
           "created_at": FieldValue.serverTimestamp(),
           "email": userEmail,
@@ -90,14 +92,28 @@ class AuthService {
         final otherDiaryCollectionRef = docRef.collection('otherDiary');
         await otherDiaryCollectionRef.doc('0000_docSummary').set({});
 
+        final notificationsCollectionRef = docRef.collection('notifications');
+        await notificationsCollectionRef.doc('0000_docSummary').set({});
+
         // 온보딩 페이지로 이동
         navigationToggleProvider.selectIndex(-3);
+      } else {
+        String? fcmToken = await FirebaseMessaging.instance.getToken();
+        if (fcmToken != null) {
+          // Check if the current token is different from the one in Firestore
+          if (snapshot["fcmToken"] != fcmToken) {
+            // Update the FCM token in Firestore
+            await FirebaseFirestore.instance
+                .collection('users')
+                .doc(userId)
+                .update({'fcmToken': fcmToken});
+          }
+        }
       }
 
       return auth.currentUser;
     } catch (e) {
-      print('Error during Google Sign-In: $e');
-      // 사용자에게 에러 메시지를 제공하거나 로깅 처리
+      dev.log('Error during Google Sign-In: $e');
       return null;
     }
   }
@@ -121,8 +137,8 @@ class AuthService {
       );
 
       // 3. Firebase에 로그인
-      UserCredential userCredential =
-          await FirebaseAuth.instance.signInWithCredential(credential);
+      //UserCredential userCredential =
+      await FirebaseAuth.instance.signInWithCredential(credential);
 
       final userCollection = FirebaseFirestore.instance.collection("users");
 
@@ -131,88 +147,6 @@ class AuthService {
 
       if (userId == null || userEmail == null) {
         throw Exception("User not found after authentication.");
-//     final GoogleSignInAuthentication gAuth = await gUser.authentication;
-//     final credential = GoogleAuthProvider.credential(
-//       accessToken: gAuth.accessToken,
-//       idToken: gAuth.idToken,
-//     );
-
-//     UserCredential userCredential =
-//         await FirebaseAuth.instance.signInWithCredential(credential);
-
-//     final userCollection = FirebaseFirestore.instance.collection("users");
-
-//     String? userId = FirebaseAuth.instance.currentUser?.uid;
-//     String? userEmail = FirebaseAuth.instance.currentUser?.email;
-
-//     final docRef = userCollection.doc(userId);
-//     DocumentSnapshot snapshot = await docRef.get();
-
-//     final userInfoProvider =
-//         Provider.of<UserInfoValueModel>(context, listen: false);
-//     userInfoProvider.updateUserEmail(userEmail ?? '');
-//     userInfoProvider.userId = userId ?? '';
-//     userInfoProvider.setValueEntered();
-
-//     // NavigationToggleProvider를 사용하여 화면 전환
-//     final navigationToggleProvider =
-//         Provider.of<NavigationToggleProvider>(context, listen: false);
-
-//     if (!snapshot.exists) {
-//       // 처음 로그인한 사용자라면
-//       String? fcmToken = await FirebaseMessaging.instance.getToken();
-//       await docRef.set({
-//         "created_at": FieldValue.serverTimestamp(),
-//         "email": userEmail,
-//         "nickname": "",
-//         "likedDiaryId": [],
-//         "myDiaryId": [],
-//         "socialLoginProvider": "google",
-//         "updatedAt": FieldValue.serverTimestamp(),
-//         "userId": userId,
-//         "newLetterAvailable": false,
-//         "newNotificationsAvailable": false,
-//         "fcmToken": fcmToken,
-//       });
-
-//       // 하위 컬렉션 생성: letters
-//       final lettersCollectionRef = docRef.collection('letters');
-
-//       // 하위 컬렉션: letters에 대표 문서 추가
-//       await lettersCollectionRef.doc('0000_docSummary').set({
-//         // 빈 데이터 또는 초기 데이터
-//       });
-
-//       // 하위 컬렉션 생성: otherDiary
-//       final otherDiaryCollectionRef = docRef.collection('otherDiary');
-
-//       // 하위 컬렉션: otherDiary에 빈 문서 추가
-//       await otherDiaryCollectionRef.doc('0000_docSummary').set({
-//         // 빈 데이터 또는 초기 데이터
-//       });
-
-//       // 하위 컬렉션 생성: otherDiary
-//       final notificationsCollectionRef = docRef.collection('notifications');
-
-//       // 하위 컬렉션: otherDiary에 빈 문서 추가
-//       await notificationsCollectionRef.doc('0000_docSummary').set({
-//         // 빈 데이터 또는 초기 데이터
-//       });
-
-//       // 온보딩 페이지로 이동
-//       navigationToggleProvider.selectIndex(-3);
-//     } else {
-//       String? fcmToken = await FirebaseMessaging.instance.getToken();
-//       if (fcmToken != null) {
-//         // Check if the current token is different from the one in Firestore
-//         if (snapshot["fcmToken"] != fcmToken) {
-//           // Update the FCM token in Firestore
-//           await FirebaseFirestore.instance
-//               .collection('users')
-//               .doc(userId)
-//               .update({'fcmToken': fcmToken});
-//         }
-
       }
 
       final docRef = userCollection.doc(userId);
@@ -242,6 +176,7 @@ class AuthService {
       // 사용자 문서가 없거나 nickname이 없는 경우 처리
       if (!snapshot.exists ||
           (snapshot.data() as Map<String, dynamic>)['nickname'] == null) {
+        String? fcmToken = await FirebaseMessaging.instance.getToken();
         await docRef.set({
           "created_at": FieldValue.serverTimestamp(),
           "email": userEmail,
@@ -263,13 +198,28 @@ class AuthService {
         final otherDiaryCollectionRef = docRef.collection('otherDiary');
         await otherDiaryCollectionRef.doc('0000_docSummary').set({});
 
+        final notificationsCollectionRef = docRef.collection('notifications');
+        await notificationsCollectionRef.doc('0000_docSummary').set({});
+
         // 온보딩 페이지로 이동
         navigationToggleProvider.selectIndex(-3);
+      } else {
+        String? fcmToken = await FirebaseMessaging.instance.getToken();
+        if (fcmToken != null) {
+          // Check if the current token is different from the one in Firestore
+          if (snapshot["fcmToken"] != fcmToken) {
+            // Update the FCM token in Firestore
+            await FirebaseFirestore.instance
+                .collection('users')
+                .doc(userId)
+                .update({'fcmToken': fcmToken});
+          }
+        }
       }
 
       return FirebaseAuth.instance.currentUser;
     } catch (error) {
-      print('애플 로그인 중 오류 발생: $error');
+      dev.log('애플 로그인 중 오류 발생: $error');
       return null;
     }
   }

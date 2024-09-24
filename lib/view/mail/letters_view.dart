@@ -68,18 +68,27 @@ class _MyLettersPageState extends State<MyLettersPage> {
         ? const MyFireFlyProgressbar(
             loadingText: '로딩 중...',
           )
-        : Padding(
-            padding: const EdgeInsets.only(top: 16),
-            child: ListView.builder(
-              controller: mailController.letterScrollController,
-              itemCount: mailController.letterList.length,
-              itemBuilder: (context, index) {
-                Letter letter = mailController
-                    .letterList[mailController.letterList.length - index - 1];
-                return lettersWidget(letter, mailController, context);
-              },
-            ),
-          );
+        : (mailController.letterList.isEmpty)
+            ? Center(
+                child: Text(
+                  '편지가 없습니다',
+                  style: BandiFont.headlineMedium(context)?.copyWith(
+                    color: BandiColor.neutralColor80(context),
+                  ),
+                ),
+              )
+            : Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: ListView.builder(
+                  controller: mailController.letterScrollController,
+                  itemCount: mailController.letterList.length,
+                  itemBuilder: (context, index) {
+                    Letter letter = mailController.letterList[
+                        mailController.letterList.length - index - 1];
+                    return lettersWidget(letter, mailController, context);
+                  },
+                ),
+              );
   }
 }
 
