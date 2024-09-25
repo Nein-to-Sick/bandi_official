@@ -14,7 +14,7 @@ dependencies:
   change_app_package_name: ^1.2.0
   cupertino_icons: ^1.0.8
   google_sign_in: ^6.2.1
-  sign_in_with_apple: ^6.1.1
+  sign_in_with_apple: ^6.1.2
   # STATE MANAGEMENT
   provider: ^6.1.2
   # FIREBASE
@@ -34,6 +34,7 @@ dependencies:
   google_sign_in_ios: ^5.7.6
   http: ^1.2.2
   wrapped_korean_text: ^0.0.3
+  flutter_secure_storage: ^9.2.2
   firebase_messaging: ^15.1.0
   firebase_analytics: ^11.3.0
   permission_handler: ^11.3.1
