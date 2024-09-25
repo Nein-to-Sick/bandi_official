@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
@@ -15,6 +16,7 @@ class AuthService {
   final auth = FirebaseAuth.instance;
   final googleSignIn = GoogleSignIn();
 
+  final storage = FlutterSecureStorage();
   Future<User?> signInWithGoogle(BuildContext context) async {
     try {
       // 이미 선언된 GoogleSignIn 인스턴스 사용
@@ -31,8 +33,11 @@ class AuthService {
       );
 
       // Firebase 인증
-      //UserCredential userCredential =
-      await auth.signInWithCredential(credential);
+      UserCredential userCredential =
+          await auth.signInWithCredential(credential);
+
+      String? token = await userCredential.user!.getIdToken();
+      await storage.write(key: 'authToken', value: token);
 
       final userCollection = FirebaseFirestore.instance.collection("users");
 
@@ -70,7 +75,9 @@ class AuthService {
       // 사용자 문서가 없으면 새로 생성
       if (!snapshot.exists ||
           (snapshot.data() as Map<String, dynamic>)['nickname'] == null) {
+
         String? fcmToken = await FirebaseMessaging.instance.getToken();
+
         await docRef.set({
           "created_at": FieldValue.serverTimestamp(),
           "email": userEmail,
@@ -113,6 +120,8 @@ class AuthService {
 
       return auth.currentUser;
     } catch (e) {
+
+      // 사용자에게 에러 메시지를 제공하거나 로깅 처리
       dev.log('Error during Google Sign-In: $e');
       return null;
     }
@@ -137,8 +146,11 @@ class AuthService {
       );
 
       // 3. Firebase에 로그인
-      //UserCredential userCredential =
-      await FirebaseAuth.instance.signInWithCredential(credential);
+      UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithCredential(credential);
+
+      String? token = await userCredential.user!.getIdToken();
+      await storage.write(key: 'authToken', value: token);
 
       final userCollection = FirebaseFirestore.instance.collection("users");
 
@@ -176,7 +188,9 @@ class AuthService {
       // 사용자 문서가 없거나 nickname이 없는 경우 처리
       if (!snapshot.exists ||
           (snapshot.data() as Map<String, dynamic>)['nickname'] == null) {
+
         String? fcmToken = await FirebaseMessaging.instance.getToken();
+
         await docRef.set({
           "created_at": FieldValue.serverTimestamp(),
           "email": userEmail,
@@ -189,6 +203,7 @@ class AuthService {
           "newLetterAvailable": false,
           "newNotificationsAvailable": false,
           "fcmToken": fcmToken,
+
         });
 
         // 하위 컬렉션 생성: letters

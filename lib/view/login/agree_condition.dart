@@ -19,6 +19,8 @@ class AgreementSheet {
   Future<bool?> agreementTermSheet(BuildContext context) {
     return showModalBottomSheet<bool>(
       backgroundColor: BandiColor.neutralColor40(context),
+      // barrierColor: Colors.black.withAlpha(1),
+      // backgroundColor: Colors.transparent,
       context: context,
       isScrollControlled: true,
       isDismissible: false,
@@ -62,6 +64,7 @@ class _AgreementStatfulState extends State<AgreementStatful> {
       child: Container(
         decoration: BoxDecoration(
           color: BandiColor.neutralColor40(context).withOpacity(1.0),
+          // color: Colors.black,
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(8),
             topRight: Radius.circular(8),
@@ -113,6 +116,7 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                       : PhosphorIcon(
                           PhosphorIcons.checkCircle(),
                           color: BandiColor.foundationColor20(context),
+                          // fill: 1.0,
                         ),
                 ),
               ),
@@ -147,6 +151,7 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                       : PhosphorIcon(
                           PhosphorIcons.checkCircle(),
                           color: BandiColor.foundationColor20(context),
+                          // fill: 1.0,
                         ),
                 ),
               ),
@@ -154,6 +159,7 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                 contentPadding: EdgeInsets.zero,
                 title: GestureDetector(
                   onTap: () {
+                    // 웹뷰 또는 다이얼로그로 약관을 보여주는 로직을 구현
                     // "개인정보처리동의서"를 눌렀을 때
                     showDialog(
                       context: context,
@@ -308,6 +314,7 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                       : PhosphorIcon(
                           PhosphorIcons.checkCircle(),
                           color: BandiColor.foundationColor20(context),
+                          // fill: 1.0,
                         ),
                 ),
               ),
@@ -315,6 +322,7 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                 contentPadding: EdgeInsets.zero,
                 title: GestureDetector(
                   onTap: () {
+                    // 웹뷰 또는 다이얼로그로 약관을 보여주는 로직을 구현
                     // "이용약관"을 눌렀을 때
                     showDialog(
                       context: context,
@@ -455,6 +463,7 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                       : PhosphorIcon(
                           PhosphorIcons.checkCircle(),
                           color: BandiColor.foundationColor20(context),
+                          // fill: 1.0,
                         ),
                 ),
               ),
