@@ -16,7 +16,7 @@ class LikedDiaryPage extends StatefulWidget {
 }
 
 class _LikedDiaryPageState extends State<LikedDiaryPage> {
-  bool loadMoreData = true;
+  late MailController mailController;
 
   Widget filterChips(MailController mailController) {
     return Align(
@@ -73,25 +73,45 @@ class _LikedDiaryPageState extends State<LikedDiaryPage> {
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      MailController mailController =
-          Provider.of<MailController>(context, listen: false);
+      mailController = Provider.of<MailController>(context, listen: false);
 
-      mailController.loadDataAndSetting();
-      mailController.restoreLikedDiaryScrollPosition();
+      mailController.loadDataAndSetting().then((value) {
+        mailController.restoreLikedDiaryScrollPosition();
 
-      // when screen reached nearly top of the list load more past data
-      mailController.likedDiaryScrollController.addListener(() async {
-        final position = mailController.likedDiaryScrollController.position;
-        if (loadMoreData && position.atEdge && position.pixels != 0) {
-          if (position.userScrollDirection == ScrollDirection.reverse &&
-              position.maxScrollExtent - position.pixels <= 300) {
-            loadMoreData = await mailController.loadMoreLikedDiary();
-          }
+        if (!mailController.isLikedDiaryListenerAdded) {
+          // when screen reached nearly bottom of the list load more past data
+          WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+            mailController.likedDiaryScrollController
+                .addListener(_scrollListener);
+            mailController.toggleIsLikedDiaryListenerAdded(true);
+          });
         }
       });
     });
 
     super.initState();
+  }
+
+  void _scrollListener() async {
+    final position = mailController.likedDiaryScrollController.position;
+    if (mailController.loadMoreLikedDiaryData &&
+        position.atEdge &&
+        position.pixels != 0) {
+      if (position.userScrollDirection == ScrollDirection.reverse &&
+          position.maxScrollExtent - position.pixels <= 300) {
+        mailController.toggleLoadMoreLikedDiaryData(
+            await mailController.loadMoreLikedDiary());
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      mailController.likedDiaryScrollController.removeListener(_scrollListener);
+      mailController.toggleIsLikedDiaryListenerAdded(false);
+    });
+    super.dispose();
   }
 
   @override
@@ -102,26 +122,36 @@ class _LikedDiaryPageState extends State<LikedDiaryPage> {
         ? const MyFireFlyProgressbar(
             loadingText: '로딩 중...',
           )
-        : Column(
-            children: [
-              const SizedBox(height: 16),
-              filterChips(mailController),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 10),
-                  child: ListView.builder(
-                    controller: mailController.likedDiaryScrollController,
-                    itemCount: mailController.likedDiaryList.length,
-                    itemBuilder: (context, index) {
-                      Diary diary = mailController.likedDiaryList[
-                          mailController.likedDiaryList.length - index - 1];
-                      return likedDiaryWidget(diary, mailController, context);
-                    },
+        : (mailController.likedDiaryList.isEmpty)
+            ? Center(
+                child: Text(
+                  '공감한 일기가 없습니다',
+                  style: BandiFont.headlineMedium(context)?.copyWith(
+                    color: BandiColor.neutralColor80(context),
                   ),
                 ),
-              ),
-            ],
-          );
+              )
+            : Column(
+                children: [
+                  const SizedBox(height: 16),
+                  filterChips(mailController),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 10),
+                      child: ListView.builder(
+                        controller: mailController.likedDiaryScrollController,
+                        itemCount: mailController.likedDiaryList.length,
+                        itemBuilder: (context, index) {
+                          Diary diary = mailController.likedDiaryList[
+                              mailController.likedDiaryList.length - index - 1];
+                          return likedDiaryWidget(
+                              diary, mailController, context);
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              );
   }
 }
 

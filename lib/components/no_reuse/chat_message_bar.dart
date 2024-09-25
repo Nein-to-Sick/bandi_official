@@ -46,6 +46,8 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
       }
     }
 
+    final bottomHeight = MediaQuery.of(context).padding.bottom;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -130,7 +132,7 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 100),
               curve: Curves.easeOutCirc,
-              height: 56,
+              height: 78 + bottomHeight,
               decoration: BoxDecoration(
                 color: BandiColor.foundationColor10(context),
                 border: Border(
@@ -140,40 +142,55 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                   ),
                 ),
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Flexible(
-                    child: IgnorePointer(
-                      ignoring: diaryAiChatController.isChatResponsLoading,
-                      child: TextField(
-                        onChanged: (text) {
-                          diaryAiChatController.updateTexfieldMessage();
-                        },
-                        controller: diaryAiChatController.chatTextController,
-                        focusNode: diaryAiChatController.chatFocusNode,
-                        keyboardType: TextInputType.multiline,
-                        maxLines: null,
-                        cursorColor: BandiColor.neutralColor100(context),
-                        style: BandiFont.labelMedium(context)?.copyWith(
-                          color: BandiColor.neutralColor100(context),
-                        ),
-                        decoration: InputDecoration(
-                          hintText: (diaryAiChatController.isChatResponsLoading)
-                              ? '답변 중이에요'
-                              : '대화를 시작해보세요',
-                          hintStyle: BandiFont.labelMedium(context)?.copyWith(
-                            color: BandiColor.neutralColor40(context),
+              child: Padding(
+                padding:
+                    EdgeInsets.only(left: 24, right: 24, bottom: bottomHeight),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Flexible(
+                      child: IgnorePointer(
+                        ignoring: diaryAiChatController.isChatResponsLoading,
+                        child: Container(
+                          height: 45,
+                          decoration: BoxDecoration(
+                            color: BandiColor.neutralColor20(context),
+                            borderRadius: BorderRadius.circular(100),
                           ),
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.only(left: 20),
+                          child: TextField(
+                            onChanged: (text) {
+                              diaryAiChatController.updateTexfieldMessage();
+                            },
+                            controller:
+                                diaryAiChatController.chatTextController,
+                            focusNode: diaryAiChatController.chatFocusNode,
+                            keyboardType: TextInputType.multiline,
+                            maxLines: null,
+                            cursorColor: BandiColor.neutralColor100(context),
+                            style: BandiFont.labelMedium(context)?.copyWith(
+                              color: BandiColor.neutralColor100(context),
+                            ),
+                            decoration: InputDecoration(
+                              hintText:
+                                  (diaryAiChatController.isChatResponsLoading)
+                                      ? '답변 중이에요'
+                                      : '대화를 시작해보세요',
+                              hintStyle:
+                                  BandiFont.labelMedium(context)?.copyWith(
+                                color: BandiColor.neutralColor40(context),
+                              ),
+                              border: InputBorder.none,
+                              contentPadding: const EdgeInsets.only(left: 20),
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 10),
-                    child: GestureDetector(
+                    const SizedBox(
+                      width: 10,
+                    ),
+                    GestureDetector(
                       onTapDown: (sendButtonCondition())
                           ? null
                           : (_) {
@@ -201,8 +218,8 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                             },
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
-                        width: 40,
-                        height: 40,
+                        width: 45,
+                        height: 45,
                         decoration: BoxDecoration(
                           color: (sendButtonCondition())
                               ? BandiColor.neutralColor20(context) // Disabled
@@ -221,13 +238,13 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                             color: (sendButtonCondition())
                                 ? BandiColor.neutralColor20(context) // Disabled
                                 : BandiColor.neutralColor80(context), // Default
-                            size: 24,
+                            size: 26,
                           ),
                         ),
                       ),
-                    ),
-                  )
-                ],
+                    )
+                  ],
+                ),
               ),
             ),
           ),

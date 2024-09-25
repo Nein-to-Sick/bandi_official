@@ -28,6 +28,10 @@ class DiaryAiChatController with ChangeNotifier {
   bool isChatResponsLoading = false;
   // determine whether to display the chat view
   bool isChatOpen = false;
+  // Flag variable indicating whether more data needs to be loaded
+  bool loadMoreData = true;
+  // Flag variable to track whether the scroll listener has already been added
+  bool isListenerAdded = false;
   // manage the chat page scroll
   final chatScrollController = ScrollController();
   // for chat system message (today's date)
@@ -39,7 +43,7 @@ class DiaryAiChatController with ChangeNotifier {
   String? get userId => FirebaseAuth.instance.currentUser!.uid;
 
   // called on initState
-  void loadDataAndSetting() {
+  Future<void> loadDataAndSetting() async {
     if (!sendFirstMessage) {
       getChatLogFromLocal();
     } else {
@@ -50,6 +54,18 @@ class DiaryAiChatController with ChangeNotifier {
   // toggle the chat page view
   void toggleChatOpen(value) {
     isChatOpen = value;
+    notifyListeners();
+  }
+
+  // toggle the loadMoreData value
+  void toggleLoadMoreData(value) {
+    loadMoreData = value;
+    notifyListeners();
+  }
+
+  // toggle the isListenerAdded value
+  void toggleIsListenerAdded(value) {
+    isListenerAdded = value;
     notifyListeners();
   }
 
@@ -156,11 +172,12 @@ class DiaryAiChatController with ChangeNotifier {
       sendFirstMessage = true;
     }
 
-    dev.log(chatlog.last.messageTime.toString());
+    // dev.log(chatlog.last.messageTime.toString());
 
     // when submitted message's date is different with latest message's date
     if (ChatMessage.calculateDateDifference(
-            chatlog.last.messageTime, timestampToLocal(Timestamp.now())) >=
+            timestampToLocal(chatlog.last.messageTime),
+            timestampToLocal(Timestamp.now())) >=
         1) {
       updateSystemChat();
       chatlog.add(chatModel);
@@ -343,6 +360,11 @@ class DiaryAiChatController with ChangeNotifier {
                       ChatMessage.fromJsonLocal(jsonDecode(jsonMessage)))
                   .toList(),
             );
+
+            // for (int i = 0; i < chatlog.length; i++) {
+            //   dev.log(
+            //       "${ChatMessage.formatTimestamp(timestampToLocal(chatlog[i].messageTime))}: ${chatlog[i].message}");
+            // }
           } else {
             dev.log(
                 'there is no chat data for date ${key.split('_').skip(1).join('_')}');
@@ -364,11 +386,14 @@ class DiaryAiChatController with ChangeNotifier {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       String todayKey =
           '${userId}_chatLog_${DateTime.now().toIso8601String().substring(0, 10)}';
+      // for test
+      // String todayKey = '${userId}_chatLog_2024-09-09';
 
       // only save messages within same day
       List<ChatMessage> todayMessages = chatlog.where((message) {
         return ChatMessage.calculateDateDifference(
-                message.messageTime, timestampToLocal(Timestamp.now())) ==
+                timestampToLocal(message.messageTime),
+                timestampToLocal(Timestamp.now())) ==
             0;
       }).toList();
 
@@ -435,7 +460,6 @@ class DiaryAiChatController with ChangeNotifier {
               dev.log('there is no more older chat data');
               return false;
             }
-            break;
           }
         }
       } else {

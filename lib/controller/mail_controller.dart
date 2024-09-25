@@ -3,7 +3,6 @@ import 'dart:convert';
 
 import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/model/letter.dart';
-import 'package:bandi_official/utils/time_utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -11,11 +10,23 @@ import 'dart:developer' as dev;
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+class Tuple<T1, T2> {
+  final T1 item1;
+  final T2 item2;
+
+  Tuple(this.item1, this.item2);
+}
+
 class MailController with ChangeNotifier {
   // load data one when navigate to the view at the first time
   bool loadLikedDiaryDataOnce = false;
   bool loadLetterDataOnce = false;
-  bool loadNewLetterDataOnce = false;
+  bool loadNewLetterAndNotificationsDataOnce = false;
+
+  // whether the new notifications are available
+  bool isNewNotifications = false;
+  // number of nre notifications
+  int newNotificationCount = 0;
 
   // Get current user from FirebaseAuth
   String? get userId => FirebaseAuth.instance.currentUser!.uid;
@@ -66,20 +77,28 @@ class MailController with ChangeNotifier {
   }
 
   void restoreEveryMailScrollPosition() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (_everyMailScrollController.hasClients) {
       _everyMailScrollController.jumpTo(everyMailScrollPosition);
-    });
+    } else {
+      dev.log('_everyMailScrollController has no clients');
+    }
   }
 
   void restoreLetterScrollPosition() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (_letterScrollController.hasClients) {
       _letterScrollController.jumpTo(letterScrollPosition);
-    });
+    } else {
+      dev.log('_letterScrollController has no clients');
+    }
   }
 
   void restoreLikedDiaryScrollPosition() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _likedDiaryScrollController.jumpTo(likedDiaryScrollPosition);
+      if (_likedDiaryScrollController.hasClients) {
+        _likedDiaryScrollController.jumpTo(likedDiaryScrollPosition);
+      } else {
+        dev.log('_likedDiaryScrollController has no clients');
+      }
     });
   }
 
@@ -93,16 +112,25 @@ class MailController with ChangeNotifier {
   // while detail view is shown
   bool isDetailViewShowing = false;
 
-  // // for new letter model
-  // late Letter newLetter;
+  // Flag variable indicating whether more data needs to be loaded
+  bool loadMoreLetterData = true;
+  bool loadMoreLikedDiaryData = true;
 
-  // for new letter model
-  late Letter newLetter = Letter(
-    title: 'yyyy년 m월 편지',
-    content: 'test' * 100,
-    date: timestampToLocal(Timestamp.now()),
-    letterId: 'letterId',
-  );
+  // Flag variable to track whether the scroll listener has already been added
+  bool isEveryMailListenerAdded = false;
+  bool isLettersListenerAdded = false;
+  bool isLikedDiaryListenerAdded = false;
+
+  // // for new letter model
+  late Letter newLetter;
+
+  // // for new letter model
+  // late Letter newLetter = Letter(
+  //   title: 'yyyy년 m월 편지',
+  //   content: 'test' * 100,
+  //   date: timestampToLocal(Timestamp.now()),
+  //   letterId: 'letterId',
+  // );
 
   // mail view tab controller
   late TabController _tabController;
@@ -127,7 +155,7 @@ class MailController with ChangeNotifier {
   int get currentIndex => _tabController.index;
 
   // called on initState
-  void loadDataAndSetting() {
+  Future<void> loadDataAndSetting() async {
     if (!loadLikedDiaryDataOnce || !loadLetterDataOnce) {
       toggleLoading(true);
       if (!loadLikedDiaryDataOnce) {
@@ -157,7 +185,43 @@ class MailController with ChangeNotifier {
 
   // toggle the detail view value
   void toggleDetailView(bool value) {
+    dev.log('dhkdhdkdh');
     isDetailViewShowing = value;
+    notifyListeners();
+  }
+
+  // toggle the loadMoreLetterData value
+  void toggleLoadMoreLetterData(value) {
+    // dev.log('편지 데이터 로드 토글: $value');
+    loadMoreLetterData = value;
+    notifyListeners();
+  }
+
+  // toggle the loadMoreLikedDiaryData value
+  void toggleLoadMoreLikedDiaryData(value) {
+    // dev.log('공감 일기 데이터 로드 토글: $value');
+    loadMoreLikedDiaryData = value;
+    notifyListeners();
+  }
+
+  // toggle the isListenerAdded value
+  void toggleIsEveryMailListenerAdded(value) {
+    // dev.log('모든 메일 리스너 토글: $value');
+    isEveryMailListenerAdded = value;
+    notifyListeners();
+  }
+
+  // toggle the isListenerAdded value
+  void toggleIsLettersListenerAdded(value) {
+    // dev.log('편지 리스너 토글: $value');
+    isLettersListenerAdded = value;
+    notifyListeners();
+  }
+
+  // toggle the isListenerAdded value
+  void toggleIsLikedDiaryListenerAdded(value) {
+    // dev.log('공감 일기 메일리스너 토글: $value');
+    isLikedDiaryListenerAdded = value;
     notifyListeners();
   }
 
@@ -410,17 +474,16 @@ class MailController with ChangeNotifier {
                   'read older liked Diary from local for date ${key.split('_').skip(1).join('_')}');
 
               if (keys.indexOf(key) == 0) {
-                dev.log('there is no more older liked Diary data');
+                dev.log('[2] there is no more older liked Diary data');
                 return false;
               }
               break;
             }
           } else {
             if (keys.indexOf(key) == 0) {
-              dev.log('there is no more older liked Diary data');
+              dev.log('[1] there is no more older liked Diary data');
               return false;
             }
-            break;
           }
         }
       } else {
@@ -546,9 +609,10 @@ class MailController with ChangeNotifier {
   }
 
   // update liked diary to local storage
-  Future<bool> checkForNewLetterAndsaveLetterToLocal() async {
+  Future<Tuple> checkForNewLetterNewNotificationsAndSaveLetterToLocal() async {
+    bool newLetterAvailable = false;
     if (userId!.isNotEmpty) {
-      loadNewLetterDataOnce = true;
+      loadNewLetterAndNotificationsDataOnce = true;
 
       // 사용자의 문서를 가져옴
       final userDoc = await FirebaseFirestore.instance
@@ -556,12 +620,18 @@ class MailController with ChangeNotifier {
           .doc(userId)
           .get();
 
-      dev.log('check for new letter is arrived');
+      dev.log('check for new letter and new notifications are arrived');
 
-      // 새로운 편지가 도착했는지 확인
-      if (userDoc.exists && userDoc.data()!['newLetterAvailable'] == false) {
+      // 새로운 편지와 알림이 도착했는지 확인
+      if (userDoc.exists) {
+        newLetterAvailable = userDoc.data()!['newLetterAvailable'];
+        isNewNotifications = userDoc.data()!['newNotificationsAvailable'];
+        notifyListeners();
+      }
+
+      if (!newLetterAvailable) {
         dev.log('there is no new letter');
-        return false;
+        return Tuple(newLetterAvailable, null);
       }
 
       QuerySnapshot querySnapshot = await FirebaseFirestore.instance
@@ -574,7 +644,7 @@ class MailController with ChangeNotifier {
 
       if (querySnapshot.docs.isEmpty) {
         dev.log('there is new letter but cannot find new letter querySnapshot');
-        return false;
+        return Tuple(!newLetterAvailable, null);
       }
 
       newLetter = Letter.fromSnapshot(querySnapshot.docs.first);
@@ -612,11 +682,11 @@ class MailController with ChangeNotifier {
       dev.log('update "newLetterAvailable" field from user document');
     } else {
       dev.log('there is no firebase uid');
-      return false;
+      return Tuple(newLetterAvailable, null);
     }
 
     notifyListeners();
-    return true;
+    return Tuple(newLetterAvailable, newLetter);
   }
 
   // load more liked diary from past
@@ -646,17 +716,16 @@ class MailController with ChangeNotifier {
                   'read older letter from local for date ${key.split('_').skip(1).join('_')}');
 
               if (keys.indexOf(key) == 0) {
-                dev.log('there is no more older letter data');
+                dev.log('[2] there is no more older letter data');
                 return false;
               }
               break;
             }
           } else {
             if (keys.indexOf(key) == 0) {
-              dev.log('there is no more older letter data');
+              dev.log('[1] there is no more older letter data');
               return false;
             }
-            break;
           }
         }
       } else {
@@ -698,9 +767,50 @@ class MailController with ChangeNotifier {
       letterList.clear();
       letterListDates.clear();
 
+      notifyListeners();
+
       dev.log('delete liked Diary and Letter from local');
     } else {
       dev.log('there is no firebase uid');
     }
+  }
+
+  void updateNotificationsDataToDB() async {
+    if (isNewNotifications) {
+      isNewNotifications = false;
+      await FirebaseFirestore.instance.collection('users').doc(userId).update({
+        'newNotificationsAvailable': false,
+      });
+
+      var docRef = FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('notifications')
+          .doc('0000_docSummary');
+
+      var docSnapshot = await docRef.get();
+
+      if (docSnapshot.exists) {
+        var data = docSnapshot.data() as Map<String, dynamic>;
+        newNotificationCount = data['isNew'] ?? 0;
+        await docRef.update({'isNew': 0});
+        notifyListeners();
+      }
+
+      dev.log('update "newNotificationsAvailable" field from user document');
+    } else {
+      isNewNotifications = false;
+      dev.log('there is no need to update notification data');
+    }
+  }
+
+  void updateIsNewNotifications(bool value) {
+    isNewNotifications = value;
+    notifyListeners();
+  }
+
+  void initializeNewNotificaitonCount() {
+    newNotificationCount = 0;
+    notifyListeners();
   }
 }

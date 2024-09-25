@@ -1,4 +1,6 @@
+import 'package:bandi_official/controller/alarm_controller.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
+import 'package:bandi_official/controller/permission_controller.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/mail/new_letter_popup.dart';
 import 'package:flutter/material.dart';
@@ -14,18 +16,28 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  MailController? mailController;
-
   @override
   void initState() {
     super.initState();
-
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      mailController = Provider.of<MailController>(context, listen: false);
+      PermissionController permissionController = PermissionController();
+      AlarmController alarmController =
+          Provider.of<AlarmController>(context, listen: false);
+      permissionController.requestNotificationPermission(context);
+      // for fcm token changes
+      alarmController.firebaseOnTokenRefresh();
+    });
+  }
 
-      if (!mailController!.loadNewLetterDataOnce &&
-          await mailController!.checkForNewLetterAndsaveLetterToLocal()) {
-        if (mounted) {
+  void checkNewLetterAndNewNotificationsPageReturn(BuildContext context) async {
+    MailController mailController = Provider.of<MailController>(context);
+
+    // read new letter data once after first login
+    if (!mailController.loadNewLetterAndNotificationsDataOnce) {
+      Tuple<dynamic, dynamic> result = await mailController
+          .checkForNewLetterNewNotificationsAndSaveLetterToLocal();
+      if (result.item1 && mounted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
           Navigator.push(
             context,
             PageRouteBuilder(
@@ -41,15 +53,17 @@ class _HomePageState extends State<HomePage> {
               transitionDuration: const Duration(milliseconds: 400),
             ),
           );
-        }
-      } else {
-        dev.log('did not read new letter data');
+        });
       }
-    });
+    } else {
+      dev.log('did not read new letter and new notifications data');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    checkNewLetterAndNewNotificationsPageReturn(context);
+
     return Scaffold(
       backgroundColor: BandiColor.transparent(context),
       body: const HomeTopBar(),

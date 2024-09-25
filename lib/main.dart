@@ -4,22 +4,26 @@ import 'package:bandi_official/controller/alarm_controller.dart';
 import 'package:bandi_official/controller/diary_ai_analysis_controller.dart';
 import 'package:bandi_official/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
+import 'package:bandi_official/controller/permission_controller.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/theme/custom_theme_mode.dart';
 import 'package:bandi_official/view/navigation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_app_badge_control/flutter_app_badge_control.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
-import 'controller/emotion_provider.dart';
 import 'controller/home_to_write.dart';
 import 'controller/navigation_toggle_provider.dart';
 import 'controller/user_info_controller.dart';
 import 'firebase_options.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'dart:developer' as dev;
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,7 +39,23 @@ Future<void> main() async {
   // Initialize date formatting for the 'ko' locale
   await initializeDateFormatting('ko', null);
 
+  // firebase notification setting
+  AlarmController alarmController = AlarmController();
+  alarmController.firebaseOnMessageListen();
+  alarmController.firebaseOnMessageOpenedApp();
+  alarmController.firebaseGetInitialListen();
+
+  // local notification setting
+  alarmController.localNotificationInitialization();
+
+  // remove message badge
+  FlutterAppBadgeControl.removeBadge();
+
   runApp(const MainApp());
+}
+
+backgroundHandler() {
+  // Put handling  here.
 }
 
 class MainApp extends StatelessWidget {
@@ -69,9 +89,13 @@ class MainApp extends StatelessWidget {
             ChangeNotifierProvider(
               create: (context) => AlarmController(),
             ),
+            ChangeNotifierProvider(
+              create: (context) => PermissionController(),
+            ),
           ],
           child: AuthWrapper(),
           // child: MaterialApp(
+          //   debugShowCheckedModeBanner: true,
           //   debugShowCheckedModeBanner: true,
           //   darkTheme: CustomThemeData.dark,
           //   theme: CustomThemeData.light,
@@ -149,6 +173,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: true,
       darkTheme: CustomThemeData.dark,
       theme: CustomThemeData.light,
