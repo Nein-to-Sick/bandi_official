@@ -1,0 +1,15 @@
+flutter_native_splash:
+  # Customize the parameters below, and run the following command in the terminal:
+  # dart run flutter_native_splash:create
+  image: assets/images/splash/splash.png
+  color: "#000000"
+  background_image: assets/images/splash/splash_background.png
+  icon_background_color: "#000000"
+
+  android_12:
+    image: assets/images/splash/splash.png
+    icon_background_color: "#000000"
+    background_image: assets/images/splash/splash_background.png
+    icon_background_color_dark: "#000000"
+  
+  web: false

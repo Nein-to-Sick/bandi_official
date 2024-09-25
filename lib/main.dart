@@ -10,6 +10,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_app_badge_control/flutter_app_badge_control.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:provider/provider.dart';
 import 'controller/home_to_write.dart';
 import 'controller/navigation_toggle_provider.dart';
@@ -22,7 +23,9 @@ import 'dart:developer' as dev;
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  // preserve splash screen
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   CustomThemeMode.instance;
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -47,11 +50,10 @@ Future<void> main() async {
   // remove message badge
   FlutterAppBadgeControl.removeBadge();
 
-  runApp(const MainApp());
-}
+  // remove splash screen
+  FlutterNativeSplash.remove();
 
-backgroundHandler() {
-  // Put handling  here.
+  runApp(const MainApp());
 }
 
 class MainApp extends StatelessWidget {
