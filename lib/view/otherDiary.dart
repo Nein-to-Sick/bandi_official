@@ -1,8 +1,10 @@
 import 'dart:ui';
 
+import 'package:bandi_official/controller/alarm_controller.dart';
 import 'package:bandi_official/controller/home_to_write.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
+import 'package:bandi_official/view/alarm/alarm_view.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -111,6 +113,8 @@ class _OtherDiaryState extends State<OtherDiary> {
     int reactionValue = -1;
 
     MailController mailController = context.watch<MailController>();
+    AlarmController alarmController = context.watch<AlarmController>();
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
       child: SafeArea(
@@ -130,7 +134,7 @@ class _OtherDiaryState extends State<OtherDiary> {
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           GestureDetector(
-                              onTap: () {
+                              onTap: () async {
                                 if (reaction1) {
                                   reactionValue = 0;
                                 } else if (reaction2) {
@@ -141,17 +145,33 @@ class _OtherDiaryState extends State<OtherDiary> {
 
                                 // 반응을 추가한 경우에만 기록
                                 if (reactionValue != -1) {
+                                  // 로컬에 저장
                                   mailController.saveLikedDiaryToLocal(
                                       writeProvider.otherDiaryModel,
                                       reactionValue);
 
-                                  // TODO: 상대에게 알림 보내는 로직 추가
+                                  // DB에 기록
                                   saveReactionInDB(
                                       writeProvider.otherDiaryModel.diaryId,
                                       writeProvider.otherDiaryModel.reaction,
                                       reaction1,
                                       reaction2,
                                       reaction3);
+
+                                  // 상대에게 알람 보내기
+                                  String fcmToken = (await FirebaseFirestore
+                                          .instance
+                                          .collection('users')
+                                          .doc(writeProvider
+                                              .otherDiaryModel.userId)
+                                          .get())
+                                      .data()?['fcmToken'];
+
+                                  alarmController.sendLikedDiaryNotification(
+                                    writeProvider.otherDiaryModel.diaryId,
+                                    fcmToken,
+                                    writeProvider.otherDiaryModel.userId,
+                                  );
                                 }
                                 writeProvider.offDiaryOpen();
                               },

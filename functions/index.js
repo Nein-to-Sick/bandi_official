@@ -22,6 +22,7 @@
 const MAX_DIARY_COUNT = 5;
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
+require("dotenv").config();
 const {OpenAI} = require("openai");
 const moment = require("moment-timezone"); // moment-timezone을 사용해야 합니다.
 const timeZone = "Asia/Seoul"; // 한국 시간대 설정
@@ -31,7 +32,7 @@ const db = admin.firestore();
 
 // OpenAI API Configuration
 const openai = new OpenAI({
-    apiKey: functions.config().openai.key,
+    apiKey: process.env.OPENAI_API_KEY,
 });
 
 // 매월 마지막 날 실행되는 PubSub 트리거 설정
@@ -46,8 +47,8 @@ exports.monthlyDiaryReview = functions.region("asia-northeast3").pubsub.schedule
         const lastDayOfMonth = today.clone().endOf("month"); // 달의 마지막 날을 가져오기
 
         // 오늘과 마지막 날을 읽기 쉬운 형식으로 변환
-        const todayFormatted = today.format("yyyy-MM-dd HH:mm:ssZ"); // moment의 format 사용
-        const lastDayFormatted = lastDayOfMonth.format("yyyy-MM-dd HH:mm:ssZ"); // moment의 format 사용
+        const todayFormatted = today.format("YYYY-MM-DD HH:mm:ssZ");
+        const lastDayFormatted = lastDayOfMonth.format("YYYY-MM-DD HH:mm:ssZ");
 
         // 오늘이 달의 마지막 날인지 확인
         if (today.date() !== lastDayOfMonth.date()) {
@@ -105,14 +106,13 @@ exports.monthlyDiaryReview = functions.region("asia-northeast3").pubsub.schedule
             // TODO: 추후 모델 학습 or 프롬프트 개선 필요
             const systemMessage = {
                 content:
-                    "You are a helpful assistant. Please write an encouraging and empathetic letter in Korean based on the diary entries and the emotions expressed in them.",
-
+                    `You are a kind assistant. Write an encouraging letter in Korean, addressing the user by their name (${userDoc.nickname} or '친구'), based on their diary entries and emotions. Conclude the letter without a signature or sender's name.`,
                 role: "system",
             };
 
             const userDiarySet = {
                 content:
-                    `Here are some recent diary entries with their emotions:\n\n${diaryText}`,
+                    `Here are some recent diary entries with their emotions:\n${diaryText}`,
 
                 role: "user",
             };
@@ -149,18 +149,50 @@ exports.monthlyDiaryReview = functions.region("asia-northeast3").pubsub.schedule
 
                 await db.runTransaction(async (transaction) => {
                     const letterId = lettersRef.doc().id;
+                    const letterTitle = `${today.toDate().getFullYear()}년 ${today.toDate().getMonth() + 1}월 편지`;
 
                     transaction.set(lettersRef.doc(letterId), {
                         content: letterContent,
                         date: admin.firestore.FieldValue.serverTimestamp(),
                         letterId: letterId,
-                        title: `${today.toDate().getFullYear()}년 ${today.toDate().getMonth() + 1}월 편지`,
+                        title: letterTitle,
                     });
 
                     // 새로운 편지 플래그 설정 (편지 생성됨 변수)
                     transaction.update(db.collection("users").doc(userDoc.id), {
                         newLetterAvailable: true,
                     });
+
+                    const notificationTitle = `${letterTitle}가 도착했어요`;
+                    const notificationType = "letter";
+
+                    // 알림 추가 함수 호출
+                    await addNotification(userDoc.id, notificationTitle, notificationType, letterId);
+
+                    // 유저에게 FCM 토큰으로 알림 전송
+                    const fcmToken = userData.fcmToken;
+                    if (fcmToken) {
+                        const message = {
+                            notification: {
+                                title: `${letterTitle}가 도착했어요!`,
+                                body: "이번 달의 편지를 확인하세요.",
+                            },
+                            data: {
+                                screen: "letter_detail",
+                                letterId: letterId,
+                            },
+                            token: fcmToken,
+                        };
+
+                        try {
+                            await admin.messaging().send(message);
+                            console.log(`[Success] Notification sent to user ${userDoc.id}`);
+                        } catch (error) {
+                            console.error(`[Error] Failed to send notification to user ${userDoc.id}: ${error.message}`);
+                        }
+                    } else {
+                        console.log(`[Error] No FCM token found for user ${userDoc.id}, notification not sent.`);
+                    }
 
                     // // 각 편지의 id를 담은 대표 문서 생성 로직
                     // // Reference to the summary document
@@ -184,27 +216,6 @@ exports.monthlyDiaryReview = functions.region("asia-northeast3").pubsub.schedule
                 });
 
                 console.log(`[Success] Encouragement letter for user ${userDoc.id} created successfully.`);
-
-                // // 유저에게 FCM 토큰으로 알림 전송
-                // const fcmToken = userData.fcmToken;
-                // if (fcmToken) {
-                //     const message = {
-                //         notification: {
-                //             title: "새로운 편지가 도착했어요!",
-                //             body: "이번 달의 편지를 확인하세요.",
-                //         },
-                //         token: fcmToken,
-                //     };
-
-                //     try {
-                //         await admin.messaging().send(message);
-                //         console.log(`[Success] Notification sent to user ${userDoc.id}`);
-                //     } catch (error) {
-                //         console.error(`[Error] Failed to send notification to user ${userDoc.id}:`, error);
-                //     }
-                // } else {
-                //     console.log(`[Info] No FCM token found for user ${userDoc.id}, notification not sent.`);
-                // }
             } catch (error) {
                 if (error instanceof OpenAI.APIError) {
                     console.error(`[Error] Failed to create encouragement letter for user ${userDoc.id}:`, error.message);
@@ -226,6 +237,98 @@ exports.monthlyDiaryReview = functions.region("asia-northeast3").pubsub.schedule
 
         return null;
     });
+
+// 공감 일기의 알림 전송 함수
+exports.sendLikedDiaryNotification = functions.https.onCall(async (data, context) => {
+    const {likedDiaryId, fcmToken, userId} = data;
+
+    // 알림 메시지 정의
+    const message = {
+        notification: {
+            title: `누군가 나의 기록에 공감했어요!`,
+            body: "나의 기록을 확인해보세요.",
+        },
+        data: {
+            screen: "liked_diary_detail",
+            likedDiaryId: likedDiaryId,
+        },
+        token: fcmToken,
+    };
+
+    try {
+        await admin.messaging().send(message);
+        console.log(`[Success] Notification sent to user ${userId}`);
+    } catch (error) {
+        console.error(`[Error] Failed to send notification to user ${userId}: ${error.message}`);
+    }
+
+    const notificationTitle = "누군가 나의 기록에 공감했어요";
+    const notificationType = "likedDiary";
+
+    // 알림 추가 함수 호출
+    await addNotification(userId, notificationTitle, notificationType, likedDiaryId);
+});
+
+/**
+ * 사용자에게 새로운 알림을 추가하는 함수
+ * @param {string} userId - 알림을 받을 사용자의 ID
+ * @param {string} notificationTitle - 알림의 제목
+ * @param {string} notificationType - 알림의 타입
+ * @param {string} notificationDataId - 알림과 관련된 일기 id
+ * @return {Promise<void[]>}
+ */
+async function addNotification(userId, notificationTitle, notificationType, notificationDataId) {
+    try {
+        console.log(`[Proceed] Adding notification for user ${userId}`);
+
+        const notificationsRef = db.collection("users").doc(userId).collection("notifications");
+
+        await db.runTransaction(async (transaction) => {
+            // 알림 ID 생성
+            const notificationId = notificationsRef.doc().id;
+            // 알림 요약 문서 레퍼런스
+            const summaryDocRef = notificationsRef.doc("0000_docSummary");
+
+            // Summary document 읽기
+            const summaryDoc = await transaction.get(summaryDocRef);
+
+            // 알림 생성 (쓰기 작업은 읽기 작업 후에 실행)
+            console.log(`[Proceed] Creating notification for user ${userId}, notificationId: ${notificationId}`);
+            transaction.set(notificationsRef.doc(notificationId), {
+                notificationId: notificationId,
+                type: notificationType,
+                title: notificationTitle,
+                dataId: notificationDataId,
+                date: admin.firestore.FieldValue.serverTimestamp(),
+            });
+
+            // 새로운 알림이 있다는 플래그 설정
+            console.log(`[Proceed] Setting newNotificationsAvailable flag for user ${userId}`);
+            transaction.update(db.collection("users").doc(userId), {
+                newNotificationsAvailable: true,
+            });
+
+            // summary 문서 처리
+            if (!summaryDoc.exists) {
+                console.log(`[Proceed] Summary document does not exist for user ${userId}, creating new summary document`);
+                // summary 문서가 없으면 생성
+                transaction.set(summaryDocRef, {
+                    isNew: 1,
+                });
+            } else {
+                console.log(`[Proceed] Summary document exists for user ${userId}, updating isNew field`);
+                // summary 문서가 있으면 업데이트
+                transaction.update(summaryDocRef, {
+                    isNew: admin.firestore.FieldValue.increment(1),
+                });
+            }
+        });
+
+        console.log(`[Success] Notification added for user ${userId}`);
+    } catch (error) {
+        console.error(`[Error] Failed to add notification for user ${userId}: ${error.message}`);
+    }
+}
 
 // 유저 정보의 모든 관련 콜렉션을 삭제하는 함수
 // TODO: 추후 계정 탈퇴 관련 함수 수정 요청하기

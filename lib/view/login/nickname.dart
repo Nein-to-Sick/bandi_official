@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';₩
 import 'package:provider/provider.dart';
 import '../../components/field/field.dart';
 import '../../controller/user_info_controller.dart';
@@ -24,7 +24,11 @@ class NicknameSettingSheet {
         ),
       ),
       builder: (BuildContext context) {
-        return NicknameSettingStateful();
+        return Padding(
+          padding:
+              EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          child: NicknameSettingStateful(),
+        );
       },
     );
   }

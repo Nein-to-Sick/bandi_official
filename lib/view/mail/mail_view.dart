@@ -1,4 +1,5 @@
 import 'package:bandi_official/components/appbar/appbar.dart';
+import 'package:bandi_official/controller/alarm_controller.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/mail/every_mail_view.dart';
@@ -23,26 +24,33 @@ class _MailViewState extends State<MailView>
   @override
   void initState() {
     super.initState();
-
     mailController = Provider.of<MailController>(context, listen: false);
+
+    // InitState of the ScrollControllers
     mailController!
         .initTabController(this, 3, mailController!.savedCurrentIndex);
+
+    // InitState of the TabController
+    mailController?.initScrollControllers();
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
+  void dispose() {
+    // Dispose of the ScrollControllers
+    mailController!.everyMailScrollController.dispose();
+    mailController!.letterScrollController.dispose();
+    mailController!.likedDiaryScrollController.dispose();
 
-    // BuildContext를 안전하게 사용하여 MailController에 접근
-    mailController = Provider.of<MailController>(context, listen: false);
+    // Dispose of the TabController
+    mailController!.tabController.dispose();
 
-    // mailController 초기화
-    mailController?.initScrollControllers();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     MailController mailController = context.watch<MailController>();
+    AlarmController alarmController = context.watch<AlarmController>();
 
     return SafeArea(
       child: Scaffold(
@@ -50,19 +58,11 @@ class _MailViewState extends State<MailView>
         appBar: CustomAppBar(
           title: '보관함',
           trailingIcon: PhosphorIcons.flask(PhosphorIconsStyle.fill),
-          onLeadingIconPressed: () {},
-          onTrailingIconPressed: () {
+          onTrailingIconPressed: () async {
+            //messageTestFunction(alarmController);
             // For test delete finction
-            //mailController.deleteEveryMailDataFromLocal();
-
-            // For Firebase Function deploy test
-            // Navigator.push(
-            //   context,
-            //   MaterialPageRoute(builder: (context) => const TestViewPage()),
-            // );
+            // mailController.deleteEveryMailDataFromLocal();
           },
-          disableLeadingButton: false,
-          disableTrailingButton: true,
           isVisibleLeadingButton: false,
           isVisibleTrailingButton: false,
         ),
@@ -122,4 +122,19 @@ class _MailViewState extends State<MailView>
       ),
     );
   }
+}
+
+void messageTestFunction(AlarmController alarmController) {
+  String fcmToken = '';
+  String userId = '';
+  // String fcmToken =
+  //     'fQ_HW18-Spq8KPbBpgGkHP:APA91bHzJSVXFE0InFxgH60gIfgpxsVB5hFZasiVyW-mQA_ip7CkhJ4BZIlt2HrK0sHX_j24umUok1E3m08diwluFWGadxfY2eCMgNeM208L1mw1vcdq_SMj_kdTvqC-42HqO-rwbp3A';
+  // to iOS notification test
+  // String fcmToken =
+  //     'dycWe_q930Ggq8SgMlt5wU:APA91bHsDvztA4lt7o5-VBqC__7uOpJJEIYEdzOMQMZa-yghWDJaiAID5wvkIRze7sMkPmpvSaVS29HUilsTdkro7tuRlZfNr3A93ofE46HVJWxuUfdjKA14MICfAIEY2c_OVXePIDJ4';
+  fcmToken =
+      'dycWe_q930Ggq8SgMlt5wU:APA91bHsDvztA4lt7o5-VBqC__7uOpJJEIYEdzOMQMZa-yghWDJaiAID5wvkIRze7sMkPmpvSaVS29HUilsTdkro7tuRlZfNr3A93ofE46HVJWxuUfdjKA14MICfAIEY2c_OVXePIDJ4';
+  userId = 'dIbMSgEYLSXA47Okj5MYpO6Jbb02';
+  alarmController.sendLikedDiaryNotification(
+      '21jPhIHrf7iBwVAh92ZW1', fcmToken, userId);
 }

@@ -18,7 +18,7 @@ import '../components/no_reuse/navigation_bar.dart';
 import '../controller/home_to_write.dart';
 import '../controller/navigation_toggle_provider.dart';
 
-late AssetsAudioPlayer assetsAudioPlayer = AssetsAudioPlayer.newPlayer();
+AssetsAudioPlayer assetsAudioPlayer = AssetsAudioPlayer.newPlayer();
 bool speakerOn = true; // Default to true
 
 class Navigation extends StatefulWidget {
@@ -64,6 +64,9 @@ class _NavigationState extends State<Navigation> {
         context.watch<DiaryAiChatController>();
     final MailController mailController = context.watch<MailController>();
     final AlarmController alarmController = context.watch<AlarmController>();
+
+    // save context to show alarm details > alarmView to DetailView
+    alarmController.updateContext(context);
 
     return Container(
       decoration: const BoxDecoration(

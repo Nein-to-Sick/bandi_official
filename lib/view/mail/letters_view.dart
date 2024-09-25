@@ -16,30 +16,49 @@ class MyLettersPage extends StatefulWidget {
 }
 
 class _MyLettersPageState extends State<MyLettersPage> {
-  bool loadMoreData = true;
+  late MailController mailController;
 
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      MailController mailController =
-          Provider.of<MailController>(context, listen: false);
+      mailController = Provider.of<MailController>(context, listen: false);
 
-      mailController.loadDataAndSetting();
-      mailController.restoreLetterScrollPosition();
+      mailController.loadDataAndSetting().then((value) {
+        mailController.restoreLetterScrollPosition();
 
-      // when screen reached nearly top of the list load more past data
-      mailController.letterScrollController.addListener(() async {
-        final position = mailController.letterScrollController.position;
-        if (loadMoreData && position.atEdge && position.pixels != 0) {
-          if (position.userScrollDirection == ScrollDirection.reverse &&
-              position.maxScrollExtent - position.pixels <= 300) {
-            loadMoreData = await mailController.loadMoreLetter();
-          }
+        if (!mailController.isLettersListenerAdded) {
+          // when screen reached nearly bottom of the list load more past data
+          WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+            mailController.letterScrollController.addListener(_scrollListener);
+            mailController.toggleIsLettersListenerAdded(true);
+          });
         }
       });
     });
 
     super.initState();
+  }
+
+  void _scrollListener() async {
+    final position = mailController.letterScrollController.position;
+    if (mailController.loadMoreLetterData &&
+        position.atEdge &&
+        position.pixels != 0) {
+      if (position.userScrollDirection == ScrollDirection.reverse &&
+          position.maxScrollExtent - position.pixels <= 300) {
+        mailController
+            .toggleLoadMoreLetterData(await mailController.loadMoreLetter());
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      mailController.letterScrollController.removeListener(_scrollListener);
+      mailController.toggleIsLettersListenerAdded(false);
+    });
+    super.dispose();
   }
 
   @override
@@ -49,17 +68,27 @@ class _MyLettersPageState extends State<MyLettersPage> {
         ? const MyFireFlyProgressbar(
             loadingText: '로딩 중...',
           )
-        : Padding(
-            padding: const EdgeInsets.only(top: 16),
-            child: ListView.builder(
-              controller: mailController.letterScrollController,
-              itemCount: mailController.letterList.length,
-              itemBuilder: (context, index) {
-                Letter letter = mailController.letterList[index];
-                return lettersWidget(letter, mailController, context);
-              },
-            ),
-          );
+        : (mailController.letterList.isEmpty)
+            ? Center(
+                child: Text(
+                  '편지가 없습니다',
+                  style: BandiFont.headlineMedium(context)?.copyWith(
+                    color: BandiColor.neutralColor80(context),
+                  ),
+                ),
+              )
+            : Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: ListView.builder(
+                  controller: mailController.letterScrollController,
+                  itemCount: mailController.letterList.length,
+                  itemBuilder: (context, index) {
+                    Letter letter = mailController.letterList[
+                        mailController.letterList.length - index - 1];
+                    return lettersWidget(letter, mailController, context);
+                  },
+                ),
+              );
   }
 }
 

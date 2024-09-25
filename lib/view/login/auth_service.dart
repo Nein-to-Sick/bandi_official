@@ -1,7 +1,8 @@
-import 'dart:developer';
+import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -16,7 +17,6 @@ class AuthService {
   final googleSignIn = GoogleSignIn();
 
   final storage = FlutterSecureStorage();
-
   Future<User?> signInWithGoogle(BuildContext context) async {
     try {
       // 이미 선언된 GoogleSignIn 인스턴스 사용
@@ -75,6 +75,9 @@ class AuthService {
       // 사용자 문서가 없으면 새로 생성
       if (!snapshot.exists ||
           (snapshot.data() as Map<String, dynamic>)['nickname'] == null) {
+
+        String? fcmToken = await FirebaseMessaging.instance.getToken();
+
         await docRef.set({
           "created_at": FieldValue.serverTimestamp(),
           "email": userEmail,
@@ -85,6 +88,8 @@ class AuthService {
           "updatedAt": FieldValue.serverTimestamp(),
           "userId": userId,
           "newLetterAvailable": false,
+          "newNotificationsAvailable": false,
+          "fcmToken": fcmToken,
         });
 
         // 하위 컬렉션 생성
@@ -94,14 +99,30 @@ class AuthService {
         final otherDiaryCollectionRef = docRef.collection('otherDiary');
         await otherDiaryCollectionRef.doc('0000_docSummary').set({});
 
+        final notificationsCollectionRef = docRef.collection('notifications');
+        await notificationsCollectionRef.doc('0000_docSummary').set({});
+
         // 온보딩 페이지로 이동
         navigationToggleProvider.selectIndex(-3);
+      } else {
+        String? fcmToken = await FirebaseMessaging.instance.getToken();
+        if (fcmToken != null) {
+          // Check if the current token is different from the one in Firestore
+          if (snapshot["fcmToken"] != fcmToken) {
+            // Update the FCM token in Firestore
+            await FirebaseFirestore.instance
+                .collection('users')
+                .doc(userId)
+                .update({'fcmToken': fcmToken});
+          }
+        }
       }
 
       return auth.currentUser;
     } catch (e) {
-      print('Error during Google Sign-In: $e');
+
       // 사용자에게 에러 메시지를 제공하거나 로깅 처리
+      dev.log('Error during Google Sign-In: $e');
       return null;
     }
   }
@@ -167,6 +188,9 @@ class AuthService {
       // 사용자 문서가 없거나 nickname이 없는 경우 처리
       if (!snapshot.exists ||
           (snapshot.data() as Map<String, dynamic>)['nickname'] == null) {
+
+        String? fcmToken = await FirebaseMessaging.instance.getToken();
+
         await docRef.set({
           "created_at": FieldValue.serverTimestamp(),
           "email": userEmail,
@@ -177,6 +201,9 @@ class AuthService {
           "updatedAt": FieldValue.serverTimestamp(),
           "userId": userId,
           "newLetterAvailable": false,
+          "newNotificationsAvailable": false,
+          "fcmToken": fcmToken,
+
         });
 
         // 하위 컬렉션 생성: letters
@@ -186,13 +213,28 @@ class AuthService {
         final otherDiaryCollectionRef = docRef.collection('otherDiary');
         await otherDiaryCollectionRef.doc('0000_docSummary').set({});
 
+        final notificationsCollectionRef = docRef.collection('notifications');
+        await notificationsCollectionRef.doc('0000_docSummary').set({});
+
         // 온보딩 페이지로 이동
         navigationToggleProvider.selectIndex(-3);
+      } else {
+        String? fcmToken = await FirebaseMessaging.instance.getToken();
+        if (fcmToken != null) {
+          // Check if the current token is different from the one in Firestore
+          if (snapshot["fcmToken"] != fcmToken) {
+            // Update the FCM token in Firestore
+            await FirebaseFirestore.instance
+                .collection('users')
+                .doc(userId)
+                .update({'fcmToken': fcmToken});
+          }
+        }
       }
 
       return FirebaseAuth.instance.currentUser;
     } catch (error) {
-      print('애플 로그인 중 오류 발생: $error');
+      dev.log('애플 로그인 중 오류 발생: $error');
       return null;
     }
   }

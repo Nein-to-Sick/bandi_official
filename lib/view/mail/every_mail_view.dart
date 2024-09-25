@@ -2,6 +2,7 @@ import 'package:bandi_official/components/loading/loading_page.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/model/letter.dart';
+import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/mail/letters_view.dart';
 import 'package:bandi_official/view/mail/liked_diary_view.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -18,38 +19,57 @@ class EveryMailPage extends StatefulWidget {
 }
 
 class _EveryMailPageState extends State<EveryMailPage> {
-  bool loadMoreLetter = true;
-  bool loadMoreLikedDiary = true;
+  late MailController mailController;
 
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      MailController mailController =
-          Provider.of<MailController>(context, listen: false);
+      mailController = Provider.of<MailController>(context, listen: false);
 
-      mailController.loadDataAndSetting();
-      mailController.restoreEveryMailScrollPosition();
+      mailController.loadDataAndSetting().then((value) {
+        mailController.restoreEveryMailScrollPosition();
 
-      // when screen reached nearly top of the list load more past data
-      mailController.everyMailScrollController.addListener(() async {
-        final position = mailController.everyMailScrollController.position;
-        if ((loadMoreLetter || loadMoreLikedDiary) &&
-            position.atEdge &&
-            position.pixels != 0) {
-          if (position.userScrollDirection == ScrollDirection.reverse &&
-              position.maxScrollExtent - position.pixels <= 300) {
-            if (loadMoreLetter) {
-              loadMoreLetter = await mailController.loadMoreLetter();
-            }
-            if (loadMoreLikedDiary) {
-              loadMoreLikedDiary = await mailController.loadMoreLikedDiary();
-            }
-          }
+        if (!mailController.isEveryMailListenerAdded) {
+          // when screen reached nearly bottom of the list load more past data
+          WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+            mailController.everyMailScrollController
+                .addListener(_scrollListener);
+            mailController.toggleIsEveryMailListenerAdded(true);
+          });
         }
       });
     });
 
     super.initState();
+  }
+
+  void _scrollListener() async {
+    final position = mailController.everyMailScrollController.position;
+    if ((mailController.loadMoreLetterData ||
+            mailController.loadMoreLikedDiaryData) &&
+        position.atEdge &&
+        position.pixels != 0) {
+      if (position.userScrollDirection == ScrollDirection.reverse &&
+          position.maxScrollExtent - position.pixels <= 300) {
+        if (mailController.loadMoreLetterData) {
+          mailController
+              .toggleLoadMoreLetterData(await mailController.loadMoreLetter());
+        }
+        if (mailController.loadMoreLikedDiaryData) {
+          mailController.toggleLoadMoreLikedDiaryData(
+              await mailController.loadMoreLikedDiary());
+        }
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      mailController.toggleIsEveryMailListenerAdded(false);
+      mailController.everyMailScrollController.removeListener(_scrollListener);
+    });
+    super.dispose();
   }
 
   @override
@@ -84,23 +104,34 @@ class _EveryMailPageState extends State<EveryMailPage> {
         ? const MyFireFlyProgressbar(
             loadingText: '로딩 중...',
           )
-        : Padding(
-            padding: const EdgeInsets.only(top: 16),
-            child: ListView.builder(
-              controller: mailController.everyMailScrollController,
-              itemCount: combinedList.length,
-              itemBuilder: (context, index) {
-                final item = combinedList[index];
-                if (item['type'] == 'letter') {
-                  final Letter letter = item['data'];
-                  return lettersWidget(letter, mailController, context);
-                } else if (item['type'] == 'diary') {
-                  final Diary diary = item['data'];
-                  return likedDiaryWidget(diary, mailController, context);
-                }
-                return const SizedBox.shrink(); // This should never be reached
-              },
-            ),
-          );
+        : (mailController.letterList.isEmpty &&
+                mailController.likedDiaryList.isEmpty)
+            ? Center(
+                child: Text(
+                  '보관함이 비었습니다',
+                  style: BandiFont.headlineMedium(context)?.copyWith(
+                    color: BandiColor.neutralColor80(context),
+                  ),
+                ),
+              )
+            : Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: ListView.builder(
+                  controller: mailController.everyMailScrollController,
+                  itemCount: combinedList.length,
+                  itemBuilder: (context, index) {
+                    final item = combinedList[index];
+                    if (item['type'] == 'letter') {
+                      final Letter letter = item['data'];
+                      return lettersWidget(letter, mailController, context);
+                    } else if (item['type'] == 'diary') {
+                      final Diary diary = item['data'];
+                      return likedDiaryWidget(diary, mailController, context);
+                    }
+                    return const SizedBox
+                        .shrink(); // This should never be reached
+                  },
+                ),
+              );
   }
 }

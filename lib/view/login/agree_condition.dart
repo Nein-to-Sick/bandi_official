@@ -1,19 +1,24 @@
 import 'dart:async';
+import 'package:bandi_official/model/settingsInfos.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:wrapped_korean_text/wrapped_korean_text.dart';
 import '../../components/button/primary_button.dart';
 import '../../controller/navigation_toggle_provider.dart';
 import '../../controller/user_info_controller.dart';
 import '../../theme/custom_theme_data.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart'; // 아이콘 패키지 임포트
 
+// 다이얼로그에 표시할 "이용약관"과 "개인정보처리동의서" 내용을 정의
+final String termsOfUseContent = "이용약관 내용 여기에 표시됩니다.";
+final String privacyPolicyContent = "개인정보처리동의서 내용 여기에 표시됩니다.";
+
 class AgreementSheet {
   Future<bool?> agreementTermSheet(BuildContext context) {
     return showModalBottomSheet<bool>(
       backgroundColor: BandiColor.neutralColor40(context),
-
       // barrierColor: Colors.black.withAlpha(1),
       // backgroundColor: Colors.transparent,
       context: context,
@@ -155,6 +160,125 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                 title: GestureDetector(
                   onTap: () {
                     // 웹뷰 또는 다이얼로그로 약관을 보여주는 로직을 구현
+                    // "개인정보처리동의서"를 눌렀을 때
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        var screenSize = MediaQuery.of(context).size;
+                        return Scaffold(
+                            backgroundColor: BandiColor.neutralColor80(context)
+                                .withOpacity(0.8),
+                            // custom appbar 일단 임시로 leading icon 변경
+                            appBar: AppBar(
+                              scrolledUnderElevation: 0,
+                              automaticallyImplyLeading: false,
+                              backgroundColor: BandiColor.transparent(context),
+                              // leading: null,
+                              title: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
+                                child: Text(
+                                  "개인정보 처리방침",
+                                  style:
+                                      BandiFont.displaySmall(context)?.copyWith(
+                                    color:
+                                        BandiColor.foundationColor80(context),
+                                  ),
+                                ),
+                              ),
+                              centerTitle: true,
+                            ),
+                            body: Column(
+                              children: [
+                                Expanded(
+                                  child: SingleChildScrollView(
+                                    child: Padding(
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: 23.0),
+                                      child: Column(
+                                        children: [
+                                          for (int i = 0;
+                                              i <
+                                                  CompanyInfo()
+                                                      .privacyPolicy
+                                                      .length;
+                                              i++)
+                                            Column(
+                                              children: [
+                                                if (i != 0)
+                                                  const SizedBox(height: 44),
+                                                SizedBox(
+                                                  width: MediaQuery.of(context)
+                                                      .size
+                                                      .width,
+                                                  child: WrappedKoreanText(
+                                                    CompanyInfo()
+                                                        .privacyPolicy[i][0],
+                                                    style: BandiFont
+                                                            .headlineMedium(
+                                                                context)
+                                                        ?.copyWith(
+                                                      color: BandiColor
+                                                          .foundationColor80(
+                                                              context),
+                                                    ),
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 11),
+                                                SizedBox(
+                                                  width: MediaQuery.of(context)
+                                                      .size
+                                                      .width,
+                                                  child: WrappedKoreanText(
+                                                    CompanyInfo()
+                                                        .privacyPolicy[i][1],
+                                                    style: BandiFont.bodySmall(
+                                                            context)
+                                                        ?.copyWith(
+                                                      color: BandiColor
+                                                          .foundationColor80(
+                                                              context),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          SizedBox(
+                                            width: MediaQuery.of(context)
+                                                .size
+                                                .width,
+                                            child: WrappedKoreanText(
+                                              CompanyInfo()
+                                                  .privacyPolicyExplain,
+                                              style:
+                                                  BandiFont.bodySmall(context)
+                                                      ?.copyWith(
+                                                color: BandiColor
+                                                    .foundationColor80(context),
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 60),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                CustomPrimaryButton(
+                                  title: '닫기',
+                                  onPrimaryButtonPressed: () {
+                                    Navigator.pop(context);
+                                  },
+                                  disableButton: false,
+                                ),
+                                const SizedBox(
+                                  height: 32,
+                                )
+                              ],
+                            ));
+                      },
+                    );
                   },
                   child: RichText(
                     text: TextSpan(
@@ -199,6 +323,111 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                 title: GestureDetector(
                   onTap: () {
                     // 웹뷰 또는 다이얼로그로 약관을 보여주는 로직을 구현
+                    // "이용약관"을 눌렀을 때
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        var screenSize = MediaQuery.of(context).size;
+                        return Scaffold(
+                            backgroundColor: BandiColor.neutralColor80(context)
+                                .withOpacity(0.8),
+                            // custom appbar 일단 임시로 leading icon 변경
+                            appBar: AppBar(
+                              scrolledUnderElevation: 0,
+                              backgroundColor: BandiColor.transparent(context),
+                              automaticallyImplyLeading: false,
+                              title: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
+                                child: Text(
+                                  "이용약관",
+                                  style:
+                                      BandiFont.displaySmall(context)?.copyWith(
+                                    color:
+                                        BandiColor.foundationColor80(context),
+                                  ),
+                                ),
+                              ),
+                              centerTitle: true,
+                            ),
+                            body: Column(
+                              children: [
+                                Expanded(
+                                  child: SingleChildScrollView(
+                                    child: Padding(
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: 23.0),
+                                      child: Column(
+                                        children: [
+                                          for (int i = 0;
+                                              i <
+                                                  CompanyInfo()
+                                                      .termsOfUse
+                                                      .length;
+                                              i++)
+                                            Column(
+                                              children: [
+                                                if (i != 0)
+                                                  const SizedBox(height: 80),
+                                                SizedBox(
+                                                  width: MediaQuery.of(context)
+                                                      .size
+                                                      .width,
+                                                  child: WrappedKoreanText(
+                                                    CompanyInfo().termsOfUse[i]
+                                                        [0],
+                                                    style: BandiFont
+                                                            .headlineMedium(
+                                                                context)
+                                                        ?.copyWith(
+                                                      color: BandiColor
+                                                          .foundationColor80(
+                                                              context),
+                                                    ),
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 11),
+                                                SizedBox(
+                                                  width: MediaQuery.of(context)
+                                                      .size
+                                                      .width,
+                                                  child: WrappedKoreanText(
+                                                    CompanyInfo().termsOfUse[i]
+                                                        [1],
+                                                    style: BandiFont.bodySmall(
+                                                            context)
+                                                        ?.copyWith(
+                                                      color: BandiColor
+                                                          .foundationColor80(
+                                                              context),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          const SizedBox(
+                                            height: 50,
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                CustomPrimaryButton(
+                                  title: '닫기',
+                                  onPrimaryButtonPressed: () {
+                                    Navigator.pop(context);
+                                  },
+                                  disableButton: false,
+                                ),
+                                const SizedBox(
+                                  height: 32,
+                                )
+                              ],
+                            ));
+                      },
+                    );
                   },
                   child: RichText(
                     text: TextSpan(
