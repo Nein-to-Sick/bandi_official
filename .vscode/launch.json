@@ -1,0 +1,46 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "bandi_official",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "bandi_official (profile mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "bandi_official (release mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "Android",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "emulator-5554"
+        },
+        {
+            "name": "iOS_15_Pro",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "5C19E208-AF60-4B36-A9CA-818144CCFF81"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "TwoDevices",
+            "configurations": [
+                "Android",
+                "iOS_15_Pro"
+            ],
+        }
+    ]
+}
