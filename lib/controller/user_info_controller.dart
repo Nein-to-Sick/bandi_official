@@ -26,4 +26,8 @@ class UserInfoValueModel with ChangeNotifier {
     nickname = '';
     notifyListeners();
   }
+
+  String getNickName() {
+    return (nickname);
+  }
 }
