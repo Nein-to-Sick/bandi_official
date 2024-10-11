@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 
 import '../../components/button/primary_button.dart';
 import '../../components/button/secondary_button.dart';
+import '../../controller/user_info_controller.dart';
 import 'agree_condition.dart';
 import 'nickname.dart';
 
@@ -23,10 +24,40 @@ class _LoginViewState extends State<LoginView> {
   User? user = FirebaseAuth.instance.currentUser;
   int _onboarding = 1;
 
+  // @override
+  // void initState() {
+  //   super.initState();
+
+  //   if (user != null) {
+  //     final navigationToggleProvider =
+  //         Provider.of<NavigationToggleProvider>(context);
+  //     navigationToggleProvider.selectIndex(0);
+  //   }
+  // }
+
+  @override
+  void initState() {
+    super.initState();
+    final userInfoProvider =
+        Provider.of<UserInfoValueModel>(context, listen: false);
+
+    final navigationToggleProvider =
+        Provider.of<NavigationToggleProvider>(context, listen: false);
+
+    if (user != null && userInfoProvider.getNickName() != "") {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        navigationToggleProvider.selectIndex(0);
+      });
+    } else if (navigationToggleProvider.getIndex() == 0) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {});
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     var navigationToggleProvider =
         Provider.of<NavigationToggleProvider>(context);
+    final userInfoProvider = Provider.of<UserInfoValueModel>(context);
 
     Widget LoginPage = Scaffold(
       backgroundColor: BandiColor.transparent(context),
@@ -85,9 +116,9 @@ class _LoginViewState extends State<LoginView> {
                                   RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8.0),
                               ))),
-                          onPressed: () async {
+                          onPressed: () {
                             AuthService()
-                                .signInWithGoogle(context) // context를 전달합니다.
+                                .signInWithGoogle(context)
                                 .then((value) async {
                               setState(() {
                                 user = value;
@@ -95,15 +126,20 @@ class _LoginViewState extends State<LoginView> {
 
                               if (user != null) {
                                 WidgetsBinding.instance
-                                    .addPostFrameCallback((_) {});
-                              }
-
-                              if (navigationToggleProvider.getIndex() == -3) {
-                                AgreementSheet()
-                                    .agreementTermSheet(context)
-                                    .then((accepted) {
-                                  if (accepted != null && accepted) {
-                                    // 약관 동의가 완료되면 다음 단계로 넘어감
+                                    .addPostFrameCallback((_) {
+                                  if (userInfoProvider.getNickName() == "") {
+                                    navigationToggleProvider.selectIndex(-3);
+                                    AgreementSheet()
+                                        .agreementTermSheet(context)
+                                        .then((accepted) {
+                                      if (accepted != null && accepted) {
+                                        // 약관 동의가 완료되면 다음 단계로 넘어감
+                                      }
+                                    });
+                                  } else {
+                                    setState(() {
+                                      navigationToggleProvider.selectIndex(0);
+                                    });
                                   }
                                 });
                               }
@@ -153,9 +189,8 @@ class _LoginViewState extends State<LoginView> {
                                   borderRadius: BorderRadius.circular(8.0),
                                 ))),
                             onPressed: () {
-                              // 애플 로그인
                               AuthService()
-                                  .signInWithApple(context) // context를 전달합니다.
+                                  .signInWithApple(context)
                                   .then((value) async {
                                 setState(() {
                                   user = value;
@@ -163,15 +198,20 @@ class _LoginViewState extends State<LoginView> {
 
                                 if (user != null) {
                                   WidgetsBinding.instance
-                                      .addPostFrameCallback((_) {});
-                                }
-
-                                if (navigationToggleProvider.getIndex() == -3) {
-                                  AgreementSheet()
-                                      .agreementTermSheet(context)
-                                      .then((accepted) {
-                                    if (accepted != null && accepted) {
-                                      // 약관 동의가 완료되면 다음 단계로 넘어감
+                                      .addPostFrameCallback((_) {
+                                    if (userInfoProvider.getNickName() == "") {
+                                      navigationToggleProvider.selectIndex(-3);
+                                      AgreementSheet()
+                                          .agreementTermSheet(context)
+                                          .then((accepted) {
+                                        if (accepted != null && accepted) {
+                                          // 약관 동의가 완료되면 다음 단계로 넘어감
+                                        }
+                                      });
+                                    } else {
+                                      setState(() {
+                                        navigationToggleProvider.selectIndex(0);
+                                      });
                                     }
                                   });
                                 }
