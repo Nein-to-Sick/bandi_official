@@ -3,11 +3,14 @@ import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as dev;
 
-import 'package:provider/provider.dart';
-
 class CustomResetDialogue extends StatefulWidget {
-  const CustomResetDialogue({super.key, required this.diaryAiChatController});
-  final DiaryAiChatController diaryAiChatController;
+  const CustomResetDialogue({
+    super.key,
+    required this.text,
+    required this.onYesFunction,
+  });
+  final String text;
+  final Function onYesFunction;
 
   @override
   State<CustomResetDialogue> createState() => _CustomResetDialogueState();
@@ -67,7 +70,7 @@ class _CustomResetDialogueState extends State<CustomResetDialogue> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            '대화 내용을 리셋하실건가요? 리셋한 대화내용은 다시 볼 수 없어요.',
+            widget.text,
             style: BandiFont.headlineMedium(context)
                 ?.copyWith(color: BandiColor.foundationColor60(context)),
             textAlign: TextAlign.center,
@@ -111,7 +114,7 @@ class _CustomResetDialogueState extends State<CustomResetDialogue> {
                   ),
                 ),
                 () {
-                  widget.diaryAiChatController.resetTheChat(context);
+                  widget.onYesFunction();
                 },
               ),
             ],
@@ -120,17 +123,4 @@ class _CustomResetDialogueState extends State<CustomResetDialogue> {
       ),
     );
   }
-}
-
-Future<bool?> showResetDialog(
-    BuildContext context, DiaryAiChatController diaryAiChatController) {
-  return showDialog<bool>(
-    context: context,
-    barrierDismissible: false,
-    builder: (BuildContext context) {
-      return CustomResetDialogue(
-        diaryAiChatController: diaryAiChatController,
-      );
-    },
-  );
 }

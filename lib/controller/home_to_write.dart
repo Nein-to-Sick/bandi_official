@@ -65,12 +65,10 @@ class HomeToWrite with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> aiAndSaveDairy(BuildContext context) async {
+  Future<void> aiAndSaveDiary(BuildContext context) async {
     await aiDiary(context);
     await saveDiary();
     if (diaryModel.emotion.length >= 2) {
-      //키워드가 2개 이상 있을 경우
-      //분류하기
       Emotion emotion = classifyEmotion(diaryModel.emotion);
       if (emotion != Emotion.unknown) {
         dev.log(emotion.toString());
