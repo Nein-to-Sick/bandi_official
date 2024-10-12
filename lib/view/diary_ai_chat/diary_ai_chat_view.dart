@@ -85,7 +85,19 @@ class _DiaryAIChatPageState extends State<DiaryAIChatPage> {
             diaryAiChatController.toggleChatOpen(false);
           },
           onTrailingIconPressed: () {
-            showResetDialog(context, diaryAiChatController);
+            showDialog<bool>(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return CustomResetDialogue(
+                  text: '대화 내용을 리셋하실건가요? 리셋한 대화내용은 다시 볼 수 없어요.',
+                  onYesFunction: () {
+                    diaryAiChatController.resetTheChat();
+                    Navigator.pop(context);
+                  },
+                );
+              },
+            );
           },
           disableLeadingButton: diaryAiChatController.isChatResponsLoading,
           disableTrailingButton: diaryAiChatController.isChatResponsLoading,
