@@ -474,7 +474,7 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                 title: '확인',
                 onPrimaryButtonPressed: () async {
                   if (allSelected) {
-                    await userAgreementFirebaseUpdate();
+                    // await userAgreementFirebaseUpdate();
                     navigationToggleProvider.selectIndex(-4);
                     Navigator.pop(context, true); // Navigator.pop에서 true 반환
                   }

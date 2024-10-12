@@ -205,9 +205,8 @@ class DiaryAiChatController with ChangeNotifier {
     onMessageSubmitted();
   }
 
-  void resetTheChat(BuildContext context) {
+  void resetTheChat() {
     if (sendFirstMessage && !isChatResponsLoading) {
-      Navigator.pop(context);
       sendFirstMessage = false;
 
       // reset the chatlog (visible chat)
@@ -235,8 +234,6 @@ class DiaryAiChatController with ChangeNotifier {
       // for (int i = 0; i < chatlog.length; i++) {
       //   dev.log(chatlog[i].message);
       // }
-    } else {
-      Navigator.pop(context);
     }
     notifyListeners();
   }

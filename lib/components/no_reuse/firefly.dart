@@ -1,188 +1,168 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 
-// TODO: 색상 수정하기
 Color fireflyColor = const Color(0xffFFDB5B);
 
 class FireFly extends StatefulWidget {
-  const FireFly({
-    super.key,
-  });
-
-  // final UserInfoValueModel userInfoController;
+  const FireFly({super.key});
 
   @override
   FireFlyState createState() => FireFlyState();
 }
 
 class FireFlyState extends State<FireFly> with TickerProviderStateMixin {
-  int fireFlyCount = 1;
-  late List<AnimationController> controller = [];
-  List<Animation<double>> animation = [];
+  int fireFlyCount = 10;
+  late List<AnimationController> controllers;
+  late List<Animation<double>> animations;
+  late List<AnimationController> blurControllers;
+  late List<Animation<double>> blurAnimations;
 
-  List<AnimationController> blurController = [];
-  List<Animation<double>> blurAnimation = [];
-
-  final List<Duration> _animationDurations = []; // 움직임 시간
-  final List<Duration> _blurDurations = []; // 반짝이 시간
-
-  final List<double> _beginBlurValue = []; // 블러 작은 크기
-  final List<double> _endBlurValue = []; // 블러 큰 크기
-  final List<double> _size = []; // 동그라미 크기
-
-  AnimationController? _spreadAnimationController;
-  Animation<double>? _spreadAnimation;
-
-  // late int? greenFieldValue;
-  // final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  // String? userId = FirebaseAuth.instance.currentUser?.uid;
-  // late Stream<DocumentSnapshot> _firestoreDocumentStream;
+  final List<Duration> _animationDurations = [];
+  final List<Duration> _blurDurations = [];
+  final List<double> _beginBlurValues = [];
+  final List<double> _endBlurValues = [];
+  final List<double> _sizes = [];
+  final List<double> _startX = [];
+  final List<double> _startY = [];
+  final List<double> _onTwo = [];
+  final List<int> _hundred = [];
+  final List<int> _plusOrMinus = [];
 
   @override
   void initState() {
     super.initState();
-    fireFlyCount = 10;
-    // _firestoreDocumentStream =
-    //     _firestore.collection('users').doc(userId).snapshots();
+
+    // Initialize animation controllers and properties
+    controllers = [];
+    animations = [];
+    blurControllers = [];
+    blurAnimations = [];
+
     for (int i = 0; i < fireFlyCount; i++) {
-      int randomSeconds = Random().nextInt(21) + 30;
-      _animationDurations.add(Duration(seconds: randomSeconds));
+      // Movement and blur durations
+      _animationDurations.add(Duration(seconds: Random().nextInt(21) + 30));
+      _blurDurations.add(Duration(milliseconds: Random().nextInt(1001) + 1000));
 
-      int randomMilliseconds = Random().nextInt(1001) + 1000;
-      _blurDurations.add(Duration(milliseconds: randomMilliseconds));
+      // Blur values
+      _beginBlurValues.add(Random().nextDouble() * 1 + 2);
+      _endBlurValues.add(Random().nextDouble() * 3 + 3);
 
-      double randomDouble = Random().nextDouble() * 1 + 2;
-      _beginBlurValue.add(randomDouble);
-      randomDouble = Random().nextDouble() * 3 + 3;
-      _endBlurValue.add(randomDouble);
-      randomDouble = Random().nextDouble() * 8 + 3;
-      _size.add(randomDouble);
+      // Sizes of fireflies
+      _sizes.add(Random().nextDouble() * 8 + 3);
 
-      controller.add(
+      // Create animation controllers
+      controllers.add(
           AnimationController(vsync: this, duration: _animationDurations[i]));
-      Animation<double> curvedAnimation =
-          CurvedAnimation(parent: controller[i], curve: Curves.ease)
-            ..addStatusListener((status) {
-              if (status == AnimationStatus.completed) {
-                controller[i].reverse();
-              } else if (status == AnimationStatus.dismissed) {
-                controller[i].forward();
-              }
-            });
-      animation.add(curvedAnimation);
-      controller[i].repeat();
-      blurController
-          .add(AnimationController(vsync: this, duration: _blurDurations[i]));
-      blurController[i].repeat(reverse: true);
-      blurAnimation.add(
-          Tween<double>(begin: _beginBlurValue[i], end: _endBlurValue[i])
-              .animate(blurController[i]));
-    }
-    _spreadAnimationController = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    );
-
-    _spreadAnimation =
-        Tween<double>(begin: 10, end: 16).animate(_spreadAnimationController!)
-          ..addListener(() {
-            setState(() {});
-          })
+      animations.add(
+        CurvedAnimation(parent: controllers[i], curve: Curves.easeInOut)
           ..addStatusListener((status) {
             if (status == AnimationStatus.completed) {
-              _spreadAnimationController!.reverse();
+              controllers[i].reverse();
             } else if (status == AnimationStatus.dismissed) {
-              _spreadAnimationController!.forward();
+              controllers[i].forward();
             }
-          });
+          }),
+      );
+      controllers[i].repeat();
 
-    _spreadAnimationController!.forward();
+      // Blur animations
+      blurControllers
+          .add(AnimationController(vsync: this, duration: _blurDurations[i]));
+      blurAnimations.add(
+        Tween<double>(begin: _beginBlurValues[i], end: _endBlurValues[i])
+            .animate(blurControllers[i]),
+      );
+      blurControllers[i].repeat(reverse: true);
+    }
+
+    // Calculate starting positions
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      double screenWidth = MediaQuery.of(context).size.width;
+      double screenHeight = MediaQuery.of(context).size.height;
+
+      for (int i = 0; i < fireFlyCount; i++) {
+        _startX.add(screenWidth * 0.03 +
+            Random().nextDouble() * (screenWidth * 0.97 - screenWidth * 0.03));
+        _startY.add(screenHeight * 0.45 +
+            Random().nextDouble() * (screenHeight - screenHeight * 0.45));
+        _onTwo.add(Random().nextInt(3) + 1);
+        _hundred.add(Random().nextInt(141) + 10);
+        _plusOrMinus.add(Random().nextInt(2) * 2 - 1);
+      }
+      // Only call setState once to trigger the first layout
+      setState(() {});
+    });
   }
-
-  // newX and newY starting positions
-  final List<double> _startX = [];
-  final List<double> _startY = [];
-  final List<double> onTwo = [];
-  final List<int> hundred = [];
-  final List<int> plusOrMinus = [];
 
   @override
   Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
-    double screenHeight = MediaQuery.of(context).size.height; // 852
-
-    // Generate random starting positions
-    for (int i = 0; i < fireFlyCount; i++) {
-      _startX.add(screenWidth * 0.03 +
-          Random().nextDouble() * (screenWidth * 0.97 - screenWidth * 0.03));
-      _startY.add(screenHeight * 0.45 +
-          Random().nextDouble() * (screenHeight - screenHeight * 0.45));
-      onTwo.add(Random().nextInt(3) + 1);
-      hundred.add(Random().nextInt(141) + 10);
-      plusOrMinus.add(Random().nextInt(2) * 2 - 1);
+    if (_startX.isEmpty || _startY.isEmpty) {
+      // Return a placeholder or loading widget until positions are initialized
+      return Container();
     }
 
     return SafeArea(
-      child: Stack(
-        children: [
-          for (int i = 0; i < fireFlyCount; i++)
-            AnimatedBuilder(
-              animation: animation[i],
+      child: RepaintBoundary(
+        child: Stack(
+          children: List.generate(fireFlyCount, (i) {
+            return AnimatedBuilder(
+              animation: animations[i],
               builder: (context, child) {
-                double value = animation[i].value;
-                double newX =
-                    _startX[i] + hundred[i] * sin(value * pi) * plusOrMinus[i];
+                double value = animations[i].value;
+                double newX = _startX[i] +
+                    _hundred[i] * sin(value * pi) * _plusOrMinus[i];
                 double newY = _startY[i] +
-                    hundred[i] * sin((value * onTwo[i]) * pi) * plusOrMinus[i];
+                    _hundred[i] *
+                        sin((value * _onTwo[i]) * pi) *
+                        _plusOrMinus[i];
+
                 return Transform.translate(
                   offset: Offset(newX, newY),
                   child: Container(
                     decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          // greenFieldValue == 0
-                          BoxShadow(
-                              spreadRadius: 1,
-                              color: fireflyColor,
-                              blurRadius: 5, // 20
-                              blurStyle: BlurStyle.normal)
-                          //  BoxShadow(
-                          //     spreadRadius: _spreadAnimation!.value,
-                          //     color: fireflyColor,
-                          //     blurRadius: 30,
-                          //     blurStyle: BlurStyle.normal),
-                        ]),
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          spreadRadius: 1,
+                          color: fireflyColor,
+                          blurRadius: blurAnimations[i].value,
+                          blurStyle: BlurStyle.normal,
+                        ),
+                      ],
+                    ),
                     child: CustomPaint(
-                      size: Size(_size[i], _size[i]),
-                      foregroundPainter: CircleBlurPainter(
-                          circleWidth: 7, blurSigma: blurAnimation[i].value),
+                      size: Size(_sizes[i], _sizes[i]),
+                      painter: CircleBlurPainter(
+                          circleWidth: 7, blurSigma: blurAnimations[i].value),
                     ),
                   ),
                 );
               },
-            )
-        ],
+            );
+          }),
+        ),
       ),
     );
   }
 
   @override
   void dispose() {
-    for (int i = 0; i < fireFlyCount; i++) {
-      controller[i].dispose();
-      blurController[i].dispose();
+    // Dispose of all controllers
+    for (var controller in controllers) {
+      controller.dispose();
     }
-    _spreadAnimationController!.dispose();
-
+    for (var blurController in blurControllers) {
+      blurController.dispose();
+    }
     super.dispose();
   }
 }
 
 class CircleBlurPainter extends CustomPainter {
-  CircleBlurPainter({required this.circleWidth, required this.blurSigma});
+  final double circleWidth;
+  final double blurSigma;
 
-  double circleWidth;
-  double blurSigma;
+  CircleBlurPainter({required this.circleWidth, required this.blurSigma});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -192,13 +172,15 @@ class CircleBlurPainter extends CustomPainter {
       ..style = PaintingStyle.fill
       ..strokeWidth = circleWidth
       ..maskFilter = MaskFilter.blur(BlurStyle.normal, blurSigma);
+
     Offset center = Offset(size.width / 2, size.height / 2);
     double radius = min(size.width / 2, size.height / 2);
+
     canvas.drawCircle(center, radius, line);
   }
 
   @override
-  bool shouldRepaint(CustomPainter oldDelegate) {
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
     return true;
   }
 }

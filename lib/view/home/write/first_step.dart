@@ -101,7 +101,7 @@ class _State extends State<FirstStep> {
               CustomPrimaryButton(
                 title: '완료',
                 onPrimaryButtonPressed: () {
-                  writeProvider.aiAndSaveDairy(context);
+                  writeProvider.aiAndSaveDiary(context);
                   writeProvider.nextWrite(2);
                 },
                 disableButton:
