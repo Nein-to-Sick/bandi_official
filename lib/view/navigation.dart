@@ -19,7 +19,7 @@ import '../components/no_reuse/navigation_bar.dart';
 import '../controller/home_to_write.dart';
 import '../controller/navigation_toggle_provider.dart';
 
-AssetsAudioPlayer assetsAudioPlayer = AssetsAudioPlayer.newPlayer();
+late AssetsAudioPlayer assetsAudioPlayer = AssetsAudioPlayer.newPlayer();
 bool speakerOn = true; // Default to true
 
 class Navigation extends StatefulWidget {
@@ -29,11 +29,30 @@ class Navigation extends StatefulWidget {
   State<Navigation> createState() => _NavigationState();
 }
 
-class _NavigationState extends State<Navigation> {
+class _NavigationState extends State<Navigation> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadSpeakerPreference();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    assetsAudioPlayer.dispose(); // 앱이 종료되면 오디오 플레이어도 종료
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      // 앱이 백그라운드로 이동하면 BGM 중지
+      assetsAudioPlayer.pause();
+    } else if (state == AppLifecycleState.resumed && speakerOn) {
+      // 앱이 다시 포그라운드로 돌아오면 BGM 재개
+      assetsAudioPlayer.play();
+    }
   }
 
   // Load the speakerOn preference from SharedPreferences
@@ -103,7 +122,7 @@ class _NavigationState extends State<Navigation> {
                   ? OtherDiary(
                       writeProvider: writeProvider,
                     )
-                  : (navigationToggleProvider.selectedIndex == -1)
+                  : navigationToggleProvider.selectedIndex == -1
                       ? const LoginView()
                       : navigationToggleProvider.selectedIndex == 0
                           ? const HomePage()
@@ -136,7 +155,7 @@ class _NavigationState extends State<Navigation> {
                           : const SizedBox.shrink()
                     ],
                   ),
-                ),
+                )
             ],
           ),
         ),
