@@ -15,7 +15,7 @@ class SecondStep extends StatelessWidget {
   Widget build(BuildContext context) {
     final writeProvider = Provider.of<HomeToWrite>(context);
     final navigationToggleProvider =
-        Provider.of<NavigationToggleProvider>(context);
+    Provider.of<NavigationToggleProvider>(context);
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -30,7 +30,7 @@ class SecondStep extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      writeProvider.diaryModel.title == "title"
+                      writeProvider.diaryModel.cheerText == ''
                           ? "제목 생성 중...."
                           : writeProvider.diaryModel.title,
                       style: BandiFont.displaySmall(context)?.copyWith(
@@ -47,12 +47,12 @@ class SecondStep extends StatelessWidget {
                   ],
                 ),
                 GestureDetector(
-                  onTap: () {
+                  onTap: writeProvider.diaryModel.cheerText == '' ? null : () {
                     writeProvider.nextWrite(3);
                   },
                   child: PhosphorIcon(
                     PhosphorIcons.pencilSimple(),
-                    color: BandiColor.neutralColor40(context),
+                    color: writeProvider.diaryModel.cheerText == '' ? BandiColor.neutralColor10(context) : BandiColor.neutralColor40(context),
                   ),
                 )
               ],
@@ -76,29 +76,28 @@ class SecondStep extends StatelessWidget {
             const SizedBox(
               height: 8,
             ),
-            (writeProvider.diaryModel.emotion.length == 1 &&
-                    writeProvider.diaryModel.emotion[0] == "emotion")
+            writeProvider.diaryModel.cheerText == ''
                 ? Text(
-                    "감정 파악 중...",
-                    style: BandiFont.titleSmall(context)
-                        ?.copyWith(color: BandiColor.neutralColor100(context)),
-                  )
+              "감정 파악 중...",
+              style: BandiFont.titleSmall(context)
+                  ?.copyWith(color: BandiColor.neutralColor100(context)),
+            )
                 : SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        for (String emotion in writeProvider.diaryModel.emotion)
-                          Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
-                            child: Text(
-                              "#$emotion",
-                              style: BandiFont.titleSmall(context)?.copyWith(
-                                  color: BandiColor.neutralColor100(context)),
-                            ),
-                          ),
-                      ],
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  for (String emotion in writeProvider.diaryModel.emotion)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: Text(
+                        "#$emotion",
+                        style: BandiFont.titleSmall(context)?.copyWith(
+                            color: BandiColor.neutralColor100(context)),
+                      ),
                     ),
-                  ),
+                ],
+              ),
+            ),
             const SizedBox(
               height: 16,
             ),
@@ -126,7 +125,7 @@ class SecondStep extends StatelessWidget {
                   writeProvider.initialize();
                   writeProvider.toggleWrite();
                 },
-                disableButton: false,
+                disableButton: writeProvider.diaryModel.cheerText == '' ? true : false,
               ),
             ),
           ],
