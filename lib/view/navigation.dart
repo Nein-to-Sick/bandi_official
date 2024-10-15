@@ -122,7 +122,8 @@ class _NavigationState extends State<Navigation> with WidgetsBindingObserver {
                   ? OtherDiary(
                       writeProvider: writeProvider,
                     )
-                  : navigationToggleProvider.selectedIndex == -1
+                  : (navigationToggleProvider.selectedIndex <= -1 &&
+                          navigationToggleProvider.selectedIndex != -2)
                       ? const LoginView()
                       : navigationToggleProvider.selectedIndex == 0
                           ? const HomePage()
