@@ -75,40 +75,40 @@ class _UserViewState extends State<UserView> {
                 });
               },
             ),
-            const SizedBox(height: 8),
-            buildSettingOption(
-              icon: PhosphorIcons.bell(),
-              text: "알림 설정",
-              onTap: () {
-                setState(() {
-                  _isSwitched = !_isSwitched;
-                });
-              },
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    "00:00",
-                    style: BandiFont.bodyMedium(context)?.copyWith(
-                      color: BandiColor.foundationColor10(context),
-                    ),
-                  ),
-                  const SizedBox(width: 12.5),
-                  Switch(
-                    value: _isSwitched,
-                    onChanged: (bool value) {
-                      setState(() {
-                        _isSwitched = value;
-                      });
-                    },
-                    activeColor: BandiColor.accentColorYellow(context),
-                    activeTrackColor: BandiColor.neutralColor100(context),
-                    inactiveThumbColor: BandiColor.foundationColor80(context),
-                    inactiveTrackColor: BandiColor.foundationColor40(context),
-                  ),
-                ],
-              ),
-            ),
+            // const SizedBox(height: 8),
+            // buildSettingOption(
+            //   icon: PhosphorIcons.bell(),
+            //   text: "알림 설정",
+            //   onTap: () {
+            //     setState(() {
+            //       _isSwitched = !_isSwitched;
+            //     });
+            //   },
+            //   trailing: Row(
+            //     mainAxisSize: MainAxisSize.min,
+            //     children: [
+            //       Text(
+            //         "00:00",
+            //         style: BandiFont.bodyMedium(context)?.copyWith(
+            //           color: BandiColor.foundationColor10(context),
+            //         ),
+            //       ),
+            //       const SizedBox(width: 12.5),
+            //       Switch(
+            //         value: _isSwitched,
+            //         onChanged: (bool value) {
+            //           setState(() {
+            //             _isSwitched = value;
+            //           });
+            //         },
+            //         activeColor: BandiColor.accentColorYellow(context),
+            //         activeTrackColor: BandiColor.neutralColor100(context),
+            //         inactiveThumbColor: BandiColor.foundationColor80(context),
+            //         inactiveTrackColor: BandiColor.foundationColor40(context),
+            //       ),
+            //     ],
+            //   ),
+            // ),
             const SizedBox(height: 24),
             Divider(
               height: 1.0,
