@@ -37,8 +37,15 @@ class DiaryAiChatController with ChangeNotifier {
   // for chat system message (today's date)
   late String todayDate = '';
   // default chatGPT system prompt
+  // String chatGPTSystemPrompt =
+  //     "You are a friendly chatbot offering emotional support for personal concerns. Respond warmly in Korean, focusing on empathy. Offer practical suggestions only if explicitly requested. Maintain a casual, friendly tone, like a close friend, and limit responses to 3 sentences.";
+
+  // String chatGPTSystemPrompt =
+  //     "Your name is 반디. You offer warm, empathetic support in Korean, responding as a respectful friend. Keep responses friendly and brief (max 3 sentences). Provide practical suggestions only when directly asked.";
+
   String chatGPTSystemPrompt =
-      "You are a friendly chatbot offering emotional support for personal concerns. Respond warmly in Korean, focusing on empathy. Offer practical suggestions only if explicitly requested. Maintain a casual, friendly tone, like a close friend, and limit responses to 3 sentences.";
+      "너의 이름은 반디야. 친구처럼 반말로 답변해. 짧고 간결하게, 3문장 이내로 대답하고, 실질적인 도움이 필요하다고 요청받았을 때만 제안해줘.";
+
   // firebase user uid
   String? get userId => FirebaseAuth.instance.currentUser!.uid;
 
@@ -73,10 +80,20 @@ class DiaryAiChatController with ChangeNotifier {
   void toggleChatResponseLodaing(bool state) {
     isChatResponsLoading = state;
     if (isChatResponsLoading) {
+      // 기존 로딩 텍스트
+      // chatlog.add(
+      //   chatModel = ChatMessage(
+      //     message: '. . .',
+      //     messenger: Messenger.ai,
+      //     messageType: MessageType.chat,
+      //     messageTime: timestampToLocal(Timestamp.now()),
+      //   ),
+      // );
+      // 애니메이션 적용을 위한 텍스트
       chatlog.add(
         chatModel = ChatMessage(
-          message: '. . .',
-          messenger: Messenger.ai,
+          message: '!&[loading]&!',
+          messenger: Messenger.special,
           messageType: MessageType.chat,
           messageTime: timestampToLocal(Timestamp.now()),
         ),
@@ -111,23 +128,24 @@ class DiaryAiChatController with ChangeNotifier {
   // recommanded system message
   List<ChatMessage> assistantMessage = [
     ChatMessage(
-      message: '오늘 기분이 좋은데 넌 어때?',
+      message: '난 오늘 기분이 좋은데 넌 어때?',
       messenger: Messenger.assistant,
       messageType: MessageType.chat,
       messageTime: timestampToLocal(Timestamp.now()),
     ),
     ChatMessage(
-      message: '오늘 기분이 별로야... 응원해 줘',
+      message: '난 오늘 기분이 별로야... 응원해 줘',
       messenger: Messenger.assistant,
       messageType: MessageType.chat,
       messageTime: timestampToLocal(Timestamp.now()),
     ),
-    ChatMessage(
-      message: '지난 내 기록을 보여줘',
-      messenger: Messenger.assistant,
-      messageType: MessageType.chat,
-      messageTime: timestampToLocal(Timestamp.now()),
-    ),
+    // TODO: 추후 업데이트 예정
+    // ChatMessage(
+    //   message: '지난 내 기록을 보여줘',
+    //   messenger: Messenger.assistant,
+    //   messageType: MessageType.chat,
+    //   messageTime: timestampToLocal(Timestamp.now()),
+    // ),
   ];
 
   // current chat log that till displayed on screen
@@ -254,16 +272,17 @@ class DiaryAiChatController with ChangeNotifier {
       // the actual request.
       OpenAIChatCompletionModel chatCompletion =
           await OpenAI.instance.chat.create(
-        model: "ft:gpt-4o-mini-2024-07-18:personal:chatbot-model002:9vJrHxA4",
+        model:
+            "ft:gpt-4o-mini-2024-07-18:personal:chatbot-model-new002:ANaJigdQ",
         messages: chatMemory,
         // 답변할 종류의 수
         n: 1,
         // 답변에 사용할 최대 토큰의 크기
         maxTokens: 256,
         // 같은 답변 반복 (0.1~1.0일 수록 감소)
-        frequencyPenalty: 0,
+        frequencyPenalty: 0.3,
         // 새로운 주제 제시 (>0 수록 새로운 주제 확률 상승)
-        presencePenalty: 0,
+        presencePenalty: -0.2,
         // 답변의 일관성 (낮을 수록 집중됨)
         temperature: 1.0,
         // An alternative to sampling with temperature
@@ -279,6 +298,10 @@ class DiaryAiChatController with ChangeNotifier {
       dev.log(e.toString());
       toggleChatResponseLodaing(false);
       updateAIChat("이해가 안됐어. 다시 설명해 줄 수 있을까?");
+    } catch (e) {
+      dev.log(e.toString());
+      toggleChatResponseLodaing(false);
+      updateAIChat("오류가 발생한 것 같아. 다시 이야기해줄 수 있을까?");
     }
 
     chatlog.add(chatModel);
@@ -344,27 +367,33 @@ class DiaryAiChatController with ChangeNotifier {
         chatlog.clear();
 
         for (String key in latestKeys) {
-          List<String>? jsonMessages = prefs.getStringList(key);
+          if (!chatlogDates.contains(key)) {
+            List<String>? jsonMessages = prefs.getStringList(key);
 
-          if (jsonMessages != null) {
-            dev.log(
-                'read chat log from local for date ${key.split('_').skip(1).join('_')}');
-            sendFirstMessage = true;
-            chatlogDates.add(key);
-            chatlog.addAll(
-              jsonMessages
-                  .map((jsonMessage) =>
-                      ChatMessage.fromJsonLocal(jsonDecode(jsonMessage)))
-                  .toList(),
-            );
+            if (jsonMessages != null) {
+              dev.log(
+                  'read chat log from local for date ${key.split('_').skip(1).join('_')}');
+              sendFirstMessage = true;
+              chatlogDates.add(key);
+              chatlog.addAll(
+                jsonMessages
+                    .map((jsonMessage) =>
+                        ChatMessage.fromJsonLocal(jsonDecode(jsonMessage)))
+                    .toList(),
+              );
 
-            // for (int i = 0; i < chatlog.length; i++) {
-            //   dev.log(
-            //       "${ChatMessage.formatTimestamp(timestampToLocal(chatlog[i].messageTime))}: ${chatlog[i].message}");
-            // }
+              // for (int i = 0; i < chatlog.length; i++) {
+              //   dev.log(
+              //       "${ChatMessage.formatTimestamp(timestampToLocal(chatlog[i].messageTime))}: ${chatlog[i].message}");
+              // }
+            } else {
+              dev.log(
+                  'there is no chat data for date ${key.split('_').skip(1).join('_')}');
+            }
           } else {
-            dev.log(
-                'there is no chat data for date ${key.split('_').skip(1).join('_')}');
+            if (keys.indexOf(key) == 0) {
+              dev.log('there is no more older chat data');
+            }
           }
         }
       } else {
