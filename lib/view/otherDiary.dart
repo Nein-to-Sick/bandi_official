@@ -4,7 +4,6 @@ import 'package:bandi_official/controller/alarm_controller.dart';
 import 'package:bandi_official/controller/home_to_write.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
-import 'package:bandi_official/view/alarm/alarm_view.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -47,57 +46,55 @@ class _OtherDiaryState extends State<OtherDiary> {
       child: Container(
         color: BandiColor.neutralColor10(context),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: SafeArea(
-            child: Scaffold(
+          padding: const EdgeInsets.fromLTRB(24,0,24,32),
+          child: Scaffold(
+            backgroundColor: BandiColor.transparent(context),
+            appBar: AppBar(
               backgroundColor: BandiColor.transparent(context),
-              appBar: AppBar(
-                backgroundColor: BandiColor.transparent(context),
-                actions: [
-                  GestureDetector(
-                    onTap: () {
-                      writeProvider.offDiaryOpen();
-                    },
-                    child: PhosphorIcon(
-                      PhosphorIcons.x(),
-                      color: BandiColor.neutralColor40(context),
+              actions: [
+                GestureDetector(
+                  onTap: () {
+                    writeProvider.offDiaryOpen();
+                  },
+                  child: PhosphorIcon(
+                    PhosphorIcons.x(),
+                    color: BandiColor.neutralColor40(context),
+                  ),
+                )
+              ],
+            ),
+            body: Center(
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "반디님과 비슷한 친구에게\n공감을 전달해주세요!",
+                          textAlign: TextAlign.center,
+                          style: BandiFont.headlineMedium(context)?.copyWith(
+                              color: BandiColor.neutralColor100(context)),
+                        ),
+                        const SizedBox(
+                          height: 40,
+                        ),
+                        Image.asset(
+                          "./assets/images/icons/otherDiary.png",
+                          scale: 2,
+                        ),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                      ],
                     ),
+                  ),
+                  CustomPrimaryButton(
+                    title: '일기 보기',
+                    onPrimaryButtonPressed: _togglePage,
+                    disableButton: false,
                   )
                 ],
-              ),
-              body: Center(
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "반디님과 비슷한 친구에게\n공감을 전달해주세요!",
-                            textAlign: TextAlign.center,
-                            style: BandiFont.headlineMedium(context)?.copyWith(
-                                color: BandiColor.neutralColor100(context)),
-                          ),
-                          const SizedBox(
-                            height: 40,
-                          ),
-                          Image.asset(
-                            "./assets/images/icons/otherDiary.png",
-                            scale: 2,
-                          ),
-                          const SizedBox(
-                            height: 20,
-                          ),
-                        ],
-                      ),
-                    ),
-                    CustomPrimaryButton(
-                      title: '일기 보기',
-                      onPrimaryButtonPressed: _togglePage,
-                      disableButton: false,
-                    )
-                  ],
-                ),
               ),
             ),
           ),
@@ -124,8 +121,9 @@ class _OtherDiaryState extends State<OtherDiary> {
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
-                    color: BandiColor.neutralColor90(context),
-                    borderRadius: BandiEffects.radius()),
+                  color: BandiColor.neutralColor90(context),
+                  borderRadius: BandiEffects.radius(),
+                ),
                 child: Column(
                   children: [
                     Padding(
@@ -134,115 +132,112 @@ class _OtherDiaryState extends State<OtherDiary> {
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           GestureDetector(
-                              onTap: () async {
-                                if (reaction1) {
-                                  reactionValue = 0;
-                                } else if (reaction2) {
-                                  reactionValue = 1;
-                                } else if (reaction3) {
-                                  reactionValue = 2;
-                                }
+                            onTap: () async {
+                              if (reaction1) {
+                                reactionValue = 0;
+                              } else if (reaction2) {
+                                reactionValue = 1;
+                              } else if (reaction3) {
+                                reactionValue = 2;
+                              }
 
-                                // 반응을 추가한 경우에만 기록
-                                if (reactionValue != -1) {
-                                  // 로컬에 저장
-                                  mailController.saveLikedDiaryToLocal(
-                                      writeProvider.otherDiaryModel,
-                                      reactionValue);
+                              if (reactionValue != -1) {
+                                mailController.saveLikedDiaryToLocal(
+                                    writeProvider.otherDiaryModel,
+                                    reactionValue);
 
-                                  // DB에 기록
-                                  saveReactionInDB(
-                                      writeProvider.otherDiaryModel.diaryId,
-                                      writeProvider.otherDiaryModel.reaction,
-                                      reaction1,
-                                      reaction2,
-                                      reaction3);
-
-                                  // 상대에게 알람 보내기
-                                  String fcmToken = (await FirebaseFirestore
-                                          .instance
-                                          .collection('users')
-                                          .doc(writeProvider
-                                              .otherDiaryModel.userId)
-                                          .get())
-                                      .data()?['fcmToken'];
-
-                                  alarmController.sendLikedDiaryNotification(
+                                saveReactionInDB(
                                     writeProvider.otherDiaryModel.diaryId,
-                                    fcmToken,
-                                    writeProvider.otherDiaryModel.userId,
-                                  );
-                                }
-                                writeProvider.offDiaryOpen();
-                              },
-                              child: PhosphorIcon(
-                                PhosphorIcons.x(),
-                                color: BandiColor.foundationColor40(context),
-                              )),
+                                    writeProvider.otherDiaryModel.reaction,
+                                    reaction1,
+                                    reaction2,
+                                    reaction3);
+
+                                String fcmToken = (await FirebaseFirestore
+                                    .instance
+                                    .collection('users')
+                                    .doc(writeProvider
+                                    .otherDiaryModel.userId)
+                                    .get())
+                                    .data()?['fcmToken'];
+
+                                alarmController.sendLikedDiaryNotification(
+                                  writeProvider.otherDiaryModel.diaryId,
+                                  fcmToken,
+                                  writeProvider.otherDiaryModel.userId,
+                                );
+                              }
+                              writeProvider.offDiaryOpen();
+                            },
+                            child: PhosphorIcon(
+                              PhosphorIcons.x(),
+                              color: BandiColor.foundationColor40(context),
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            writeProvider.otherDiaryModel.title,
-                            style: BandiFont.displaySmall(context)?.copyWith(
-                                color: BandiColor.foundationColor100(context)),
-                          ),
-                          const SizedBox(
-                            height: 4,
-                          ),
-                          Text(
-                            DateFormat('yyyy년 M월 d일').format(writeProvider
-                                .otherDiaryModel.createdAt
-                                .toDate()),
-                            style: BandiFont.headlineSmall(context)?.copyWith(
-                                color: BandiColor.foundationColor100(context)),
-                          ),
-                          const SizedBox(
-                            height: 16,
-                          ),
-                          SingleChildScrollView(
-                              child: Text(
-                            writeProvider.otherDiaryModel.content,
-                            style: BandiFont.titleSmall(context)?.copyWith(
-                                color: BandiColor.foundationColor100(context)),
-                          )),
-                        ],
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              writeProvider.otherDiaryModel.title,
+                              style: BandiFont.displaySmall(context)?.copyWith(
+                                  color: BandiColor.foundationColor100(context)),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              DateFormat('yyyy년 M월 d일').format(
+                                  writeProvider.otherDiaryModel.createdAt.toDate()),
+                              style: BandiFont.headlineSmall(context)?.copyWith(
+                                  color: BandiColor.foundationColor100(context)),
+                            ),
+                            const SizedBox(height: 16),
+                            Expanded(
+                              child: SingleChildScrollView(
+                                child: Text(
+                                  writeProvider.otherDiaryModel.content,
+                                  style: BandiFont.titleSmall(context)?.copyWith(
+                                      color: BandiColor.foundationColor100(context)),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                          ],
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-            const SizedBox(
-              height: 20,
-            ),
+            const SizedBox(height: 20),
             Row(
               children: [
                 Expanded(
-                    child: CustomReactionButton(
-                  onFirstButtonPressed: () {
-                    reaction1 = true;
-                    reaction2 = false;
-                    reaction3 = false;
-                  },
-                  onSecondButtonPressed: () {
-                    reaction1 = false;
-                    reaction2 = true;
-                    reaction3 = false;
-                  },
-                  onThirdButtonPressed: () {
-                    reaction1 = false;
-                    reaction2 = false;
-                    reaction3 = true;
-                  },
-                )),
+                  child: CustomReactionButton(
+                    onFirstButtonPressed: () {
+                      reaction1 = true;
+                      reaction2 = false;
+                      reaction3 = false;
+                    },
+                    onSecondButtonPressed: () {
+                      reaction1 = false;
+                      reaction2 = true;
+                      reaction3 = false;
+                    },
+                    onThirdButtonPressed: () {
+                      reaction1 = false;
+                      reaction2 = false;
+                      reaction3 = true;
+                    },
+                  ),
+                ),
               ],
-            )
+            ),
           ],
         ),
       ),

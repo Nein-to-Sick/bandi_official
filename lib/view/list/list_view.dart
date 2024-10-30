@@ -1,11 +1,11 @@
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:provider/provider.dart';
 import '../../components/appbar/appbar.dart';
+import '../../controller/date_provider.dart';
 import 'calendar.dart';
 import 'diary_list.dart';
-
-DateTime? _selectedDate;
 
 class ListPage extends StatefulWidget {
   const ListPage({super.key});
@@ -17,6 +17,8 @@ class ListPage extends StatefulWidget {
 class _ListPageState extends State<ListPage> {
   @override
   Widget build(BuildContext context) {
+    final dateProvider = Provider.of<DateProvider>(context);
+
     return SafeArea(
       child: Scaffold(
         backgroundColor: BandiColor.transparent(context),
@@ -26,16 +28,16 @@ class _ListPageState extends State<ListPage> {
           trailingIcon: PhosphorIcons.calendarDots(PhosphorIconsStyle.fill),
           onLeadingIconPressed: () {
             setState(() {
-              _selectedDate = null;
+              dateProvider.clearDate();
             });
           },
           onTrailingIconPressed: () => _showCalendarBottomSheet(context),
-          isVisibleLeadingButton: _selectedDate != null ? true : false,
+          isVisibleLeadingButton: dateProvider.selectedDate != null,
         ),
         body: Padding(
           padding:
               EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
-          child: DiaryList(selectedDate: _selectedDate),
+          child: DiaryList(selectedDate: dateProvider.selectedDate),
         ),
       ),
     );
@@ -51,13 +53,13 @@ class _ListPageState extends State<ListPage> {
         return Padding(
           padding: const EdgeInsets.only(left: 18, right: 18, top: 23),
           child: Calendar(
-            selectedDate: _selectedDate ?? DateTime.now(),
+            selectedDate: Provider.of<DateProvider>(context, listen: false)
+                .selectedDate ??
+                DateTime.now(),
             onDateSelected: (date) {
-              setState(() {
-                _selectedDate = date;
-                Navigator.pop(
-                    context); // Close the bottom sheet when a date is selected
-              });
+              Provider.of<DateProvider>(context, listen: false)
+                  .setSelectedDate(date);
+              Navigator.pop(context); // Close the bottom sheet when a date is selected
             },
           ),
         );

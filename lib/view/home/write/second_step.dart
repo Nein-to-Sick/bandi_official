@@ -26,25 +26,30 @@ class SecondStep extends StatelessWidget {
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      writeProvider.diaryModel.cheerText == ''
-                          ? "제목 생성 중...."
-                          : writeProvider.diaryModel.title,
-                      style: BandiFont.displaySmall(context)?.copyWith(
-                          color: BandiColor.neutralColor100(context)),
-                    ),
-                    const SizedBox(
-                      height: 4,
-                    ),
-                    Text(
-                      DateFormat('yyyy년 M월 d일').format(DateTime.now()),
-                      style: BandiFont.headlineSmall(context)?.copyWith(
-                          color: BandiColor.neutralColor100(context)),
-                    )
-                  ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Text(
+                          writeProvider.diaryModel.cheerText == ''
+                              ? "제목 생성 중...."
+                              : writeProvider.diaryModel.title,
+                          style: BandiFont.displaySmall(context)?.copyWith(
+                              color: BandiColor.neutralColor100(context)),
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 4,
+                      ),
+                      Text(
+                        DateFormat('yyyy년 M월 d일').format(DateTime.now()),
+                        style: BandiFont.headlineSmall(context)?.copyWith(
+                            color: BandiColor.neutralColor100(context)),
+                      )
+                    ],
+                  ),
                 ),
                 GestureDetector(
                   onTap: writeProvider.diaryModel.cheerText == '' ? null : () {
@@ -82,7 +87,11 @@ class SecondStep extends StatelessWidget {
               style: BandiFont.titleSmall(context)
                   ?.copyWith(color: BandiColor.neutralColor100(context)),
             )
-                : SingleChildScrollView(
+                : writeProvider.diaryModel.emotion.isEmpty ? Text(
+              "없음",
+              style: BandiFont.titleSmall(context)?.copyWith(
+                  color: BandiColor.neutralColor100(context)),
+            ) : SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
@@ -108,7 +117,7 @@ class SecondStep extends StatelessWidget {
             Text(
               writeProvider.diaryModel.cheerText == ''
                   ? "할 말 생각중..."
-                  : "\"${writeProvider.diaryModel.cheerText}\"",
+                  : writeProvider.diaryModel.cheerText,
               style: BandiFont.titleSmall(context)
                   ?.copyWith(color: BandiColor.neutralColor100(context)),
             ),
