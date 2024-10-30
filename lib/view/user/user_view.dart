@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:bandi_official/components/button/secondary_button.dart';
+import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -284,6 +285,11 @@ class _UserViewState extends State<UserView> {
                   User? user = FirebaseAuth.instance.currentUser;
 
                   if (user != null) {
+                    // 로컬 저장소 데이터 삭제
+                    final mailController =
+                        Provider.of<MailController>(context, listen: false);
+                    mailController.deleteEveryMailDataFromLocal();
+
                     // Firestore에서 사용자 데이터 삭제
                     final userCollection =
                         FirebaseFirestore.instance.collection("users");

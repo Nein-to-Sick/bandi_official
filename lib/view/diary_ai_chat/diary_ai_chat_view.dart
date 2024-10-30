@@ -102,17 +102,18 @@ class _DiaryAIChatPageState extends State<DiaryAIChatPage> {
           disableLeadingButton: diaryAiChatController.isChatResponsLoading,
           disableTrailingButton: diaryAiChatController.isChatResponsLoading,
         ),
-        body: Column(
-          children: [
-            Expanded(
-              child: Align(
-                alignment: Alignment.topCenter,
-                child: GestureDetector(
-                  onTap: () {
-                    if (diaryAiChatController.chatFocusNode.hasFocus) {
-                      diaryAiChatController.chatFocusNode.unfocus();
-                    }
-                  },
+        body: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: () {
+            if (diaryAiChatController.chatFocusNode.hasFocus) {
+              diaryAiChatController.chatFocusNode.unfocus();
+            }
+          },
+          child: Column(
+            children: [
+              Expanded(
+                child: Align(
+                  alignment: Alignment.topCenter,
                   child: ListView.builder(
                     controller: diaryAiChatController.chatScrollController,
                     shrinkWrap: true,
@@ -136,12 +137,12 @@ class _DiaryAIChatPageState extends State<DiaryAIChatPage> {
                   ),
                 ),
               ),
-            ),
-            const Align(
-              alignment: Alignment.bottomCenter,
-              child: ChatMessageBar(),
-            ),
-          ],
+              const Align(
+                alignment: Alignment.bottomCenter,
+                child: ChatMessageBar(),
+              ),
+            ],
+          ),
         ),
       ),
     );

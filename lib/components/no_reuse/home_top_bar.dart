@@ -76,8 +76,16 @@ class _HomeTopBarState extends State<HomeTopBar> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          GestureDetector(
-                            onTap: () async {
+                          IconButton(
+                            icon: PhosphorIcon(
+                              speakerOn
+                                  ? PhosphorIcons.speakerSimpleHigh(
+                                      PhosphorIconsStyle.fill)
+                                  : PhosphorIcons.speakerSimpleSlash(
+                                      PhosphorIconsStyle.fill),
+                              color: BandiColor.neutralColor100(context),
+                            ),
+                            onPressed: () async {
                               setState(() {
                                 speakerOn = !speakerOn;
                               });
@@ -92,14 +100,6 @@ class _HomeTopBarState extends State<HomeTopBar> {
                                 assetsAudioPlayer.pause();
                               }
                             },
-                            child: PhosphorIcon(
-                              speakerOn
-                                  ? PhosphorIcons.speakerSimpleHigh(
-                                      PhosphorIconsStyle.fill)
-                                  : PhosphorIcons.speakerSimpleSlash(
-                                      PhosphorIconsStyle.fill),
-                              color: BandiColor.neutralColor100(context),
-                            ),
                           ),
                           Row(
                             children: [
@@ -152,15 +152,16 @@ class _HomeTopBarState extends State<HomeTopBar> {
                       ),
                       // write button
                       Padding(
-                        padding: const EdgeInsets.only(bottom: 100.0, right: 5),
+                        padding:
+                            const EdgeInsets.only(bottom: 100.0, right: 10),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            GestureDetector(
-                              onTap: () {
+                            IconButton(
+                              onPressed: () {
                                 writeProvider.toggleWrite();
                               },
-                              child: CircleAvatar(
+                              icon: CircleAvatar(
                                 radius: 20,
                                 backgroundColor:
                                     BandiColor.neutralColor60(context),
