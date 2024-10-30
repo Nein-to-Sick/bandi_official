@@ -13,37 +13,41 @@ Widget buildNavigationItem(
   String? label,
 ) {
   return GestureDetector(
+    behavior: HitTestBehavior.translucent,
     onTap: () {
       navigationToggleProvider.selectIndex(index);
     },
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        PhosphorIcon(
-          navigationToggleProvider.selectedIndex == index
-              ? iconFill
-              : iconRegular,
-          color: navigationToggleProvider.selectedIndex == 3
-              ? BandiColor.foundationColor60(context)
-              : navigationToggleProvider.selectedIndex == index
-                  ? BandiColor.neutralColor100(context)
-                  : BandiColor.neutralColor60(context),
-          size: 24,
-        ),
-        if (label != null) ...[
-          const SizedBox(height: 5),
-          Text(
-            label,
-            style: BandiFont.labelSmall(context)?.copyWith(
-              color: navigationToggleProvider.selectedIndex == 3
-                  ? BandiColor.foundationColor60(context)
-                  : navigationToggleProvider.selectedIndex == index
-                      ? BandiColor.neutralColor100(context)
-                      : BandiColor.neutralColor60(context),
-            ),
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          PhosphorIcon(
+            navigationToggleProvider.selectedIndex == index
+                ? iconFill
+                : iconRegular,
+            color: navigationToggleProvider.selectedIndex == 3
+                ? BandiColor.foundationColor60(context)
+                : navigationToggleProvider.selectedIndex == index
+                    ? BandiColor.neutralColor100(context)
+                    : BandiColor.neutralColor60(context),
+            size: 24,
           ),
+          if (label != null) ...[
+            const SizedBox(height: 5),
+            Text(
+              label,
+              style: BandiFont.labelSmall(context)?.copyWith(
+                color: navigationToggleProvider.selectedIndex == 3
+                    ? BandiColor.foundationColor60(context)
+                    : navigationToggleProvider.selectedIndex == index
+                        ? BandiColor.neutralColor100(context)
+                        : BandiColor.neutralColor60(context),
+              ),
+            ),
+          ],
         ],
-      ],
+      ),
     ),
   );
 }
@@ -57,6 +61,7 @@ Widget navigationBar(BuildContext context) {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
+          const SizedBox(width: 5),
           buildNavigationItem(
             context,
             navigationToggleProvider,
@@ -89,6 +94,7 @@ Widget navigationBar(BuildContext context) {
             PhosphorIcons.gearSix(PhosphorIconsStyle.regular),
             "설정",
           ),
+          const SizedBox(width: 5),
         ],
       ),
     ),
