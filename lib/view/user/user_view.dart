@@ -778,28 +778,6 @@ class _UserViewState extends State<UserView> {
                   height: 15,
                 ),
                 Text(
-                  "전화",
-                  style: BandiFont.headlineMedium(context)?.copyWith(
-                    color: BandiColor.foundationColor80(context),
-                  ),
-                ),
-                Text(
-                  CompanyInfo().pn,
-                  style: BandiFont.bodySmall(context)?.copyWith(
-                    color: BandiColor.foundationColor80(context),
-                  ),
-                ),
-                const SizedBox(
-                  height: 15,
-                ),
-                Divider(
-                  height: 1.0,
-                  color: BandiColor.foundationColor10(context),
-                ),
-                const SizedBox(
-                  height: 15,
-                ),
-                Text(
                   "이메일",
                   style: BandiFont.headlineMedium(context)?.copyWith(
                     color: BandiColor.foundationColor80(context),

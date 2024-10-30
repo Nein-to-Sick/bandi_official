@@ -64,7 +64,7 @@ class _CustomResetDialogueState extends State<CustomResetDialogue> {
         borderRadius: BandiEffects.radius(),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 27),
-      backgroundColor: BandiColor.neutralColor80(context),
+      backgroundColor: BandiColor.neutralColor100(context),
       content: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
