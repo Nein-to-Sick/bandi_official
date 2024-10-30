@@ -4,7 +4,6 @@ import 'package:bandi_official/controller/alarm_controller.dart';
 import 'package:bandi_official/controller/home_to_write.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
-import 'package:bandi_official/view/alarm/alarm_view.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -47,57 +46,55 @@ class _OtherDiaryState extends State<OtherDiary> {
       child: Container(
         color: BandiColor.neutralColor10(context),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: SafeArea(
-            child: Scaffold(
+          padding: const EdgeInsets.fromLTRB(24,0,24,32),
+          child: Scaffold(
+            backgroundColor: BandiColor.transparent(context),
+            appBar: AppBar(
               backgroundColor: BandiColor.transparent(context),
-              appBar: AppBar(
-                backgroundColor: BandiColor.transparent(context),
-                actions: [
-                  GestureDetector(
-                    onTap: () {
-                      writeProvider.offDiaryOpen();
-                    },
-                    child: PhosphorIcon(
-                      PhosphorIcons.x(),
-                      color: BandiColor.neutralColor40(context),
+              actions: [
+                GestureDetector(
+                  onTap: () {
+                    writeProvider.offDiaryOpen();
+                  },
+                  child: PhosphorIcon(
+                    PhosphorIcons.x(),
+                    color: BandiColor.neutralColor40(context),
+                  ),
+                )
+              ],
+            ),
+            body: Center(
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "반디님과 비슷한 친구에게\n공감을 전달해주세요!",
+                          textAlign: TextAlign.center,
+                          style: BandiFont.headlineMedium(context)?.copyWith(
+                              color: BandiColor.neutralColor100(context)),
+                        ),
+                        const SizedBox(
+                          height: 40,
+                        ),
+                        Image.asset(
+                          "./assets/images/icons/otherDiary.png",
+                          scale: 2,
+                        ),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                      ],
                     ),
+                  ),
+                  CustomPrimaryButton(
+                    title: '일기 보기',
+                    onPrimaryButtonPressed: _togglePage,
+                    disableButton: false,
                   )
                 ],
-              ),
-              body: Center(
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "반디님과 비슷한 친구에게\n공감을 전달해주세요!",
-                            textAlign: TextAlign.center,
-                            style: BandiFont.headlineMedium(context)?.copyWith(
-                                color: BandiColor.neutralColor100(context)),
-                          ),
-                          const SizedBox(
-                            height: 40,
-                          ),
-                          Image.asset(
-                            "./assets/images/icons/otherDiary.png",
-                            scale: 2,
-                          ),
-                          const SizedBox(
-                            height: 20,
-                          ),
-                        ],
-                      ),
-                    ),
-                    CustomPrimaryButton(
-                      title: '일기 보기',
-                      onPrimaryButtonPressed: _togglePage,
-                      disableButton: false,
-                    )
-                  ],
-                ),
               ),
             ),
           ),
