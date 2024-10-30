@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:bandi_official/components/no_reuse/reset_dialogue.dart';
 import 'package:bandi_official/controller/alarm_controller.dart';
+import 'package:bandi_official/controller/date_provider.dart';
 import 'package:bandi_official/controller/diary_ai_analysis_controller.dart';
 import 'package:bandi_official/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
@@ -38,7 +39,7 @@ Future<void> main() async {
   ]);
   // Initialize firebase connection
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  // Initialize env file
+  // Initialize .env file
   await dotenv.load(fileName: 'assets/config/.env');
   // Initialize date formatting for the 'ko' locale
   await initializeDateFormatting('ko', null);
@@ -94,6 +95,9 @@ class MainApp extends StatelessWidget {
             ),
             ChangeNotifierProvider(
               create: (context) => PermissionController(),
+            ),
+            ChangeNotifierProvider(
+              create: (context) => DateProvider(),
             ),
           ],
           child: MaterialApp(

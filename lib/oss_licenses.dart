@@ -2075,7 +2075,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.''',
 /// flutter_dotenv 5.1.0
 const _flutter_dotenv = Package(
     name: 'flutter_dotenv',
-    description: 'Easily configure any flutter application with global variables using a `.env` file.',
+    description: 'Easily configure any flutter application with global variables using a `..env` file.',
     homepage: 'https://github.com/java-james/flutter_dotenv',
     authors: [],
     version: '5.1.0',
