@@ -12,12 +12,10 @@ class FireFly extends StatefulWidget {
 
 class FireFlyState extends State<FireFly> with TickerProviderStateMixin {
   int fireFlyCount = 10;
-  late List<AnimationController> controllers;
-  late List<Animation<double>> animations;
+  late AnimationController controller;
   late List<AnimationController> blurControllers;
   late List<Animation<double>> blurAnimations;
 
-  final List<Duration> _animationDurations = [];
   final List<Duration> _blurDurations = [];
   final List<double> _beginBlurValues = [];
   final List<double> _endBlurValues = [];
@@ -27,20 +25,23 @@ class FireFlyState extends State<FireFly> with TickerProviderStateMixin {
   final List<double> _onTwo = [];
   final List<int> _hundred = [];
   final List<int> _plusOrMinus = [];
+  final List<double> animationOffsets = []; // 오프셋 리스트 추가
 
   @override
   void initState() {
     super.initState();
 
-    // Initialize animation controllers and properties
-    controllers = [];
-    animations = [];
+    // Initialize main animation controller
+    controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 60),
+    )..repeat(); // 반복 애니메이션
+
     blurControllers = [];
     blurAnimations = [];
 
     for (int i = 0; i < fireFlyCount; i++) {
-      // Movement and blur durations
-      _animationDurations.add(Duration(seconds: Random().nextInt(21) + 30));
+      // Blur durations
       _blurDurations.add(Duration(milliseconds: Random().nextInt(1001) + 1000));
 
       // Blur values
@@ -50,21 +51,6 @@ class FireFlyState extends State<FireFly> with TickerProviderStateMixin {
       // Sizes of fireflies
       _sizes.add(Random().nextDouble() * 8 + 3);
 
-      // Create animation controllers
-      controllers.add(
-          AnimationController(vsync: this, duration: _animationDurations[i]));
-      animations.add(
-        CurvedAnimation(parent: controllers[i], curve: Curves.easeInOut)
-          ..addStatusListener((status) {
-            if (status == AnimationStatus.completed) {
-              controllers[i].reverse();
-            } else if (status == AnimationStatus.dismissed) {
-              controllers[i].forward();
-            }
-          }),
-      );
-      controllers[i].repeat();
-
       // Blur animations
       blurControllers
           .add(AnimationController(vsync: this, duration: _blurDurations[i]));
@@ -73,6 +59,9 @@ class FireFlyState extends State<FireFly> with TickerProviderStateMixin {
             .animate(blurControllers[i]),
       );
       blurControllers[i].repeat(reverse: true);
+
+      // 각 반딧불이의 애니메이션 오프셋 초기화
+      animationOffsets.add(Random().nextDouble() * 2 * pi);
     }
 
     // Calculate starting positions
@@ -89,7 +78,6 @@ class FireFlyState extends State<FireFly> with TickerProviderStateMixin {
         _hundred.add(Random().nextInt(141) + 10);
         _plusOrMinus.add(Random().nextInt(2) * 2 - 1);
       }
-      // Only call setState once to trigger the first layout
       setState(() {});
     });
   }
@@ -97,8 +85,7 @@ class FireFlyState extends State<FireFly> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     if (_startX.isEmpty || _startY.isEmpty) {
-      // Return a placeholder or loading widget until positions are initialized
-      return Container();
+      return Container(); // 초기화 중일 때 빈 컨테이너 반환
     }
 
     return SafeArea(
@@ -106,15 +93,14 @@ class FireFlyState extends State<FireFly> with TickerProviderStateMixin {
         child: Stack(
           children: List.generate(fireFlyCount, (i) {
             return AnimatedBuilder(
-              animation: animations[i],
+              animation: controller,
               builder: (context, child) {
-                double value = animations[i].value;
-                double newX = _startX[i] +
-                    _hundred[i] * sin(value * pi) * _plusOrMinus[i];
+                double value =
+                    (controller.value * 2 * pi) + animationOffsets[i];
+                double newX =
+                    _startX[i] + _hundred[i] * sin(value) * _plusOrMinus[i];
                 double newY = _startY[i] +
-                    _hundred[i] *
-                        sin((value * _onTwo[i]) * pi) *
-                        _plusOrMinus[i];
+                    _hundred[i] * sin(value * _onTwo[i]) * _plusOrMinus[i];
 
                 return Transform.translate(
                   offset: Offset(newX, newY),
@@ -147,10 +133,7 @@ class FireFlyState extends State<FireFly> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    // Dispose of all controllers
-    for (var controller in controllers) {
-      controller.dispose();
-    }
+    controller.dispose();
     for (var blurController in blurControllers) {
       blurController.dispose();
     }

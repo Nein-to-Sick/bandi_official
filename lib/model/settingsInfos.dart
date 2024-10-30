@@ -2,7 +2,6 @@ class CompanyInfo {
   String companyName = "Nein to Sick";
   String ceo = "김형진";
   String address = "경상북도 포항시 북구 흥해읍 한동로 558 (한동대학교) SW라운지 303";
-  String pn = "010-6889-9316";
   String email = "neintosick96@gmail.com";
 
   List<List<String>> termsOfUse = [

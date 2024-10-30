@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:bandi_official/model/diary_ai_chat.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:flutter/material.dart';
@@ -41,6 +42,10 @@ class _CustomDialogueState extends State<CustomDialogue> {
             sigmaX: BandiEffects.backgroundBlur(),
             sigmaY: BandiEffects.backgroundBlur());
         break;
+      case Messenger.special:
+        boxColor = BandiColor.neutralColor90(context);
+        textColor = BandiColor.foundationColor100(context);
+        break;
     }
     return GestureDetector(
       onTap: () {
@@ -49,7 +54,8 @@ class _CustomDialogueState extends State<CustomDialogue> {
       child: Row(
         mainAxisAlignment: (widget.chatMessage.messenger == Messenger.user)
             ? MainAxisAlignment.end
-            : (widget.chatMessage.messenger == Messenger.ai)
+            : (widget.chatMessage.messenger == Messenger.ai ||
+                    widget.chatMessage.messenger == Messenger.special)
                 ? MainAxisAlignment.start
                 : (widget.chatMessage.messenger == Messenger.system)
                     ? MainAxisAlignment.center
@@ -58,7 +64,8 @@ class _CustomDialogueState extends State<CustomDialogue> {
           Padding(
             padding: EdgeInsets.symmetric(
                 horizontal: (widget.chatMessage.messenger == Messenger.user ||
-                        widget.chatMessage.messenger == Messenger.ai)
+                        widget.chatMessage.messenger == Messenger.ai ||
+                        widget.chatMessage.messenger == Messenger.special)
                     ? 25
                     : 0),
             child: IntrinsicWidth(
@@ -77,16 +84,27 @@ class _CustomDialogueState extends State<CustomDialogue> {
                         // inner padding
                         Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 5),
+                          horizontal: 16, vertical: 10),
                       child: Center(
-                        child: Text(
-                          widget.chatMessage.message,
-                          maxLines: 15,
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.left,
-                          style: BandiFont.headlineSmall(context)
-                              ?.copyWith(color: textColor),
-                        ),
+                        child: (widget.chatMessage.messenger ==
+                                Messenger.special)
+                            ? AnimatedTextKit(
+                                repeatForever: true,
+                                animatedTexts: [
+                                  TyperAnimatedText(
+                                    '. . . . .',
+                                    speed: const Duration(milliseconds: 150),
+                                  ),
+                                ],
+                              )
+                            : Text(
+                                widget.chatMessage.message,
+                                maxLines: 15,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.left,
+                                style: BandiFont.headlineSmall(context)
+                                    ?.copyWith(color: textColor),
+                              ),
                       ),
                     ),
                   ),

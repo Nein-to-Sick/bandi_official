@@ -11,6 +11,8 @@ enum Messenger {
   system,
   // 추천 메세지 등
   assistant,
+  // 로딩 등 특수 메세지
+  special,
 }
 
 enum MessageType {
