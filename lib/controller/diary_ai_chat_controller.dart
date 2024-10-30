@@ -415,6 +415,10 @@ class DiaryAiChatController with ChangeNotifier {
       // for test
       // String todayKey = '${userId}_chatLog_2024-09-09';
 
+      if (!chatlogDates.contains(todayKey)) {
+        chatlogDates.add(todayKey);
+      }
+
       // only save messages within same day
       List<ChatMessage> todayMessages = chatlog.where((message) {
         return ChatMessage.calculateDateDifference(

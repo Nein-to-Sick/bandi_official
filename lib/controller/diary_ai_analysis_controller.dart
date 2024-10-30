@@ -112,7 +112,7 @@ class DiaryAIAnalysisController with ChangeNotifier {
         // 답변할 종류의 수
         n: 1,
         // 답변에 사용할 최대 토큰의 크기
-        maxTokens: 25,
+        maxTokens: 15,
         // 같은 답변 반복 (0.1~1.0일 수록 감소)
         frequencyPenalty: 0.5,
         // 새로운 주제 제시 (>0 수록 새로운 주제 확률 상승)
