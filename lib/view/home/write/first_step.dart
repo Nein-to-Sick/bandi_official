@@ -40,6 +40,7 @@ class _State extends State<FirstStep> {
   Widget build(BuildContext context) {
     final writeProvider = Provider.of<HomeToWrite>(context);
 
+    print(writeProvider.diaryModel.content);
     return GestureDetector(
       onTap: () {
         _focusNode.unfocus();
