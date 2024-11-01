@@ -116,7 +116,6 @@ class _OtherDiaryState extends State<OtherDiary> {
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
       child: SafeArea(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Expanded(
               child: Container(
@@ -125,6 +124,7 @@ class _OtherDiaryState extends State<OtherDiary> {
                   borderRadius: BandiEffects.radius(),
                 ),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
                       padding: const EdgeInsets.only(top: 16.0, right: 16.0),
