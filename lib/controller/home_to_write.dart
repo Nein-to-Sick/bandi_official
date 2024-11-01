@@ -27,7 +27,7 @@ class HomeToWrite with ChangeNotifier {
   Diary diaryModel = Diary(
     userId: 'userId',
     title: 'title',
-    content: 'content',
+    content: '',
     emotion: ['emotion'],
     createdAt: timestampToLocal(Timestamp.now()),
     updatedAt: timestampToLocal(Timestamp.now()),
