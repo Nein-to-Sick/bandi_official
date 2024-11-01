@@ -70,8 +70,9 @@ class NewLetterPopuView extends StatelessWidget {
               child: Center(
                 child: Padding(
                   padding:
-                      const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+                      const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
                   child: Column(
+                    mainAxisSize: MainAxisSize.max,
                     children: [
                       Expanded(
                         child: Column(
@@ -92,6 +93,9 @@ class NewLetterPopuView extends StatelessWidget {
                             const Image(
                               image: AssetImage(
                                   "assets/images/new_letter/new_letter.png"),
+                            ),
+                            SizedBox(
+                              height: MediaQuery.of(context).size.height * 0.1,
                             ),
                           ],
                         ),

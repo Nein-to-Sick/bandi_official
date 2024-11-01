@@ -1,10 +1,13 @@
 import 'package:bandi_official/components/appbar/appbar.dart';
 import 'package:bandi_official/controller/alarm_controller.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
+import 'package:bandi_official/model/letter.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/mail/every_mail_view.dart';
 import 'package:bandi_official/view/mail/letters_view.dart';
 import 'package:bandi_official/view/mail/liked_diary_view.dart';
+import 'package:bandi_official/view/mail/new_letter_popup.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
@@ -59,9 +62,12 @@ class _MailViewState extends State<MailView>
           title: '보관함',
           trailingIcon: PhosphorIcons.flask(PhosphorIconsStyle.fill),
           onTrailingIconPressed: () async {
-            //messageTestFunction(alarmController);
+            // For alarm test
+            // messageTestFunction(alarmController);
             // For test delete finction
             // mailController.deleteEveryMailDataFromLocal();
+            // For new Letter pop page test
+            // newLetterPopUpPageTestFunction(context);
           },
           isVisibleLeadingButton: false,
           isVisibleTrailingButton: false,
@@ -137,4 +143,27 @@ void messageTestFunction(AlarmController alarmController) {
   userId = 'dIbMSgEYLSXA47Okj5MYpO6Jbb02';
   alarmController.sendLikedDiaryNotification(
       '21jPhIHrf7iBwVAh92ZW1', fcmToken, userId);
+}
+
+void newLetterPopUpPageTestFunction(BuildContext context) {
+  Letter letter = Letter(
+    title: 'title',
+    content: 'content',
+    date: Timestamp.now(),
+    letterId: 'letterId',
+  );
+  Navigator.push(
+    context,
+    PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) =>
+          NewLetterPopuView(newLetter: letter),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        return FadeTransition(
+          opacity: animation,
+          child: child,
+        );
+      },
+      transitionDuration: const Duration(milliseconds: 400),
+    ),
+  );
 }
