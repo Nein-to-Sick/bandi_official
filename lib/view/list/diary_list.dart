@@ -160,7 +160,7 @@ class _DiaryListState extends State<DiaryList> {
     }
 
     return _groupedDiaries.isEmpty
-        ? noDiary(context, widget.selectedDate!)
+        ? noDiary(context, widget.selectedDate ?? DateTime(1999,1,1))
         : ListView.builder(
             controller: _scrollController,
             itemCount: _groupedDiaries.length + 1,
@@ -341,7 +341,7 @@ class _DiaryListState extends State<DiaryList> {
 Widget noDiary(context, DateTime date) {
   return Stack(
     children: [
-      Row(
+      date == DateTime(1999, 1, 1) ? Container() : Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Padding(
