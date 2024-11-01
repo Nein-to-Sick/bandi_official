@@ -131,18 +131,15 @@ class _MailViewState extends State<MailView>
 }
 
 void messageTestFunction(AlarmController alarmController) {
+  // receiver fcm token
   String fcmToken = '';
+  // receiver user Id
   String userId = '';
-  // String fcmToken =
-  //     'fQ_HW18-Spq8KPbBpgGkHP:APA91bHzJSVXFE0InFxgH60gIfgpxsVB5hFZasiVyW-mQA_ip7CkhJ4BZIlt2HrK0sHX_j24umUok1E3m08diwluFWGadxfY2eCMgNeM208L1mw1vcdq_SMj_kdTvqC-42HqO-rwbp3A';
-  // to iOS notification test
-  // String fcmToken =
-  //     'dycWe_q930Ggq8SgMlt5wU:APA91bHsDvztA4lt7o5-VBqC__7uOpJJEIYEdzOMQMZa-yghWDJaiAID5wvkIRze7sMkPmpvSaVS29HUilsTdkro7tuRlZfNr3A93ofE46HVJWxuUfdjKA14MICfAIEY2c_OVXePIDJ4';
-  fcmToken =
-      'dycWe_q930Ggq8SgMlt5wU:APA91bHsDvztA4lt7o5-VBqC__7uOpJJEIYEdzOMQMZa-yghWDJaiAID5wvkIRze7sMkPmpvSaVS29HUilsTdkro7tuRlZfNr3A93ofE46HVJWxuUfdjKA14MICfAIEY2c_OVXePIDJ4';
-  userId = 'dIbMSgEYLSXA47Okj5MYpO6Jbb02';
+  // sender user Id
+  String testLikedDiaryId = '21jPhIHrf7iBwVAh92ZW1';
+
   alarmController.sendLikedDiaryNotification(
-      '21jPhIHrf7iBwVAh92ZW1', fcmToken, userId);
+      testLikedDiaryId, fcmToken, userId);
 }
 
 void newLetterPopUpPageTestFunction(BuildContext context) {
