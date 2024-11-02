@@ -79,7 +79,7 @@ class _LoginViewState extends State<LoginView> {
                         style: TextStyle(
                           fontFamily: "IBMPlexSansKR",
                           fontSize: 50,
-                          fontWeight: FontWeight.w400, // Regular
+                          fontWeight: FontWeight.bold, // Regular
                           color: BandiColor.neutralColor100(context),
                         ),
                       ),

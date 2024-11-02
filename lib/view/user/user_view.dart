@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bandi_official/components/button/secondary_button.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
@@ -75,41 +76,8 @@ class _UserViewState extends State<UserView> {
                   navigationToggleProvider.selectIndex(-2);
                 });
               },
+              autotext: 0,
             ),
-            // const SizedBox(height: 8),
-            // buildSettingOption(
-            //   icon: PhosphorIcons.bell(),
-            //   text: "알림 설정",
-            //   onTap: () {
-            //     setState(() {
-            //       _isSwitched = !_isSwitched;
-            //     });
-            //   },
-            //   trailing: Row(
-            //     mainAxisSize: MainAxisSize.min,
-            //     children: [
-            //       Text(
-            //         "00:00",
-            //         style: BandiFont.bodyMedium(context)?.copyWith(
-            //           color: BandiColor.foundationColor10(context),
-            //         ),
-            //       ),
-            //       const SizedBox(width: 12.5),
-            //       Switch(
-            //         value: _isSwitched,
-            //         onChanged: (bool value) {
-            //           setState(() {
-            //             _isSwitched = value;
-            //           });
-            //         },
-            //         activeColor: BandiColor.accentColorYellow(context),
-            //         activeTrackColor: BandiColor.neutralColor100(context),
-            //         inactiveThumbColor: BandiColor.foundationColor80(context),
-            //         inactiveTrackColor: BandiColor.foundationColor40(context),
-            //       ),
-            //     ],
-            //   ),
-            // ),
             const SizedBox(height: 24),
             Divider(
               height: 1.0,
@@ -126,6 +94,7 @@ class _UserViewState extends State<UserView> {
                   navigationToggleProvider.selectIndex(-2);
                 });
               },
+              autotext: 0,
             ),
             const SizedBox(height: 8),
             buildSettingOption(
@@ -138,6 +107,7 @@ class _UserViewState extends State<UserView> {
                   navigationToggleProvider.selectIndex(-2);
                 });
               },
+              autotext: 0,
             ),
             const SizedBox(height: 8),
             buildSettingOption(
@@ -150,6 +120,7 @@ class _UserViewState extends State<UserView> {
                   navigationToggleProvider.selectIndex(-2);
                 });
               },
+              autotext: 0,
             ),
             const SizedBox(height: 8),
             buildSettingOption(
@@ -162,6 +133,7 @@ class _UserViewState extends State<UserView> {
                   navigationToggleProvider.selectIndex(-2);
                 });
               },
+              autotext: 0,
             ),
           ],
         ),
@@ -218,6 +190,7 @@ class _UserViewState extends State<UserView> {
                   color: BandiColor.foundationColor40(context),
                 ),
               ),
+              autotext: 1,
             ),
             const SizedBox(height: 10),
             Divider(
@@ -250,6 +223,7 @@ class _UserViewState extends State<UserView> {
                   ),
                 ],
               ),
+              autotext: 1,
             ),
             const SizedBox(
               height: 34,
@@ -789,6 +763,7 @@ class _UserViewState extends State<UserView> {
     required VoidCallback onTap,
     IconData? icon,
     Widget? trailing,
+    required int autotext,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -805,12 +780,20 @@ class _UserViewState extends State<UserView> {
                 color: BandiColor.foundationColor80(context),
               ),
             if (icon != null) const SizedBox(width: 8),
-            Text(
-              text,
-              style: BandiFont.bodyMedium(context)?.copyWith(
-                color: BandiColor.foundationColor80(context),
-              ),
-            ),
+            (autotext == 1)
+                ? Text(
+                    text,
+                    style: BandiFont.bodyMedium(context)?.copyWith(
+                      color: BandiColor.foundationColor80(context),
+                    ),
+                  )
+                : AutoSizeText(
+                    text,
+                    style: BandiFont.bodyMedium(context)?.copyWith(
+                      color: BandiColor.foundationColor80(context),
+                    ),
+                    maxLines: 1,
+                  ),
             if (trailing != null) ...[
               const Spacer(),
               trailing,
