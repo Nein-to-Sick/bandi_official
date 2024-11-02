@@ -434,16 +434,13 @@ class _UserViewState extends State<UserView> {
             setState(() {
               settings = 0;
             });
-
             WidgetsBinding.instance.addPostFrameCallback((_) {
               navigationToggleProvider.selectIndex(3);
             });
           },
         ),
         title: Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: 16,
-          ),
+          padding: const EdgeInsets.symmetric(vertical: 16),
           child: Text(
             "오픈 라이센스",
             style: BandiFont.displaySmall(context)?.copyWith(
@@ -454,85 +451,54 @@ class _UserViewState extends State<UserView> {
         centerTitle: true,
       ),
       body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 23.0),
-        child: Expanded(
-          child: ListView.builder(
-              physics: BouncingScrollPhysics(),
-              itemCount: ossLicenses.length,
-              itemBuilder: (context, index) {
-                final package = ossLicenses[index];
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ListTile(
-                      title: Text(
-                        package.name,
-                        style: BandiFont.bodyMedium(context)?.copyWith(
-                          color: BandiColor.foundationColor80(context),
+        padding: const EdgeInsets.symmetric(horizontal: 23.0),
+        child: ListView.builder(
+          padding:
+              EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
+          physics: BouncingScrollPhysics(),
+          itemCount: ossLicenses.length,
+          itemBuilder: (context, index) {
+            final package = ossLicenses[index];
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ListTile(
+                  title: Text(
+                    package.name,
+                    style: BandiFont.bodyMedium(context)?.copyWith(
+                      color: BandiColor.foundationColor80(context),
+                    ),
+                  ),
+                  subtitle: Text(
+                    package.description,
+                    style: BandiFont.bodySmall(context)?.copyWith(
+                      color: BandiColor.foundationColor20(context),
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MiscOssLicenseSingle(
+                          name: package.name ?? '',
+                          version: package.version ?? '',
+                          description: package.description ?? '',
+                          licenseText: package.license ?? '',
+                          homepage: package.homepage ?? '',
                         ),
                       ),
-                      subtitle: Text(
-                        package.description,
-                        style: BandiFont.bodySmall(context)?.copyWith(
-                          color: BandiColor.foundationColor20(context),
-                        ),
-                      ),
-                      onTap: () {
-                        // 패키지 상세 페이지로 이동
-                      },
-                    ),
-                    Divider(
-                      height: 1.0,
-                      color: BandiColor.foundationColor10(context),
-                    ),
-                  ],
-                );
-              }),
+                    );
+                  },
+                ),
+                Divider(
+                  height: 1.0,
+                  color: BandiColor.foundationColor10(context),
+                ),
+              ],
+            );
+          },
         ),
       ),
-
-      // Column(
-      //   children: [
-      //     Padding(
-      //       padding: EdgeInsets.symmetric(horizontal: 23.0),
-      //       child: ListView.builder(
-      //         padding: EdgeInsets.only(
-      //           bottom: MediaQuery.of(context).size.height * 0.1,
-      //         ),
-      //         itemCount: ossLicenses.length,
-      //         itemBuilder: (context, index) {
-      //           final package = ossLicenses[index];
-      //           return Column(
-      //             crossAxisAlignment: CrossAxisAlignment.start,
-      //             children: [
-      //               ListTile(
-      //                 title: Text(
-      //                   package.name,
-      //                   style: BandiFont.bodyMedium(context)?.copyWith(
-      //                     color: BandiColor.foundationColor40(context),
-      //                   ),
-      //                 ),
-      //                 subtitle: Text(
-      //                   package.description,
-      //                   style: BandiFont.bodySmall(context)?.copyWith(
-      //                     color: BandiColor.foundationColor20(context),
-      //                   ),
-      //                 ),
-      //                 onTap: () {
-      //                   // 패키지 상세 페이지로 이동
-      //                 },
-      //               ),
-      //               Divider(
-      //                 height: 1.0,
-      //                 color: BandiColor.foundationColor10(context),
-      //               ),
-      //             ],
-      //           );
-      //         },
-      //       ),
-      //     ),
-      //   ],
-      // ),
     );
 
     Widget termsOfUse = Scaffold(
@@ -876,4 +842,77 @@ class _UserViewState extends State<UserView> {
   //     },
   //   );
   // }
+}
+
+class MiscOssLicenseSingle extends StatelessWidget {
+  final String name;
+  final String version;
+  final String description;
+  final String licenseText;
+  final String homepage;
+
+  MiscOssLicenseSingle({
+    required this.name,
+    required this.version,
+    required this.description,
+    required this.licenseText,
+    required this.homepage,
+  });
+
+  String _bodyText() {
+    return licenseText.split('\n').map((line) {
+      if (line.startsWith('//')) line = line.substring(2);
+      line = line.trim();
+      return line;
+    }).join('\n');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            "오픈소스 라이선스",
+          ),
+        ),
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            ListTile(
+              title: Text(name),
+              subtitle: Text('version : $version'),
+            ),
+            if (description != null)
+              Padding(
+                  padding:
+                      const EdgeInsets.only(top: 12.0, left: 12.0, right: 12.0),
+                  child: Text(description)),
+            const Divider(),
+            Padding(
+              padding:
+                  const EdgeInsets.only(top: 12.0, left: 12.0, right: 12.0),
+              child: Text(
+                _bodyText(),
+                // style: Theme.of(context).textTheme.bodyText2
+              ),
+            ),
+            const Divider(),
+            // ListTile(
+            //     title: Text('Homepage'),
+            //     subtitle: Text(homepage),
+            //     onTap: () async {
+            //       if (await canLaunch(homepage)) {
+            //         await launch(homepage);
+            //       } else {
+            //         throw 'Could not launch $homepage';
+            //       }
+            //     }),
+          ],
+        ),
+      ),
+    );
+  }
 }
