@@ -43,6 +43,7 @@ dependencies:
   flutter_native_splash: ^2.4.1
   flutter_launcher_icons: ^0.14.1
   animated_text_kit: ^4.2.2
+  auto_size_text: ^3.0.0
 
 
 dev_dependencies:
