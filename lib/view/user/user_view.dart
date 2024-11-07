@@ -269,6 +269,11 @@ class _UserViewState extends State<UserView> {
                         FirebaseFirestore.instance.collection("users");
                     await userCollection.doc(user.uid).delete();
 
+                    // Firestore의 userDataCollection에서 사용자 데이터 삭제
+                    final userDataCollection = FirebaseFirestore.instance
+                        .collection("userDataCollection");
+                    await userDataCollection.doc(user.uid).delete();
+
                     // Firebase에서 사용자 삭제
                     await user.delete();
 
@@ -282,7 +287,7 @@ class _UserViewState extends State<UserView> {
                         Provider.of<NavigationToggleProvider>(context,
                             listen: false);
                     navigationToggleProvider.selectIndex(-1); // 로그인 페이지로 이동
-                    log("게정 탈퇴 완료");
+                    log("계정 탈퇴 완료");
                   }
                 } catch (e) {
                   // 에러 처리 (예: 사용자 재인증 필요 등)
