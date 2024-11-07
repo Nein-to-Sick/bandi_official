@@ -284,10 +284,16 @@ class _LoginViewState extends State<LoginView> {
               ),
             if (_onboarding < 4)
               Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 18.5),
                   child: _onboarding != 4
                       ? Image.asset(
-                          "assets/images/onboarding/onboarding$_onboarding.png")
-                      : Container()),
+                          "assets/images/onboarding/onboarding$_onboarding.png",
+                          fit: BoxFit.contain,
+                        )
+                      : Container(),
+                ),
+              ),
             if (_onboarding < 3)
               CustomSecondaryButton(
                 title: '건너뛰기',
