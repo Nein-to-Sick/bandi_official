@@ -2,12 +2,15 @@ import 'dart:developer';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bandi_official/components/button/secondary_button.dart';
+import 'package:bandi_official/components/no_reuse/reset_dialogue.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
+import 'package:bandi_official/controller/permission_controller.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:wrapped_korean_text/wrapped_korean_text.dart';
@@ -27,10 +30,63 @@ class UserView extends StatefulWidget {
   State<UserView> createState() => _UserViewState();
 }
 
-class _UserViewState extends State<UserView> {
+class _UserViewState extends State<UserView> with WidgetsBindingObserver {
   int settings = 0; //0 = home, 1 = 계정관리, 2 = 닉네임 변경, 3
-  bool _isSwitched = false;
   String newNickname = '';
+  late PermissionController permissionController;
+
+  @override
+  void initState() {
+    super.initState();
+    permissionController =
+        Provider.of<PermissionController>(context, listen: false);
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  // 앱이 포그라운드로 돌아왔을 때 권한 확인
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // 포그라운드로 돌아왔을 때 권한을 다시 확인
+      permissionController.checkNotificationPermission().then((isGranted) {
+        if (context.mounted) {
+          if (isGranted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                elevation: 3,
+                content: const Text('알림 권한이 허용되었습니다.'),
+                margin: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).size.height * 0.1),
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BandiEffects.radius(),
+                ),
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                elevation: 3,
+                content: const Text('알림 권한이 허용되지 않았습니다.'),
+                margin: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).size.height * 0.1),
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BandiEffects.radius(),
+                ),
+              ),
+            );
+          }
+        }
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +94,9 @@ class _UserViewState extends State<UserView> {
         Provider.of<NavigationToggleProvider>(context);
 
     var userInfo = Provider.of<UserInfoValueModel>(context);
+
+    PermissionController permissionController =
+        Provider.of<PermissionController>(context);
 
     Widget settingHome = Scaffold(
       backgroundColor: BandiColor.neutralColor80(context).withOpacity(0.8),
@@ -59,7 +118,7 @@ class _UserViewState extends State<UserView> {
         centerTitle: true,
       ),
       body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 23.0),
+        padding: const EdgeInsets.symmetric(horizontal: 23.0),
         child: ListView(
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).size.height * 0.1,
@@ -76,6 +135,52 @@ class _UserViewState extends State<UserView> {
                   navigationToggleProvider.selectIndex(-2);
                 });
               },
+              autotext: 0,
+            ),
+            const SizedBox(height: 8),
+            buildSettingOption(
+              icon: PhosphorIcons.bell(),
+              text: "알림 설정",
+              onTap: () {},
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    (permissionController.getNotificationPermissionState())
+                        ? "설정됨"
+                        : "해제됨",
+                    style: BandiFont.bodyMedium(context)?.copyWith(
+                      color: BandiColor.foundationColor10(context),
+                    ),
+                  ),
+                  const SizedBox(width: 12.5),
+                  Switch(
+                    value:
+                        permissionController.getNotificationPermissionState(),
+                    onChanged: (bool value) {
+                      showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return CustomResetDialogue(
+                              text:
+                                  '알림 설정은 시스템 설정에서 진행됩니다.\n시스템 설정으로 이동하시겠습니까?',
+                              onYesFunction: () {
+                                Navigator.pop(context);
+                                openAppSettings();
+                              },
+                              onNoFunction: () {
+                                Navigator.pop(context);
+                              },
+                            );
+                          });
+                    },
+                    activeColor: BandiColor.accentColorYellow(context),
+                    activeTrackColor: BandiColor.neutralColor100(context),
+                    inactiveThumbColor: BandiColor.foundationColor80(context),
+                    inactiveTrackColor: BandiColor.foundationColor40(context),
+                  ),
+                ],
+              ),
               autotext: 0,
             ),
             const SizedBox(height: 24),
@@ -174,7 +279,7 @@ class _UserViewState extends State<UserView> {
         centerTitle: true,
       ),
       body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 23.0),
+        padding: const EdgeInsets.symmetric(horizontal: 23.0),
         child: ListView(
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).size.height * 0.1,
@@ -434,7 +539,7 @@ class _UserViewState extends State<UserView> {
         child: ListView.builder(
           padding:
               EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
-          physics: BouncingScrollPhysics(),
+          physics: const BouncingScrollPhysics(),
           itemCount: ossLicenses.length,
           itemBuilder: (context, index) {
             final package = ossLicenses[index];
@@ -515,7 +620,7 @@ class _UserViewState extends State<UserView> {
         ),
         body: SingleChildScrollView(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 23.0),
+            padding: const EdgeInsets.symmetric(horizontal: 23.0),
             child: Column(
               children: [
                 for (int i = 0; i < CompanyInfo().termsOfUse.length; i++)
@@ -586,7 +691,7 @@ class _UserViewState extends State<UserView> {
         ),
         body: SingleChildScrollView(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 23.0),
+            padding: const EdgeInsets.symmetric(horizontal: 23.0),
             child: Column(
               children: [
                 for (int i = 0; i < CompanyInfo().privacyPolicy.length; i++)
@@ -664,7 +769,7 @@ class _UserViewState extends State<UserView> {
         ),
         body: SingleChildScrollView(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 23.0),
+            padding: const EdgeInsets.symmetric(horizontal: 23.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -859,7 +964,7 @@ class MiscOssLicenseSingle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Align(
+        title: const Align(
           alignment: Alignment.centerLeft,
           child: Text(
             "오픈소스 라이선스",

@@ -95,6 +95,9 @@ class _DiaryAIChatPageState extends State<DiaryAIChatPage> {
                     diaryAiChatController.resetTheChat();
                     Navigator.pop(context);
                   },
+                  onNoFunction: () {
+                    Navigator.pop(context);
+                  },
                 );
               },
             );

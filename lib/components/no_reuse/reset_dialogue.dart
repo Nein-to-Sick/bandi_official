@@ -1,4 +1,3 @@
-import 'package:bandi_official/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as dev;
@@ -7,10 +6,16 @@ class CustomResetDialogue extends StatefulWidget {
   const CustomResetDialogue({
     super.key,
     required this.text,
+    this.onYesText = '예',
+    this.onNoText = '아니오',
     required this.onYesFunction,
+    required this.onNoFunction,
   });
   final String text;
+  final String onYesText;
+  final String onNoText;
   final Function onYesFunction;
+  final Function onNoFunction;
 
   @override
   State<CustomResetDialogue> createState() => _CustomResetDialogueState();
@@ -84,7 +89,7 @@ class _CustomResetDialogueState extends State<CustomResetDialogue> {
             children: [
               responsButton(
                 context,
-                '아니요',
+                widget.onNoText,
                 BoxDecoration(
                   color: BandiColor.foundationColor10(context),
                   borderRadius: BandiEffects.radius(),
@@ -95,7 +100,7 @@ class _CustomResetDialogueState extends State<CustomResetDialogue> {
                   ),
                 ),
                 () {
-                  Navigator.pop(context);
+                  widget.onNoFunction();
                 },
               ),
               const SizedBox(
@@ -103,7 +108,7 @@ class _CustomResetDialogueState extends State<CustomResetDialogue> {
               ),
               responsButton(
                 context,
-                '네',
+                widget.onYesText,
                 BoxDecoration(
                   color: BandiColor.foundationColor80(context),
                   borderRadius: BandiEffects.radius(),
