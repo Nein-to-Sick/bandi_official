@@ -48,6 +48,8 @@
 			<string>fetch</string>
 			<string>remote-notification</string>
 		</array>
+		<key>NSUserNotificationUsageDescription</key>
+		<string>어플 내 활동 알림을 받기 위해 권한을 요청합니다.</string>
 		<key>FirebaseAppDelegateProxyEnabled</key>
 		<false/>
 		<key>UILaunchStoryboardName</key>

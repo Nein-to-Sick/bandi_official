@@ -99,6 +99,9 @@ class _NavigationState extends State<Navigation> with WidgetsBindingObserver {
               onYesFunction: () {
                 SystemNavigator.pop();
               },
+              onNoFunction: () {
+                Navigator.pop(context);
+              },
             );
           },
         );
