@@ -41,14 +41,12 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
 class _CustomAppBarState extends State<CustomAppBar> {
   @override
   Widget build(BuildContext context) {
-    return AppBar(
-      scrolledUnderElevation: 0,
-      backgroundColor: BandiColor.transparent(context),
-      title: Padding(
-        padding: const EdgeInsets.symmetric(
-          vertical: 16,
-        ),
-        child: Text(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: AppBar(
+        scrolledUnderElevation: 0,
+        backgroundColor: BandiColor.transparent(context),
+        title: Text(
           widget.title ?? '',
           style: BandiFont.displaySmall(context)?.copyWith(
             color: (widget.titleColor != null)
@@ -56,44 +54,39 @@ class _CustomAppBarState extends State<CustomAppBar> {
                 : BandiColor.neutralColor100(context),
           ),
         ),
-      ),
-      centerTitle: true,
-      leading: (widget.isVisibleLeadingButton ?? true)
-          ? Padding(
-              padding: const EdgeInsets.symmetric(
-                vertical: 8,
-                horizontal: 16,
-              ),
-              child: widget.title == "나의 일기"
-                  ? IconButton(
-                      icon: PhosphorIcon(
-                        PhosphorIcons.arrowUDownLeft(),
-                        color: (widget.disableLeadingButton ?? false
-                            ? BandiColor.neutralColor20(context)
-                            : BandiColor.neutralColor80(context)),
-                        size: 24,
+        centerTitle: true,
+        leading: (widget.isVisibleLeadingButton ?? true)
+            ? Container(
+                // padding: const EdgeInsets.symmetric(
+                //   vertical: 8,
+                //   horizontal: 16,
+                // ),
+                child: widget.title == "나의 일기"
+                    ? IconButton(
+                        icon: PhosphorIcon(
+                          PhosphorIcons.arrowUDownLeft(),
+                          color: (widget.disableLeadingButton ?? false
+                              ? BandiColor.neutralColor20(context)
+                              : BandiColor.neutralColor80(context)),
+                          size: 24,
+                        ),
+                        onPressed: () {
+                          (widget.disableLeadingButton ?? false)
+                              ? null
+                              : widget.onLeadingIconPressed!();
+                        },
+                      )
+                    : CustomIconButton(
+                        onIconButtonPressed:
+                            widget.onLeadingIconPressed ?? () {},
+                        disableButton: widget.disableLeadingButton ?? false,
+                        iconColor: widget.leadingIconColor,
                       ),
-                      onPressed: () {
-                        (widget.disableLeadingButton ?? false)
-                            ? null
-                            : widget.onLeadingIconPressed!();
-                      },
-                    )
-                  : CustomIconButton(
-                      onIconButtonPressed: widget.onLeadingIconPressed ?? () {},
-                      disableButton: widget.disableLeadingButton ?? false,
-                      iconColor: widget.leadingIconColor,
-                    ),
-            )
-          : const SizedBox.shrink(),
-      actions: [
-        if (widget.isVisibleTrailingButton ?? true)
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: 8,
-              horizontal: 16,
-            ),
-            child: IconButton(
+              )
+            : const SizedBox.shrink(),
+        actions: [
+          if (widget.isVisibleTrailingButton ?? true)
+            IconButton(
               icon: PhosphorIcon(
                 widget.trailingIcon ?? PhosphorIcons.x(PhosphorIconsStyle.fill),
                 color: (widget.trailingIconColor != null)
@@ -109,8 +102,8 @@ class _CustomAppBarState extends State<CustomAppBar> {
                     : widget.onTrailingIconPressed!();
               },
             ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 }

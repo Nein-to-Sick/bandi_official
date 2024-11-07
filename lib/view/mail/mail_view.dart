@@ -1,10 +1,13 @@
 import 'package:bandi_official/components/appbar/appbar.dart';
 import 'package:bandi_official/controller/alarm_controller.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
+import 'package:bandi_official/model/letter.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/mail/every_mail_view.dart';
 import 'package:bandi_official/view/mail/letters_view.dart';
 import 'package:bandi_official/view/mail/liked_diary_view.dart';
+import 'package:bandi_official/view/mail/new_letter_popup.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
@@ -59,9 +62,12 @@ class _MailViewState extends State<MailView>
           title: '보관함',
           trailingIcon: PhosphorIcons.flask(PhosphorIconsStyle.fill),
           onTrailingIconPressed: () async {
-            //messageTestFunction(alarmController);
+            // For alarm test
+            // messageTestFunction(alarmController);
             // For test delete finction
             // mailController.deleteEveryMailDataFromLocal();
+            // For new Letter pop page test
+            // newLetterPopUpPageTestFunction(context);
           },
           isVisibleLeadingButton: false,
           isVisibleTrailingButton: false,
@@ -125,16 +131,36 @@ class _MailViewState extends State<MailView>
 }
 
 void messageTestFunction(AlarmController alarmController) {
+  // receiver fcm token
   String fcmToken = '';
+  // receiver user Id
   String userId = '';
-  // String fcmToken =
-  //     'fQ_HW18-Spq8KPbBpgGkHP:APA91bHzJSVXFE0InFxgH60gIfgpxsVB5hFZasiVyW-mQA_ip7CkhJ4BZIlt2HrK0sHX_j24umUok1E3m08diwluFWGadxfY2eCMgNeM208L1mw1vcdq_SMj_kdTvqC-42HqO-rwbp3A';
-  // to iOS notification test
-  // String fcmToken =
-  //     'dycWe_q930Ggq8SgMlt5wU:APA91bHsDvztA4lt7o5-VBqC__7uOpJJEIYEdzOMQMZa-yghWDJaiAID5wvkIRze7sMkPmpvSaVS29HUilsTdkro7tuRlZfNr3A93ofE46HVJWxuUfdjKA14MICfAIEY2c_OVXePIDJ4';
-  fcmToken =
-      'dycWe_q930Ggq8SgMlt5wU:APA91bHsDvztA4lt7o5-VBqC__7uOpJJEIYEdzOMQMZa-yghWDJaiAID5wvkIRze7sMkPmpvSaVS29HUilsTdkro7tuRlZfNr3A93ofE46HVJWxuUfdjKA14MICfAIEY2c_OVXePIDJ4';
-  userId = 'dIbMSgEYLSXA47Okj5MYpO6Jbb02';
+  // sender user Id
+  String testLikedDiaryId = '21jPhIHrf7iBwVAh92ZW1';
+
   alarmController.sendLikedDiaryNotification(
-      '21jPhIHrf7iBwVAh92ZW1', fcmToken, userId);
+      testLikedDiaryId, fcmToken, userId);
+}
+
+void newLetterPopUpPageTestFunction(BuildContext context) {
+  Letter letter = Letter(
+    title: 'title',
+    content: 'content',
+    date: Timestamp.now(),
+    letterId: 'letterId',
+  );
+  Navigator.push(
+    context,
+    PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) =>
+          NewLetterPopuView(newLetter: letter),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        return FadeTransition(
+          opacity: animation,
+          child: child,
+        );
+      },
+      transitionDuration: const Duration(milliseconds: 400),
+    ),
+  );
 }

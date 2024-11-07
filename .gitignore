@@ -75,3 +75,7 @@ functions/.env
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
 lib/firebase_options.dart
+.idea/
+.idea/libraries/Flutter_Plugins.xml
+.idea/libraries/Dart_Packages.xml
+

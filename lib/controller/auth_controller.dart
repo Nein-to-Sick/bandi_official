@@ -1,3 +1,4 @@
+import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -26,6 +27,10 @@ class AccountController with ChangeNotifier {
     try {
       User? user = _auth.currentUser;
       if (user != null) {
+        // 로컬 저장소 데이터 삭제
+        final mailController =
+            Provider.of<MailController>(context, listen: false);
+        mailController.deleteEveryMailDataFromLocal();
         await _deleteUserData(user.uid);
         await storage.delete(key: 'token'); // 저장된 토큰 삭제
         await user.delete();

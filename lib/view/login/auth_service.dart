@@ -45,12 +45,24 @@ class AuthService {
     final userInfoProvider =
         Provider.of<UserInfoValueModel>(context, listen: false);
 
+    String? fcmToken = await FirebaseMessaging.instance.getToken();
+
     if (snapshot.exists) {
       String nickname = (snapshot.data() as Map<String, dynamic>)['nickname'];
       // UserInfoValueModel 업데이트
       userInfoProvider.updateUserID(userId!);
       userInfoProvider.updateUserEmail(userEmail!);
       userInfoProvider.updateNickname(nickname);
+      if (fcmToken != null) {
+        // Check if the current token is different from the one in Firestore
+        if (snapshot["fcmToken"] != fcmToken) {
+          // Update the FCM token in Firestore
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(userId)
+              .update({'fcmToken': fcmToken});
+        }
+      }
     } else {
       await docRef.set({
         "created_at": FieldValue.serverTimestamp(),
@@ -63,6 +75,7 @@ class AuthService {
         "userId": userId,
         "newLetterAvailable": false,
         "newNotificationsAvailable": false,
+        "fcmToken": fcmToken,
       });
 
       // 하위 컬렉션 생성
@@ -119,12 +132,24 @@ class AuthService {
     final userInfoProvider =
         Provider.of<UserInfoValueModel>(context, listen: false);
 
+    String? fcmToken = await FirebaseMessaging.instance.getToken();
+
     if (snapshot.exists) {
       String nickname = (snapshot.data() as Map<String, dynamic>)['nickname'];
       // UserInfoValueModel 업데이트
       userInfoProvider.updateUserID(userId!);
       userInfoProvider.updateUserEmail(userEmail!);
       userInfoProvider.updateNickname(nickname);
+      if (fcmToken != null) {
+        // Check if the current token is different from the one in Firestore
+        if (snapshot["fcmToken"] != fcmToken) {
+          // Update the FCM token in Firestore
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(userId)
+              .update({'fcmToken': fcmToken});
+        }
+      }
     } else {
       await docRef.set({
         "created_at": FieldValue.serverTimestamp(),
@@ -137,6 +162,7 @@ class AuthService {
         "userId": userId,
         "newLetterAvailable": false,
         "newNotificationsAvailable": false,
+        "fcmToken": fcmToken,
       });
 
       // 하위 컬렉션 생성

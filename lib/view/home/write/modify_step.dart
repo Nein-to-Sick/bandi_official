@@ -121,7 +121,11 @@ class _ThirdStepState extends State<ThirdStep> {
             const SizedBox(
               height: 8,
             ),
-            SingleChildScrollView(
+            writeProvider.diaryModel.emotion.isEmpty ? Text(
+              "없음",
+              style: BandiFont.titleSmall(context)?.copyWith(
+                  color: BandiColor.neutralColor100(context)),
+            ) : SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [

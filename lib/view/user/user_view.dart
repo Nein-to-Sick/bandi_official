@@ -1,6 +1,8 @@
 import 'dart:developer';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bandi_official/components/button/secondary_button.dart';
+import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -74,41 +76,8 @@ class _UserViewState extends State<UserView> {
                   navigationToggleProvider.selectIndex(-2);
                 });
               },
+              autotext: 0,
             ),
-            // const SizedBox(height: 8),
-            // buildSettingOption(
-            //   icon: PhosphorIcons.bell(),
-            //   text: "알림 설정",
-            //   onTap: () {
-            //     setState(() {
-            //       _isSwitched = !_isSwitched;
-            //     });
-            //   },
-            //   trailing: Row(
-            //     mainAxisSize: MainAxisSize.min,
-            //     children: [
-            //       Text(
-            //         "00:00",
-            //         style: BandiFont.bodyMedium(context)?.copyWith(
-            //           color: BandiColor.foundationColor10(context),
-            //         ),
-            //       ),
-            //       const SizedBox(width: 12.5),
-            //       Switch(
-            //         value: _isSwitched,
-            //         onChanged: (bool value) {
-            //           setState(() {
-            //             _isSwitched = value;
-            //           });
-            //         },
-            //         activeColor: BandiColor.accentColorYellow(context),
-            //         activeTrackColor: BandiColor.neutralColor100(context),
-            //         inactiveThumbColor: BandiColor.foundationColor80(context),
-            //         inactiveTrackColor: BandiColor.foundationColor40(context),
-            //       ),
-            //     ],
-            //   ),
-            // ),
             const SizedBox(height: 24),
             Divider(
               height: 1.0,
@@ -125,6 +94,7 @@ class _UserViewState extends State<UserView> {
                   navigationToggleProvider.selectIndex(-2);
                 });
               },
+              autotext: 0,
             ),
             const SizedBox(height: 8),
             buildSettingOption(
@@ -137,6 +107,7 @@ class _UserViewState extends State<UserView> {
                   navigationToggleProvider.selectIndex(-2);
                 });
               },
+              autotext: 0,
             ),
             const SizedBox(height: 8),
             buildSettingOption(
@@ -149,6 +120,7 @@ class _UserViewState extends State<UserView> {
                   navigationToggleProvider.selectIndex(-2);
                 });
               },
+              autotext: 0,
             ),
             const SizedBox(height: 8),
             buildSettingOption(
@@ -161,6 +133,7 @@ class _UserViewState extends State<UserView> {
                   navigationToggleProvider.selectIndex(-2);
                 });
               },
+              autotext: 0,
             ),
           ],
         ),
@@ -217,6 +190,7 @@ class _UserViewState extends State<UserView> {
                   color: BandiColor.foundationColor40(context),
                 ),
               ),
+              autotext: 1,
             ),
             const SizedBox(height: 10),
             Divider(
@@ -249,6 +223,7 @@ class _UserViewState extends State<UserView> {
                   ),
                 ],
               ),
+              autotext: 1,
             ),
             const SizedBox(
               height: 34,
@@ -284,10 +259,20 @@ class _UserViewState extends State<UserView> {
                   User? user = FirebaseAuth.instance.currentUser;
 
                   if (user != null) {
+                    // 로컬 저장소 데이터 삭제
+                    final mailController =
+                        Provider.of<MailController>(context, listen: false);
+                    mailController.deleteEveryMailDataFromLocal();
+
                     // Firestore에서 사용자 데이터 삭제
                     final userCollection =
                         FirebaseFirestore.instance.collection("users");
                     await userCollection.doc(user.uid).delete();
+
+                    // Firestore의 userDataCollection에서 사용자 데이터 삭제
+                    final userDataCollection = FirebaseFirestore.instance
+                        .collection("userDataCollection");
+                    await userDataCollection.doc(user.uid).delete();
 
                     // Firebase에서 사용자 삭제
                     await user.delete();
@@ -302,7 +287,7 @@ class _UserViewState extends State<UserView> {
                         Provider.of<NavigationToggleProvider>(context,
                             listen: false);
                     navigationToggleProvider.selectIndex(-1); // 로그인 페이지로 이동
-                    log("게정 탈퇴 완료");
+                    log("계정 탈퇴 완료");
                   }
                 } catch (e) {
                   // 에러 처리 (예: 사용자 재인증 필요 등)
@@ -428,16 +413,13 @@ class _UserViewState extends State<UserView> {
             setState(() {
               settings = 0;
             });
-
             WidgetsBinding.instance.addPostFrameCallback((_) {
               navigationToggleProvider.selectIndex(3);
             });
           },
         ),
         title: Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: 16,
-          ),
+          padding: const EdgeInsets.symmetric(vertical: 16),
           child: Text(
             "오픈 라이센스",
             style: BandiFont.displaySmall(context)?.copyWith(
@@ -448,85 +430,54 @@ class _UserViewState extends State<UserView> {
         centerTitle: true,
       ),
       body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 23.0),
-        child: Expanded(
-          child: ListView.builder(
-              physics: BouncingScrollPhysics(),
-              itemCount: ossLicenses.length,
-              itemBuilder: (context, index) {
-                final package = ossLicenses[index];
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ListTile(
-                      title: Text(
-                        package.name,
-                        style: BandiFont.bodyMedium(context)?.copyWith(
-                          color: BandiColor.foundationColor80(context),
+        padding: const EdgeInsets.symmetric(horizontal: 23.0),
+        child: ListView.builder(
+          padding:
+              EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.1),
+          physics: BouncingScrollPhysics(),
+          itemCount: ossLicenses.length,
+          itemBuilder: (context, index) {
+            final package = ossLicenses[index];
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ListTile(
+                  title: Text(
+                    package.name,
+                    style: BandiFont.bodyMedium(context)?.copyWith(
+                      color: BandiColor.foundationColor80(context),
+                    ),
+                  ),
+                  subtitle: Text(
+                    package.description,
+                    style: BandiFont.bodySmall(context)?.copyWith(
+                      color: BandiColor.foundationColor20(context),
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MiscOssLicenseSingle(
+                          name: package.name ?? '',
+                          version: package.version ?? '',
+                          description: package.description ?? '',
+                          licenseText: package.license ?? '',
+                          homepage: package.homepage ?? '',
                         ),
                       ),
-                      subtitle: Text(
-                        package.description,
-                        style: BandiFont.bodySmall(context)?.copyWith(
-                          color: BandiColor.foundationColor20(context),
-                        ),
-                      ),
-                      onTap: () {
-                        // 패키지 상세 페이지로 이동
-                      },
-                    ),
-                    Divider(
-                      height: 1.0,
-                      color: BandiColor.foundationColor10(context),
-                    ),
-                  ],
-                );
-              }),
+                    );
+                  },
+                ),
+                Divider(
+                  height: 1.0,
+                  color: BandiColor.foundationColor10(context),
+                ),
+              ],
+            );
+          },
         ),
       ),
-
-      // Column(
-      //   children: [
-      //     Padding(
-      //       padding: EdgeInsets.symmetric(horizontal: 23.0),
-      //       child: ListView.builder(
-      //         padding: EdgeInsets.only(
-      //           bottom: MediaQuery.of(context).size.height * 0.1,
-      //         ),
-      //         itemCount: ossLicenses.length,
-      //         itemBuilder: (context, index) {
-      //           final package = ossLicenses[index];
-      //           return Column(
-      //             crossAxisAlignment: CrossAxisAlignment.start,
-      //             children: [
-      //               ListTile(
-      //                 title: Text(
-      //                   package.name,
-      //                   style: BandiFont.bodyMedium(context)?.copyWith(
-      //                     color: BandiColor.foundationColor40(context),
-      //                   ),
-      //                 ),
-      //                 subtitle: Text(
-      //                   package.description,
-      //                   style: BandiFont.bodySmall(context)?.copyWith(
-      //                     color: BandiColor.foundationColor20(context),
-      //                   ),
-      //                 ),
-      //                 onTap: () {
-      //                   // 패키지 상세 페이지로 이동
-      //                 },
-      //               ),
-      //               Divider(
-      //                 height: 1.0,
-      //                 color: BandiColor.foundationColor10(context),
-      //               ),
-      //             ],
-      //           );
-      //         },
-      //       ),
-      //     ),
-      //   ],
-      // ),
     );
 
     Widget termsOfUse = Scaffold(
@@ -778,28 +729,6 @@ class _UserViewState extends State<UserView> {
                   height: 15,
                 ),
                 Text(
-                  "전화",
-                  style: BandiFont.headlineMedium(context)?.copyWith(
-                    color: BandiColor.foundationColor80(context),
-                  ),
-                ),
-                Text(
-                  CompanyInfo().pn,
-                  style: BandiFont.bodySmall(context)?.copyWith(
-                    color: BandiColor.foundationColor80(context),
-                  ),
-                ),
-                const SizedBox(
-                  height: 15,
-                ),
-                Divider(
-                  height: 1.0,
-                  color: BandiColor.foundationColor10(context),
-                ),
-                const SizedBox(
-                  height: 15,
-                ),
-                Text(
                   "이메일",
                   style: BandiFont.headlineMedium(context)?.copyWith(
                     color: BandiColor.foundationColor80(context),
@@ -839,6 +768,7 @@ class _UserViewState extends State<UserView> {
     required VoidCallback onTap,
     IconData? icon,
     Widget? trailing,
+    required int autotext,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -855,12 +785,20 @@ class _UserViewState extends State<UserView> {
                 color: BandiColor.foundationColor80(context),
               ),
             if (icon != null) const SizedBox(width: 8),
-            Text(
-              text,
-              style: BandiFont.bodyMedium(context)?.copyWith(
-                color: BandiColor.foundationColor80(context),
-              ),
-            ),
+            (autotext == 1)
+                ? Text(
+                    text,
+                    style: BandiFont.bodyMedium(context)?.copyWith(
+                      color: BandiColor.foundationColor80(context),
+                    ),
+                  )
+                : AutoSizeText(
+                    text,
+                    style: BandiFont.bodyMedium(context)?.copyWith(
+                      color: BandiColor.foundationColor80(context),
+                    ),
+                    maxLines: 1,
+                  ),
             if (trailing != null) ...[
               const Spacer(),
               trailing,
@@ -892,4 +830,77 @@ class _UserViewState extends State<UserView> {
   //     },
   //   );
   // }
+}
+
+class MiscOssLicenseSingle extends StatelessWidget {
+  final String name;
+  final String version;
+  final String description;
+  final String licenseText;
+  final String homepage;
+
+  MiscOssLicenseSingle({
+    required this.name,
+    required this.version,
+    required this.description,
+    required this.licenseText,
+    required this.homepage,
+  });
+
+  String _bodyText() {
+    return licenseText.split('\n').map((line) {
+      if (line.startsWith('//')) line = line.substring(2);
+      line = line.trim();
+      return line;
+    }).join('\n');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            "오픈소스 라이선스",
+          ),
+        ),
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            ListTile(
+              title: Text(name),
+              subtitle: Text('version : $version'),
+            ),
+            if (description != null)
+              Padding(
+                  padding:
+                      const EdgeInsets.only(top: 12.0, left: 12.0, right: 12.0),
+                  child: Text(description)),
+            const Divider(),
+            Padding(
+              padding:
+                  const EdgeInsets.only(top: 12.0, left: 12.0, right: 12.0),
+              child: Text(
+                _bodyText(),
+                // style: Theme.of(context).textTheme.bodyText2
+              ),
+            ),
+            const Divider(),
+            // ListTile(
+            //     title: Text('Homepage'),
+            //     subtitle: Text(homepage),
+            //     onTap: () async {
+            //       if (await canLaunch(homepage)) {
+            //         await launch(homepage);
+            //       } else {
+            //         throw 'Could not launch $homepage';
+            //       }
+            //     }),
+          ],
+        ),
+      ),
+    );
+  }
 }
