@@ -20,7 +20,10 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      PermissionController permissionController = PermissionController();
+      //PermissionController permissionController = PermissionController();
+      PermissionController permissionController =
+          Provider.of<PermissionController>(context, listen: false);
+
       AlarmController alarmController =
           Provider.of<AlarmController>(context, listen: false);
       permissionController.requestNotificationPermission(context);
