@@ -119,14 +119,12 @@ class _LoginViewState extends State<LoginView> {
                           onPressed: () {
                             AuthService()
                                 .signInWithGoogle(context)
-                                .then((value) async {
-                              setState(() {
-                                user = value;
-                              });
+                                .then((value) {
+                              user = value;
 
                               if (user != null) {
                                 WidgetsBinding.instance
-                                    .addPostFrameCallback((_) {
+                                    .addPostFrameCallback((_) async {
                                   if (userInfoProvider.getNickName() == "") {
                                     navigationToggleProvider.selectIndex(-3);
                                     AgreementSheet()
@@ -137,9 +135,11 @@ class _LoginViewState extends State<LoginView> {
                                       }
                                     });
                                   } else {
-                                    setState(() {
-                                      navigationToggleProvider.selectIndex(0);
-                                    });
+                                    // 로딩 화면 노출
+                                    navigationToggleProvider.selectIndex(100);
+                                    await Future.delayed(
+                                        const Duration(seconds: 1));
+                                    navigationToggleProvider.selectIndex(0);
                                   }
                                 });
                               }
@@ -191,14 +191,12 @@ class _LoginViewState extends State<LoginView> {
                             onPressed: () {
                               AuthService()
                                   .signInWithApple(context)
-                                  .then((value) async {
-                                setState(() {
-                                  user = value;
-                                });
+                                  .then((value) {
+                                user = value;
 
                                 if (user != null) {
                                   WidgetsBinding.instance
-                                      .addPostFrameCallback((_) {
+                                      .addPostFrameCallback((_) async {
                                     if (userInfoProvider.getNickName() == "") {
                                       navigationToggleProvider.selectIndex(-3);
                                       AgreementSheet()
@@ -209,9 +207,11 @@ class _LoginViewState extends State<LoginView> {
                                         }
                                       });
                                     } else {
-                                      setState(() {
-                                        navigationToggleProvider.selectIndex(0);
-                                      });
+                                      // 로딩 화면 노출
+                                      navigationToggleProvider.selectIndex(100);
+                                      await Future.delayed(
+                                          const Duration(seconds: 1));
+                                      navigationToggleProvider.selectIndex(0);
                                     }
                                   });
                                 }
@@ -319,7 +319,7 @@ class _LoginViewState extends State<LoginView> {
             ),
             if (_onboarding < 4)
               CustomPrimaryButton(
-                title: _onboarding < 3 ? '다음' : '모두 이해했습니다.',
+                title: _onboarding < 3 ? '다음' : '시작하기',
                 onPrimaryButtonPressed: () {
                   setState(() {
                     // setState() 추가.

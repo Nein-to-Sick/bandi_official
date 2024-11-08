@@ -7,6 +7,7 @@ class NavigationToggleProvider with ChangeNotifier {
   // _selectedIndex == 1 : 일기
   // _selectedIndex == 2 : 보관함
   // _selectedIndex == 3 : 설정
+  // _selectedIndex == 100 : 화면 로딩 페이지
   int _selectedIndex = -1;
 
   int get selectedIndex => _selectedIndex;
