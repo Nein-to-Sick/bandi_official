@@ -1,8 +1,10 @@
 import 'package:assets_audio_player/assets_audio_player.dart';
+import 'package:bandi_official/components/loading/loading_page.dart';
 import 'package:bandi_official/components/no_reuse/reset_dialogue.dart';
 import 'package:bandi_official/controller/alarm_controller.dart';
 import 'package:bandi_official/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
+import 'package:bandi_official/controller/permission_controller.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/home/home_view.dart';
 import 'package:bandi_official/view/list/list_view.dart';
@@ -125,25 +127,36 @@ class _NavigationState extends State<Navigation> with WidgetsBindingObserver {
                   ? OtherDiary(
                       writeProvider: writeProvider,
                     )
-                  : (navigationToggleProvider.selectedIndex <= -1 &&
-                          navigationToggleProvider.selectedIndex != -2)
-                      ? const LoginView()
-                      : navigationToggleProvider.selectedIndex == 0
-                          ? const HomePage()
-                          : navigationToggleProvider.selectedIndex == 1
-                              ? const ListPage()
-                              : navigationToggleProvider.selectedIndex == 2
-                                  ? AnimatedOpacity(
-                                      opacity:
-                                          (!mailController.isDetailViewShowing)
+                  : (navigationToggleProvider.selectedIndex == -3)
+                      // 회원 가입 시의 빈 배경
+                      ? const SizedBox.shrink()
+                      : (navigationToggleProvider.selectedIndex <= -1 &&
+                              navigationToggleProvider.selectedIndex != -2)
+                          ? const LoginView()
+                          : navigationToggleProvider.selectedIndex == 0
+                              ? const HomePage()
+                              : navigationToggleProvider.selectedIndex == 1
+                                  ? const ListPage()
+                                  : navigationToggleProvider.selectedIndex == 2
+                                      ? AnimatedOpacity(
+                                          opacity: (!mailController
+                                                  .isDetailViewShowing)
                                               ? 1.0
                                               : 0.0,
-                                      duration:
-                                          const Duration(milliseconds: 300),
-                                      child: const MailView(),
-                                    )
-                                  : const UserView(),
-              if (navigationToggleProvider.selectedIndex >= 0)
+                                          duration:
+                                              const Duration(milliseconds: 300),
+                                          child: const MailView(),
+                                        )
+                                      : navigationToggleProvider
+                                                  .selectedIndex ==
+                                              100
+                                          ? const Center(
+                                              child: MyFireFlyProgressbar(
+                                                  loadingText: '로딩 중...'),
+                                            )
+                                          : const UserView(),
+              if (navigationToggleProvider.selectedIndex >= 0 &&
+                  navigationToggleProvider.selectedIndex != 100)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: Column(

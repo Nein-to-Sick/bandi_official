@@ -8,14 +8,13 @@ import 'package:bandi_official/controller/permission_controller.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:wrapped_korean_text/wrapped_korean_text.dart';
 
-import '../../components/appbar/appbar.dart';
 import '../../components/button/primary_button.dart';
 import '../../components/field/field.dart';
 import '../../controller/navigation_toggle_provider.dart';
@@ -33,14 +32,17 @@ class UserView extends StatefulWidget {
 class _UserViewState extends State<UserView> with WidgetsBindingObserver {
   int settings = 0; //0 = home, 1 = 계정관리, 2 = 닉네임 변경, 3
   String newNickname = '';
-  late PermissionController permissionController;
+  late bool notificationTemp;
+  late PermissionController permissionController2;
 
   @override
   void initState() {
     super.initState();
-    permissionController =
-        Provider.of<PermissionController>(context, listen: false);
     WidgetsBinding.instance.addObserver(this);
+    permissionController2 =
+        Provider.of<PermissionController>(context, listen: false);
+
+    notificationTemp = permissionController2.getNotificationPermissionState();
   }
 
   @override
@@ -53,50 +55,52 @@ class _UserViewState extends State<UserView> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      // 포그라운드로 돌아왔을 때 권한을 다시 확인
-      permissionController.checkNotificationPermission().then((isGranted) {
-        if (context.mounted) {
+      permissionController2.checkNotificationPermission().then((isGranted) {
+        if (context.mounted && notificationTemp != isGranted) {
+          notificationTemp = isGranted;
+
           if (isGranted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                elevation: 3,
-                content: const Text('알림 권한이 허용되었습니다.'),
-                margin: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).size.height * 0.1),
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BandiEffects.radius(),
-                ),
-              ),
-            );
+            showSnackBar('알림 권한이 허용되었습니다.');
           } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                elevation: 3,
-                content: const Text('알림 권한이 허용되지 않았습니다.'),
-                margin: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).size.height * 0.1),
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BandiEffects.radius(),
-                ),
-              ),
-            );
+            showSnackBar('알림 권한이 허용되지 않았습니다.');
           }
         }
       });
+    } else if (state == AppLifecycleState.paused) {
+      log('background');
     }
+  }
+
+  void showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        elevation: 3,
+        content: Text(
+          message,
+          style: BandiFont.displaySmall(context)?.copyWith(
+            color: BandiColor.neutralColor100(context),
+          ),
+        ),
+        margin: EdgeInsets.only(
+          left: 25.0,
+          right: 25.0,
+          bottom: MediaQuery.of(context).size.height * 0.1,
+        ),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BandiEffects.radius(),
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     var navigationToggleProvider =
         Provider.of<NavigationToggleProvider>(context);
-
     var userInfo = Provider.of<UserInfoValueModel>(context);
-
-    PermissionController permissionController =
-        Provider.of<PermissionController>(context);
+    final permissionController = Provider.of<PermissionController>(context);
+    final mailController = Provider.of<MailController>(context);
 
     Widget settingHome = Scaffold(
       backgroundColor: BandiColor.neutralColor80(context).withOpacity(0.8),
@@ -162,8 +166,7 @@ class _UserViewState extends State<UserView> with WidgetsBindingObserver {
                           context: context,
                           builder: (BuildContext context) {
                             return CustomResetDialogue(
-                              text:
-                                  '알림 설정은 시스템 설정에서 진행됩니다.\n시스템 설정으로 이동하시겠습니까?',
+                              text: '알림 설정은 시스템 설정에서 진행됩니다.\n시스템 설정으로 이동하시겠나요?',
                               onYesFunction: () {
                                 Navigator.pop(context);
                                 openAppSettings();
@@ -336,20 +339,33 @@ class _UserViewState extends State<UserView> with WidgetsBindingObserver {
             CustomPrimaryButton(
               title: '로그아웃',
               onPrimaryButtonPressed: () async {
-                // Firebase에서 로그아웃
-                await FirebaseAuth.instance.signOut();
-
-                // 사용자 정보 초기화
-                final userInfoProvider =
-                    Provider.of<UserInfoValueModel>(context, listen: false);
-                userInfoProvider.clearUserInfo();
-
-                // NavigationToggleProvider를 사용하여 로그인 페이지로 이동
-                final navigationToggleProvider =
-                    Provider.of<NavigationToggleProvider>(context,
-                        listen: false);
-                navigationToggleProvider.selectIndex(-1); // 로그인 페이지로 이동
-                log("로그아웃");
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return CustomResetDialogue(
+                      text: '로그아웃 하시겠나요?',
+                      onYesFunction: () async {
+                        Navigator.pop(context);
+                        // 로딩 화면 노출
+                        navigationToggleProvider.selectIndex(100);
+                        await Future.delayed(const Duration(seconds: 1));
+                        // 구글 로그아웃
+                        final GoogleSignIn googleSignIn = GoogleSignIn();
+                        if (await googleSignIn.isSignedIn()) {
+                          await googleSignIn.signOut();
+                        }
+                        // Firebase에서 로그아웃
+                        await FirebaseAuth.instance.signOut();
+                        userInfo.clearUserInfo();
+                        navigationToggleProvider.selectIndex(-1); // 로그인 페이지로 이동
+                        log("로그아웃");
+                      },
+                      onNoFunction: () {
+                        Navigator.pop(context);
+                      },
+                    );
+                  },
+                );
               },
               disableButton: false,
             ),
@@ -358,47 +374,60 @@ class _UserViewState extends State<UserView> with WidgetsBindingObserver {
             ),
             CustomSecondaryButton(
               title: '계정 탈퇴',
-              onSecondaryButtonPressed: () async {
-                try {
-                  // Firebase 인증 객체
-                  User? user = FirebaseAuth.instance.currentUser;
+              onSecondaryButtonPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return CustomResetDialogue(
+                      text: '계정 탈퇴를 하시겠나요?\n탈퇴한 계정은 복구할 수 없어요.',
+                      onYesFunction: () async {
+                        Navigator.pop(context);
+                        try {
+                          // Firebase 인증 객체
+                          User? user = FirebaseAuth.instance.currentUser;
 
-                  if (user != null) {
-                    // 로컬 저장소 데이터 삭제
-                    final mailController =
-                        Provider.of<MailController>(context, listen: false);
-                    mailController.deleteEveryMailDataFromLocal();
+                          if (user != null) {
+                            // 로딩 화면 노출
+                            navigationToggleProvider.selectIndex(100);
+                            await Future.delayed(const Duration(seconds: 1));
 
-                    // Firestore에서 사용자 데이터 삭제
-                    final userCollection =
-                        FirebaseFirestore.instance.collection("users");
-                    await userCollection.doc(user.uid).delete();
+                            // 로컬 저장소 데이터 삭제
+                            mailController.deleteEveryMailDataFromLocal();
 
-                    // Firestore의 userDataCollection에서 사용자 데이터 삭제
-                    final userDataCollection = FirebaseFirestore.instance
-                        .collection("userDataCollection");
-                    await userDataCollection.doc(user.uid).delete();
+                            // Firestore에서 사용자 데이터 삭제
+                            final userCollection =
+                                FirebaseFirestore.instance.collection("users");
+                            final userDataCollection = FirebaseFirestore
+                                .instance
+                                .collection("userDataCollection");
 
-                    // Firebase에서 사용자 삭제
-                    await user.delete();
+                            // Firestore 데이터 삭제
+                            await Future.wait([
+                              userCollection.doc(user.uid).delete(),
+                              userDataCollection.doc(user.uid).delete(),
+                            ]);
 
-                    // 사용자 정보 초기화
-                    final userInfoProvider =
-                        Provider.of<UserInfoValueModel>(context, listen: false);
-                    userInfoProvider.clearUserInfo();
+                            // Firebase에서 사용자 삭제
+                            await user.delete();
 
-                    // NavigationToggleProvider를 사용하여 로그인 페이지로 이동
-                    final navigationToggleProvider =
-                        Provider.of<NavigationToggleProvider>(context,
-                            listen: false);
-                    navigationToggleProvider.selectIndex(-1); // 로그인 페이지로 이동
-                    log("계정 탈퇴 완료");
-                  }
-                } catch (e) {
-                  // 에러 처리 (예: 사용자 재인증 필요 등)
-                  log("Error deleting account: $e");
-                  // 사용자에게 재인증을 요구하거나 오류 메시지를 표시할 수 있습니다.
-                }
+                            // 사용자 정보 초기화
+                            userInfo.clearUserInfo();
+                            navigationToggleProvider
+                                .selectIndex(-1); // 로그인 페이지로 이동
+                            log("계정 탈퇴 완료");
+                          }
+                        } catch (e) {
+                          // 에러 처리 (예: 사용자 재인증 필요 등)
+                          log("Error deleting account: $e");
+                          // 사용자에게 재인증을 요구하거나 오류 메시지를 표시할 수 있습니다.
+                        }
+                      },
+                      onNoFunction: () {
+                        Navigator.pop(context);
+                      },
+                    );
+                  },
+                );
               },
               disableButton: false,
             ),
@@ -407,11 +436,7 @@ class _UserViewState extends State<UserView> with WidgetsBindingObserver {
       ),
     );
 
-    void _updateNickname(BuildContext context, String newNickname) async {
-      // 프로바이더에서 닉네임을 가져옴
-      var userInfoProvider =
-          Provider.of<UserInfoValueModel>(context, listen: false);
-
+    void updateNickname(BuildContext context, String newNickname) async {
       // Firebase Firestore에서 현재 사용자 문서를 업데이트
       String? userId = FirebaseAuth.instance.currentUser?.uid;
       if (userId != null) {
@@ -466,7 +491,7 @@ class _UserViewState extends State<UserView> with WidgetsBindingObserver {
         padding: const EdgeInsets.symmetric(horizontal: 23.0),
         child: StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
-            String _nickname =
+            String nickname =
                 Provider.of<UserInfoValueModel>(context, listen: false)
                     .nickname;
 
@@ -474,10 +499,10 @@ class _UserViewState extends State<UserView> with WidgetsBindingObserver {
               children: [
                 const SizedBox(height: 17),
                 CustomField(
-                  initialValue: _nickname,
+                  initialValue: nickname,
                   onChanged: (value) {
                     setState(() {
-                      _nickname = value;
+                      nickname = value;
                     });
                     // 프로바이더의 닉네임을 업데이트
                     Provider.of<UserInfoValueModel>(context, listen: false)
@@ -490,12 +515,12 @@ class _UserViewState extends State<UserView> with WidgetsBindingObserver {
                 CustomPrimaryButton(
                   title: '확인',
                   onPrimaryButtonPressed: () {
-                    if (_nickname.isNotEmpty) {
+                    if (nickname.isNotEmpty) {
                       // 비동기 작업을 호출하는 동기 함수로 래핑
-                      _updateNickname(context, _nickname);
+                      updateNickname(context, nickname);
                     }
                   },
-                  disableButton: _nickname.isEmpty,
+                  disableButton: nickname.isEmpty,
                 ),
                 const SizedBox(height: 16),
               ],
@@ -564,9 +589,9 @@ class _UserViewState extends State<UserView> with WidgetsBindingObserver {
                       context,
                       MaterialPageRoute(
                         builder: (context) => MiscOssLicenseSingle(
-                          name: package.name ?? '',
-                          version: package.version ?? '',
-                          description: package.description ?? '',
+                          name: package.name,
+                          version: package.version,
+                          description: package.description,
                           licenseText: package.license ?? '',
                           homepage: package.homepage ?? '',
                         ),
@@ -944,7 +969,8 @@ class MiscOssLicenseSingle extends StatelessWidget {
   final String licenseText;
   final String homepage;
 
-  MiscOssLicenseSingle({
+  const MiscOssLicenseSingle({
+    super.key,
     required this.name,
     required this.version,
     required this.description,
@@ -978,7 +1004,7 @@ class MiscOssLicenseSingle extends StatelessWidget {
               title: Text(name),
               subtitle: Text('version : $version'),
             ),
-            if (description != null)
+            if (description.isNotEmpty)
               Padding(
                   padding:
                       const EdgeInsets.only(top: 12.0, left: 12.0, right: 12.0),
