@@ -20,6 +20,7 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:provider/provider.dart';
 import 'controller/home_to_write.dart';
 import 'controller/navigation_toggle_provider.dart';
+import 'controller/securestorage_controller.dart';
 import 'controller/user_info_controller.dart';
 import 'firebase_options.dart';
 import 'package:flutter/material.dart';
@@ -95,6 +96,9 @@ class MainApp extends StatelessWidget {
             ),
             ChangeNotifierProvider(
               create: (context) => PermissionController(),
+            ),
+            ChangeNotifierProvider(
+              create: (context) => SecureStorageProvider(),
             ),
             ChangeNotifierProvider(
               create: (context) => DateProvider(),
