@@ -9,6 +9,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'package:http/http.dart' as http;
 
 import '../../controller/navigation_toggle_provider.dart';
 import '../../controller/securestorage_controller.dart';
@@ -210,53 +211,66 @@ class AuthService {
 
       log("Access Token: $accessToken");
 
+      final storageProvider =
+          Provider.of<SecureStorageProvider>(context, listen: false);
+
       // 함수 시작 시점에서 Provider 참조
       final userInfoProvider =
           Provider.of<UserInfoValueModel>(context, listen: false);
 
+      // 1. Access Token 검증 (Optional)
+      final isValidToken = await validateGoogleAccessToken(accessToken);
+      if (!isValidToken) {
+        log("Access Token이 유효하지 않습니다. 새로 발급을 시도합니다.");
+
+        // 새로운 Access Token 발급 시도
+        GoogleSignIn _googleSignIn = GoogleSignIn();
+        GoogleSignInAccount? gUser = await _googleSignIn.signIn();
+        if (gUser != null) {
+          final GoogleSignInAuthentication gAuth = await gUser.authentication;
+          accessToken = gAuth.accessToken!;
+          log("새로운 Access Token 발급 성공: $accessToken");
+
+          await storageProvider.saveGoogleLoginInfo(gAuth.accessToken!);
+        } else {
+          log("새로운 Access Token 발급 실패");
+          return null; // 실패 시 함수 종료
+        }
+      }
+
       final credential =
           GoogleAuthProvider.credential(accessToken: accessToken);
-      log("a");
 
+      // 2. Firebase 로그인
       UserCredential userCredential =
           await FirebaseAuth.instance.signInWithCredential(credential);
-      log("b");
 
       final userCollection = FirebaseFirestore.instance.collection("users");
       String? userId = userCredential.user?.uid;
       String? userEmail = userCredential.user?.email;
-      log("c");
 
       if (userId == null || userEmail == null) {
         throw Exception("사용자 정보가 유효하지 않습니다.");
       }
-      log("d");
 
       final docRef = userCollection.doc(userId);
       DocumentSnapshot snapshot = await docRef.get();
-      log("e");
 
       String? fcmToken = await FirebaseMessaging.instance.getToken();
-      log("g");
 
       if (snapshot.exists) {
-        log("h");
         String userId = (snapshot.data() as Map<String, dynamic>)['userId'];
         String userEmail = (snapshot.data() as Map<String, dynamic>)['email'];
         String nickname = (snapshot.data() as Map<String, dynamic>)['nickname'];
-        log("i");
 
         userInfoProvider.updateUserID(userId);
         userInfoProvider.updateUserEmail(userEmail);
         userInfoProvider.updateNickname(nickname);
 
-        log("j");
         if (fcmToken != null && snapshot["fcmToken"] != fcmToken) {
-          log("k");
           await docRef.update({'fcmToken': fcmToken});
         }
       } else {
-        log("l");
         await docRef.set({
           "created_at": FieldValue.serverTimestamp(),
           "email": userEmail,
@@ -271,11 +285,9 @@ class AuthService {
           "fcmToken": fcmToken,
         });
 
-        log("m");
         await docRef.collection('letters').doc('0000_docSummary').set({});
         await docRef.collection('otherDiary').doc('0000_docSummary').set({});
         await docRef.collection('notifications').doc('0000_docSummary').set({});
-        log("n");
 
         userInfoProvider.updateUserID(userId);
         userInfoProvider.updateUserEmail(userEmail);
@@ -286,8 +298,8 @@ class AuthService {
       return userCredential.user;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'invalid-credential') {
-        log("Google 토큰이 만료되었거나 잘못되었습니다.");
-        throw Exception("Google Access Token expired or invalid.");
+        log("Google 토큰이 잘못되었거나 만료되었습니다.");
+        throw Exception("Google Access Token expired or invalid. 다시 로그인 해주세요.");
       } else {
         log("Google 인증 실패: ${e.message}");
         rethrow;
@@ -298,79 +310,131 @@ class AuthService {
     }
   }
 
+// Google Access Token 검증 함수
+  Future<bool> validateGoogleAccessToken(String accessToken) async {
+    try {
+      final response = await http.get(Uri.parse(
+          'https://oauth2.googleapis.com/tokeninfo?access_token=$accessToken'));
+      if (response.statusCode == 200) {
+        log("Access Token 검증 성공: ${response.body}");
+        return true;
+      } else {
+        log("Access Token 검증 실패: ${response.body}");
+        return false;
+      }
+    } catch (e) {
+      log("Access Token 검증 중 오류 발생: $e");
+      return false;
+    }
+  }
+
   Future<User?> signInWithAppleTokens(String identityToken,
       String authorizationCode, BuildContext context) async {
     try {
-      final credential = OAuthProvider("apple.com").credential(
+      // 기존 토큰 검증
+      if (identityToken.isEmpty || authorizationCode.isEmpty) {
+        log("Apple Identity Token 또는 Authorization Code가 비어있습니다.");
+
+        // 새로운 Apple 로그인 시도
+        final AuthorizationCredentialAppleID appleSignIn =
+            await SignInWithApple.getAppleIDCredential(
+          scopes: [
+            AppleIDAuthorizationScopes.email,
+            AppleIDAuthorizationScopes.fullName,
+          ],
+        );
+
+        identityToken = appleSignIn.identityToken!;
+        authorizationCode = appleSignIn.authorizationCode!;
+        log("Apple 로그인 성공: 새로운 토큰 발급 완료");
+      }
+
+      final storageProvider =
+          Provider.of<SecureStorageProvider>(context, listen: false);
+      final userInfoProvider =
+          Provider.of<UserInfoValueModel>(context, listen: false);
+
+      // Firebase 인증 정보 생성
+      final OAuthProvider oAuthProvider = OAuthProvider("apple.com");
+      final AuthCredential credential = oAuthProvider.credential(
         idToken: identityToken,
         accessToken: authorizationCode,
       );
 
+      // Firebase 로그인
       UserCredential userCredential =
           await FirebaseAuth.instance.signInWithCredential(credential);
 
-      // Firestore 사용자 데이터 처리
-      await _handleUserData(userCredential.user, "apple", context);
+      final userCollection = FirebaseFirestore.instance.collection("users");
+      String? userId = userCredential.user?.uid;
+      String? userEmail = userCredential.user?.email;
 
+      if (userId == null || userEmail == null) {
+        throw Exception("사용자 정보가 유효하지 않습니다.");
+      }
+
+      final docRef = userCollection.doc(userId);
+      DocumentSnapshot snapshot = await docRef.get();
+
+      String? fcmToken = await FirebaseMessaging.instance.getToken();
+
+      if (snapshot.exists) {
+        // 기존 사용자 데이터 업데이트
+        Map<String, dynamic> userData = snapshot.data() as Map<String, dynamic>;
+        String nickname = userData['nickname'];
+
+        userInfoProvider.updateUserID(userId);
+        userInfoProvider.updateUserEmail(userEmail);
+        userInfoProvider.updateNickname(nickname);
+
+        if (fcmToken != null && userData["fcmToken"] != fcmToken) {
+          await docRef.update({'fcmToken': fcmToken});
+        }
+      } else {
+        // Firestore에 새 사용자 데이터 저장
+        await docRef.set({
+          "created_at": FieldValue.serverTimestamp(),
+          "email": userEmail,
+          "nickname": "",
+          "likedDiaryId": [],
+          "myDiaryId": [],
+          "socialLoginProvider": "apple",
+          "updatedAt": FieldValue.serverTimestamp(),
+          "userId": userId,
+          "newLetterAvailable": false,
+          "newNotificationsAvailable": false,
+          "fcmToken": fcmToken,
+        });
+
+        // 하위 컬렉션 초기화
+        await docRef.collection('letters').doc('0000_docSummary').set({});
+        await docRef.collection('otherDiary').doc('0000_docSummary').set({});
+        await docRef.collection('notifications').doc('0000_docSummary').set({});
+
+        userInfoProvider.updateUserID(userId);
+        userInfoProvider.updateUserEmail(userEmail);
+        userInfoProvider.updateNickname("");
+      }
+
+      // 새 토큰 저장
+      await storageProvider.saveAppleLoginInfo(
+        identityToken,
+        authorizationCode,
+      );
+
+      log("Apple 로그인 성공: ${userCredential.user?.email}");
       return userCredential.user;
     } on FirebaseAuthException catch (e) {
-      log("Apple 로그인 실패: ${e.message}");
       if (e.code == 'invalid-credential') {
-        throw Exception("Apple 토큰이 만료되었거나 잘못되었습니다.");
+        log("Apple 토큰이 잘못되었거나 만료되었습니다.");
+        throw Exception("Apple Access Token expired or invalid. 다시 로그인 해주세요.");
+      } else {
+        log("Apple 인증 실패: ${e.message}");
+        rethrow;
       }
+    } catch (e) {
+      log("알 수 없는 오류 발생: $e");
       rethrow;
-    }
-  }
-
-  Future<void> _handleUserData(
-      User? user, String provider, BuildContext context) async {
-    if (user == null) {
-      throw Exception("사용자 인증 실패");
-    }
-
-    final userCollection = FirebaseFirestore.instance.collection("users");
-    final docRef = userCollection.doc(user.uid);
-    final snapshot = await docRef.get();
-
-    final userInfoProvider =
-        Provider.of<UserInfoValueModel>(context, listen: false);
-    String? fcmToken = await FirebaseMessaging.instance.getToken();
-
-    if (snapshot.exists) {
-      final data = snapshot.data() as Map<String, dynamic>;
-      userInfoProvider.updateUserID(user.uid);
-      log(user.uid);
-      userInfoProvider.updateUserEmail(user.email ?? "");
-      log(user.email!);
-      userInfoProvider.updateNickname(data['nickname'] ?? "");
-      log(user.uid);
-
-      if (fcmToken != null && data["fcmToken"] != fcmToken) {
-        await docRef.update({'fcmToken': fcmToken});
-      }
-    } else {
-      await docRef.set({
-        "created_at": FieldValue.serverTimestamp(),
-        "email": user.email,
-        "nickname": "",
-        "likedDiaryId": [],
-        "myDiaryId": [],
-        "socialLoginProvider": provider,
-        "updatedAt": FieldValue.serverTimestamp(),
-        "userId": user.uid,
-        "newLetterAvailable": false,
-        "newNotificationsAvailable": false,
-        "fcmToken": fcmToken,
-      });
-
-      // 하위 컬렉션 생성
-      await docRef.collection('letters').doc('0000_docSummary').set({});
-      await docRef.collection('otherDiary').doc('0000_docSummary').set({});
-      await docRef.collection('notifications').doc('0000_docSummary').set({});
-
-      userInfoProvider.updateUserID(user.uid);
-      userInfoProvider.updateUserEmail(user.email ?? "");
-      userInfoProvider.updateNickname("");
     }
   }
 }
