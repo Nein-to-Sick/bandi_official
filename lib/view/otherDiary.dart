@@ -46,7 +46,7 @@ class _OtherDiaryState extends State<OtherDiary> {
       child: Container(
         color: BandiColor.neutralColor10(context),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(24,0,24,32),
+          padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
           child: Scaffold(
             backgroundColor: BandiColor.transparent(context),
             appBar: AppBar(
@@ -154,11 +154,11 @@ class _OtherDiaryState extends State<OtherDiary> {
                                     reaction3);
 
                                 String fcmToken = (await FirebaseFirestore
-                                    .instance
-                                    .collection('users')
-                                    .doc(writeProvider
-                                    .otherDiaryModel.userId)
-                                    .get())
+                                        .instance
+                                        .collection('users')
+                                        .doc(writeProvider
+                                            .otherDiaryModel.userId)
+                                        .get())
                                     .data()?['fcmToken'];
 
                                 alarmController.sendLikedDiaryNotification(
@@ -186,22 +186,27 @@ class _OtherDiaryState extends State<OtherDiary> {
                             Text(
                               writeProvider.otherDiaryModel.title,
                               style: BandiFont.displaySmall(context)?.copyWith(
-                                  color: BandiColor.foundationColor100(context)),
+                                  color:
+                                      BandiColor.foundationColor100(context)),
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              DateFormat('yyyy년 M월 d일').format(
-                                  writeProvider.otherDiaryModel.createdAt.toDate()),
+                              DateFormat('yyyy년 M월 d일').format(writeProvider
+                                  .otherDiaryModel.createdAt
+                                  .toDate()),
                               style: BandiFont.headlineSmall(context)?.copyWith(
-                                  color: BandiColor.foundationColor100(context)),
+                                  color:
+                                      BandiColor.foundationColor100(context)),
                             ),
                             const SizedBox(height: 16),
                             Expanded(
                               child: SingleChildScrollView(
                                 child: Text(
                                   writeProvider.otherDiaryModel.content,
-                                  style: BandiFont.titleSmall(context)?.copyWith(
-                                      color: BandiColor.foundationColor100(context)),
+                                  style: BandiFont.titleSmall(context)
+                                      ?.copyWith(
+                                          color: BandiColor.foundationColor100(
+                                              context)),
                                 ),
                               ),
                             ),

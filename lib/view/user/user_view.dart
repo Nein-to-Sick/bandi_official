@@ -18,6 +18,7 @@ import 'package:wrapped_korean_text/wrapped_korean_text.dart';
 import '../../components/button/primary_button.dart';
 import '../../components/field/field.dart';
 import '../../controller/navigation_toggle_provider.dart';
+import '../../controller/securestorage_controller.dart';
 import '../../controller/user_info_controller.dart';
 import '../../model/oss_licenses_model.dart';
 import '../../model/settingsInfos.dart';
@@ -34,6 +35,7 @@ class _UserViewState extends State<UserView> with WidgetsBindingObserver {
   String newNickname = '';
   late bool notificationTemp;
   late PermissionController permissionController2;
+  late SecureStorageProvider _storageProvider;
 
   @override
   void initState() {
@@ -43,6 +45,8 @@ class _UserViewState extends State<UserView> with WidgetsBindingObserver {
         Provider.of<PermissionController>(context, listen: false);
 
     notificationTemp = permissionController2.getNotificationPermissionState();
+    _storageProvider =
+        Provider.of<SecureStorageProvider>(context, listen: false);
   }
 
   @override
@@ -346,22 +350,46 @@ class _UserViewState extends State<UserView> with WidgetsBindingObserver {
                       text: '로그아웃 하시겠나요?',
                       onYesFunction: () async {
                         Navigator.pop(context);
+
+                        // 만약 상태가 비활성화되어 있으면 추가 작업 중지
+                        if (!mounted) return;
+                        log("1");
+
                         // 로딩 화면 노출
                         navigationToggleProvider.selectIndex(100);
                         await Future.delayed(const Duration(seconds: 1));
+
+                        log("2");
+                        // if (!mounted) return;
+
                         // 구글 로그아웃
                         final GoogleSignIn googleSignIn = GoogleSignIn();
                         if (await googleSignIn.isSignedIn()) {
                           await googleSignIn.signOut();
                         }
+
+                        log("3");
+                        // if (!mounted) return;
+
                         // Firebase에서 로그아웃
                         await FirebaseAuth.instance.signOut();
+
+                        // SecureStorage의 로그인 정보 삭제
+                        await _storageProvider.clearLoginInfo();
+
+                        // 사용자 정보 초기화
                         userInfo.clearUserInfo();
-                        navigationToggleProvider.selectIndex(-1); // 로그인 페이지로 이동
+
+                        // 로그인 페이지로 이동
+                        navigationToggleProvider.selectIndex(-1);
                         log("로그아웃");
                       },
                       onNoFunction: () {
-                        Navigator.pop(context);
+                        if (mounted) {
+                          Navigator.pop(context);
+
+                          log("8");
+                        }
                       },
                     );
                   },
@@ -383,10 +411,13 @@ class _UserViewState extends State<UserView> with WidgetsBindingObserver {
                       onYesFunction: () async {
                         Navigator.pop(context);
                         try {
-                          // Firebase 인증 객체
                           User? user = FirebaseAuth.instance.currentUser;
 
                           if (user != null) {
+                            final storageProvider =
+                                Provider.of<SecureStorageProvider>(context,
+                                    listen: false);
+
                             // 로딩 화면 노출
                             navigationToggleProvider.selectIndex(100);
                             await Future.delayed(const Duration(seconds: 1));
@@ -410,16 +441,24 @@ class _UserViewState extends State<UserView> with WidgetsBindingObserver {
                             // Firebase에서 사용자 삭제
                             await user.delete();
 
-                            // 사용자 정보 초기화
+                            // SecureStorage의 로그인 정보 삭제
+                            await storageProvider.clearLoginInfo();
+
+                            // 사용자 정보 초기화 및 로그인 페이지로 이동
+
                             userInfo.clearUserInfo();
                             navigationToggleProvider
                                 .selectIndex(-1); // 로그인 페이지로 이동
+
                             log("계정 탈퇴 완료");
                           }
                         } catch (e) {
-                          // 에러 처리 (예: 사용자 재인증 필요 등)
                           log("Error deleting account: $e");
-                          // 사용자에게 재인증을 요구하거나 오류 메시지를 표시할 수 있습니다.
+                          // 오류가 발생한 경우 로딩 화면을 닫고 오류 메시지를 표시할 수 있습니다.
+                          if (mounted) {
+                            navigationToggleProvider
+                                .selectIndex(-1); // 로그인 페이지로 이동
+                          }
                         }
                       },
                       onNoFunction: () {

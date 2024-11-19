@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:bandi_official/controller/navigation_toggle_provider.dart';
@@ -5,10 +6,12 @@ import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/login/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../components/button/primary_button.dart';
 import '../../components/button/secondary_button.dart';
+import '../../controller/securestorage_controller.dart';
 import '../../controller/user_info_controller.dart';
 import 'agree_condition.dart';
 import 'nickname.dart';
@@ -24,32 +27,84 @@ class _LoginViewState extends State<LoginView> {
   User? user = FirebaseAuth.instance.currentUser;
   int _onboarding = 1;
 
-  // @override
-  // void initState() {
-  //   super.initState();
-
-  //   if (user != null) {
-  //     final navigationToggleProvider =
-  //         Provider.of<NavigationToggleProvider>(context);
-  //     navigationToggleProvider.selectIndex(0);
-  //   }
-  // }
-
   @override
   void initState() {
     super.initState();
-    final userInfoProvider =
-        Provider.of<UserInfoValueModel>(context, listen: false);
 
     final navigationToggleProvider =
         Provider.of<NavigationToggleProvider>(context, listen: false);
 
-    if (user != null && userInfoProvider.getNickName() != "") {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (navigationToggleProvider.getIndex() == -1) {
+      _initializeSecureStorage(); // SecureStorage 초기화 및 정보 로드
+    }
+  }
+
+  // SecureStorage 초기화 및 로그인 정보 로드
+  Future<void> _initializeSecureStorage() async {
+    final storageProvider =
+        Provider.of<SecureStorageProvider>(context, listen: false);
+    await storageProvider.loadLoginInfo(); // SecureStorage에서 정보 로드
+
+    if (storageProvider.isLoggedIn) {
+      // 자동 로그인 시도
+      log("storageProvider.isLoggedIn");
+      await _checkAutoLogin();
+    }
+  }
+
+  // 자동 로그인 처리
+  Future<void> _checkAutoLogin() async {
+    final storageProvider =
+        Provider.of<SecureStorageProvider>(context, listen: false);
+    final navigationToggleProvider =
+        Provider.of<NavigationToggleProvider>(context, listen: false);
+
+    try {
+      log("loading start");
+      navigationToggleProvider.selectIndex(100); // 로딩 화면 표시
+
+      // Google 로그인 처리
+      if (storageProvider.loginMethod == 'google' &&
+          storageProvider.googleAccessToken != null) {
+        log(" Google 로그인 처리");
+        await AuthService().signInWithGoogleTokens(
+          storageProvider.googleAccessToken!,
+          context,
+        );
+
         navigationToggleProvider.selectIndex(0);
-      });
-    } else if (navigationToggleProvider.getIndex() == 0) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {});
+      }
+      // Apple 로그인 처리
+      else if (storageProvider.loginMethod == 'apple' &&
+          storageProvider.appleIdentityToken != null) {
+        await AuthService().signInWithAppleTokens(
+          storageProvider.appleIdentityToken!,
+          storageProvider.appleAuthorizationCode!,
+          context,
+        );
+      }
+
+      // 로그인 성공 시 홈 화면으로 이동
+      if (mounted) {
+        log("mounted");
+        navigationToggleProvider.selectIndex(0);
+      }
+    } on PlatformException catch (e) {
+      log("PlatformException 발생: ${e.message}");
+      if (e.code == 'ERROR_INVALID_CREDENTIAL') {
+        // 잘못된 자격 증명: 토큰 만료 또는 잘못된 토큰
+        log("자동 로그인 실패: 인증 자격 증명이 만료되었거나 잘못되었습니다.");
+        await storageProvider.clearLoginInfo(); // 기존 로그인 정보 삭제
+      }
+
+      if (mounted) {
+        navigationToggleProvider.selectIndex(-1); // 로그인 화면으로 이동
+      }
+    } catch (e) {
+      log("자동 로그인 중 알 수 없는 오류 발생: $e");
+      if (mounted) {
+        navigationToggleProvider.selectIndex(-1); // 로그인 화면으로 이동
+      }
     }
   }
 
@@ -119,10 +174,14 @@ class _LoginViewState extends State<LoginView> {
                           onPressed: () {
                             AuthService()
                                 .signInWithGoogle(context)
-                                .then((value) {
+                                .then((value) async {
                               user = value;
 
                               if (user != null) {
+                                final storageProvider =
+                                    Provider.of<SecureStorageProvider>(context,
+                                        listen: false);
+
                                 WidgetsBinding.instance
                                     .addPostFrameCallback((_) async {
                                   if (userInfoProvider.getNickName() == "") {
@@ -191,10 +250,15 @@ class _LoginViewState extends State<LoginView> {
                             onPressed: () {
                               AuthService()
                                   .signInWithApple(context)
-                                  .then((value) {
+                                  .then((value) async {
                                 user = value;
 
                                 if (user != null) {
+                                  final storageProvider =
+                                      Provider.of<SecureStorageProvider>(
+                                          context,
+                                          listen: false);
+
                                   WidgetsBinding.instance
                                       .addPostFrameCallback((_) async {
                                     if (userInfoProvider.getNickName() == "") {
