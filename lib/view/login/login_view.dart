@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'dart:io';
+import 'package:bandi_official/utils/apple_login_utils.dart' as custom_utils;
 
 import 'package:bandi_official/controller/navigation_toggle_provider.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
@@ -8,11 +9,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import '../../components/button/primary_button.dart';
 import '../../components/button/secondary_button.dart';
 import '../../controller/securestorage_controller.dart';
 import '../../controller/user_info_controller.dart';
+import '../../utils/apple_login_utils.dart';
 import 'agree_condition.dart';
 import 'nickname.dart';
 
@@ -33,7 +36,6 @@ class _LoginViewState extends State<LoginView> {
 
     final navigationToggleProvider =
         Provider.of<NavigationToggleProvider>(context, listen: false);
-
     if (navigationToggleProvider.getIndex() == -1) {
       _initializeSecureStorage(); // SecureStorage 초기화 및 정보 로드
     }
@@ -60,8 +62,8 @@ class _LoginViewState extends State<LoginView> {
         Provider.of<NavigationToggleProvider>(context, listen: false);
 
     try {
-      log("loading start");
-      navigationToggleProvider.selectIndex(100); // 로딩 화면 표시
+      print("loading start");
+      // navigationToggleProvider.selectIndex(100); // 로딩 화면 표시
 
       // Google 로그인 처리
       if (storageProvider.loginMethod == 'google' &&
@@ -78,33 +80,26 @@ class _LoginViewState extends State<LoginView> {
       else if (storageProvider.loginMethod == 'apple' &&
           storageProvider.appleIdentityToken != null) {
         await AuthService().signInWithAppleTokens(
-          storageProvider.appleIdentityToken!,
-          storageProvider.appleAuthorizationCode!,
           context,
         );
+        log("자동 Apple 로그인 성공");
       }
 
       // 로그인 성공 시 홈 화면으로 이동
       if (mounted) {
-        log("mounted");
+        print("mounted");
         navigationToggleProvider.selectIndex(0);
       }
-    } on PlatformException catch (e) {
-      log("PlatformException 발생: ${e.message}");
-      if (e.code == 'ERROR_INVALID_CREDENTIAL') {
-        // 잘못된 자격 증명: 토큰 만료 또는 잘못된 토큰
-        log("자동 로그인 실패: 인증 자격 증명이 만료되었거나 잘못되었습니다.");
-        await storageProvider.clearLoginInfo(); // 기존 로그인 정보 삭제
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'missing-or-invalid-nonce') {
+        log("Firebase 인증 오류: 잘못된 또는 중복된 Nonce - ${e.message}");
+      } else {
+        log("FirebaseAuthException 발생: ${e.code} - ${e.message}");
       }
-
-      if (mounted) {
-        navigationToggleProvider.selectIndex(-1); // 로그인 화면으로 이동
-      }
+      rethrow;
     } catch (e) {
-      log("자동 로그인 중 알 수 없는 오류 발생: $e");
-      if (mounted) {
-        navigationToggleProvider.selectIndex(-1); // 로그인 화면으로 이동
-      }
+      log("자동 로그인 실패: $e");
+      navigationToggleProvider.selectIndex(-1); // 로그인 화면으로 이동
     }
   }
 

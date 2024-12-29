@@ -10,6 +10,8 @@ class SecureStorageProvider with ChangeNotifier {
   String? _googleAccessToken;
   String? _appleIdentityToken;
   String? _appleAuthorizationCode;
+  String? _appleNonce;
+
 
   String? _userID;
   // String? email;
@@ -20,6 +22,7 @@ class SecureStorageProvider with ChangeNotifier {
   String? get googleAccessToken => _googleAccessToken;
   String? get appleIdentityToken => _appleIdentityToken;
   String? get appleAuthorizationCode => _appleAuthorizationCode;
+  String? get appleNonce => _appleNonce;
 
   void setUID(String userID) {
     _userID = userID;
@@ -45,15 +48,19 @@ class SecureStorageProvider with ChangeNotifier {
 
   // 로그인 후 Apple 토큰 및 로그인 방식 저장
   Future<void> saveAppleLoginInfo(
-      String identityToken, String authorizationCode) async {
+      String identityToken, String authorizationCode, String nonce) async {
     try {
       await _storage.write(key: 'login_method', value: 'apple');
       await _storage.write(key: 'apple_identity_token', value: identityToken);
       await _storage.write(
           key: 'apple_authorization_code', value: authorizationCode);
+      await _storage.write(key: 'apple_nonce', value: nonce);
+
       _loginMethod = 'apple';
       _appleIdentityToken = identityToken;
       _appleAuthorizationCode = authorizationCode;
+      _appleNonce = nonce;
+
 
       // 로그 출력
       dev.log("Apple login saved with identity token and authorization code");
@@ -66,14 +73,18 @@ class SecureStorageProvider with ChangeNotifier {
 
   // 앱 시작 시 로그인 정보 로드
   Future<void> loadLoginInfo() async {
+
     try {
       _loginMethod = await _storage.read(key: 'login_method');
+      print(_loginMethod);
       if (_loginMethod == 'google') {
         _googleAccessToken = await _storage.read(key: 'google_access_token');
       } else if (_loginMethod == 'apple') {
         _appleIdentityToken = await _storage.read(key: 'apple_identity_token');
         _appleAuthorizationCode =
             await _storage.read(key: 'apple_authorization_code');
+        _appleNonce = await _storage.read(key: 'apple_nonce');
+
       }
 
       // 로그 출력
@@ -93,6 +104,8 @@ class SecureStorageProvider with ChangeNotifier {
       _googleAccessToken = null;
       _appleIdentityToken = null;
       _appleAuthorizationCode = null;
+      _appleNonce = null;
+
 
       // 로그 출력
       dev.log("All login information cleared from SecureStorage");

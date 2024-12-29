@@ -14,6 +14,7 @@ import 'package:http/http.dart' as http;
 import '../../controller/navigation_toggle_provider.dart';
 import '../../controller/securestorage_controller.dart';
 import '../../controller/user_info_controller.dart';
+import 'package:bandi_official/utils/apple_login_utils.dart' as custom_utils;
 
 class AuthService {
   Future<User?> signInWithGoogle(BuildContext context) async {
@@ -113,18 +114,28 @@ class AuthService {
   }
 
   Future<User?> signInWithApple(BuildContext context) async {
+    // Generate nonce for security
+    final rawNonce = custom_utils.generateNonce();
+    final hashedNonce = custom_utils.hashNonce(rawNonce);
+
+    print("Generated rawNonce: $rawNonce");
+    print("Generated hashedNonce: $hashedNonce");
+
+
     final AuthorizationCredentialAppleID appleCredential =
         await SignInWithApple.getAppleIDCredential(
       scopes: [
         AppleIDAuthorizationScopes.email,
         AppleIDAuthorizationScopes.fullName,
       ],
+      nonce: hashedNonce,
     );
 
     final OAuthProvider oAuthProvider = OAuthProvider("apple.com");
     final AuthCredential credential = oAuthProvider.credential(
       idToken: appleCredential.identityToken,
       accessToken: appleCredential.authorizationCode,
+      rawNonce: rawNonce, // Pass raw nonce for verification
     );
 
     // Firebase 애플 로그인
@@ -134,7 +145,7 @@ class AuthService {
     final storageProvider =
         Provider.of<SecureStorageProvider>(context, listen: false);
     await storageProvider.saveAppleLoginInfo(
-        appleCredential.identityToken!, appleCredential.authorizationCode);
+        appleCredential.identityToken!, appleCredential.authorizationCode, rawNonce);
 
     final userCollection = FirebaseFirestore.instance.collection("users");
 
@@ -205,22 +216,14 @@ class AuthService {
   Future<User?> signInWithGoogleTokens(
       String accessToken, BuildContext context) async {
     try {
-      if (accessToken.isEmpty) {
-        throw Exception("Access Token이 비어있습니다.");
-      }
-
-      log("Access Token: $accessToken");
-
       final storageProvider =
           Provider.of<SecureStorageProvider>(context, listen: false);
-
-      // 함수 시작 시점에서 Provider 참조
       final userInfoProvider =
           Provider.of<UserInfoValueModel>(context, listen: false);
 
       // 1. Access Token 검증 (Optional)
       final isValidToken = await validateGoogleAccessToken(accessToken);
-      if (!isValidToken) {
+      if (accessToken.isEmpty || !isValidToken) {
         log("Access Token이 유효하지 않습니다. 새로 발급을 시도합니다.");
 
         // 새로운 Access Token 발급 시도
@@ -238,20 +241,13 @@ class AuthService {
         }
       }
 
-      final credential =
-          GoogleAuthProvider.credential(accessToken: accessToken);
-
-      // 2. Firebase 로그인
-      UserCredential userCredential =
-          await FirebaseAuth.instance.signInWithCredential(credential);
-
       final userCollection = FirebaseFirestore.instance.collection("users");
-      String? userId = userCredential.user?.uid;
-      String? userEmail = userCredential.user?.email;
-
-      if (userId == null || userEmail == null) {
+      User? userCredential = FirebaseAuth.instance.currentUser;
+      if (userCredential == null) {
         throw Exception("사용자 정보가 유효하지 않습니다.");
       }
+      String? userId = userCredential.uid;
+      String? userEmail = userCredential.email;
 
       final docRef = userCollection.doc(userId);
       DocumentSnapshot snapshot = await docRef.get();
@@ -290,12 +286,12 @@ class AuthService {
         await docRef.collection('notifications').doc('0000_docSummary').set({});
 
         userInfoProvider.updateUserID(userId);
-        userInfoProvider.updateUserEmail(userEmail);
+        userInfoProvider.updateUserEmail(userEmail!);
         userInfoProvider.updateNickname("");
       }
 
-      log("Google 로그인 성공: ${userCredential.user?.email}");
-      return userCredential.user;
+      log("Google 로그인 성공: ${userCredential.email}");
+      return userCredential;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'invalid-credential') {
         log("Google 토큰이 잘못되었거나 만료되었습니다.");
@@ -328,50 +324,16 @@ class AuthService {
     }
   }
 
-  Future<User?> signInWithAppleTokens(String identityToken,
-      String authorizationCode, BuildContext context) async {
-    try {
-      // 기존 토큰 검증
-      if (identityToken.isEmpty || authorizationCode.isEmpty) {
-        log("Apple Identity Token 또는 Authorization Code가 비어있습니다.");
-
-        // 새로운 Apple 로그인 시도
-        final AuthorizationCredentialAppleID appleSignIn =
-            await SignInWithApple.getAppleIDCredential(
-          scopes: [
-            AppleIDAuthorizationScopes.email,
-            AppleIDAuthorizationScopes.fullName,
-          ],
-        );
-
-        identityToken = appleSignIn.identityToken!;
-        authorizationCode = appleSignIn.authorizationCode!;
-        log("Apple 로그인 성공: 새로운 토큰 발급 완료");
-      }
-
-      final storageProvider =
-          Provider.of<SecureStorageProvider>(context, listen: false);
-      final userInfoProvider =
-          Provider.of<UserInfoValueModel>(context, listen: false);
-
-      // Firebase 인증 정보 생성
-      final OAuthProvider oAuthProvider = OAuthProvider("apple.com");
-      final AuthCredential credential = oAuthProvider.credential(
-        idToken: identityToken,
-        accessToken: authorizationCode,
-      );
-
-      // Firebase 로그인
-      UserCredential userCredential =
-          await FirebaseAuth.instance.signInWithCredential(credential);
-
-      final userCollection = FirebaseFirestore.instance.collection("users");
-      String? userId = userCredential.user?.uid;
-      String? userEmail = userCredential.user?.email;
-
-      if (userId == null || userEmail == null) {
+  Future<User?> signInWithAppleTokens(BuildContext context) async {
+    final userInfoProvider =
+    Provider.of<UserInfoValueModel>(context, listen: false);
+      User? userCredential = FirebaseAuth.instance.currentUser;
+      if (userCredential == null) {
         throw Exception("사용자 정보가 유효하지 않습니다.");
       }
+      final userCollection = FirebaseFirestore.instance.collection("users");
+      String? userId = userCredential.uid;
+      String? userEmail = userCredential.email;
 
       final docRef = userCollection.doc(userId);
       DocumentSnapshot snapshot = await docRef.get();
@@ -384,7 +346,7 @@ class AuthService {
         String nickname = userData['nickname'];
 
         userInfoProvider.updateUserID(userId);
-        userInfoProvider.updateUserEmail(userEmail);
+        userInfoProvider.updateUserEmail(userEmail!);
         userInfoProvider.updateNickname(nickname);
 
         if (fcmToken != null && userData["fcmToken"] != fcmToken) {
@@ -412,29 +374,9 @@ class AuthService {
         await docRef.collection('notifications').doc('0000_docSummary').set({});
 
         userInfoProvider.updateUserID(userId);
-        userInfoProvider.updateUserEmail(userEmail);
+        userInfoProvider.updateUserEmail(userEmail!);
         userInfoProvider.updateNickname("");
       }
-
-      // 새 토큰 저장
-      await storageProvider.saveAppleLoginInfo(
-        identityToken,
-        authorizationCode,
-      );
-
-      log("Apple 로그인 성공: ${userCredential.user?.email}");
-      return userCredential.user;
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'invalid-credential') {
-        log("Apple 토큰이 잘못되었거나 만료되었습니다.");
-        throw Exception("Apple Access Token expired or invalid. 다시 로그인 해주세요.");
-      } else {
-        log("Apple 인증 실패: ${e.message}");
-        rethrow;
-      }
-    } catch (e) {
-      log("알 수 없는 오류 발생: $e");
-      rethrow;
-    }
+      return userCredential;
   }
 }
