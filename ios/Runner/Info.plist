@@ -26,12 +26,19 @@
 	<array>
 		<dict>
 			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
+			<string>None</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>com.googleusercontent.apps.412733276283-jem29nvr12sa9ln1luk18eqtsngfkerr</string>
 			</array>
 		</dict>
+	</array>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>com.googleusercontent.apps.412733276283-jem29nvr12sa9ln1luk18eqtsngfkerr</string>
+		<string>google</string>
+		<string>googlechrome</string>
+		<string>com.google.safari-view-service</string>
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>

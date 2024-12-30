@@ -69,27 +69,35 @@ class _LoginViewState extends State<LoginView> {
       if (storageProvider.loginMethod == 'google' &&
           storageProvider.googleAccessToken != null) {
         log(" Google 로그인 처리");
-        await AuthService().signInWithGoogleTokens(
+        navigationToggleProvider.selectIndex(100);
+        await AuthService()
+            .signInWithGoogleTokens(
           storageProvider.googleAccessToken!,
           context,
-        );
-
-        navigationToggleProvider.selectIndex(0);
+        )
+            .then((value) {
+          navigationToggleProvider.selectIndex(0);
+        });
       }
       // Apple 로그인 처리
       else if (storageProvider.loginMethod == 'apple' &&
           storageProvider.appleIdentityToken != null) {
-        await AuthService().signInWithAppleTokens(
+        navigationToggleProvider.selectIndex(100);
+        await AuthService()
+            .signInWithAppleTokens(
           context,
-        );
+        )
+            .then((value) {
+          navigationToggleProvider.selectIndex(0);
+        });
         log("자동 Apple 로그인 성공");
       }
 
       // 로그인 성공 시 홈 화면으로 이동
-      if (mounted) {
-        print("mounted");
-        navigationToggleProvider.selectIndex(0);
-      }
+      // if (mounted) {
+      //   print("mounted");
+      //   navigationToggleProvider.selectIndex(0);
+      // }
     } on FirebaseAuthException catch (e) {
       if (e.code == 'missing-or-invalid-nonce') {
         log("Firebase 인증 오류: 잘못된 또는 중복된 Nonce - ${e.message}");
