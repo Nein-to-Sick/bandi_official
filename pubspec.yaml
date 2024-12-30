@@ -1,7 +1,7 @@
 name: bandi_official
 description: "A new Flutter project."
 publish_to: 'none'
-version: 0.1.0
+version: 1.0.9
 
 environment:
   sdk: '>=3.4.3 <4.0.0'

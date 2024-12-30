@@ -106,7 +106,7 @@ class MainApp extends StatelessWidget {
           ],
           child: MaterialApp(
             navigatorKey: navigatorKey,
-            debugShowCheckedModeBanner: true,
+            debugShowCheckedModeBanner: false,
             darkTheme: CustomThemeData.dark,
             theme: CustomThemeData.light,
             themeMode: CustomThemeMode.themeMode.value,
