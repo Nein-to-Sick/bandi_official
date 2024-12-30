@@ -1,15 +1,21 @@
+import 'dart:developer';
 import 'dart:io';
+import 'package:bandi_official/utils/apple_login_utils.dart' as custom_utils;
 
 import 'package:bandi_official/controller/navigation_toggle_provider.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/login/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import '../../components/button/primary_button.dart';
 import '../../components/button/secondary_button.dart';
+import '../../controller/securestorage_controller.dart';
 import '../../controller/user_info_controller.dart';
+import '../../utils/apple_login_utils.dart';
 import 'agree_condition.dart';
 import 'nickname.dart';
 
@@ -24,32 +30,84 @@ class _LoginViewState extends State<LoginView> {
   User? user = FirebaseAuth.instance.currentUser;
   int _onboarding = 1;
 
-  // @override
-  // void initState() {
-  //   super.initState();
-
-  //   if (user != null) {
-  //     final navigationToggleProvider =
-  //         Provider.of<NavigationToggleProvider>(context);
-  //     navigationToggleProvider.selectIndex(0);
-  //   }
-  // }
-
   @override
   void initState() {
     super.initState();
-    final userInfoProvider =
-        Provider.of<UserInfoValueModel>(context, listen: false);
 
     final navigationToggleProvider =
         Provider.of<NavigationToggleProvider>(context, listen: false);
+    if (navigationToggleProvider.getIndex() == -1) {
+      _initializeSecureStorage(); // SecureStorage 초기화 및 정보 로드
+    }
+  }
 
-    if (user != null && userInfoProvider.getNickName() != "") {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        navigationToggleProvider.selectIndex(0);
-      });
-    } else if (navigationToggleProvider.getIndex() == 0) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {});
+  // SecureStorage 초기화 및 로그인 정보 로드
+  Future<void> _initializeSecureStorage() async {
+    final storageProvider =
+        Provider.of<SecureStorageProvider>(context, listen: false);
+    await storageProvider.loadLoginInfo(); // SecureStorage에서 정보 로드
+
+    if (storageProvider.isLoggedIn) {
+      // 자동 로그인 시도
+      log("storageProvider.isLoggedIn");
+      await _checkAutoLogin();
+    }
+  }
+
+  // 자동 로그인 처리
+  Future<void> _checkAutoLogin() async {
+    final storageProvider =
+        Provider.of<SecureStorageProvider>(context, listen: false);
+    final navigationToggleProvider =
+        Provider.of<NavigationToggleProvider>(context, listen: false);
+
+    try {
+      print("loading start");
+      // navigationToggleProvider.selectIndex(100); // 로딩 화면 표시
+
+      // Google 로그인 처리
+      if (storageProvider.loginMethod == 'google' &&
+          storageProvider.googleAccessToken != null) {
+        log(" Google 로그인 처리");
+        navigationToggleProvider.selectIndex(100);
+        await AuthService()
+            .signInWithGoogleTokens(
+          storageProvider.googleAccessToken!,
+          context,
+        )
+            .then((value) {
+          navigationToggleProvider.selectIndex(0);
+        });
+      }
+      // Apple 로그인 처리
+      else if (storageProvider.loginMethod == 'apple' &&
+          storageProvider.appleIdentityToken != null) {
+        navigationToggleProvider.selectIndex(100);
+        await AuthService()
+            .signInWithAppleTokens(
+          context,
+        )
+            .then((value) {
+          navigationToggleProvider.selectIndex(0);
+        });
+        log("자동 Apple 로그인 성공");
+      }
+
+      // 로그인 성공 시 홈 화면으로 이동
+      // if (mounted) {
+      //   print("mounted");
+      //   navigationToggleProvider.selectIndex(0);
+      // }
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'missing-or-invalid-nonce') {
+        log("Firebase 인증 오류: 잘못된 또는 중복된 Nonce - ${e.message}");
+      } else {
+        log("FirebaseAuthException 발생: ${e.code} - ${e.message}");
+      }
+      rethrow;
+    } catch (e) {
+      log("자동 로그인 실패: $e");
+      navigationToggleProvider.selectIndex(-1); // 로그인 화면으로 이동
     }
   }
 
@@ -119,10 +177,14 @@ class _LoginViewState extends State<LoginView> {
                           onPressed: () {
                             AuthService()
                                 .signInWithGoogle(context)
-                                .then((value) {
+                                .then((value) async {
                               user = value;
 
                               if (user != null) {
+                                final storageProvider =
+                                    Provider.of<SecureStorageProvider>(context,
+                                        listen: false);
+
                                 WidgetsBinding.instance
                                     .addPostFrameCallback((_) async {
                                   if (userInfoProvider.getNickName() == "") {
@@ -191,10 +253,15 @@ class _LoginViewState extends State<LoginView> {
                             onPressed: () {
                               AuthService()
                                   .signInWithApple(context)
-                                  .then((value) {
+                                  .then((value) async {
                                 user = value;
 
                                 if (user != null) {
+                                  final storageProvider =
+                                      Provider.of<SecureStorageProvider>(
+                                          context,
+                                          listen: false);
+
                                   WidgetsBinding.instance
                                       .addPostFrameCallback((_) async {
                                     if (userInfoProvider.getNickName() == "") {
