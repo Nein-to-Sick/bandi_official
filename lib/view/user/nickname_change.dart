@@ -30,7 +30,7 @@ class NicknameChange extends StatelessWidget {
         });
       }
     }
-
+    print(FirebaseAuth.instance.currentUser!.uid);
     return Scaffold(
       backgroundColor: BandiColor.neutralColor80(context).withOpacity(0.8),
       appBar: AppBar(

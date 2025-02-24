@@ -63,21 +63,4 @@ class AccountController with ChangeNotifier {
     navigationProvider.selectIndex(-1);
   }
 
-  // 닉네임 변경
-  Future<void> updateNickname(BuildContext context, String newNickname) async {
-    final user = _auth.currentUser;
-    if (user != null) {
-      // Firestore에 닉네임 업데이트
-      await _firestore.collection('users').doc(user.uid).update({
-        'nickname': newNickname,
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-
-      // UserInfoValueModel 업데이트
-      Provider.of<UserInfoValueModel>(context, listen: false)
-          .updateNickname(newNickname);
-
-      notifyListeners(); // 변경사항을 리스너에게 알림
-    }
-  }
 }
