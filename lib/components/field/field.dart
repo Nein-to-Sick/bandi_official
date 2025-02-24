@@ -102,7 +102,8 @@ class _CustomFieldState extends State<CustomField> {
         ),
         counterText: '', // 글자 수 표시를 제거
       ),
-      cursorColor: BandiColor.neutralColor100(context), // 포커스 시 깜박이는 커서 색상
+      cursorHeight: 20,
+      cursorColor: BandiColor.foundationColor100(context), // 포커스 시 깜박이는 커서 색상
       style: BandiFont.labelMedium(context)?.copyWith(
         color: BandiColor.foundationColor100(context), // 텍스트 필드 안의 글자 색상
       ),
