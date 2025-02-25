@@ -139,7 +139,8 @@ class SettingsHome extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       onLongPress: onTap,
-      child: SizedBox(
+      child: Container(
+        color: Colors.transparent,
         height: 42.0,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
