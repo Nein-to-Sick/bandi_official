@@ -35,6 +35,7 @@ class SettingsHome extends StatelessWidget {
         centerTitle: true,
       ),
       body: ListView(
+        physics: const NeverScrollableScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 23.0),
         children: [
           _buildSettingOption(
