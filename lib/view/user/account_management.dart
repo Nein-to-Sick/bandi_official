@@ -66,6 +66,7 @@ class _AccountManagementState extends State<AccountManagement> {
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 23.0),
         child: ListView(
+          physics: const NeverScrollableScrollPhysics(),
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).size.height * 0.1,
           ),
