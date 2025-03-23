@@ -69,11 +69,8 @@ class _DiaryAIChatPageState extends State<DiaryAIChatPage> {
     DiaryAiChatController diaryAiChatController =
         context.watch<DiaryAiChatController>();
 
-    return PopScope(
-      canPop: false,
-      onPopInvoked: (value) {
-        diaryAiChatController.toggleChatOpen(false);
-      },
+    return WillPopScope(
+      onWillPop: () => Future(() => false),
       child: Scaffold(
         resizeToAvoidBottomInset: true,
         backgroundColor: BandiColor.transparent(context),

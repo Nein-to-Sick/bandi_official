@@ -1,5 +1,4 @@
 import 'dart:developer';
-import 'dart:io';
 
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:bandi_official/components/loading/loading_page.dart';
@@ -100,23 +99,30 @@ class _NavigationState extends State<Navigation> with WidgetsBindingObserver {
 
     return WillPopScope(
       onWillPop: () async {
-        bool? result = await showDialog<bool>(
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext context) {
-            return CustomResetDialogue(
-              text: '어플리케이션을 종료하시겠나요?',
-              onYesFunction: () {
-                exit(0);
-              },
-              onNoFunction: () {
-                Navigator.pop(context);
-              },
-            );
-          },
-        );
-
-        return result ?? false;
+        if (diaryAiChatController.isChatOpen) {
+          diaryAiChatController.toggleChatOpen(false);
+        } else if (alarmController.isAlarmOpen) {
+          alarmController.toggleAlarmOpen(false);
+          mailController.initializeNewNotificaitonCount();
+        } else {
+          bool? result = await showDialog<bool>(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return CustomResetDialogue(
+                text: '어플리케이션을 종료하시겠나요?',
+                onYesFunction: () {
+                  SystemNavigator.pop();
+                },
+                onNoFunction: () {
+                  Navigator.pop(context);
+                },
+              );
+            },
+          );
+          return result ?? false;
+        }
+        return false;
       },
       child: FutureBuilder(
           future: internetConnectionController.checkNetworkConnectivity(),
