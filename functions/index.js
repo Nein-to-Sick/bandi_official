@@ -330,6 +330,64 @@ async function addNotification(userId, notificationTitle, notificationType, noti
     }
 }
 
+// 매일 정해진 시간에 알림을 보내는 Cloud Function
+exports.sendDailyReminder = functions
+    .region("asia-northeast3") // Firebase 프로젝트가 위치한 지역
+    .pubsub.schedule("0 21 * * *") // 매일 오후 9시 실행 (한국 시간 기준)
+    .timeZone("Asia/Seoul")
+    .onRun(async (context) => {
+        console.log("[Proceed] Daily Reminder Task Started");
+
+        const usersRef = db.collection("users");
+        const usersSnapshot = await usersRef.get();
+
+        const tasks = usersSnapshot.docs.map(async (userDoc) => {
+            const userData = userDoc.data();
+            const fcmToken = userData.fcmToken;
+
+            if (!fcmToken) {
+                console.log(`[Skipping] User ${userDoc.id} has no FCM token.`);
+                return;
+            }
+
+            const notificationTitle = "하루를 돌아볼 시간이에요!";
+            const notificationBody = "오늘의 기록을 남겨보세요 ✍️";
+
+            // Firebase Cloud Messaging (FCM) 알림 메시지 생성
+            const message = {
+                notification: {
+                    title: notificationTitle,
+                    body: notificationBody,
+                },
+                data: {
+                    screen: "diary_entry", // 알림 클릭 시 이동할 화면
+                },
+                token: fcmToken,
+            };
+
+            try {
+                await admin.messaging().send(message);
+                console.log(`[Success] Daily Reminder sent to user ${userDoc.id}`);
+            } catch (error) {
+                console.error(`[Error] Failed to send reminder to user ${userDoc.id}: ${error.message}`);
+            }
+
+            const notificationType = "dailyReminder";
+
+            // Firestore에 알림 로그 저장
+            await addNotification(userDoc.id, notificationTitle, notificationType, null);
+        });
+
+        try {
+            await Promise.all(tasks);
+            console.log("[Exit] All reminder tasks completed successfully.");
+        } catch (error) {
+            console.error("[Error] An error occurred while sending reminders:", error);
+        }
+
+        return null;
+    });
+
 // 유저 정보의 모든 관련 콜렉션을 삭제하는 함수
 // TODO: 추후 계정 탈퇴 관련 함수 수정 요청하기
 exports.deleteUserDataAndDoc = functions.https.onCall(async (data, context) => {

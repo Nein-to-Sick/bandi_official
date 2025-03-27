@@ -124,6 +124,9 @@ class _AlarmViewState extends State<AlarmView> {
                                   navigationToggleProvider.selectIndex(0);
                                   writeProvider.toggleWrite();
                                 } else if (notifications[index].type ==
+                                    AlarmType.dailyReminder) {
+                                  navigationToggleProvider.selectIndex(0);
+                                } else if (notifications[index].type ==
                                     AlarmType.letter) {
                                   navigationToggleProvider.selectIndex(2);
                                   mailController.updateSavedCurrentIndex(1);
