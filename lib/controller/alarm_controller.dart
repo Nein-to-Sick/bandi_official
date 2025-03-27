@@ -266,6 +266,15 @@ class AlarmController with ChangeNotifier {
         .snapshots();
   }
 
+  Future<void> deleteNotification(String notificationId) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('notifications')
+        .doc(notificationId)
+        .delete();
+  }
+
   String formatTimeAgo(Timestamp timestamp) {
     final now = DateTime.now();
     final difference = now.difference(timestamp.toDate());

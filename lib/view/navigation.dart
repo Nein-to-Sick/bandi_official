@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:bandi_official/components/loading/loading_page.dart';
@@ -7,7 +8,6 @@ import 'package:bandi_official/controller/alarm_controller.dart';
 import 'package:bandi_official/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/controller/internet_connection_controller.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
-import 'package:bandi_official/controller/permission_controller.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/home/home_view.dart';
 import 'package:bandi_official/view/list/list_view.dart';
@@ -15,7 +15,6 @@ import 'package:bandi_official/view/login/login_view.dart';
 import 'package:bandi_official/view/mail/mail_view.dart';
 import 'package:bandi_official/view/otherDiary.dart';
 import 'package:bandi_official/view/user/user_view.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
