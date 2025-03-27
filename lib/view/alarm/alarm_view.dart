@@ -119,7 +119,7 @@ class _AlarmViewState extends State<AlarmView> {
                               onDismissed: (direction) async {
                                 // Firestore에서 삭제
                                 alarmController.deleteNotification(
-                                    notifications[index].dataId);
+                                    notifications[index].notificationId);
                               },
 
                               child: Padding(
