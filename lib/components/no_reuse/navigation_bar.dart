@@ -1,3 +1,4 @@
+import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -68,7 +69,7 @@ Widget navigationBar(BuildContext context) {
             0,
             PhosphorIcons.house(PhosphorIconsStyle.fill),
             PhosphorIcons.house(PhosphorIconsStyle.regular),
-            "홈",
+            'navi_home'.tr(context),
           ),
           buildNavigationItem(
             context,
@@ -76,7 +77,7 @@ Widget navigationBar(BuildContext context) {
             1,
             PhosphorIcons.book(PhosphorIconsStyle.fill),
             PhosphorIcons.book(PhosphorIconsStyle.regular),
-            "일기",
+            'navi_journal'.tr(context),
           ),
           buildNavigationItem(
             context,
@@ -84,7 +85,7 @@ Widget navigationBar(BuildContext context) {
             2,
             PhosphorIcons.tray(PhosphorIconsStyle.fill),
             PhosphorIcons.tray(PhosphorIconsStyle.regular),
-            "보관함",
+            'navi_inbox'.tr(context),
           ),
           buildNavigationItem(
             context,
@@ -92,7 +93,7 @@ Widget navigationBar(BuildContext context) {
             3,
             PhosphorIcons.gearSix(PhosphorIconsStyle.fill),
             PhosphorIcons.gearSix(PhosphorIconsStyle.regular),
-            "설정",
+            'navi_setting'.tr(context),
           ),
           const SizedBox(width: 5),
         ],

@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'dart:io';
+import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/utils/apple_login_utils.dart' as custom_utils;
 
 import 'package:bandi_official/controller/navigation_toggle_provider.dart';
@@ -107,6 +108,7 @@ class _LoginViewState extends State<LoginView> {
       rethrow;
     } catch (e) {
       log("자동 로그인 실패: $e");
+      print("자동 로그인 실패: $e");
       navigationToggleProvider.selectIndex(-1); // 로그인 화면으로 이동
     }
   }
@@ -133,7 +135,7 @@ class _LoginViewState extends State<LoginView> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        "반디",
+                        'login_title'.tr(context),
                         style: TextStyle(
                           fontFamily: "IBMPlexSansKR",
                           fontSize: 50,
@@ -147,7 +149,7 @@ class _LoginViewState extends State<LoginView> {
                     height: 12,
                   ),
                   Text(
-                    "마음을 밝히는 작은 불빛",
+                    'login_subtitle'.tr(context),
                     style: BandiFont.bodyMedium(context)
                         ?.copyWith(color: BandiColor.neutralColor100(context)),
                   ),
@@ -219,7 +221,7 @@ class _LoginViewState extends State<LoginView> {
                               ),
                               const SizedBox(width: 8), // 아이콘과 텍스트 사이에 간격을 추가
                               Text(
-                                "구글로 시작하기",
+                                'login_google'.tr(context),
                                 style: BandiFont.labelMedium(context)?.copyWith(
                                     color:
                                         BandiColor.foundationColor100(context)),
@@ -296,7 +298,7 @@ class _LoginViewState extends State<LoginView> {
                                 ),
                                 const SizedBox(width: 8), // 아이콘과 텍스트 사이에 간격을 추가
                                 Text(
-                                  "애플로 시작하기",
+                                  'login_apple'.tr(context),
                                   style: BandiFont.labelMedium(context)
                                       ?.copyWith(
                                           color: BandiColor.neutralColor100(
