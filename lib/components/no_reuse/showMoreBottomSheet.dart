@@ -1,3 +1,4 @@
+import 'package:bandi_official/string_extention.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../controller/emotion_provider.dart';
@@ -6,9 +7,11 @@ import '../../theme/custom_theme_data.dart';
 import '../button/primary_button.dart';
 
 class EmotionBottomSheet extends StatefulWidget {
-  const EmotionBottomSheet({super.key, required this.emotion, required this.writeProvider});
+  const EmotionBottomSheet({super.key, required this.emotion, required this.writeProvider, required this.provider});
   final List<dynamic> emotion;
   final HomeToWrite writeProvider;
+  final EmotionProvider provider;
+
 
   @override
   _EmotionBottomSheetState createState() => _EmotionBottomSheetState();
@@ -27,10 +30,33 @@ class _EmotionBottomSheetState extends State<EmotionBottomSheet> {
       }
     }
   }
+  bool _isInitialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (!_isInitialized) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.provider.initialize(context);
+        for (String emotion in widget.emotion) {
+          if (!widget.provider.selectedEmotions.contains(emotion)) {
+            widget.provider.selectedEmotions.add(emotion);
+          }
+        }
+      });
+      _isInitialized = true;
+    }
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
     final emotionProvider = Provider.of<EmotionProvider>(context);
+    if (!emotionProvider.isInitialized) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
     return ChangeNotifierProvider.value(
       value: emotionProvider,
@@ -165,7 +191,7 @@ class _EmotionBottomSheetState extends State<EmotionBottomSheet> {
                                             borderRadius: BandiEffects.radius(),
                                           ),
                                           child: Text(
-                                            emotion,
+                                              "emotion_keyword_$emotion".tr(context),
                                             style: BandiFont.bodySmall(context)
                                                 ?.copyWith(
                                               color: provider.selectedEmotions
@@ -197,7 +223,7 @@ class _EmotionBottomSheetState extends State<EmotionBottomSheet> {
                       children: [
                         Expanded(
                           child: CustomPrimaryButton(
-                            title: '확인',
+                            title: 'confirm'.tr(context),
                             onPrimaryButtonPressed: () {
                               widget.writeProvider.changeDiaryValue(provider.selectedEmotions);
 
@@ -220,15 +246,25 @@ class _EmotionBottomSheetState extends State<EmotionBottomSheet> {
 }
 
 void showMoreBottomSheet(BuildContext context, HomeToWrite writeProvider) {
+  final emotionProvider = EmotionProvider();
+
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     builder: (BuildContext context) {
-      return MultiProvider(providers: [
-        ChangeNotifierProvider(
-          create: (context) => EmotionProvider(),
+      return ChangeNotifierProvider.value(
+        value: emotionProvider,
+        child: Builder(
+          builder: (context) {
+            return EmotionBottomSheet(
+              writeProvider: writeProvider,
+              emotion: writeProvider.diaryModel.emotion,
+              provider: emotionProvider,
+            );
+          },
         ),
-      ], child: EmotionBottomSheet(writeProvider: writeProvider, emotion: writeProvider.diaryModel.emotion,));
+      );
     },
   );
 }
+

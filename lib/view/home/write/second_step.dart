@@ -1,3 +1,4 @@
+import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -34,7 +35,7 @@ class SecondStep extends StatelessWidget {
                         scrollDirection: Axis.horizontal,
                         child: Text(
                           writeProvider.diaryModel.cheerText == ''
-                              ? "제목 생성 중...."
+                              ? 'write_title_generating'.tr(context)
                               : writeProvider.diaryModel.title,
                           style: BandiFont.displaySmall(context)?.copyWith(
                               color: BandiColor.neutralColor100(context)),
@@ -44,7 +45,7 @@ class SecondStep extends StatelessWidget {
                         height: 4,
                       ),
                       Text(
-                        DateFormat('yyyy년 M월 d일').format(DateTime.now()),
+                        DateFormat('journal_calendar_header_2'.tr(context)).format(DateTime.now()),
                         style: BandiFont.headlineSmall(context)?.copyWith(
                             color: BandiColor.neutralColor100(context)),
                       )
@@ -77,18 +78,18 @@ class SecondStep extends StatelessWidget {
             const SizedBox(
               height: 15,
             ),
-            containerBox(context, "반디가 분석한 감정"),
+            containerBox(context, 'write_emotion_title'.tr(context)),
             const SizedBox(
               height: 8,
             ),
             writeProvider.diaryModel.cheerText == ''
                 ? Text(
-              "감정 파악 중...",
+              'write_emotion_loading'.tr(context),
               style: BandiFont.titleSmall(context)
                   ?.copyWith(color: BandiColor.neutralColor100(context)),
             )
                 : writeProvider.diaryModel.emotion.isEmpty ? Text(
-              "없음",
+              'write_emotion_nothing'.tr(context),
               style: BandiFont.titleSmall(context)?.copyWith(
                   color: BandiColor.neutralColor100(context)),
             ) : SingleChildScrollView(
@@ -98,10 +99,16 @@ class SecondStep extends StatelessWidget {
                   for (String emotion in writeProvider.diaryModel.emotion)
                     Padding(
                       padding: const EdgeInsets.only(right: 8.0),
-                      child: Text(
-                        "#$emotion",
-                        style: BandiFont.titleSmall(context)?.copyWith(
-                            color: BandiColor.neutralColor100(context)),
+                      child: Row(
+                        children: [
+                          Text("#", style: BandiFont.titleSmall(context)?.copyWith(
+                              color: BandiColor.neutralColor100(context))),
+                          Text(
+                            "emotion_keyword_$emotion".tr(context),
+                            style: BandiFont.titleSmall(context)?.copyWith(
+                                color: BandiColor.neutralColor100(context)),
+                          ),
+                        ],
                       ),
                     ),
                 ],
@@ -110,13 +117,13 @@ class SecondStep extends StatelessWidget {
             const SizedBox(
               height: 16,
             ),
-            containerBox(context, "반디가 건네는 한마디"),
+            containerBox(context, 'write_cheer_title'.tr(context)),
             const SizedBox(
               height: 8,
             ),
             Text(
               writeProvider.diaryModel.cheerText == ''
-                  ? "할 말 생각중..."
+                  ? 'write_cheer_loading'.tr(context)
                   : writeProvider.diaryModel.cheerText,
               style: BandiFont.titleSmall(context)
                   ?.copyWith(color: BandiColor.neutralColor100(context)),
@@ -126,7 +133,7 @@ class SecondStep extends StatelessWidget {
             ),
             Center(
               child: CustomPrimaryButton(
-                title: '확인',
+                title: 'confirm'.tr(context),
                 onPrimaryButtonPressed: () {
                   if (writeProvider.gotoDirectListPage) {
                     navigationToggleProvider.selectIndex(1);

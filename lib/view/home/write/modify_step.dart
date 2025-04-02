@@ -1,3 +1,4 @@
+import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/view/home/write/second_step.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -106,13 +107,13 @@ class _ThirdStepState extends State<ThirdStep> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                containerBox(context, "반디가 분석한 감정"),
+                containerBox(context, 'write_emotion_title'.tr(context)),
                 GestureDetector(
                     onTap: () {
                       showMoreBottomSheet(context, writeProvider);
                     },
                     child: Text(
-                      "더보기",
+                      'write_see_more'.tr(context),
                       style: BandiFont.labelLarge(context)?.copyWith(
                           color: BandiColor.neutralColor100(context)),
                     ))
@@ -122,7 +123,7 @@ class _ThirdStepState extends State<ThirdStep> {
               height: 8,
             ),
             writeProvider.diaryModel.emotion.isEmpty ? Text(
-              "없음",
+              'done'.tr(context),
               style: BandiFont.titleSmall(context)?.copyWith(
                   color: BandiColor.neutralColor100(context)),
             ) : SingleChildScrollView(
@@ -132,10 +133,16 @@ class _ThirdStepState extends State<ThirdStep> {
                   for (String emotion in writeProvider.diaryModel.emotion)
                     Padding(
                       padding: const EdgeInsets.only(right: 8.0),
-                      child: Text(
-                        "#$emotion",
-                        style: BandiFont.titleSmall(context)?.copyWith(
-                            color: BandiColor.neutralColor100(context)),
+                      child: Row(
+                        children: [
+                          Text("#", style: BandiFont.titleSmall(context)?.copyWith(
+                              color: BandiColor.neutralColor100(context))),
+                          Text(
+                            "emotion_keyword_$emotion".tr(context),
+                            style: BandiFont.titleSmall(context)?.copyWith(
+                                color: BandiColor.neutralColor100(context)),
+                          ),
+                        ],
                       ),
                     ),
                 ],
@@ -146,7 +153,7 @@ class _ThirdStepState extends State<ThirdStep> {
             ),
             Center(
               child: CustomPrimaryButton(
-                title: '완료',
+                title: 'done'.tr(context),
                 onPrimaryButtonPressed: () async {
                   // 저장
                   writeProvider.modifyDatabaseDiaryValue(
