@@ -6,5 +6,11 @@
   "navi_home": "홈",
   "navi_journal": "일기",
   "navi_inbox": "보관함",
-  "navi_setting": "설정"
+  "navi_setting": "설정",
+  "journal_title": "나의 일기",
+  "journal_calendar_header_1": "yyyy년 M월",
+  "journal_calendar_header_2": "yyyy년 M월 d일",
+  "journal_end": "끝",
+  "journal_loading": "로딩중...",
+  "journal_nodiary": "일기가 없습니다"
 }

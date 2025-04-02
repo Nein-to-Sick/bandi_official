@@ -6,5 +6,11 @@
   "navi_home": "Home",
   "navi_journal": "Journal",
   "navi_inbox": "Inbox",
-  "navi_setting": "Settings"
+  "navi_setting": "Settings",
+  "journal_title": "My Journal",
+  "journal_calendar_header_1": "MMMM yyyy",
+  "journal_calendar_header_2": "MMMM d, yyyy",
+  "journal_end": "END",
+  "journal_loading": "Loading...",
+  "journal_nodiary": "No Diary"
 }

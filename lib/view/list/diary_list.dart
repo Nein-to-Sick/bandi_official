@@ -1,4 +1,5 @@
 import 'package:bandi_official/components/loading/loading_page.dart';
+import 'package:bandi_official/string_extention.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -124,7 +125,7 @@ class _DiaryListState extends State<DiaryList> {
   void _processNewDiaries(List<QueryDocumentSnapshot> newDocs, bool first) {
     String lastDisplayedMonth =
         _groupedDiaries.isNotEmpty && _groupedDiaries.last['isHeader'] == false
-            ? DateFormat('yyyy년 M월')
+            ? DateFormat('journal_calendar_header_1'.tr(context))
                 .format((_groupedDiaries.last['createdAt'] as DateTime))
             : '';
 
@@ -133,9 +134,9 @@ class _DiaryListState extends State<DiaryList> {
       DateTime createdAt = (diaryData['createdAt'] as Timestamp).toDate();
       String currentMonth;
       if (widget.selectedDate != null) {
-        currentMonth = DateFormat('yyyy년 M월 d일').format(widget.selectedDate!);
+        currentMonth = DateFormat('journal_calendar_header_2'.tr(context)).format(widget.selectedDate!);
       } else {
-        currentMonth = DateFormat('yyyy년 M월').format(createdAt);
+        currentMonth = DateFormat('journal_calendar_header_1'.tr(context)).format(createdAt);
       }
 
       if (currentMonth != lastDisplayedMonth && first) {
@@ -154,8 +155,8 @@ class _DiaryListState extends State<DiaryList> {
         Provider.of<NavigationToggleProvider>(context);
 
     if (_isInitialLoading) {
-      return const Center(
-        child: MyFireFlyProgressbar(loadingText: '로딩 중...'),
+      return Center(
+        child: MyFireFlyProgressbar(loadingText: 'journal_loading'.tr(context))
       );
     }
 
@@ -328,7 +329,7 @@ class _DiaryListState extends State<DiaryList> {
                 );
               } else {
                 return Center(
-                    child: Text('끝',
+                    child: Text('journal_end'.tr(context),
                         style: BandiFont.headlineMedium(context)?.copyWith(
                           color: BandiColor.neutralColor60(context),
                         )));
@@ -355,7 +356,7 @@ Widget noDiary(context, DateTime date) {
                 padding: const EdgeInsets.symmetric(
                     vertical: 5, horizontal: 31),
                 child: Text(
-                  DateFormat('yyyy년 M월 d일').format(date),
+                  DateFormat('journal_calendar_header_2'.tr(context)).format(date),
                   style: BandiFont.headlineSmall(context)?.copyWith(
                     color: BandiColor.neutralColor100(context),
                   ),
@@ -366,7 +367,7 @@ Widget noDiary(context, DateTime date) {
         ],
       ),
       Center(
-          child: Text('일기가 없습니다',
+          child: Text('journal_nodiary'.tr(context),
               style: BandiFont.headlineMedium(context)?.copyWith(
                 color: BandiColor.neutralColor60(context),
               ))),

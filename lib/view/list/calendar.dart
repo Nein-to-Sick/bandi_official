@@ -1,3 +1,4 @@
+import 'package:bandi_official/string_extention.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:intl/intl.dart';
@@ -43,6 +44,7 @@ class _CalendarState extends State<Calendar> {
   }
 
   Widget _buildCalendarHeader() {
+    final locale = Localizations.localeOf(context).languageCode;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -55,10 +57,16 @@ class _CalendarState extends State<Calendar> {
           children: [
             _showMonthSelector
                 ? Row(
-              children: [
+              children: locale == 'ko'
+                  ? [
                 _buildYearDropdown(),
                 const SizedBox(width: 4),
                 _buildMonthDropdown(),
+              ]
+                  : [
+                _buildMonthDropdown(),
+                const SizedBox(width: 4),
+                _buildYearDropdown(),
               ],
             )
                 : _buildMonthDisplay(),
@@ -90,6 +98,8 @@ class _CalendarState extends State<Calendar> {
 
   Widget _buildYearDropdown() {
     final currentYear = DateTime.now().year;
+    final locale = Localizations.localeOf(context).languageCode;
+
     return DropdownButton<int>(
       value: _selectedDate.year,
       isDense: true,
@@ -97,10 +107,12 @@ class _CalendarState extends State<Calendar> {
       menuMaxHeight: 150,
       items: List.generate(currentYear - _minYear + 1, (index) {
         final yearValue = _minYear + index;
+        final yearText = locale == 'ko' ? "$yearValue년" : "$yearValue";
+
         return DropdownMenuItem<int>(
           value: yearValue,
           child: Text(
-            "$yearValue년",
+            yearText,
             style: BandiFont.bodySmall(context)?.copyWith(
               color: BandiColor.foundationColor100(context),
             ),
@@ -134,11 +146,14 @@ class _CalendarState extends State<Calendar> {
       items: List.generate(12, (index) {
         final monthValue = index + 1;
         final isDisabled = !_canSelectMonth(monthValue);
+        final monthName = DateFormat.MMMM(Localizations.localeOf(context).toLanguageTag())
+            .format(DateTime(0, monthValue));
+
         return DropdownMenuItem<int>(
           value: monthValue,
           enabled: !isDisabled,
           child: Text(
-            "$monthValue월",
+            monthName,
             style: BandiFont.bodySmall(context)?.copyWith(
               color: isDisabled
                   ? BandiColor.foundationColor40(context)
@@ -164,7 +179,7 @@ class _CalendarState extends State<Calendar> {
     return GestureDetector(
       onTap: _toggleYearMonthSelector,
       child: Text(
-        DateFormat('yyyy년 M월').format(_selectedDate),
+        DateFormat('journal_calendar_header_1'.tr(context)).format(_selectedDate),
         style: BandiFont.bodySmall(context)?.copyWith(
           color: BandiColor.foundationColor100(context),
         ),
@@ -195,7 +210,12 @@ class _CalendarState extends State<Calendar> {
   }
 
   Widget _buildCalendar(BuildContext context) {
-    final daysOfWeek = ['일', '월', '화', '수', '목', '금', '토'];
+    final firstDayOfWeek = DateTime(2023, 1, 1); // 일요일
+    final daysOfWeek = List.generate(7, (index) {
+      final date = firstDayOfWeek.add(Duration(days: index));
+      return DateFormat.E(Localizations.localeOf(context).toLanguageTag()).format(date);
+    });
+
     final lastDayOfMonth = DateTime(_selectedDate.year, _selectedDate.month + 1, 0);
     final numberOfDays = lastDayOfMonth.day;
 
