@@ -26,7 +26,7 @@ class _ListPageState extends State<ListPage> {
         // custom appbar 일단 임시로 leading icon 변경
         appBar: CustomAppBar(
           title: 'journal_title'.tr(context),
-          trailingIcon: PhosphorIcons.calendarDots(PhosphorIconsStyle.fill),
+          trailingIcon: PhosphorIcons.calendarBlank(),
           onLeadingIconPressed: () {
             setState(() {
               dateProvider.clearDate();
