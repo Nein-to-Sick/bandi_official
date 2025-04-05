@@ -145,5 +145,18 @@
   "inbox_no_letters": "편지가 없습니다",
   "inbox_no_reacted_diaries": "공감한 일기가 없습니다",
   "notifications_title": "알림",
-  "ai_chat_title": "반디와 대화하기"
+  "ai_chat_title": "반디와 대화하기",
+  "ai_chat_textbar_message_1": "답변 중이에요",
+  "ai_chat_textbar_message_2": "대화를 시작해보세요",
+  "ai_chat_date_form": "MM월 dd일 EEEE",
+  "ai_chat_date_form_country": "ko",
+  "ai_chat_system_prompt": "너의 이름은 반디야. 한국어로 친구처럼 반말로 답변해. 짧고 간결하게, 3문장 이내로 대답하고, 실질적인 도움이 필요하다고 요청받았을 때만 제안해줘.",
+  "ai_chat_greeting": "안녕! 무슨 일이야?",
+  "ai_chat_assistant_message_guide": "이렇게 대화를 시작해 보세요!",
+  "ai_chat_assistant_message_1": "난 오늘 기분이 좋은데 넌 어때?",
+  "ai_chat_assistant_message_2": "난 오늘 기분이 별로야... 응원해 줘",
+  "ai_chat_assistant_message_3": "지난 내 기록을 보여줘",
+  "ai_chat_error_message_1": "인터넷 연결이 없는 것 같아. 확인해 줄 수 있을까?",
+  "ai_chat_error_message_2": "이해가 안됐어. 다시 설명해 줄 수 있을까?",
+  "ai_chat_error_message_3": "오류가 발생한 것 같아. 다시 이야기해줄 수 있을까?"
 }
