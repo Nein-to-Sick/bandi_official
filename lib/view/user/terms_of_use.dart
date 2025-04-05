@@ -1,4 +1,6 @@
 // lib/views/user/terms_of_use.dart
+import 'package:bandi_official/components/appbar/appbar.dart';
+import 'package:bandi_official/string_extention.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:wrapped_korean_text/wrapped_korean_text.dart';
@@ -12,6 +14,10 @@ class TermsOfUseScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String langCode = Localizations.localeOf(context).languageCode;
+    List<List<String>>? terms = CompanyInfo().localizedTermsOfUse[langCode] ??
+        CompanyInfo().localizedTermsOfUse['ko'];
+
     return Scaffold(
         backgroundColor: BandiColor.neutralColor80(context).withOpacity(0.8),
         appBar: AppBar(
@@ -22,7 +28,7 @@ class TermsOfUseScreen extends StatelessWidget {
             onPressed: onBack,
           ),
           title: Text(
-            "이용약관",
+            'settings_terms_of_use'.tr(context),
             style: BandiFont.displaySmall(context)?.copyWith(
               color: BandiColor.foundationColor80(context),
             ),
@@ -34,14 +40,14 @@ class TermsOfUseScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 23.0),
             child: Column(
               children: [
-                for (int i = 0; i < CompanyInfo().termsOfUse.length; i++)
+                for (int i = 0; i < terms!.length; i++)
                   Column(
                     children: [
                       if (i != 0) const SizedBox(height: 80),
                       SizedBox(
                         width: MediaQuery.of(context).size.width,
                         child: WrappedKoreanText(
-                          CompanyInfo().termsOfUse[i][0],
+                          terms[i][0],
                           style: BandiFont.headlineMedium(context)?.copyWith(
                             color: BandiColor.foundationColor80(context),
                           ),
@@ -51,7 +57,7 @@ class TermsOfUseScreen extends StatelessWidget {
                       SizedBox(
                         width: MediaQuery.of(context).size.width,
                         child: WrappedKoreanText(
-                          CompanyInfo().termsOfUse[i][1],
+                          terms[i][1],
                           style: BandiFont.bodySmall(context)?.copyWith(
                             color: BandiColor.foundationColor80(context),
                           ),

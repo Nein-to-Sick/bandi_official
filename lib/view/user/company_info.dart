@@ -1,3 +1,4 @@
+import 'package:bandi_official/string_extention.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -11,6 +12,9 @@ class CompanyInfoScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String langCode = Localizations.localeOf(context).languageCode;
+    Map<String, String>? companyInfo = CompanyInfo().localizedCompanyInfo[langCode] ?? CompanyInfo().localizedCompanyInfo['ko'];
+
     return Scaffold(
         backgroundColor: BandiColor.neutralColor80(context).withOpacity(0.8),
         appBar: AppBar(
@@ -21,7 +25,7 @@ class CompanyInfoScreen extends StatelessWidget {
             onPressed: onBack,
           ),
           title: Text(
-            "사업자 정보",
+            'settings_business_information'.tr(context),
             style: BandiFont.displaySmall(context)?.copyWith(
               color: BandiColor.foundationColor80(context),
             ),
@@ -35,7 +39,7 @@ class CompanyInfoScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  CompanyInfo().companyName,
+                  companyInfo!['companyName']!,
                   style: BandiFont.headlineLarge(context)?.copyWith(
                     color: BandiColor.foundationColor80(context),
                   ),
@@ -51,13 +55,13 @@ class CompanyInfoScreen extends StatelessWidget {
                   height: 15,
                 ),
                 Text(
-                  "대표",
+                  'settings_business_information_ceo'.tr(context),
                   style: BandiFont.headlineMedium(context)?.copyWith(
                     color: BandiColor.foundationColor80(context),
                   ),
                 ),
                 Text(
-                  CompanyInfo().ceo,
+                  companyInfo!['ceo']!,
                   style: BandiFont.bodySmall(context)?.copyWith(
                     color: BandiColor.foundationColor80(context),
                   ),
@@ -73,13 +77,13 @@ class CompanyInfoScreen extends StatelessWidget {
                   height: 15,
                 ),
                 Text(
-                  "주소",
+                  'settings_business_information_address'.tr(context),
                   style: BandiFont.headlineMedium(context)?.copyWith(
                     color: BandiColor.foundationColor80(context),
                   ),
                 ),
                 Text(
-                  CompanyInfo().address,
+                  companyInfo!['address']!,
                   style: BandiFont.bodySmall(context)?.copyWith(
                     color: BandiColor.foundationColor80(context),
                   ),
@@ -95,13 +99,13 @@ class CompanyInfoScreen extends StatelessWidget {
                   height: 15,
                 ),
                 Text(
-                  "이메일",
+                  'settings_business_information_email'.tr(context),
                   style: BandiFont.headlineMedium(context)?.copyWith(
                     color: BandiColor.foundationColor80(context),
                   ),
                 ),
                 Text(
-                  CompanyInfo().email,
+                  companyInfo!['email']!,
                   style: BandiFont.bodySmall(context)?.copyWith(
                     color: BandiColor.foundationColor80(context),
                   ),

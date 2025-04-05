@@ -1,4 +1,6 @@
 // lib/views/user/oss_licenses.dart
+import 'package:bandi_official/components/appbar/appbar.dart';
+import 'package:bandi_official/string_extention.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../model/oss_licenses_model.dart';
@@ -27,7 +29,7 @@ class OssLicensesScreen extends StatelessWidget {
           onPressed: onBack,
         ),
         title: Text(
-          "오픈 라이센스",
+          'settings_open_license'.tr(context),
           style: BandiFont.displaySmall(context)?.copyWith(
             color: BandiColor.foundationColor80(context),
           ),

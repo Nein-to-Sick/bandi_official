@@ -54,7 +54,7 @@ class _AccountManagementState extends State<AccountManagement> {
           onPressed: widget.onBack,
         ),
         title: Text(
-          "계정 관리",
+          'settings_my_account'.tr(context),
           style: BandiFont.displaySmall(context)?.copyWith(
             color: BandiColor.foundationColor80(context),
           ),
@@ -72,7 +72,7 @@ class _AccountManagementState extends State<AccountManagement> {
             _buildSettingOption(
               context: context,
               icon: PhosphorIcons.at(),
-              text: "이메일",
+              text: 'settings_my_account_email'.tr(context),
               onTap: () {},
               trailing: Text(
                 userInfo.userEmail.isNotEmpty ? userInfo.userEmail : "이메일 없음",
@@ -91,7 +91,7 @@ class _AccountManagementState extends State<AccountManagement> {
             _buildSettingOption(
               context: context,
               icon: PhosphorIcons.user(),
-              text: "닉네임",
+              text: 'settings_my_account_nickname'.tr(context),
               onTap: () => widget.onNavigate(2),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -116,13 +116,13 @@ class _AccountManagementState extends State<AccountManagement> {
               height: 34,
             ),
             CustomPrimaryButton(
-              title: '로그아웃',
+              title: 'settings_my_account_logout'.tr(context),
               onPrimaryButtonPressed: () async {
                 showDialog(
                   context: context,
                   builder: (BuildContext context) {
                     return CustomResetDialogue(
-                      text: '로그아웃 하시겠나요?',
+                      text: 'settings_my_account_logout_text'.tr(context),
                       onYesText: 'dialogue_yes'.tr(context),
                       onNoText: 'dialogue_no'.tr(context),
                       onYesFunction: () async {
@@ -172,13 +172,13 @@ class _AccountManagementState extends State<AccountManagement> {
               height: 12,
             ),
             CustomSecondaryButton(
-              title: '계정 탈퇴',
+              title: 'settings_my_account_delete_account'.tr(context),
               onSecondaryButtonPressed: () {
                 showDialog(
                   context: context,
                   builder: (BuildContext context) {
                     return CustomResetDialogue(
-                      text: '계정 탈퇴를 하시겠나요?\n탈퇴한 계정은 복구할 수 없어요.',
+                      text: 'settings_my_account_delete_account_text'.tr(context),
                       onYesText: 'dialogue_yes'.tr(context),
                       onNoText: 'dialogue_no'.tr(context),
                       onYesFunction: () async {

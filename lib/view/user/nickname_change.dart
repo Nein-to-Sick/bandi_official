@@ -1,4 +1,6 @@
 // lib/views/user/nickname_change.dart
+import 'package:bandi_official/components/appbar/appbar.dart';
+import 'package:bandi_official/string_extention.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -36,7 +38,7 @@ class NicknameChange extends StatelessWidget {
         scrolledUnderElevation: 0,
         backgroundColor: BandiColor.transparent(context),
         title: Text(
-          "닉네임 변경",
+          'settings_nickname_change'.tr(context),
           style: BandiFont.displaySmall(context)?.copyWith(
             color: BandiColor.foundationColor80(context),
           ),
@@ -74,7 +76,7 @@ class NicknameChange extends StatelessWidget {
                 ),
                 const SizedBox(height: 17),
                 CustomPrimaryButton(
-                  title: '확인',
+                  title: 'confirm'.tr(context),
                   onPrimaryButtonPressed: () {
                     if (nickname.isNotEmpty) {
                       // 비동기 작업을 호출하는 동기 함수로 래핑

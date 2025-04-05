@@ -52,8 +52,20 @@ class _AgreementStatfulState extends State<AgreementStatful> {
   bool option2Selected = false;
   bool option3Selected = false;
 
+
   @override
   Widget build(BuildContext context) {
+
+    String langCode = Localizations.localeOf(context).languageCode;
+    List<List<String>>? terms = CompanyInfo().localizedTermsOfUse[langCode] ??
+        CompanyInfo().localizedTermsOfUse['ko'];
+
+    List<List<String>>? privacy = CompanyInfo().localizedPrivacyPolicy[langCode] ??
+        CompanyInfo().localizedPrivacyPolicy['ko'];
+
+    String? privacyLastText = CompanyInfo().localizedPrivacyPolicyExplain[langCode] ??
+        CompanyInfo().localizedPrivacyPolicyExplain['ko'];
+
     var navigationToggleProvider =
         Provider.of<NavigationToggleProvider>(context);
 
@@ -200,9 +212,8 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                                         children: [
                                           for (int i = 0;
                                               i <
-                                                  CompanyInfo()
-                                                      .privacyPolicy
-                                                      .length;
+                                                  privacy
+                                                      !.length;
                                               i++)
                                             Column(
                                               children: [
@@ -213,8 +224,7 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                                                       .size
                                                       .width,
                                                   child: WrappedKoreanText(
-                                                    CompanyInfo()
-                                                        .privacyPolicy[i][0],
+                                                    privacy[i][0],
                                                     style: BandiFont
                                                             .headlineMedium(
                                                                 context)
@@ -231,8 +241,7 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                                                       .size
                                                       .width,
                                                   child: WrappedKoreanText(
-                                                    CompanyInfo()
-                                                        .privacyPolicy[i][1],
+                                                    privacy[i][1],
                                                     style: BandiFont.bodySmall(
                                                             context)
                                                         ?.copyWith(
@@ -249,8 +258,7 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                                                 .size
                                                 .width,
                                             child: WrappedKoreanText(
-                                              CompanyInfo()
-                                                  .privacyPolicyExplain,
+                                              privacyLastText!,
                                               style:
                                                   BandiFont.bodySmall(context)
                                                       ?.copyWith(
@@ -362,9 +370,8 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                                         children: [
                                           for (int i = 0;
                                               i <
-                                                  CompanyInfo()
-                                                      .termsOfUse
-                                                      .length;
+                                                  terms
+                                                      !.length;
                                               i++)
                                             Column(
                                               children: [
@@ -375,7 +382,7 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                                                       .size
                                                       .width,
                                                   child: WrappedKoreanText(
-                                                    CompanyInfo().termsOfUse[i]
+                                                    terms[i]
                                                         [0],
                                                     style: BandiFont
                                                             .headlineMedium(
@@ -393,7 +400,7 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                                                       .size
                                                       .width,
                                                   child: WrappedKoreanText(
-                                                    CompanyInfo().termsOfUse[i]
+                                                    terms[i]
                                                         [1],
                                                     style: BandiFont.bodySmall(
                                                             context)
