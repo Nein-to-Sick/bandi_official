@@ -1,3 +1,4 @@
+import 'package:bandi_official/string_extention.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:wrapped_korean_text/wrapped_korean_text.dart';
@@ -12,6 +13,11 @@ class PrivacyPolicyScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String langCode = Localizations.localeOf(context).languageCode;
+    List<List<String>>? privacy = CompanyInfo().localizedPrivacyPolicy[langCode] ??
+        CompanyInfo().localizedPrivacyPolicy['ko'];
+    String? privacyLastText = CompanyInfo().localizedPrivacyPolicyExplain[langCode] ??
+        CompanyInfo().localizedPrivacyPolicyExplain['ko'];
     return Scaffold(
         backgroundColor: BandiColor.neutralColor80(context).withOpacity(0.8),
         appBar: AppBar(
@@ -22,7 +28,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
             onPressed: onBack,
           ),
           title: Text(
-            "개인정보 처리방침",
+            'settings_privacy_policy'.tr(context),
             style: BandiFont.displaySmall(context)?.copyWith(
               color: BandiColor.foundationColor80(context),
             ),
@@ -34,14 +40,14 @@ class PrivacyPolicyScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 23.0),
             child: Column(
               children: [
-                for (int i = 0; i < CompanyInfo().privacyPolicy.length; i++)
+                for (int i = 0; i < privacy!.length; i++)
                   Column(
                     children: [
                       if (i != 0) const SizedBox(height: 44),
                       SizedBox(
                         width: MediaQuery.of(context).size.width,
                         child: WrappedKoreanText(
-                          CompanyInfo().privacyPolicy[i][0],
+                          privacy[i][0],
                           style: BandiFont.headlineMedium(context)?.copyWith(
                             color: BandiColor.foundationColor80(context),
                           ),
@@ -51,7 +57,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                       SizedBox(
                         width: MediaQuery.of(context).size.width,
                         child: WrappedKoreanText(
-                          CompanyInfo().privacyPolicy[i][1],
+                          privacy[i][1],
                           style: BandiFont.bodySmall(context)?.copyWith(
                             color: BandiColor.foundationColor80(context),
                           ),
@@ -59,10 +65,11 @@ class PrivacyPolicyScreen extends StatelessWidget {
                       ),
                     ],
                   ),
+                const SizedBox(height: 50,),
                 SizedBox(
                   width: MediaQuery.of(context).size.width,
                   child: WrappedKoreanText(
-                    CompanyInfo().privacyPolicyExplain,
+                    privacyLastText!,
                     style: BandiFont.bodySmall(context)?.copyWith(
                       color: BandiColor.foundationColor80(context),
                     ),
