@@ -1,3 +1,4 @@
+import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -37,8 +38,8 @@ class _CustomReactionButtonState extends State<CustomReactionButton> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            iconAndButtonSet(
-                context, '응원해요', PhosphorIcons.gift, isFirstButtonPressed, () {
+            iconAndButtonSet(context, 'reaction_support'.tr(context),
+                PhosphorIcons.gift, isFirstButtonPressed, () {
               widget.onFirstButtonPressed();
               setState(() {
                 isFirstButtonPressed = true;
@@ -47,9 +48,8 @@ class _CustomReactionButtonState extends State<CustomReactionButton> {
                 }
               });
             }),
-            iconAndButtonSet(
-                context, '공감해요', PhosphorIcons.heart, isSecondButtonPressed,
-                () {
+            iconAndButtonSet(context, 'reaction_relate'.tr(context),
+                PhosphorIcons.heart, isSecondButtonPressed, () {
               widget.onSecondButtonPressed();
               setState(() {
                 isSecondButtonPressed = true;
@@ -58,8 +58,8 @@ class _CustomReactionButtonState extends State<CustomReactionButton> {
                 }
               });
             }),
-            iconAndButtonSet(context, '함께해요', PhosphorIcons.personArmsSpread,
-                isThirdButtonPressed, () {
+            iconAndButtonSet(context, 'reaction_with'.tr(context),
+                PhosphorIcons.personArmsSpread, isThirdButtonPressed, () {
               widget.onThirdButtonPressed();
               setState(() {
                 isThirdButtonPressed = true;

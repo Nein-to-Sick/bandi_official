@@ -3,6 +3,7 @@
   "login_subtitle": "마음을 밝히는 작은 불빛",
   "login_google": "구글로 시작하기",
   "login_apple": "애플로 시작하기",
+  "loading": "로딩 중...",
   "navi_home": "홈",
   "navi_journal": "일기",
   "navi_inbox": "보관함",
@@ -21,17 +22,19 @@
   "write_cheer_loading": "할 말 생각중...",
   "confirm": "확인",
   "write_query_feeling": "기분이 어떠신가요?",
-  "write_hint_text": "겪었던 일과 느꼈던 감정에 대해 써주세요."
+  "write_hint_text": "겪었던 일과 느꼈던 감정에 대해 써주세요.",
   "done": "확인",
   "write_see_more": "더보기",
-
+  "reaction_all": "전체",
+  "reaction_support": "응원해요",
+  "reaction_relate": "공감해요",
+  "reaction_with": "함께해요",
   "emotion_category_happiness": "기쁨",
   "emotion_category_fear": "두려움",
   "emotion_category_discomfort": "불쾌",
   "emotion_category_anger": "분노",
   "emotion_category_sadness": "슬픔",
   "emotion_category_unknown": "모름",
-
   "emotion_keyword_감동적이다": "감동적이다",
   "emotion_keyword_감탄하다": "감탄하다",
   "emotion_keyword_고맙다": "고맙다",
@@ -63,7 +66,6 @@
   "emotion_keyword_활기차다": "활기차다",
   "emotion_keyword_훈훈하다": "훈훈하다",
   "emotion_keyword_흥미롭다": "흥미롭다",
-
   "emotion_keyword_걱정스럽다": "걱정스럽다",
   "emotion_keyword_긴장하다": "긴장하다",
   "emotion_keyword_깜짝 놀라다": "깜짝 놀라다",
@@ -79,7 +81,6 @@
   "emotion_keyword_조마조마하다": "조마조마하다",
   "emotion_keyword_주눅들다": "주눅들다",
   "emotion_keyword_혼란스럽다": "혼란스럽다",
-
   "emotion_keyword_곤란하다": "곤란하다",
   "emotion_keyword_관심없다": "관심없다",
   "emotion_keyword_귀찮다": "귀찮다",
@@ -95,7 +96,6 @@
   "emotion_keyword_찜찜하다": "찜찜하다",
   "emotion_keyword_피곤하다": "피곤하다",
   "emotion_keyword_황당하다": "황당하다",
-
   "emotion_keyword_괘씸하다": "괘씸하다",
   "emotion_keyword_나쁘다": "나쁘다",
   "emotion_keyword_답답하다": "답답하다",
@@ -108,7 +108,6 @@
   "emotion_keyword_지긋지긋하다": "지긋지긋하다",
   "emotion_keyword_짜증나다": "짜증나다",
   "emotion_keyword_화나다": "화나다",
-
   "emotion_keyword_괴롭다": "괴롭다",
   "emotion_keyword_그립다": "그립다",
   "emotion_keyword_무기력하다": "무기력하다",
@@ -129,9 +128,13 @@
   "emotion_keyword_허전하다": "허전하다",
   "emotion_keyword_후회스럽다": "후회스럽다",
   "emotion_keyword_힘들다": "힘들다",
-
   "emotion_keyword_모름": "모름",
-  "emotion_keyword_없음": "없음"
-
-
+  "emotion_keyword_없음": "없음",
+  "inbox_title": "보관함",
+  "inbox_all": "전체",
+  "inbox_letters": "편지",
+  "inbox_reacted_diaries": "공감한 일기",
+  "inbox_no_all": "보관함이 비었습니다",
+  "inbox_no_letters": "편지가 없습니다",
+  "inbox_no_reacted_diaries": "공감한 일기가 없습니다"
 }

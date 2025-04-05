@@ -5,6 +5,7 @@ import 'package:bandi_official/controller/alarm_controller.dart';
 import 'package:bandi_official/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/controller/permission_controller.dart';
+import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/home/home_view.dart';
 import 'package:bandi_official/view/list/list_view.dart';
@@ -150,9 +151,10 @@ class _NavigationState extends State<Navigation> with WidgetsBindingObserver {
                                       : navigationToggleProvider
                                                   .selectedIndex ==
                                               100
-                                          ? const Center(
+                                          ? Center(
                                               child: MyFireFlyProgressbar(
-                                                  loadingText: '로딩 중...'),
+                                                  loadingText:
+                                                      'loading'.tr(context)),
                                             )
                                           : const UserView(),
               if (navigationToggleProvider.selectedIndex >= 0 &&

@@ -3,6 +3,7 @@
   "login_subtitle": "A small light that brightens the heart",
   "login_google": "Sign in with Google",
   "login_apple": "Sign in with Apple",
+  "loading": "Loading...",
   "navi_home": "Home",
   "navi_journal": "Journal",
   "navi_inbox": "Inbox",
@@ -24,14 +25,16 @@
   "write_hint_text": "Write about your experiences and emotions.",
   "done": "Done",
   "write_see_more": "See More",
-
+  "reaction_all": "All",
+  "reaction_support": "I support you",
+  "reaction_relate": "I relate to you",
+  "reaction_with": "I'm with you",
   "emotion_category_happiness": "Joy",
   "emotion_category_fear": "Fear",
   "emotion_category_discomfort": "Discomfort",
   "emotion_category_anger": "Anger",
   "emotion_category_sadness": "Sadness",
   "emotion_category_unknown": "Don't know",
-
   "emotion_keyword_감동적이다": "Touching",
   "emotion_keyword_감탄하다": "Admire",
   "emotion_keyword_고맙다": "Grateful",
@@ -63,7 +66,6 @@
   "emotion_keyword_활기차다": "Energetic",
   "emotion_keyword_훈훈하다": "Heartwarming",
   "emotion_keyword_흥미롭다": "Interesting",
-
   "emotion_keyword_걱정스럽다": "Worried",
   "emotion_keyword_긴장하다": "Tense",
   "emotion_keyword_깜짝 놀라다": "Surprised",
@@ -79,7 +81,6 @@
   "emotion_keyword_조마조마하다": "Nervous",
   "emotion_keyword_주눅들다": "Intimidated",
   "emotion_keyword_혼란스럽다": "Confused",
-
   "emotion_keyword_곤란하다": "Troubled",
   "emotion_keyword_관심없다": "Indifferent",
   "emotion_keyword_귀찮다": "Bothered",
@@ -95,7 +96,6 @@
   "emotion_keyword_찜찜하다": "Uneasy",
   "emotion_keyword_피곤하다": "Exhausted",
   "emotion_keyword_황당하다": "Absurd",
-
   "emotion_keyword_괘씸하다": "Offended",
   "emotion_keyword_나쁘다": "Bad",
   "emotion_keyword_답답하다": "Frustrated",
@@ -108,7 +108,6 @@
   "emotion_keyword_지긋지긋하다": "Fed up",
   "emotion_keyword_짜증나다": "Annoyed",
   "emotion_keyword_화나다": "Angry",
-
   "emotion_keyword_괴롭다": "Distressed",
   "emotion_keyword_그립다": "Longing",
   "emotion_keyword_무기력하다": "Lethargic",
@@ -129,9 +128,13 @@
   "emotion_keyword_허전하다": "Empty",
   "emotion_keyword_후회스럽다": "Regretful",
   "emotion_keyword_힘들다": "Hard",
-
   "emotion_keyword_모름": "Unknown",
-  "emotion_keyword_없음": "None"
-
+  "emotion_keyword_없음": "None",
+  "inbox_title": "Inbox",
+  "inbox_all": "All",
+  "inbox_letters": "Letters",
+  "inbox_reacted_diaries": "Reacted Diaries",
+  "inbox_no_all": "There are no data",
+  "inbox_no_letters": "There are no letters",
+  "inbox_no_reacted_diaries": "There are no reacted diaries"
 }
-
