@@ -167,4 +167,17 @@
   "settings_business_information_address": "Address",
   "settings_business_information_phone": "Phone",
   "settings_business_information_email": "Email"
+  "ai_chat_textbar_message_1": "Typing a response...",
+  "ai_chat_textbar_message_2": "Begin your conversation",
+  "ai_chat_date_form": "EEE, MMM d",
+  "ai_chat_date_form_country": "en_US",
+  "ai_chat_system_prompt": "Your name is Bandi. Respond in English like a friend using casual speech. Keep answers short and concise, within 3 sentences, and only make suggestions when practical help is requested.",
+  "ai_chat_greeting": "Hi! What's on your mind?",
+  "ai_chat_assistant_message_guide": "Start a conversation like this!",
+  "ai_chat_assistant_message_1": "I'm feeling good today. How about you?",
+  "ai_chat_assistant_message_2": "I'm not feeling great today... Can you cheer me up?",
+  "ai_chat_assistant_message_3": "Show me my past records.",
+  "ai_chat_error_message_1": "Looks like there's no internet connection. Can you check it?",
+  "ai_chat_error_message_2": "I didn't understand that. Can you explain it again?",
+  "ai_chat_error_message_3": "Seems like an error occurred. Can you say it again?"
 }

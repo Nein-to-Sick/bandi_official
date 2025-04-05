@@ -34,6 +34,7 @@ class _DiaryAIChatPageState extends State<DiaryAIChatPage> {
             diaryAiChatController.chatScrollController
                 .addListener(_scrollListener);
             diaryAiChatController.toggleIsListenerAdded(true);
+            diaryAiChatController.chatLogInitialization(context);
           });
         }
       });
@@ -95,7 +96,7 @@ class _DiaryAIChatPageState extends State<DiaryAIChatPage> {
                   onYesText: 'dialogue_yes'.tr(context),
                   onNoText: 'dialogue_no'.tr(context),
                   onYesFunction: () {
-                    diaryAiChatController.resetTheChat();
+                    diaryAiChatController.resetTheChat(context);
                     Navigator.pop(context);
                   },
                   onNoFunction: () {

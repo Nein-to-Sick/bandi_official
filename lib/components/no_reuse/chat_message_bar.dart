@@ -2,6 +2,8 @@ import 'dart:ui';
 
 import 'package:bandi_official/components/dialogue/dialogue.dart';
 import 'package:bandi_official/controller/diary_ai_chat_controller.dart';
+import 'package:bandi_official/controller/emotion_provider.dart';
+import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -66,7 +68,7 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Text(
-                      '이렇게 대화를 시작해 보세요!',
+                      'ai_chat_assistant_message_guide'.tr(context),
                       style: BandiFont.headlineSmall(context)?.copyWith(
                         color: BandiColor.neutralColor100(context),
                       ),
@@ -90,26 +92,29 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                           .applyTo(const BouncingScrollPhysics()),
                   shrinkWrap: true,
                   scrollDirection: Axis.horizontal,
-                  itemCount: diaryAiChatController.assistantMessage.length,
+                  itemCount:
+                      DiaryAiChatController.assistantMessage(context).length,
                   itemBuilder: (context, index) {
                     return Padding(
                       padding: EdgeInsets.only(
                         left: (index == 0) ? 24 : 12,
                         right: (index ==
-                                diaryAiChatController.assistantMessage.length -
+                                DiaryAiChatController.assistantMessage(context)
+                                        .length -
                                     1)
                             ? 24
                             : 0,
                       ),
                       child: CustomDialogue(
-                        chatMessage:
-                            diaryAiChatController.assistantMessage[index],
+                        chatMessage: DiaryAiChatController.assistantMessage(
+                            context)[index],
                         onDialoguePressed: () {
                           diaryAiChatController.onAssistantMessageSubmitted(
-                            diaryAiChatController
-                                .assistantMessage[index].message
-                                .trim(),
-                          );
+                              DiaryAiChatController.assistantMessage(
+                                      context)[index]
+                                  .message
+                                  .trim(),
+                              context);
                         },
                       ),
                     );
@@ -174,8 +179,8 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                             decoration: InputDecoration(
                               hintText:
                                   (diaryAiChatController.isChatResponsLoading)
-                                      ? '답변 중이에요'
-                                      : '대화를 시작해보세요',
+                                      ? 'ai_chat_textbar_message_1'.tr(context)
+                                      : 'ai_chat_textbar_message_2'.tr(context),
                               hintStyle:
                                   BandiFont.labelMedium(context)?.copyWith(
                                 color: BandiColor.neutralColor40(context),
@@ -206,7 +211,7 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                               setState(() {
                                 isSendButtonPressed = false;
                               });
-                              diaryAiChatController.onMessageSubmitted();
+                              diaryAiChatController.onMessageSubmitted(context);
                             },
                       onTapCancel: (sendButtonCondition())
                           ? null
