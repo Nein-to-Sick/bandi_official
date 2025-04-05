@@ -4,6 +4,13 @@
   "login_google": "Sign in with Google",
   "login_apple": "Sign in with Apple",
   "loading": "Loading...",
+  "dialogue_message_exit_app": "Do you want to exit the application?",
+  "dialogue_message_ai_chat_reset": "Reset the converstaion?\nThis action is irreversibile.",
+  "dialogue_message_alarm_setting": "You have chosen not to receive notifications.\nYou can change the notification settings\nat any time in the system settings.",
+  "dialogue_yes": "Yes",
+  "dialogue_no": "No",
+  "dialogue_close": "Close",
+  "dialogue_setting": "Settings",
   "navi_home": "Home",
   "navi_journal": "Journal",
   "navi_inbox": "Inbox",
@@ -136,5 +143,7 @@
   "inbox_reacted_diaries": "Reacted Diaries",
   "inbox_no_all": "There are no data",
   "inbox_no_letters": "There are no letters",
-  "inbox_no_reacted_diaries": "There are no reacted diaries"
+  "inbox_no_reacted_diaries": "There are no reacted diaries",
+  "notifications_title": "Notifications",
+  "ai_chat_title": "Talk to Bandi"
 }

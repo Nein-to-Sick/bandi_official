@@ -4,6 +4,13 @@
   "login_google": "구글로 시작하기",
   "login_apple": "애플로 시작하기",
   "loading": "로딩 중...",
+  "dialogue_message_exit_app": "어플리케이션을 종료하시겠나요?",
+  "dialogue_message_ai_chat_reset": "대화 내용을 리셋하실건가요?\n리셋한 대화내용은 다시 볼 수 없어요.",
+  "dialogue_message_alarm_setting": "알림 받지 않기를 선택하셨습니다.\n알림 권한 설정은 시스템 설정에서\n언제든지 변경할 수 있습니다.",
+  "dialogue_yes": "예",
+  "dialogue_no": "아니요",
+  "dialogue_close": "닫기",
+  "dialogue_setting": "설정하기",
   "navi_home": "홈",
   "navi_journal": "일기",
   "navi_inbox": "보관함",
@@ -136,5 +143,7 @@
   "inbox_reacted_diaries": "공감한 일기",
   "inbox_no_all": "보관함이 비었습니다",
   "inbox_no_letters": "편지가 없습니다",
-  "inbox_no_reacted_diaries": "공감한 일기가 없습니다"
+  "inbox_no_reacted_diaries": "공감한 일기가 없습니다",
+  "notifications_title": "알림",
+  "ai_chat_title": "반디와 대화하기"
 }

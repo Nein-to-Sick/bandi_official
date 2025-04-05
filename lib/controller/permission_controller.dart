@@ -1,4 +1,5 @@
 import 'package:bandi_official/components/no_reuse/reset_dialogue.dart';
+import 'package:bandi_official/string_extention.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:developer' as dev;
@@ -45,10 +46,9 @@ class PermissionController with ChangeNotifier {
             context: context,
             builder: (BuildContext context) {
               return CustomResetDialogue(
-                text:
-                    '알림 받지 않기를 선택하셨습니다.\n알림 권한 설정은 시스템 설정에서\n언제든지 변경할 수 있습니다.',
-                onYesText: '닫기',
-                onNoText: '설정하기',
+                text: 'dialogue_message_alarm_setting.'.tr(context),
+                onYesText: 'dialogue_close'.tr(context),
+                onNoText: 'dialogue_setting'.tr(context),
                 onYesFunction: () {
                   Navigator.pop(context);
                 },

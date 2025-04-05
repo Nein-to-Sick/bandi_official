@@ -1,5 +1,6 @@
 // lib/views/user/settings_home.dart
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:bandi_official/string_extention.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -64,14 +65,15 @@ class SettingsHome extends StatelessWidget {
                 ),
                 const SizedBox(width: 12.5),
                 Switch(
-                  value:
-                  permissionController.getNotificationPermissionState(),
+                  value: permissionController.getNotificationPermissionState(),
                   onChanged: (bool value) {
                     showDialog(
                         context: context,
                         builder: (BuildContext context) {
                           return CustomResetDialogue(
                             text: '알림 설정은 시스템 설정에서 진행됩니다.\n시스템 설정으로 이동하시겠나요?',
+                            onYesText: 'dialogue_yes'.tr(context),
+                            onNoText: 'dialogue_no'.tr(context),
                             onYesFunction: () {
                               Navigator.pop(context);
                               openAppSettings();
@@ -155,18 +157,18 @@ class SettingsHome extends StatelessWidget {
             if (icon != null) const SizedBox(width: 8),
             (autotext == 1)
                 ? Text(
-              text,
-              style: BandiFont.bodyMedium(context)?.copyWith(
-                color: BandiColor.foundationColor80(context),
-              ),
-            )
+                    text,
+                    style: BandiFont.bodyMedium(context)?.copyWith(
+                      color: BandiColor.foundationColor80(context),
+                    ),
+                  )
                 : AutoSizeText(
-              text,
-              style: BandiFont.bodyMedium(context)?.copyWith(
-                color: BandiColor.foundationColor80(context),
-              ),
-              maxLines: 1,
-            ),
+                    text,
+                    style: BandiFont.bodyMedium(context)?.copyWith(
+                      color: BandiColor.foundationColor80(context),
+                    ),
+                    maxLines: 1,
+                  ),
             if (trailing != null) ...[
               const Spacer(),
               trailing,

@@ -7,7 +7,6 @@ import 'package:bandi_official/controller/navigation_toggle_provider.dart';
 import 'package:bandi_official/model/alarm.dart';
 import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/model/letter.dart';
-import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/mail/detail_view.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -75,9 +74,8 @@ class _AlarmViewState extends State<AlarmView> {
                 stream: alarmController.alarmStreamQuery(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(
-                        child: MyFireFlyProgressbar(
-                            loadingText: 'loading'.tr(context)));
+                    return const Center(
+                        child: MyFireFlyProgressbar(loadingText: '로딩 중...'));
                   }
 
                   if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {

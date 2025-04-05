@@ -98,7 +98,9 @@ class _NavigationState extends State<Navigation> with WidgetsBindingObserver {
           barrierDismissible: false,
           builder: (BuildContext context) {
             return CustomResetDialogue(
-              text: '어플리케이션을 종료하시겠나요?',
+              text: 'dialogue_message_exit_app'.tr(context),
+              onYesText: 'dialogue_yes'.tr(context),
+              onNoText: 'dialogue_no'.tr(context),
               onYesFunction: () {
                 SystemNavigator.pop();
               },
