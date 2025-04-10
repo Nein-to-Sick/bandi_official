@@ -1,4 +1,9 @@
+import 'dart:math';
 import 'dart:ui';
+import 'dart:developer' as dev;
+import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
 
 import 'package:bandi_official/controller/alarm_controller.dart';
 import 'package:bandi_official/controller/home_to_write.dart';
@@ -24,11 +29,146 @@ class OtherDiary extends StatefulWidget {
 
 class _OtherDiaryState extends State<OtherDiary> {
   bool showFirstPage = true;
+  bool isKorean = true;
+  bool isLoading = false;
+  String originalLang = 'KO'; // 초기 언어 ('KO' or 'EN')
+
+  String? cachedEnglishTranslation;
+  String? cachedKoreanTranslation;
+  String? cachedEnglishTitle;  // 🔹 영어 제목 캐시
+  String? cachedKoreanTitle;  // 🔹 영어 제목 캐시
+
+  String translatedContent = '';
+  String translatedTitle = '';
+
+
+  bool containsKorean(String text) {
+    final koreanRegex = RegExp(r'[가-힣]');
+    return koreanRegex.hasMatch(text);
+  }
+
+
+  @override
+  void initState() {
+    super.initState();
+    final originalContent = widget.writeProvider.otherDiaryModel.content;
+    final originalTitle = widget.writeProvider.otherDiaryModel.title;
+
+    originalLang = containsKorean(originalContent) ? 'KO' : 'EN';
+
+    translatedContent = originalContent;
+    translatedTitle = originalTitle;
+    isKorean = originalLang == 'KO'; // 기본 토글 상태
+  }
+
 
   void _togglePage() {
     setState(() {
       showFirstPage = !showFirstPage;
     });
+  }
+
+  Future<void> handleLanguageToggle(bool value) async {
+    setState(() {
+      isLoading = true;
+    });
+
+    if (originalLang == 'KO') {
+      // 원문이 한글 → 영어로 번역
+      if (!value) {
+        // 한국어 → 영어
+        if (cachedEnglishTranslation != null && cachedEnglishTitle != null) {
+          setState(() {
+            translatedContent = cachedEnglishTranslation!;
+            translatedTitle = cachedEnglishTitle!;
+            isKorean = false;
+            isLoading = false;
+          });
+        } else {
+          try {
+            final content = await translateWithDeepL(
+                widget.writeProvider.otherDiaryModel.content, 'EN');
+            final title = await translateWithDeepL(
+                widget.writeProvider.otherDiaryModel.title, 'EN');
+
+            setState(() {
+              cachedEnglishTranslation = content;
+              cachedEnglishTitle = title;
+              translatedContent = content;
+              translatedTitle = title;
+              isKorean = false;
+              isLoading = false;
+            });
+          } catch (e) {
+            setState(() {
+              translatedContent = 'Translation failed.';
+              translatedTitle = 'Title translation failed.';
+              isKorean = false;
+              isLoading = false;
+            });
+          }
+        }
+      } else {
+        // 영어 → 한글 (원본 복원)
+        setState(() {
+          translatedContent = widget.writeProvider.otherDiaryModel.content;
+          translatedTitle = widget.writeProvider.otherDiaryModel.title;
+          isKorean = true;
+          isLoading = false;
+        });
+      }
+    } else {
+      // 원문이 영어 → 한국어로 번역
+      if (value) {
+        // 영어 → 한국어
+        if (cachedKoreanTranslation != null && cachedKoreanTitle != null) {
+          setState(() {
+            translatedContent = cachedKoreanTranslation!;
+            translatedTitle = cachedKoreanTitle!;
+            isKorean = true;
+            isLoading = false;
+          });
+        } else {
+          try {
+            final content = await translateWithDeepL(
+                widget.writeProvider.otherDiaryModel.content, 'KO');
+            final title = await translateWithDeepL(
+                widget.writeProvider.otherDiaryModel.title, 'KO');
+
+            setState(() {
+              cachedKoreanTranslation = content;
+              cachedKoreanTitle = title;
+              translatedContent = content;
+              translatedTitle = title;
+              isKorean = true;
+              isLoading = false;
+            });
+          } catch (e) {
+            setState(() {
+              translatedContent = '번역에 실패했습니다.';
+              translatedTitle = '제목 번역 실패';
+              isKorean = true;
+              isLoading = false;
+            });
+          }
+        }
+      } else {
+        // 한국어 → 영어 (원본 복원)
+        setState(() {
+          translatedContent = widget.writeProvider.otherDiaryModel.content;
+          translatedTitle = widget.writeProvider.otherDiaryModel.title;
+          isKorean = false;
+          isLoading = false;
+        });
+      }
+    }
+  }
+
+
+  @override
+  void dispose() {
+    cachedEnglishTranslation = null; // ✅ 캐시 비우기
+    super.dispose();
   }
 
   @override
@@ -123,98 +263,124 @@ class _OtherDiaryState extends State<OtherDiary> {
                   color: BandiColor.neutralColor90(context),
                   borderRadius: BandiEffects.radius(),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Stack(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 16.0, right: 16.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          GestureDetector(
-                            onTap: () async {
-                              if (reaction1) {
-                                reactionValue = 0;
-                              } else if (reaction2) {
-                                reactionValue = 1;
-                              } else if (reaction3) {
-                                reactionValue = 2;
-                              }
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 16.0, right: 16.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              GestureDetector(
+                                onTap: () async {
+                                  if (reaction1) {
+                                    reactionValue = 0;
+                                  } else if (reaction2) {
+                                    reactionValue = 1;
+                                  } else if (reaction3) {
+                                    reactionValue = 2;
+                                  }
 
-                              if (reactionValue != -1) {
-                                mailController.saveLikedDiaryToLocal(
-                                    writeProvider.otherDiaryModel,
-                                    reactionValue);
+                                  if (reactionValue != -1) {
+                                    mailController.saveLikedDiaryToLocal(
+                                        writeProvider.otherDiaryModel,
+                                        reactionValue);
 
-                                saveReactionInDB(
-                                    writeProvider.otherDiaryModel.diaryId,
-                                    writeProvider.otherDiaryModel.reaction,
-                                    reaction1,
-                                    reaction2,
-                                    reaction3);
+                                    saveReactionInDB(
+                                        writeProvider.otherDiaryModel.diaryId,
+                                        writeProvider.otherDiaryModel.reaction,
+                                        reaction1,
+                                        reaction2,
+                                        reaction3);
 
-                                String fcmToken = (await FirebaseFirestore
-                                        .instance
-                                        .collection('users')
-                                        .doc(writeProvider
-                                            .otherDiaryModel.userId)
-                                        .get())
-                                    .data()?['fcmToken'];
+                                    String fcmToken = (await FirebaseFirestore
+                                            .instance
+                                            .collection('users')
+                                            .doc(writeProvider
+                                                .otherDiaryModel.userId)
+                                            .get())
+                                        .data()?['fcmToken'];
 
-                                alarmController.sendLikedDiaryNotification(
-                                  writeProvider.otherDiaryModel.diaryId,
-                                  fcmToken,
-                                  writeProvider.otherDiaryModel.userId,
-                                );
-                              }
-                              writeProvider.offDiaryOpen();
-                            },
-                            child: PhosphorIcon(
-                              PhosphorIcons.x(),
-                              color: BandiColor.foundationColor40(context),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              writeProvider.otherDiaryModel.title,
-                              style: BandiFont.displaySmall(context)?.copyWith(
-                                  color:
-                                      BandiColor.foundationColor100(context)),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              DateFormat('yyyy년 M월 d일').format(writeProvider
-                                  .otherDiaryModel.createdAt
-                                  .toDate()),
-                              style: BandiFont.headlineSmall(context)?.copyWith(
-                                  color:
-                                      BandiColor.foundationColor100(context)),
-                            ),
-                            const SizedBox(height: 16),
-                            Expanded(
-                              child: SingleChildScrollView(
-                                child: Text(
-                                  writeProvider.otherDiaryModel.content,
-                                  style: BandiFont.titleSmall(context)
-                                      ?.copyWith(
-                                          color: BandiColor.foundationColor100(
-                                              context)),
+                                    alarmController.sendLikedDiaryNotification(
+                                      writeProvider.otherDiaryModel.diaryId,
+                                      fcmToken,
+                                      writeProvider.otherDiaryModel.userId,
+                                    );
+                                  }
+                                  writeProvider.offDiaryOpen();
+                                },
+                                child: PhosphorIcon(
+                                  PhosphorIcons.x(),
+                                  color: BandiColor.foundationColor40(context),
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: 16),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  translatedTitle,
+                                  style: BandiFont.displaySmall(context)?.copyWith(
+                                      color:
+                                          BandiColor.foundationColor100(context)),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  DateFormat('yyyy년 M월 d일').format(writeProvider
+                                      .otherDiaryModel.createdAt
+                                      .toDate()),
+                                  style: BandiFont.headlineSmall(context)?.copyWith(
+                                      color:
+                                          BandiColor.foundationColor100(context)),
+                                ),
+                                const SizedBox(height: 16),
+                                Expanded(
+                                  child: SingleChildScrollView(
+                                    child: Text(
+                                      translatedContent,
+                                      style: BandiFont.titleSmall(context)
+                                          ?.copyWith(
+                                              color: BandiColor.foundationColor100(
+                                                  context)),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8.0, bottom: 4.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Text(
+                                isKorean ? '한국어' : 'English',
+                                style: BandiFont.titleSmall(context)
+                                    ?.copyWith(
+                                    color: BandiColor.foundationColor100(
+                                        context)),
+                              ),
+                              const SizedBox(width: 10,),
+                              Switch(
+                                value: isKorean,
+                                onChanged: handleLanguageToggle,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
+                    isLoading
+                        ? const Center(child: CircularProgressIndicator()) : Container()
                   ],
                 ),
               ),
@@ -263,4 +429,29 @@ Future<void> saveReactionInDB(String diaryId, List currReaction, bool reaction1,
   await firestore.collection('allDiary').doc(diaryId).update({
     'reaction': [newReaction1, newReaction2, newReaction3]
   });
+}
+
+Future<String> translateWithDeepL(String text, String targetLang) async {
+  String apiKey = dotenv.env['DEEPL_API_KEY']!; // 보안상 .env 처리 권장
+  final response = await http.post(
+    Uri.parse('https://api-free.deepl.com/v2/translate'),
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Authorization': 'DeepL-Auth-Key $apiKey',
+    },
+    body: {
+      'text': text,
+      'target_lang': targetLang, // 'EN' or 'KO'
+    },
+  );
+
+  if (response.statusCode == 200) {
+    final decodedBody = utf8.decode(response.bodyBytes);
+    dev.log('DeepL response body: $decodedBody'); // ✅ 추가
+    final jsonResponse = json.decode(decodedBody);
+
+    return jsonResponse['translations'][0]['text'];
+  } else {
+    throw Exception('Failed to translate: ${response.body}');
+  }
 }
