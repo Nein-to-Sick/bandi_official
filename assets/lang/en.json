@@ -145,7 +145,6 @@
   "inbox_no_letters": "There are no letters",
   "inbox_no_reacted_diaries": "There are no reacted diaries",
   "notifications_title": "Notifications",
-  "ai_chat_title": "Talk to Bandi",
   "settings_title": "Settings",
   "settings_my_account": "My account",
   "settings_my_account_email": "Email",
@@ -166,7 +165,8 @@
   "settings_business_information_ceo": "Representative (CEO)",
   "settings_business_information_address": "Address",
   "settings_business_information_phone": "Phone",
-  "settings_business_information_email": "Email"
+  "settings_business_information_email": "Email",
+  "ai_chat_title": "Talk to Bandi",
   "ai_chat_textbar_message_1": "Typing a response...",
   "ai_chat_textbar_message_2": "Begin your conversation",
   "ai_chat_date_form": "EEE, MMM d",
@@ -179,5 +179,19 @@
   "ai_chat_assistant_message_3": "Show me my past records.",
   "ai_chat_error_message_1": "Looks like there's no internet connection. Can you check it?",
   "ai_chat_error_message_2": "I didn't understand that. Can you explain it again?",
-  "ai_chat_error_message_3": "Seems like an error occurred. Can you say it again?"
+  "ai_chat_error_message_3": "Seems like an error occurred. Can you say it again?",
+  "letter_popup_message_default": "Bandi's New Letter is here!",
+  "letter_popup_button": "View letter",
+  "letter_popup_message_1": "Bandi's January Letter is here!",
+  "letter_popup_message_2": "Bandi's February Letter is here!",
+  "letter_popup_message_3": "Bandi's March Letter is here!",
+  "letter_popup_message_4": "Bandi's April Letter is here!",
+  "letter_popup_message_5": "Bandi's May Letter is here!",
+  "letter_popup_message_6": "Bandi's June Letter is here!",
+  "letter_popup_message_7": "Bandi's July Letter is here!",
+  "letter_popup_message_8": "Bandi's August Letter is here!",
+  "letter_popup_message_9": "Bandi's September Letter is here!",
+  "letter_popup_message_10": "Bandi's October Letter is here!",
+  "letter_popup_message_11": "Bandi's November Letter is here!",
+  "letter_popup_message_12": "Bandi's December Letter is here!"
 }

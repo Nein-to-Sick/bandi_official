@@ -145,7 +145,6 @@
   "inbox_no_letters": "편지가 없습니다",
   "inbox_no_reacted_diaries": "공감한 일기가 없습니다",
   "notifications_title": "알림",
-  "ai_chat_title": "반디와 대화하기",
   "settings_title": "설정",
   "settings_my_account": "계정 관리",
   "settings_my_account_email": "이메일",
@@ -166,7 +165,8 @@
   "settings_business_information_ceo": "대표",
   "settings_business_information_address": "주소",
   "settings_business_information_phone": "휴대폰 번호",
-  "settings_business_information_email": "이메일"
+  "settings_business_information_email": "이메일",
+  "ai_chat_title": "반디와 대화하기",
   "ai_chat_textbar_message_1": "답변 중이에요",
   "ai_chat_textbar_message_2": "대화를 시작해보세요",
   "ai_chat_date_form": "MM월 dd일 EEEE",
@@ -179,5 +179,19 @@
   "ai_chat_assistant_message_3": "지난 내 기록을 보여줘",
   "ai_chat_error_message_1": "인터넷 연결이 없는 것 같아. 확인해 줄 수 있을까?",
   "ai_chat_error_message_2": "이해가 안됐어. 다시 설명해 줄 수 있을까?",
-  "ai_chat_error_message_3": "오류가 발생한 것 같아. 다시 이야기해줄 수 있을까?"
+  "ai_chat_error_message_3": "오류가 발생한 것 같아. 다시 이야기해줄 수 있을까?",
+  "letter_popup_message_default": "편지가 도착했어요!",
+  "letter_popup_button": "편지 보기",
+  "letter_popup_message_1": "1월 편지가 도착했어요!",
+  "letter_popup_message_2": "2월 편지가 도착했어요!",
+  "letter_popup_message_3": "3월 편지가 도착했어요!",
+  "letter_popup_message_4": "4월 편지가 도착했어요!",
+  "letter_popup_message_5": "5월 편지가 도착했어요!",
+  "letter_popup_message_6": "6월 편지가 도착했어요!",
+  "letter_popup_message_7": "7월 편지가 도착했어요!",
+  "letter_popup_message_8": "8월 편지가 도착했어요!",
+  "letter_popup_message_9": "9월 편지가 도착했어요!",
+  "letter_popup_message_10": "10월 편지가 도착했어요!",
+  "letter_popup_message_11": "11월 편지가 도착했어요!",
+  "letter_popup_message_12": "12월 편지가 도착했어요!"
 }
