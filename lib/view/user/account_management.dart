@@ -97,11 +97,25 @@ class _AccountManagementState extends State<AccountManagement> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(
-                    userInfo.nickname.isNotEmpty ? userInfo.nickname : "닉네임 없음",
-                    style: BandiFont.bodyMedium(context)?.copyWith(
-                      color: BandiColor.foundationColor60(context),
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: MediaQuery.of(context).size.width * 0.4,
+                        ),
+                        child: Text(
+                          userInfo.nickname.isNotEmpty
+                              ? userInfo.nickname
+                              : "onboarding_nickname_empty".tr(context),
+                          style: BandiFont.bodyMedium(context)?.copyWith(
+                            color: BandiColor.foundationColor60(context),
+                          ),
+                          overflow: TextOverflow.clip,
+                          softWrap: false,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(width: 10),
                   Icon(
@@ -178,7 +192,8 @@ class _AccountManagementState extends State<AccountManagement> {
                   context: context,
                   builder: (BuildContext context) {
                     return CustomResetDialogue(
-                      text: 'settings_my_account_delete_account_text'.tr(context),
+                      text:
+                          'settings_my_account_delete_account_text'.tr(context),
                       onYesText: 'dialogue_yes'.tr(context),
                       onNoText: 'dialogue_no'.tr(context),
                       onYesFunction: () async {
