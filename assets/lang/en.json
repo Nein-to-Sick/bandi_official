@@ -193,5 +193,11 @@
   "letter_popup_message_9": "Bandi's September Letter is here!",
   "letter_popup_message_10": "Bandi's October Letter is here!",
   "letter_popup_message_11": "Bandi's November Letter is here!",
-  "letter_popup_message_12": "Bandi's December Letter is here!"
+  "letter_popup_message_12": "Bandi's December Letter is here!",
+  "detail_view_button": "Close",
+  "detail_view_header_1": "Date Added",
+  "detail_view_date_form_country": "en_US",
+  "detail_view_letter_title": "A Letter from Bandi",
+  "detail_view_letter_date_form": "MMMM yyyy",
+  "detail_view_diary_date_form": "MMMM dd, yyyy"
 }

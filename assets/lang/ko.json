@@ -193,5 +193,11 @@
   "letter_popup_message_9": "9월 편지가 도착했어요!",
   "letter_popup_message_10": "10월 편지가 도착했어요!",
   "letter_popup_message_11": "11월 편지가 도착했어요!",
-  "letter_popup_message_12": "12월 편지가 도착했어요!"
+  "letter_popup_message_12": "12월 편지가 도착했어요!",
+  "detail_view_button": "닫기",
+  "detail_view_header_1": "추가한 날짜",
+  "detail_view_date_form_country": "ko",
+  "detail_view_letter_title": "반디가 보낸 편지",
+  "detail_view_letter_date_form": "yyyy년 MM월",
+  "detail_view_diary_date_form": "yyyy년 MM월 dd일"
 }
