@@ -4,7 +4,6 @@ import 'package:bandi_official/components/no_reuse/reset_dialogue.dart';
 import 'package:bandi_official/controller/alarm_controller.dart';
 import 'package:bandi_official/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
-import 'package:bandi_official/controller/permission_controller.dart';
 import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/home/home_view.dart';
@@ -176,7 +175,10 @@ class _NavigationState extends State<Navigation> with WidgetsBindingObserver {
                           : const SizedBox.shrink()
                     ],
                   ),
-                )
+                ),
+              OtherDiary(
+                writeProvider: writeProvider,
+              )
             ],
           ),
         ),

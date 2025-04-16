@@ -179,5 +179,7 @@
   "ai_chat_assistant_message_3": "Show me my past records.",
   "ai_chat_error_message_1": "Looks like there's no internet connection. Can you check it?",
   "ai_chat_error_message_2": "I didn't understand that. Can you explain it again?",
-  "ai_chat_error_message_3": "Seems like an error occurred. Can you say it again?"
+  "ai_chat_error_message_3": "Seems like an error occurred. Can you say it again?",
+  "other_diary_title": "Support someone going\nthrough a similar experience.",
+  "other_diary_view": "View"
 }
