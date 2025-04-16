@@ -175,10 +175,7 @@ class _NavigationState extends State<Navigation> with WidgetsBindingObserver {
                           : const SizedBox.shrink()
                     ],
                   ),
-                ),
-              OtherDiary(
-                writeProvider: writeProvider,
-              )
+                )
             ],
           ),
         ),
