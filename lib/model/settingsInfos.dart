@@ -9,13 +9,13 @@ class CompanyInfo {
     },
     'en': {
       'companyName': 'Nein to Sick',
-      'ceo': 'Kim, Hyungjin',
-      'address': '558, Handong-ro, Heunghae-eup, Buk-gu, Pohang-si, Gyeongsangbuk-do, South Korea (Handong University) SW Lounge 303',
+      'ceo': 'Kim, HyungJin',
+      'address':
+          '558, Handong-ro, Heunghae-eup, Buk-gu, Pohang-si, Gyeongsangbuk-do, South Korea (Handong University) SW Lounge 303',
       'phone': '010-0000-0000',
       'email': 'neintosick96@gmail.com',
     },
   };
-
 
   Map<String, List<List<String>>> localizedTermsOfUse = {
     'ko': [
@@ -88,7 +88,6 @@ class CompanyInfo {
     ]
   };
 
-
   Map<String, List<List<String>>> localizedPrivacyPolicy = {
     'ko': [
       [
@@ -120,10 +119,10 @@ class CompanyInfo {
     ]
   };
 
-
   Map<String, String> localizedPrivacyPolicyExplain = {
-    'ko': '위 개인정보 처리방침은 반디 앱에서 수집하는 개인정보에 대한 설명과 사용 방법을 안내하기 위한 것입니다. 사용자는 앱 서비스 이용 전에 본 개인정보 처리방침을 주의 깊게 읽고 동의 여부를 결정할 수 있습니다.',
-    'en': 'This privacy policy is intended to explain how Bandi App collects and uses personal information. Users are advised to read the policy carefully before using the service and decide whether to agree.'
+    'ko':
+        '위 개인정보 처리방침은 반디 앱에서 수집하는 개인정보에 대한 설명과 사용 방법을 안내하기 위한 것입니다. 사용자는 앱 서비스 이용 전에 본 개인정보 처리방침을 주의 깊게 읽고 동의 여부를 결정할 수 있습니다.',
+    'en':
+        'This privacy policy is intended to explain how Bandi App collects and uses personal information. Users are advised to read the policy carefully before using the service and decide whether to agree.'
   };
-
 }

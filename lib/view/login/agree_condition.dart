@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:bandi_official/model/settingsInfos.dart';
+import 'package:bandi_official/string_extention.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -33,7 +34,7 @@ class AgreementSheet {
         ),
       ),
       builder: (BuildContext context) {
-        return AgreementStatful();
+        return const AgreementStatful();
       },
     );
   }
@@ -52,19 +53,19 @@ class _AgreementStatfulState extends State<AgreementStatful> {
   bool option2Selected = false;
   bool option3Selected = false;
 
-
   @override
   Widget build(BuildContext context) {
-
     String langCode = Localizations.localeOf(context).languageCode;
     List<List<String>>? terms = CompanyInfo().localizedTermsOfUse[langCode] ??
         CompanyInfo().localizedTermsOfUse['ko'];
 
-    List<List<String>>? privacy = CompanyInfo().localizedPrivacyPolicy[langCode] ??
-        CompanyInfo().localizedPrivacyPolicy['ko'];
+    List<List<String>>? privacy =
+        CompanyInfo().localizedPrivacyPolicy[langCode] ??
+            CompanyInfo().localizedPrivacyPolicy['ko'];
 
-    String? privacyLastText = CompanyInfo().localizedPrivacyPolicyExplain[langCode] ??
-        CompanyInfo().localizedPrivacyPolicyExplain['ko'];
+    String? privacyLastText =
+        CompanyInfo().localizedPrivacyPolicyExplain[langCode] ??
+            CompanyInfo().localizedPrivacyPolicyExplain['ko'];
 
     var navigationToggleProvider =
         Provider.of<NavigationToggleProvider>(context);
@@ -94,7 +95,7 @@ class _AgreementStatfulState extends State<AgreementStatful> {
               Padding(
                 padding: const EdgeInsets.only(top: 40),
                 child: Text(
-                  "약관 동의",
+                  "onboarding_agreement_condition_title".tr(context),
                   style: BandiFont.bodyMedium(context)?.copyWith(
                     color: BandiColor.foundationColor80(context),
                   ),
@@ -106,7 +107,7 @@ class _AgreementStatfulState extends State<AgreementStatful> {
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 title: Text(
-                  '전체 동의',
+                  'onboarding_agreement_condition_header'.tr(context),
                   style: BandiFont.bodySmall(context)?.copyWith(
                     color: BandiColor.foundationColor80(context),
                   ),
@@ -142,7 +143,7 @@ class _AgreementStatfulState extends State<AgreementStatful> {
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 title: Text(
-                  '(필수) 만 14세 이상이신가요?',
+                  'onboarding_agreement_condition_1'.tr(context),
                   style: BandiFont.bodySmall(context)?.copyWith(
                     color: BandiColor.foundationColor80(context),
                   ),
@@ -191,7 +192,8 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                                   vertical: 16,
                                 ),
                                 child: Text(
-                                  "개인정보 처리방침",
+                                  "onboarding_agreement_condition_2"
+                                      .tr(context),
                                   style:
                                       BandiFont.displaySmall(context)?.copyWith(
                                     color:
@@ -206,14 +208,12 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                                 Expanded(
                                   child: SingleChildScrollView(
                                     child: Padding(
-                                      padding: EdgeInsets.symmetric(
+                                      padding: const EdgeInsets.symmetric(
                                           horizontal: 23.0),
                                       child: Column(
                                         children: [
                                           for (int i = 0;
-                                              i <
-                                                  privacy
-                                                      !.length;
+                                              i < privacy!.length;
                                               i++)
                                             Column(
                                               children: [
@@ -274,7 +274,7 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                                   ),
                                 ),
                                 CustomPrimaryButton(
-                                  title: '닫기',
+                                  title: 'onboarding_button'.tr(context),
                                   onPrimaryButtonPressed: () {
                                     Navigator.pop(context);
                                   },
@@ -293,16 +293,27 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                       style: BandiFont.bodySmall(context)?.copyWith(
                         color: BandiColor.foundationColor80(context),
                       ),
-                      children: const [
-                        TextSpan(text: '(필수) '),
-                        TextSpan(
-                          text: '개인정보처리동의서',
-                          style: TextStyle(
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
-                        TextSpan(text: '에 동의하시나요?'),
-                      ],
+                      children: (langCode == 'ko')
+                          ? const [
+                              TextSpan(text: '(필수) '),
+                              TextSpan(
+                                text: '개인정보처리동의서',
+                                style: TextStyle(
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                              TextSpan(text: '에 동의하시나요?'),
+                            ]
+                          : const [
+                              TextSpan(text: '(Required) '),
+                              TextSpan(text: 'Do you agree to the '),
+                              TextSpan(
+                                text: 'Privacy Policy?',
+                                style: TextStyle(
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ],
                     ),
                   ),
                 ),
@@ -349,7 +360,8 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                                   vertical: 16,
                                 ),
                                 child: Text(
-                                  "이용약관",
+                                  "onboarding_agreement_condition_3"
+                                      .tr(context),
                                   style:
                                       BandiFont.displaySmall(context)?.copyWith(
                                     color:
@@ -364,14 +376,12 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                                 Expanded(
                                   child: SingleChildScrollView(
                                     child: Padding(
-                                      padding: EdgeInsets.symmetric(
+                                      padding: const EdgeInsets.symmetric(
                                           horizontal: 23.0),
                                       child: Column(
                                         children: [
                                           for (int i = 0;
-                                              i <
-                                                  terms
-                                                      !.length;
+                                              i < terms!.length;
                                               i++)
                                             Column(
                                               children: [
@@ -382,8 +392,7 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                                                       .size
                                                       .width,
                                                   child: WrappedKoreanText(
-                                                    terms[i]
-                                                        [0],
+                                                    terms[i][0],
                                                     style: BandiFont
                                                             .headlineMedium(
                                                                 context)
@@ -400,8 +409,7 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                                                       .size
                                                       .width,
                                                   child: WrappedKoreanText(
-                                                    terms[i]
-                                                        [1],
+                                                    terms[i][1],
                                                     style: BandiFont.bodySmall(
                                                             context)
                                                         ?.copyWith(
@@ -422,7 +430,7 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                                   ),
                                 ),
                                 CustomPrimaryButton(
-                                  title: '닫기',
+                                  title: 'onboarding_button'.tr(context),
                                   onPrimaryButtonPressed: () {
                                     Navigator.pop(context);
                                   },
@@ -441,16 +449,27 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                       style: BandiFont.bodySmall(context)?.copyWith(
                         color: BandiColor.foundationColor80(context),
                       ),
-                      children: const [
-                        TextSpan(text: '(필수) '),
-                        TextSpan(
-                          text: '이용약관',
-                          style: TextStyle(
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
-                        TextSpan(text: '에 동의하시나요?'),
-                      ],
+                      children: (langCode == 'ko')
+                          ? const [
+                              TextSpan(text: '(필수) '),
+                              TextSpan(
+                                text: '이용약관',
+                                style: TextStyle(
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                              TextSpan(text: '에 동의하시나요?'),
+                            ]
+                          : const [
+                              TextSpan(text: '(Required) '),
+                              TextSpan(text: 'Do you agree to the '),
+                              TextSpan(
+                                text: 'Terms of Use?',
+                                style: TextStyle(
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ],
                     ),
                   ),
                 ),
@@ -478,7 +497,7 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                 height: 20,
               ),
               CustomPrimaryButton(
-                title: '확인',
+                title: 'onboarding_button_confirm'.tr(context),
                 onPrimaryButtonPressed: () async {
                   if (allSelected) {
                     // await userAgreementFirebaseUpdate();

@@ -319,98 +319,102 @@ class _LoginViewState extends State<LoginView> {
     Widget OnboardPage = Scaffold(
       backgroundColor: BandiColor.transparent(context),
       body: SafeArea(
-          child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            if (_onboarding < 4)
-              const SizedBox(
-                height: 116,
-              ),
-            if (_onboarding < 4)
-              Text(
-                _onboarding == 1
-                    ? "일상을 기록해보세요"
-                    : _onboarding == 2
-                        ? "자신과 대화해보세요"
-                        : "다른 사람의 기록에 공감해주세요",
-                style: BandiFont.displayMedium(context)
-                    ?.copyWith(color: BandiColor.neutralColor90(context)),
-              ),
-            if (_onboarding < 4)
-              const SizedBox(
-                height: 6,
-              ),
-            if (_onboarding < 4)
-              Text(
-                _onboarding == 1
-                    ? "사진, 감정, 글로 간단하게 기록할 수 있어요."
-                    : _onboarding == 2
-                        ? "나의 기록을 학습한 AI와 대화할 수 있어요."
-                        : "당신과 비슷한 누군가의 기록을 보고 응원해주세요.",
-                style: BandiFont.displaySmall(context)
-                    ?.copyWith(color: BandiColor.neutralColor60(context)),
-              ),
-            if (_onboarding < 4)
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 18.5),
-                  child: _onboarding != 4
-                      ? Image.asset(
-                          "assets/images/onboarding/onboarding$_onboarding.png",
-                          fit: BoxFit.contain,
-                        )
-                      : Container(),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              if (_onboarding < 4)
+                const SizedBox(
+                  height: 116,
                 ),
-              ),
-            if (_onboarding < 3)
-              CustomSecondaryButton(
-                title: '건너뛰기',
-                onSecondaryButtonPressed: () {
-                  setState(() {
-                    // setState() 추가.
-                    _onboarding = 4;
-                  });
+              if (_onboarding < 4)
+                Text(
+                  _onboarding == 1
+                      ? "onboarding_step_title_1".tr(context)
+                      : _onboarding == 2
+                          ? "onboarding_step_title_2".tr(context)
+                          : "onboarding_step_title_3".tr(context),
+                  style: BandiFont.displayMedium(context)
+                      ?.copyWith(color: BandiColor.neutralColor90(context)),
+                ),
+              if (_onboarding < 4)
+                const SizedBox(
+                  height: 6,
+                ),
+              if (_onboarding < 4)
+                Text(
+                  _onboarding == 1
+                      ? "onboarding_step_subtitle_1".tr(context)
+                      : _onboarding == 2
+                          ? "onboarding_step_subtitle_2".tr(context)
+                          : "onboarding_step_subtitle_3".tr(context),
+                  style: BandiFont.displaySmall(context)
+                      ?.copyWith(color: BandiColor.neutralColor60(context)),
+                  textAlign: TextAlign.center,
+                ),
+              if (_onboarding < 4)
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 18.5),
+                    child: _onboarding != 4
+                        ? Image.asset(
+                            "assets/images/onboarding/onboarding_${_onboarding}_${'onboarding_step_image_country'.tr(context)}.png",
+                            fit: BoxFit.contain,
+                          )
+                        : Container(),
+                  ),
+                ),
+              if (_onboarding < 3)
+                CustomSecondaryButton(
+                  title: 'onboarding_step_button_1'.tr(context),
+                  onSecondaryButtonPressed: () {
+                    setState(() {
+                      // setState() 추가.
+                      _onboarding = 4;
+                    });
 
-                  if (_onboarding >= 4) {
-                    NicknameSettingSheet()
-                        .showNicknameSettingSheet(context)
-                        .then((_) {
-                      // 닉네임 설정 완료 후 추가 처리
-                      // 닉네임 설정 완료 후의 로직을 여기에 작성
-                    });
-                  }
-                },
-                disableButton: false,
+                    if (_onboarding >= 4) {
+                      NicknameSettingSheet()
+                          .showNicknameSettingSheet(context)
+                          .then((_) {
+                        // 닉네임 설정 완료 후 추가 처리
+                        // 닉네임 설정 완료 후의 로직을 여기에 작성
+                      });
+                    }
+                  },
+                  disableButton: false,
+                ),
+              const SizedBox(
+                height: 12,
               ),
-            const SizedBox(
-              height: 12,
-            ),
-            if (_onboarding < 4)
-              CustomPrimaryButton(
-                title: _onboarding < 3 ? '다음' : '시작하기',
-                onPrimaryButtonPressed: () {
-                  setState(() {
-                    // setState() 추가.
-                    _onboarding++;
-                  });
-                  if (_onboarding >= 4) {
-                    NicknameSettingSheet()
-                        .showNicknameSettingSheet(context)
-                        .then((_) {
-                      // 닉네임 설정 완료 후 추가 처리
-                      // 닉네임 설정 완료 후의 로직을 여기에 작성
+              if (_onboarding < 4)
+                CustomPrimaryButton(
+                  title: _onboarding < 3
+                      ? 'onboarding_step_button_2'.tr(context)
+                      : 'onboarding_step_button_3'.tr(context),
+                  onPrimaryButtonPressed: () {
+                    setState(() {
+                      // setState() 추가.
+                      _onboarding++;
                     });
-                  }
-                },
-                disableButton: false,
+                    if (_onboarding >= 4) {
+                      NicknameSettingSheet()
+                          .showNicknameSettingSheet(context)
+                          .then((_) {
+                        // 닉네임 설정 완료 후 추가 처리
+                        // 닉네임 설정 완료 후의 로직을 여기에 작성
+                      });
+                    }
+                  },
+                  disableButton: false,
+                ),
+              const SizedBox(
+                height: 32,
               ),
-            const SizedBox(
-              height: 32,
-            ),
-          ],
+            ],
+          ),
         ),
-      )),
+      ),
     );
 
     return (navigationToggleProvider.getIndex() == -4)
