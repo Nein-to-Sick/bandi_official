@@ -19,6 +19,7 @@ import 'package:bandi_official/view/otherDiary.dart';
 import 'package:bandi_official/view/user/user_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../components/no_reuse/firefly.dart';
@@ -97,6 +98,11 @@ class _NavigationState extends State<Navigation> with WidgetsBindingObserver {
 
     // save context to show alarm details > alarmView to DetailView
     alarmController.updateContext(context);
+
+    // Initialize date formatting for the locale
+    String langCode = Localizations.localeOf(context).languageCode;
+    initializeDateFormatting(langCode, null);
+    // log(langCode);
 
     return WillPopScope(
       onWillPop: () async {

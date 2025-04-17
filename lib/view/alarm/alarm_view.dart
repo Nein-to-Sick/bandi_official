@@ -100,8 +100,8 @@ class _AlarmViewState extends State<AlarmView> {
                           controller: alarmController.alarmScrollController,
                           itemCount: notifications.length,
                           itemBuilder: (context, index) {
-                            String timeAgo = alarmController
-                                .formatTimeAgo(notifications[index].alarmTime);
+                            String timeAgo = alarmController.formatTimeAgo(
+                                notifications[index].alarmTime, context);
                             return Dismissible(
                               key: ValueKey(notifications[index]
                                   .notificationId), // 고유한 키 필요

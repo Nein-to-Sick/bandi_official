@@ -163,8 +163,21 @@ exports.monthlyDiaryReview = functions.region("asia-northeast3").pubsub.schedule
                         newLetterAvailable: true,
                     });
 
-                    const notificationTitle = `${letterTitle}가 도착했어요`;
+                    userDoc = await db.collection("users").doc(userDoc.id).get();
+                    const langCode = userDoc.exists && userDoc.data().language ? userDoc.data().language : "ko"; // 기본값 'ko'
+                    let notificationTitle = "";
                     const notificationType = "letter";
+
+                    if (langCode == "ko") {
+                        notificationTitle = `${letterTitle}가 도착했어요!`;
+                    } else { // (lanq == 'en')
+                        const month = today.toDate().getMonth();
+                        const monthNames = [
+                            "January", "February", "March", "April", "May", "June",
+                            "July", "August", "September", "October", "November", "December",
+                        ];
+                        notificationTitle = `Bandi's ${monthNames[month]} Letter is here!`;
+                    }
 
                     // 알림 추가 함수 호출
                     await addNotification(userDoc.id, notificationTitle, notificationType, letterId);
@@ -174,8 +187,8 @@ exports.monthlyDiaryReview = functions.region("asia-northeast3").pubsub.schedule
                     if (fcmToken) {
                         const message = {
                             notification: {
-                                title: `${letterTitle}가 도착했어요!`,
-                                body: "이번 달의 편지를 확인하세요.",
+                                title: `${notificationTitle}`,
+                                body: (langCode == "ko") ? "이번 달의 편지를 확인하세요." : "Take a look at this month’s letter.",
                             },
                             data: {
                                 screen: "letter_detail",
@@ -242,11 +255,25 @@ exports.monthlyDiaryReview = functions.region("asia-northeast3").pubsub.schedule
 exports.sendLikedDiaryNotification = functions.https.onCall(async (data, context) => {
     const {likedDiaryId, fcmToken, userId} = data;
 
+    const userDoc = await db.collection("users").doc(userId).get();
+    const langCode = userDoc.exists && userDoc.data().language ? userDoc.data().language : "ko"; // 기본값 'ko'
+    let notificationTitle = "";
+    let notificationBody = "";
+    const notificationType = "likedDiary";
+
+    if (langCode == "ko") {
+        notificationTitle = `누군가 나의 기록에 공감했어요!`;
+        notificationBody = `나의 기록을 확인해보세요.`;
+    } else { // (lanq == 'en')
+        notificationTitle = `Someone reacted to your journal.`;
+        notificationBody = `Take a look at your journal.`;
+    }
+
     // 알림 메시지 정의
     const message = {
         notification: {
-            title: `누군가 나의 기록에 공감했어요!`,
-            body: "나의 기록을 확인해보세요.",
+            title: `${notificationTitle}`,
+            body: `${notificationBody}`,
         },
         data: {
             screen: "liked_diary_detail",
@@ -261,9 +288,6 @@ exports.sendLikedDiaryNotification = functions.https.onCall(async (data, context
     } catch (error) {
         console.error(`[Error] Failed to send notification to user ${userId}: ${error.message}`);
     }
-
-    const notificationTitle = "누군가 나의 기록에 공감했어요";
-    const notificationType = "likedDiary";
 
     // 알림 추가 함수 호출
     await addNotification(userId, notificationTitle, notificationType, likedDiaryId);
@@ -350,8 +374,17 @@ exports.sendDailyReminder = functions
                 return;
             }
 
-            const notificationTitle = "하루를 돌아볼 시간이에요!";
-            const notificationBody = "오늘의 기록을 남겨보세요 ✍️";
+            const langCode = userDoc.exists && userDoc.data().language ? userDoc.data().language : "ko"; // 기본값 'ko'
+            let notificationTitle = "";
+            let notificationBody = "";
+
+            if (langCode == "ko") {
+                notificationTitle = "하루를 돌아볼 시간이에요!";
+                notificationBody = "오늘의 기록을 남겨보세요 ✍️";
+            } else { // (lanq == 'en')
+                notificationTitle = "It's time to reflect on your day!";
+                notificationBody = "Write down your thoughts for today ✍️";
+            }
 
             // Firebase Cloud Messaging (FCM) 알림 메시지 생성
             const message = {
