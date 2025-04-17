@@ -34,9 +34,12 @@ class _HomePageState extends State<HomePage> {
 
   void checkNewLetterAndNewNotificationsPageReturn(BuildContext context) async {
     MailController mailController = Provider.of<MailController>(context);
+    AlarmController alarmController = Provider.of<AlarmController>(context);
 
     // read new letter data once after first login
     if (!mailController.loadNewLetterAndNotificationsDataOnce) {
+      alarmController.firebaseLanguageSetting(
+          Localizations.localeOf(context).languageCode);
       Tuple<dynamic, dynamic> result = await mailController
           .checkForNewLetterNewNotificationsAndSaveLetterToLocal();
       if (result.item1 && mounted) {

@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:bandi_official/controller/emotion_provider.dart';
 import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/model/keyword.dart';
+import 'package:bandi_official/string_extention.dart';
 import 'package:flutter/material.dart';
 import 'package:dart_openai/dart_openai.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -21,7 +23,7 @@ class DiaryAIAnalysisController with ChangeNotifier {
       final systemMessageForKeyword = OpenAIChatCompletionChoiceMessageModel(
         content: [
           OpenAIChatCompletionChoiceMessageContentItemModel.text(
-            "Given a diary entry, analyze the text and provide the following fields in a JSON dict: \"emotions\" (comma-separated list of emotion words).",
+            "Given a diary entry, analyze the text and provide the following fields in a JSON dict: \"emotions\" (comma-separated list of emotion words). The response should be in Korean words.",
           ),
         ],
         role: OpenAIChatMessageRole.system,
@@ -73,7 +75,7 @@ class DiaryAIAnalysisController with ChangeNotifier {
   }
 
   //  analyze diary title
-  Future<void> analyzeDiaryTitle(Diary diaryModel) async {
+  Future<void> analyzeDiaryTitle(Diary diaryModel, String langCode) async {
     try {
       // Initializes the package with that API key
       OpenAI.apiKey = dotenv.env['OPENAI_API_KEY']!;
@@ -82,7 +84,9 @@ class DiaryAIAnalysisController with ChangeNotifier {
       final systemMessageForKeyword = OpenAIChatCompletionChoiceMessageModel(
         content: [
           OpenAIChatCompletionChoiceMessageContentItemModel.text(
-            "Given a diary entry, analyze the text and summarize it with a title.",
+            (langCode == 'ko')
+                ? "일기 내용을 분석하고 한 문장의 제목으로 요약해줘."
+                : "Given a diary entry, analyze the text and summarize it with a title in English.",
           ),
         ],
         role: OpenAIChatMessageRole.system,
@@ -136,7 +140,8 @@ class DiaryAIAnalysisController with ChangeNotifier {
   }
 
   //  analyze diary encouragement
-  Future<void> analyzeDiaryEncouragement(Diary diaryModel) async {
+  Future<void> analyzeDiaryEncouragement(
+      Diary diaryModel, String langCode) async {
     try {
       // Initializes the package with that API key
       OpenAI.apiKey = dotenv.env['OPENAI_API_KEY']!;
@@ -145,7 +150,9 @@ class DiaryAIAnalysisController with ChangeNotifier {
       final systemMessageForKeyword = OpenAIChatCompletionChoiceMessageModel(
         content: [
           OpenAIChatCompletionChoiceMessageContentItemModel.text(
-            "Please limit your response to a single complete sentence(within 50 token) and provide encouragement in Korean based on the content of the diary entry.",
+            (langCode == 'ko')
+                ? "일기 내용에 기반하여 하나의 문장으로 격려를 한국어로 제공해줘."
+                : "Please limit your response to a single sentence and provide encouragement in English based on the content of the diary entry.",
           ),
         ],
         role: OpenAIChatMessageRole.system,

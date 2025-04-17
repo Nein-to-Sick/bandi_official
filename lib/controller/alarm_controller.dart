@@ -1,3 +1,4 @@
+import 'package:bandi_official/controller/emotion_provider.dart';
 import 'package:bandi_official/controller/home_to_write.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/controller/navigation_toggle_provider.dart';
@@ -5,6 +6,7 @@ import 'package:bandi_official/main.dart';
 import 'package:bandi_official/model/alarm.dart';
 import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/model/letter.dart';
+import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/view/mail/new_letter_popup.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
@@ -40,6 +42,13 @@ class AlarmController with ChangeNotifier {
 
   void updateContext(BuildContext context) {
     navigationContext = context;
+  }
+
+  void firebaseLanguageSetting(String langCode) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .update({'language': langCode});
   }
 
   // This callback is fired at each app startup and whenever a new token is generated.
@@ -266,18 +275,27 @@ class AlarmController with ChangeNotifier {
         .snapshots();
   }
 
-  String formatTimeAgo(Timestamp timestamp) {
+  Future<void> deleteNotification(String notificationId) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('notifications')
+        .doc(notificationId)
+        .delete();
+  }
+
+  String formatTimeAgo(Timestamp timestamp, BuildContext context) {
     final now = DateTime.now();
     final difference = now.difference(timestamp.toDate());
 
     if (difference.inDays > 0) {
-      return '${difference.inDays}일 전';
+      return '${difference.inDays}${'notification_day'.tr(context)}';
     } else if (difference.inHours > 0) {
-      return '${difference.inHours}시간 전';
+      return '${difference.inHours}${'notification_hour'.tr(context)}';
     } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}분 전';
+      return '${difference.inMinutes}${'notification_minute'.tr(context)}';
     } else {
-      return '방금 전'; // 1분 이내일 경우
+      return 'notification_second'.tr(context); // 1분 이내일 경우
     }
   }
 
