@@ -26,6 +26,8 @@ class _CustomReactionButtonState extends State<CustomReactionButton> {
 
   @override
   Widget build(BuildContext context) {
+    String langCode = Localizations.localeOf(context).languageCode;
+
     return Container(
       width: 327,
       height: 83,
@@ -34,7 +36,7 @@ class _CustomReactionButtonState extends State<CustomReactionButton> {
         borderRadius: BandiEffects.radius(),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 61.5),
+        padding: EdgeInsets.symmetric(horizontal: langCode == 'en' ? 40 : 61.5),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [

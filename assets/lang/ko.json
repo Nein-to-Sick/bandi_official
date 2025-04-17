@@ -185,6 +185,8 @@
   "ai_chat_error_message_1": "인터넷 연결이 없는 것 같아. 확인해 줄 수 있을까?",
   "ai_chat_error_message_2": "이해가 안됐어. 다시 설명해 줄 수 있을까?",
   "ai_chat_error_message_3": "오류가 발생한 것 같아. 다시 이야기해줄 수 있을까?",
+  "other_diary_title": "반디님과 비슷한 친구에게\n공감을 전달해주세요!",
+  "other_diary_view": "일기 보기",
   "notification_title": "알림",
   "notification_no_data": "알림이 없습니다",
   "notification_message": "최근 15개의 알림만 보여줍니다",
