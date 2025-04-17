@@ -2,6 +2,7 @@ import 'package:bandi_official/controller/alarm_controller.dart';
 import 'package:bandi_official/controller/date_provider.dart';
 import 'package:bandi_official/controller/diary_ai_analysis_controller.dart';
 import 'package:bandi_official/controller/diary_ai_chat_controller.dart';
+import 'package:bandi_official/controller/internet_connection_controller.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/controller/permission_controller.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
@@ -99,6 +100,9 @@ class MainApp extends StatelessWidget {
             ),
             ChangeNotifierProvider(
               create: (context) => DateProvider(),
+            ),
+            ChangeNotifierProvider(
+              create: (context) => InternetConnectionController(),
             ),
           ],
           child: MaterialApp(

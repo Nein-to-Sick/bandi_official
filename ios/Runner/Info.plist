@@ -35,6 +35,11 @@
 		</array>
 		<key>CFBundleVersion</key>
 		<string>1.0.9</string>
+		<key>NSAppTransportSecurity</key>
+		<dict>
+			<key>NSAllowsArbitraryLoads</key>
+			<true/>
+		</dict>
 		<key>FirebaseMessagingAutoInitEnabled</key>
 		<false/>
 		<key>GIDClientID</key>

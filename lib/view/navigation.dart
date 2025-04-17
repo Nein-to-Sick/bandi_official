@@ -1,8 +1,12 @@
+import 'dart:developer';
+import 'dart:io';
+
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:bandi_official/components/loading/loading_page.dart';
 import 'package:bandi_official/components/no_reuse/reset_dialogue.dart';
 import 'package:bandi_official/controller/alarm_controller.dart';
 import 'package:bandi_official/controller/diary_ai_chat_controller.dart';
+import 'package:bandi_official/controller/internet_connection_controller.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/controller/permission_controller.dart';
 import 'package:bandi_official/string_extention.dart';
@@ -80,6 +84,9 @@ class _NavigationState extends State<Navigation> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    late InternetConnectionController internetConnectionController =
+        context.watch<InternetConnectionController>();
+
     final navigationToggleProvider =
         Provider.of<NavigationToggleProvider>(context);
     final writeProvider = Provider.of<HomeToWrite>(context);
@@ -92,95 +99,139 @@ class _NavigationState extends State<Navigation> with WidgetsBindingObserver {
     alarmController.updateContext(context);
 
     return WillPopScope(
-      onWillPop: () async {
-        bool? result = await showDialog<bool>(
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext context) {
-            return CustomResetDialogue(
-              text: 'dialogue_message_exit_app'.tr(context),
-              onYesText: 'dialogue_yes'.tr(context),
-              onNoText: 'dialogue_no'.tr(context),
-              onYesFunction: () {
-                SystemNavigator.pop();
-              },
-              onNoFunction: () {
-                Navigator.pop(context);
+        onWillPop: () async {
+          if (diaryAiChatController.isChatOpen) {
+            diaryAiChatController.toggleChatOpen(false);
+          } else if (alarmController.isAlarmOpen) {
+            alarmController.toggleAlarmOpen(false);
+            mailController.initializeNewNotificaitonCount();
+          } else {
+            bool? result = await showDialog<bool>(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return CustomResetDialogue(
+                  text: 'dialogue_message_exit_app'.tr(context),
+                  onYesText: 'dialogue_yes'.tr(context),
+                  onNoText: 'dialogue_no'.tr(context),
+                  onYesFunction: () {
+                    SystemNavigator.pop();
+                  },
+                  onNoFunction: () {
+                    Navigator.pop(context);
+                  },
+                );
               },
             );
-          },
-        );
-
-        return result ?? false;
-      },
-      child: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            fit: BoxFit.cover,
-            image: AssetImage(
-                'assets/images/backgrounds/background.png'), // 배경 이미지
-          ),
-        ),
-        child: Scaffold(
-          backgroundColor: BandiColor.transparent(context),
-          body: Stack(
-            children: [
-              const FireFly(),
-              (writeProvider.otherDiaryOpen == true && writeProvider.step == 1)
-                  ? OtherDiary(
-                      writeProvider: writeProvider,
-                    )
-                  : (navigationToggleProvider.selectedIndex == -3)
-                      // 회원 가입 시의 빈 배경
-                      ? const SizedBox.shrink()
-                      : (navigationToggleProvider.selectedIndex <= -1 &&
-                              navigationToggleProvider.selectedIndex != -2)
-                          ? const LoginView()
-                          : navigationToggleProvider.selectedIndex == 0
-                              ? const HomePage()
-                              : navigationToggleProvider.selectedIndex == 1
-                                  ? const ListPage()
-                                  : navigationToggleProvider.selectedIndex == 2
-                                      ? AnimatedOpacity(
-                                          opacity: (!mailController
-                                                  .isDetailViewShowing)
-                                              ? 1.0
-                                              : 0.0,
-                                          duration:
-                                              const Duration(milliseconds: 300),
-                                          child: const MailView(),
-                                        )
-                                      : navigationToggleProvider
-                                                  .selectedIndex ==
-                                              100
-                                          ? Center(
-                                              child: MyFireFlyProgressbar(
-                                                  loadingText:
-                                                      'loading'.tr(context)),
-                                            )
-                                          : const UserView(),
-              if (navigationToggleProvider.selectedIndex >= 0 &&
-                  navigationToggleProvider.selectedIndex != 100)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      ((!writeProvider.write &&
-                                  !diaryAiChatController.isChatOpen &&
-                                  !mailController.isDetailViewShowing &&
-                                  !alarmController.isAlarmOpen) &&
-                              !(writeProvider.otherDiaryOpen == true &&
-                                  writeProvider.step == 1))
-                          ? navigationBar(context)
-                          : const SizedBox.shrink()
-                    ],
+            return result ?? false;
+          }
+          return false;
+        },
+        child: FutureBuilder(
+            future: internetConnectionController.checkNetworkConnectivity(),
+            builder: (context, snapshot) {
+              return Container(
+                decoration: const BoxDecoration(
+                  image: DecorationImage(
+                    fit: BoxFit.cover,
+                    image: AssetImage(
+                        'assets/images/backgrounds/background.png'), // 배경 이미지
                   ),
-                )
-            ],
-          ),
-        ),
-      ),
-    );
+                ),
+                child: (snapshot.data == true)
+                    ? Scaffold(
+                        backgroundColor: BandiColor.transparent(context),
+                        body: Stack(
+                          children: [
+                            const FireFly(),
+                            (writeProvider.otherDiaryOpen == true &&
+                                    writeProvider.step == 1)
+                                ? OtherDiary(
+                                    writeProvider: writeProvider,
+                                  )
+                                : (navigationToggleProvider.selectedIndex == -3)
+                                    // 회원 가입 시의 빈 배경
+                                    ? const SizedBox.shrink()
+                                    : (navigationToggleProvider.selectedIndex <=
+                                                -1 &&
+                                            navigationToggleProvider
+                                                    .selectedIndex !=
+                                                -2)
+                                        ? const LoginView()
+                                        : navigationToggleProvider
+                                                    .selectedIndex ==
+                                                0
+                                            ? const HomePage()
+                                            : navigationToggleProvider
+                                                        .selectedIndex ==
+                                                    1
+                                                ? const ListPage()
+                                                : navigationToggleProvider
+                                                            .selectedIndex ==
+                                                        2
+                                                    ? AnimatedOpacity(
+                                                        opacity: (!mailController
+                                                                .isDetailViewShowing)
+                                                            ? 1.0
+                                                            : 0.0,
+                                                        duration:
+                                                            const Duration(
+                                                                milliseconds:
+                                                                    300),
+                                                        child: const MailView(),
+                                                      )
+                                                    : navigationToggleProvider
+                                                                .selectedIndex ==
+                                                            100
+                                                        ? Center(
+                                                            child: MyFireFlyProgressbar(
+                                                                loadingText:
+                                                                    'loading'.tr(
+                                                                        context)),
+                                                          )
+                                                        : const UserView(),
+                            if (navigationToggleProvider.selectedIndex >= 0 &&
+                                navigationToggleProvider.selectedIndex != 100)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    ((!writeProvider.write &&
+                                                !diaryAiChatController
+                                                    .isChatOpen &&
+                                                !mailController
+                                                    .isDetailViewShowing &&
+                                                !alarmController.isAlarmOpen) &&
+                                            !(writeProvider.otherDiaryOpen ==
+                                                    true &&
+                                                writeProvider.step == 1))
+                                        ? navigationBar(context)
+                                        : const SizedBox.shrink()
+                                  ],
+                                ),
+                              )
+                          ],
+                        ),
+                      )
+                    : Scaffold(
+                        backgroundColor: BandiColor.transparent(context),
+                        body: Center(
+                          child: CustomResetDialogue(
+                            text: '인터넷 연결을 확인해주세요.',
+                            onYesText: '새로고침하기',
+                            onNoText: '어플 종료하기',
+                            onYesFunction: () {
+                              log('새로고침!');
+                              setState(() {});
+                            },
+                            onNoFunction: () {
+                              exit(0);
+                            },
+                          ),
+                        ),
+                      ),
+              );
+            }));
   }
 }
