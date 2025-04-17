@@ -169,6 +169,8 @@
   "settings_business_information_address": "주소",
   "settings_business_information_phone": "휴대폰 번호",
   "settings_business_information_email": "이메일",
+  "ai_diary_title_analysis_prompt": "일기 내용을 분석하고 한 문장의 제목으로 요약해줘.",
+  "ai_diary_encouragement_analysis_prompt": "일기 내용에 기반하여 하나의 문장으로 격려를 한국어로 제공해줘.",
   "ai_chat_title": "반디와 대화하기",
   "ai_chat_textbar_message_1": "답변 중이에요",
   "ai_chat_textbar_message_2": "대화를 시작해보세요",

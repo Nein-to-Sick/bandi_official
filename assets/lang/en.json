@@ -169,6 +169,8 @@
   "settings_business_information_address": "Address",
   "settings_business_information_phone": "Phone",
   "settings_business_information_email": "Email",
+  "ai_diary_title_analysis_prompt": "Given a diary entry, analyze the text and summarize it with a title in English.",
+  "ai_diary_encouragement_analysis_prompt": "Please limit your response to a single sentence and provide encouragement in English based on the content of the diary entry.",
   "ai_chat_title": "Talk to Bandi",
   "ai_chat_textbar_message_1": "Typing a response...",
   "ai_chat_textbar_message_2": "Begin your conversation",
