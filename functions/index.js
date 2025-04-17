@@ -106,7 +106,7 @@ exports.monthlyDiaryReview = functions.region("asia-northeast3").pubsub.schedule
             // TODO: 추후 모델 학습 or 프롬프트 개선 필요
             const systemMessage = {
                 content:
-                    `You are a kind assistant. Write an encouraging letter in Korean, addressing the user by their name (${userDoc.nickname} or '친구'), based on their diary entries and emotions. Conclude the letter without a signature or sender's name.`,
+                    `You are a kind assistant. Write an encouraging letter in Korean, addressing the user by their name [${userDoc.nickname}], based on their diary entries and emotions. Conclude the letter without a signature or sender's name.`,
                 role: "system",
             };
 
