@@ -102,20 +102,34 @@ exports.monthlyDiaryReview = functions.region("asia-northeast3").pubsub.schedule
                 return `Diary: ${entry.content}\nEmotions: ${entry.emotion.join(", ")}`;
             }).join("\n\n");
 
-
+            userDoc = await db.collection("users").doc(userDoc.id).get();
+            const langCode = userDoc.exists && userDoc.data().language ? userDoc.data().language : "ko"; // 기본값 'ko'
             // TODO: 추후 모델 학습 or 프롬프트 개선 필요
-            const systemMessage = {
+            let systemMessage = {
                 content:
-                    `You are a kind assistant. Write an encouraging letter in Korean, addressing the user by their name [${userDoc.nickname}], based on their diary entries and emotions. Conclude the letter without a signature or sender's name.`,
+                    ``,
                 role: "system",
             };
 
             const userDiarySet = {
                 content:
-                    `Here are some recent diary entries with their emotions:\n${diaryText}`,
-
+                    `Here are some recent diary entries, along with their associated emotion keywords:\n${diaryText}`,
                 role: "user",
             };
+
+            if (langCode == "ko") {
+                systemMessage = {
+                    content:
+                        `You are a kind assistant. Write an encouraging letter in Korean, addressing the user by their name ${userDoc.nickname} if available, or use '유저님' if the name is not provided, based on their diary entries and emotions. Conclude the letter without a signature or sender's name.`,
+                    role: "system",
+                }
+            } else { // (lanq == 'en')
+                systemMessage = {
+                    content:
+                        `You are a kind assistant. Write an encouraging letter in English, addressing the user by their name ${userDoc.nickname} if available, or use 'User' if the name is not provided, based on their diary entries and emotions. Conclude the letter without a signature or sender's name.`,
+                    role: "system",
+                }
+            }
 
             const requestMessages = [
                 systemMessage,
