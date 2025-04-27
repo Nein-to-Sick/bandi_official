@@ -103,7 +103,12 @@ class MailController with ChangeNotifier {
   }
 
   // keyword filter variable
-  final List<String> chipLabels = ['전체', '응원해요', '공감해요', '함께해요'];
+  final List<String> chipLabels = [
+    'reaction_all',
+    'reaction_support',
+    'reaction_relate',
+    'reaction_with'
+  ];
   int filteredKeywordValue = 0;
 
   // while loading

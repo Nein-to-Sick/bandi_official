@@ -1,6 +1,7 @@
 import 'package:bandi_official/components/loading/loading_page.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/model/diary.dart';
+import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/mail/detail_view.dart';
 import 'package:flutter/material.dart';
@@ -50,7 +51,7 @@ class _LikedDiaryPageState extends State<LikedDiaryPage> {
                   ),
                   child: Center(
                     child: Text(
-                      label,
+                      label.tr(context),
                       style: BandiFont.labelLarge(context)?.copyWith(
                         color: (mailController.chipLabels[
                                         mailController.filteredKeywordValue]
@@ -119,13 +120,13 @@ class _LikedDiaryPageState extends State<LikedDiaryPage> {
     MailController mailController = context.watch<MailController>();
 
     return (mailController.isLoading)
-        ? const MyFireFlyProgressbar(
-            loadingText: '로딩 중...',
+        ? MyFireFlyProgressbar(
+            loadingText: 'loading'.tr(context),
           )
         : (mailController.likedDiaryList.isEmpty)
             ? Center(
                 child: Text(
-                  '공감한 일기가 없습니다',
+                  'inbox_no_reacted_diaries'.tr(context),
                   style: BandiFont.headlineMedium(context)?.copyWith(
                     color: BandiColor.neutralColor80(context),
                   ),

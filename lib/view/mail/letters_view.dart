@@ -1,6 +1,7 @@
 import 'package:bandi_official/components/loading/loading_page.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/model/letter.dart';
+import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/mail/detail_view.dart';
 import 'package:flutter/material.dart';
@@ -65,13 +66,13 @@ class _MyLettersPageState extends State<MyLettersPage> {
   Widget build(BuildContext context) {
     MailController mailController = context.watch<MailController>();
     return (mailController.isLoading)
-        ? const MyFireFlyProgressbar(
-            loadingText: '로딩 중...',
+        ? MyFireFlyProgressbar(
+            loadingText: 'loading'.tr(context),
           )
         : (mailController.letterList.isEmpty)
             ? Center(
                 child: Text(
-                  '편지가 없습니다',
+                  'inbox_no_letters'.tr(context),
                   style: BandiFont.headlineMedium(context)?.copyWith(
                     color: BandiColor.neutralColor80(context),
                   ),

@@ -75,8 +75,12 @@ class _CustomDialogueState extends State<CustomDialogue> {
                   filter: boxBlur,
                   child: Container(
                     constraints: BoxConstraints(
-                        minHeight: 32,
-                        maxWidth: MediaQuery.of(context).size.width * 0.55),
+                      minHeight: 32,
+                      maxWidth:
+                          (widget.chatMessage.messenger == Messenger.assistant)
+                              ? double.infinity
+                              : MediaQuery.of(context).size.width * 0.55,
+                    ),
                     decoration: BoxDecoration(
                       color: boxColor,
                     ),

@@ -1,4 +1,5 @@
 import 'package:bandi_official/components/icon_button/icon_button.dart';
+import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -61,7 +62,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
                 //   vertical: 8,
                 //   horizontal: 16,
                 // ),
-                child: widget.title == "나의 일기"
+                child: widget.title == 'journal_title'.tr(context)
                     ? IconButton(
                         icon: PhosphorIcon(
                           PhosphorIcons.arrowUDownLeft(),

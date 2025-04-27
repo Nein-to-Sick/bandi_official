@@ -8,6 +8,7 @@ import 'package:bandi_official/controller/navigation_toggle_provider.dart';
 import 'package:bandi_official/model/alarm.dart';
 import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/model/letter.dart';
+import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/mail/detail_view.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -55,7 +56,7 @@ class _AlarmViewState extends State<AlarmView> {
         resizeToAvoidBottomInset: true,
         backgroundColor: BandiColor.neutralColor80(context),
         appBar: CustomAppBar(
-          title: '알림',
+          title: 'notification_title'.tr(context),
           titleColor: BandiColor.foundationColor80(context),
           leadingIconColor: BandiColor.foundationColor80(context),
           onLeadingIconPressed: () {
@@ -71,14 +72,15 @@ class _AlarmViewState extends State<AlarmView> {
                 stream: alarmController.alarmStreamQuery(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                        child: MyFireFlyProgressbar(loadingText: '로딩 중...'));
+                    return Center(
+                        child: MyFireFlyProgressbar(
+                            loadingText: 'loading'.tr(context)));
                   }
 
                   if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                     return Center(
                       child: Text(
-                        '알림이 없습니다',
+                        'notification_no_data'.tr(context),
                         style: BandiFont.headlineMedium(context)?.copyWith(
                           color: BandiColor.foundationColor100(context),
                         ),
@@ -98,8 +100,8 @@ class _AlarmViewState extends State<AlarmView> {
                           controller: alarmController.alarmScrollController,
                           itemCount: notifications.length,
                           itemBuilder: (context, index) {
-                            String timeAgo = alarmController
-                                .formatTimeAgo(notifications[index].alarmTime);
+                            String timeAgo = alarmController.formatTimeAgo(
+                                notifications[index].alarmTime, context);
                             return Dismissible(
                               key: ValueKey(notifications[index]
                                   .notificationId), // 고유한 키 필요
@@ -255,7 +257,7 @@ class _AlarmViewState extends State<AlarmView> {
                             height: 16,
                           ),
                           Text(
-                            '최근 15개의 알림만 보여줍니다',
+                            'notification_message'.tr(context),
                             style: BandiFont.headlineSmall(context)?.copyWith(
                               color: BandiColor.foundationColor60(context),
                             ),
@@ -264,7 +266,7 @@ class _AlarmViewState extends State<AlarmView> {
                             height: 16,
                           ),
                           CustomPrimaryButton(
-                            title: '닫기',
+                            title: 'notification_button'.tr(context),
                             onPrimaryButtonPressed: () {
                               alarmController.toggleAlarmOpen(false);
                               mailController.initializeNewNotificaitonCount();

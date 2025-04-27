@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:bandi_official/controller/emotion_provider.dart';
+import 'package:bandi_official/string_extention.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -91,13 +93,13 @@ class _NicknameSettingStatefulState extends State<NicknameSettingStateful> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                "사용할 닉네임을 정해주세요",
+                "onboarding_nickname_title".tr(context),
                 style: BandiFont.displayMedium(context)
                     ?.copyWith(color: BandiColor.foundationColor80(context)),
               ),
               const SizedBox(height: 6),
               Text(
-                "나중에 언제든지 바꿀 수 있어요",
+                "onboarding_nickname_subtitle".tr(context),
                 style: BandiFont.titleMedium(context)
                     ?.copyWith(color: BandiColor.foundationColor40(context)),
               ),
@@ -118,7 +120,7 @@ class _NicknameSettingStatefulState extends State<NicknameSettingStateful> {
               ),
               const SizedBox(height: 17),
               CustomPrimaryButton(
-                title: '확인',
+                title: 'onboarding_nickname_button'.tr(context),
                 onPrimaryButtonPressed: () {
                   if (_nickname.isNotEmpty) {
                     // 비동기 작업을 호출하는 동기 함수로 래핑

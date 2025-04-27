@@ -1,5 +1,6 @@
 // lib/views/user/settings_home.dart
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:bandi_official/string_extention.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -26,7 +27,7 @@ class SettingsHome extends StatelessWidget {
             vertical: 16,
           ),
           child: Text(
-            "설정",
+            'settings_title'.tr(context),
             style: BandiFont.displaySmall(context)?.copyWith(
               color: BandiColor.foundationColor80(context),
             ),
@@ -41,7 +42,7 @@ class SettingsHome extends StatelessWidget {
           _buildSettingOption(
             context: context,
             icon: PhosphorIcons.user(),
-            text: "계정 관리",
+            text: 'settings_my_account'.tr(context),
             onTap: () => onNavigate(1),
             autotext: 0,
           ),
@@ -49,29 +50,30 @@ class SettingsHome extends StatelessWidget {
           _buildSettingOption(
             context: context,
             icon: PhosphorIcons.bell(),
-            text: "알림 설정",
+            text: 'settings_notifications'.tr(context),
             onTap: () {},
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   (permissionController.getNotificationPermissionState())
-                      ? "설정됨"
-                      : "해제됨",
+                      ? 'settings_notifications_on'.tr(context)
+                      : 'settings_notifications_off'.tr(context),
                   style: BandiFont.bodyMedium(context)?.copyWith(
                     color: BandiColor.foundationColor10(context),
                   ),
                 ),
                 const SizedBox(width: 12.5),
                 Switch(
-                  value:
-                  permissionController.getNotificationPermissionState(),
+                  value: permissionController.getNotificationPermissionState(),
                   onChanged: (bool value) {
                     showDialog(
                         context: context,
                         builder: (BuildContext context) {
                           return CustomResetDialogue(
-                            text: '알림 설정은 시스템 설정에서 진행됩니다.\n시스템 설정으로 이동하시겠나요?',
+                            text: 'settings_notifications_text'.tr(context),
+                            onYesText: 'dialogue_yes'.tr(context),
+                            onNoText: 'dialogue_no'.tr(context),
                             onYesFunction: () {
                               Navigator.pop(context);
                               openAppSettings();
@@ -99,28 +101,28 @@ class SettingsHome extends StatelessWidget {
           const SizedBox(height: 16),
           _buildSettingOption(
             context: context,
-            text: "오픈 라이센스",
+            text: 'settings_open_license'.tr(context),
             onTap: () => onNavigate(3),
             autotext: 0,
           ),
           const SizedBox(height: 8),
           _buildSettingOption(
             context: context,
-            text: "이용 약관",
+            text: 'settings_terms_of_use'.tr(context),
             onTap: () => onNavigate(4),
             autotext: 0,
           ),
           const SizedBox(height: 8),
           _buildSettingOption(
             context: context,
-            text: "개인정보 처리방침",
+            text: 'settings_privacy_policy'.tr(context),
             onTap: () => onNavigate(5),
             autotext: 0,
           ),
           const SizedBox(height: 8),
           _buildSettingOption(
             context: context,
-            text: "사업자 정보",
+            text: 'settings_business_information'.tr(context),
             onTap: () => onNavigate(6),
             autotext: 0,
           ),
@@ -155,18 +157,18 @@ class SettingsHome extends StatelessWidget {
             if (icon != null) const SizedBox(width: 8),
             (autotext == 1)
                 ? Text(
-              text,
-              style: BandiFont.bodyMedium(context)?.copyWith(
-                color: BandiColor.foundationColor80(context),
-              ),
-            )
+                    text,
+                    style: BandiFont.bodyMedium(context)?.copyWith(
+                      color: BandiColor.foundationColor80(context),
+                    ),
+                  )
                 : AutoSizeText(
-              text,
-              style: BandiFont.bodyMedium(context)?.copyWith(
-                color: BandiColor.foundationColor80(context),
-              ),
-              maxLines: 1,
-            ),
+                    text,
+                    style: BandiFont.bodyMedium(context)?.copyWith(
+                      color: BandiColor.foundationColor80(context),
+                    ),
+                    maxLines: 1,
+                  ),
             if (trailing != null) ...[
               const Spacer(),
               trailing,

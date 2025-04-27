@@ -5,6 +5,7 @@ import 'package:bandi_official/components/button/primary_button.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/controller/navigation_toggle_provider.dart';
 import 'package:bandi_official/model/letter.dart';
+import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/mail/detail_view.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +22,7 @@ class NewLetterPopuView extends StatelessWidget {
         Provider.of<NavigationToggleProvider>(context);
     MailController mailController = context.watch<MailController>();
     // 정규 표현식을 사용하여 'n월 편지' 부분을 추출
-    final RegExp regex = RegExp(r'(\d+월 편지)$');
+    final RegExp regex = RegExp(r'(\d+)(?=월 편지$)');
     RegExpMatch? match;
     Letter? letter;
 
@@ -80,8 +81,9 @@ class NewLetterPopuView extends StatelessWidget {
                           children: [
                             Text(
                               (match != null)
-                                  ? '${match.group(1)}가 도착했어요!'
-                                  : '편지가 도착했어요!',
+                                  ? 'letter_popup_message_${match.group(1)}'.tr(
+                                      context) //'${match.group(1)}월 편지가 도착했어요!'
+                                  : 'letter_popup_message_default'.tr(context),
                               style: BandiFont.headlineMedium(context)
                                   ?.copyWith(
                                       color:
@@ -101,7 +103,7 @@ class NewLetterPopuView extends StatelessWidget {
                         ),
                       ),
                       CustomPrimaryButton(
-                        title: '편지 보기',
+                        title: "letter_popup_button".tr(context),
                         onPrimaryButtonPressed: () {
                           // 추가적인 상태 업데이트 로직
                           navigationToggleProvider.selectIndex(2);

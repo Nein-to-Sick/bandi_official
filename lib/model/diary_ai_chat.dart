@@ -1,5 +1,7 @@
+import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/utils/time_utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 enum Messenger {
@@ -33,16 +35,16 @@ class ChatMessage {
     required this.messageTime,
   });
 
-  static List<ChatMessage> defaultChatLog() {
+  static List<ChatMessage> defaultChatLog(BuildContext context) {
     return [
       ChatMessage(
-        message: formatTimestamp(timestampToLocal(Timestamp.now())),
+        message: formatTimestamp(timestampToLocal(Timestamp.now()), context),
         messenger: Messenger.system,
         messageType: MessageType.chat,
         messageTime: timestampToLocal(Timestamp.now()),
       ),
       ChatMessage(
-        message: '안녕! 무슨 일이야?',
+        message: 'ai_chat_greeting'.tr(context),
         messenger: Messenger.ai,
         messageType: MessageType.chat,
         messageTime: timestampToLocal(Timestamp.now()),
@@ -117,7 +119,7 @@ class ChatMessage {
   }
 
   // time stamp formatting
-  static String formatTimestamp(Timestamp timestamp) {
+  static String formatTimestamp(Timestamp timestamp, BuildContext context) {
     // Timestamp to DateTime
     DateTime dateTime = timestamp.toDate();
 
@@ -126,7 +128,9 @@ class ChatMessage {
          DateFormat('yyyy년 MM월 dd일 EEEE', 'ko').format(dateTime);
     */
     // formate date time
-    String formattedTime = DateFormat('MM월 dd일 EEEE', 'ko').format(dateTime);
+    String formattedTime = DateFormat('ai_chat_date_form'.tr(context),
+            'ai_chat_date_form_country'.tr(context))
+        .format(dateTime);
 
     return formattedTime;
   }

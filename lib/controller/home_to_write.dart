@@ -66,7 +66,8 @@ class HomeToWrite with ChangeNotifier {
   }
 
   Future<void> aiAndSaveDiary(BuildContext context) async {
-    await aiDiary(context);
+    String langCode = Localizations.localeOf(context).languageCode;
+    await aiDiary(context, langCode);
     await saveDiary();
     if (diaryModel.emotion.length >= 2) {
       Emotion emotion = classifyEmotion(diaryModel.emotion);
@@ -80,15 +81,16 @@ class HomeToWrite with ChangeNotifier {
     }
   }
 
-  Future<void> aiDiary(BuildContext context) async {
+  Future<void> aiDiary(BuildContext context, String langCode) async {
     DiaryAIAnalysisController diaryAIAnalysisController =
         context.read<DiaryAIAnalysisController>();
 
     // 각 analysis 함수에서 diary 모델의 변수를 초기화 하고 notifyListeners()를 호출합니다.
     // 화면에 보여지는 변수를 model의 변수로 변경하면 됩니다.
     await diaryAIAnalysisController.analyzeDiaryKeyword(diaryModel);
-    await diaryAIAnalysisController.analyzeDiaryTitle(diaryModel);
-    await diaryAIAnalysisController.analyzeDiaryEncouragement(diaryModel);
+    await diaryAIAnalysisController.analyzeDiaryTitle(diaryModel, langCode);
+    await diaryAIAnalysisController.analyzeDiaryEncouragement(
+        diaryModel, langCode);
 
     notifyListeners();
   }
@@ -257,8 +259,8 @@ class HomeToWrite with ChangeNotifier {
 
   Diary otherDiaryModel = Diary(
     userId: 'userId',
-    title: 'title',
-    content: 'content',
+    title: '행복한 날입니다.',
+    content: '죄송해요 저는 여기까지입니다.',
     emotion: ['emotion'],
     createdAt: timestampToLocal(Timestamp.now()),
     updatedAt: timestampToLocal(Timestamp.now()),

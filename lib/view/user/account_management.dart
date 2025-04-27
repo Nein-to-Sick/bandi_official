@@ -1,5 +1,6 @@
 // lib/views/user/account_management.dart
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:bandi_official/string_extention.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -19,11 +20,8 @@ import '../../theme/custom_theme_data.dart';
 class AccountManagement extends StatefulWidget {
   final Function(int) onNavigate;
   final VoidCallback onBack;
-  const AccountManagement({
-    super.key,
-    required this.onBack,
-    required this.onNavigate
-  });
+  const AccountManagement(
+      {super.key, required this.onBack, required this.onNavigate});
 
   @override
   State<AccountManagement> createState() => _AccountManagementState();
@@ -42,12 +40,12 @@ class _AccountManagementState extends State<AccountManagement> {
   @override
   Widget build(BuildContext context) {
     var userInfo = Provider.of<UserInfoValueModel>(context);
-    var navigationToggleProvider = Provider.of<NavigationToggleProvider>(context);
+    var navigationToggleProvider =
+        Provider.of<NavigationToggleProvider>(context);
     final mailController = Provider.of<MailController>(context);
 
     return Scaffold(
       backgroundColor: BandiColor.neutralColor80(context).withOpacity(0.8),
-
       appBar: AppBar(
         scrolledUnderElevation: 0,
         backgroundColor: BandiColor.transparent(context),
@@ -56,7 +54,7 @@ class _AccountManagementState extends State<AccountManagement> {
           onPressed: widget.onBack,
         ),
         title: Text(
-          "계정 관리",
+          'settings_my_account'.tr(context),
           style: BandiFont.displaySmall(context)?.copyWith(
             color: BandiColor.foundationColor80(context),
           ),
@@ -74,7 +72,7 @@ class _AccountManagementState extends State<AccountManagement> {
             _buildSettingOption(
               context: context,
               icon: PhosphorIcons.at(),
-              text: "이메일",
+              text: 'settings_my_account_email'.tr(context),
               onTap: () {},
               trailing: Text(
                 userInfo.userEmail.isNotEmpty ? userInfo.userEmail : "이메일 없음",
@@ -93,18 +91,31 @@ class _AccountManagementState extends State<AccountManagement> {
             _buildSettingOption(
               context: context,
               icon: PhosphorIcons.user(),
-              text: "닉네임",
+              text: 'settings_my_account_nickname'.tr(context),
               onTap: () => widget.onNavigate(2),
-
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(
-                    userInfo.nickname.isNotEmpty ? userInfo.nickname : "닉네임 없음",
-                    style: BandiFont.bodyMedium(context)?.copyWith(
-                      color: BandiColor.foundationColor60(context),
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: MediaQuery.of(context).size.width * 0.4,
+                        ),
+                        child: Text(
+                          userInfo.nickname.isNotEmpty
+                              ? userInfo.nickname
+                              : "onboarding_nickname_empty".tr(context),
+                          style: BandiFont.bodyMedium(context)?.copyWith(
+                            color: BandiColor.foundationColor60(context),
+                          ),
+                          overflow: TextOverflow.clip,
+                          softWrap: false,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(width: 10),
                   Icon(
@@ -119,13 +130,15 @@ class _AccountManagementState extends State<AccountManagement> {
               height: 34,
             ),
             CustomPrimaryButton(
-              title: '로그아웃',
+              title: 'settings_my_account_logout'.tr(context),
               onPrimaryButtonPressed: () async {
                 showDialog(
                   context: context,
                   builder: (BuildContext context) {
                     return CustomResetDialogue(
-                      text: '로그아웃 하시겠나요?',
+                      text: 'settings_my_account_logout_text'.tr(context),
+                      onYesText: 'dialogue_yes'.tr(context),
+                      onNoText: 'dialogue_no'.tr(context),
                       onYesFunction: () async {
                         Navigator.pop(context);
 
@@ -161,7 +174,6 @@ class _AccountManagementState extends State<AccountManagement> {
                       onNoFunction: () {
                         if (mounted) {
                           Navigator.pop(context);
-
                         }
                       },
                     );
@@ -174,13 +186,16 @@ class _AccountManagementState extends State<AccountManagement> {
               height: 12,
             ),
             CustomSecondaryButton(
-              title: '계정 탈퇴',
+              title: 'settings_my_account_delete_account'.tr(context),
               onSecondaryButtonPressed: () {
                 showDialog(
                   context: context,
                   builder: (BuildContext context) {
                     return CustomResetDialogue(
-                      text: '계정 탈퇴를 하시겠나요?\n탈퇴한 계정은 복구할 수 없어요.',
+                      text:
+                          'settings_my_account_delete_account_text'.tr(context),
+                      onYesText: 'dialogue_yes'.tr(context),
+                      onNoText: 'dialogue_no'.tr(context),
                       onYesFunction: () async {
                         Navigator.pop(context);
                         try {
@@ -188,8 +203,8 @@ class _AccountManagementState extends State<AccountManagement> {
 
                           if (user != null) {
                             final storageProvider =
-                            Provider.of<SecureStorageProvider>(context,
-                                listen: false);
+                                Provider.of<SecureStorageProvider>(context,
+                                    listen: false);
 
                             // 로딩 화면 노출
                             navigationToggleProvider.selectIndex(100);
@@ -200,7 +215,7 @@ class _AccountManagementState extends State<AccountManagement> {
 
                             // Firestore에서 사용자 데이터 삭제
                             final userCollection =
-                            FirebaseFirestore.instance.collection("users");
+                                FirebaseFirestore.instance.collection("users");
                             final userDataCollection = FirebaseFirestore
                                 .instance
                                 .collection("userDataCollection");
@@ -222,7 +237,6 @@ class _AccountManagementState extends State<AccountManagement> {
                             userInfo.clearUserInfo();
                             navigationToggleProvider
                                 .selectIndex(-1); // 로그인 페이지로 이동
-
                           }
                         } catch (e) {
                           // 오류가 발생한 경우 로딩 화면을 닫고 오류 메시지를 표시할 수 있습니다.
@@ -272,18 +286,18 @@ class _AccountManagementState extends State<AccountManagement> {
             if (icon != null) const SizedBox(width: 8),
             (autotext == 1)
                 ? Text(
-              text,
-              style: BandiFont.bodyMedium(context)?.copyWith(
-                color: BandiColor.foundationColor80(context),
-              ),
-            )
+                    text,
+                    style: BandiFont.bodyMedium(context)?.copyWith(
+                      color: BandiColor.foundationColor80(context),
+                    ),
+                  )
                 : AutoSizeText(
-              text,
-              style: BandiFont.bodyMedium(context)?.copyWith(
-                color: BandiColor.foundationColor80(context),
-              ),
-              maxLines: 1,
-            ),
+                    text,
+                    style: BandiFont.bodyMedium(context)?.copyWith(
+                      color: BandiColor.foundationColor80(context),
+                    ),
+                    maxLines: 1,
+                  ),
             if (trailing != null) ...[
               const Spacer(),
               trailing,
