@@ -143,15 +143,18 @@ class _NavigationState extends State<Navigation> with WidgetsBindingObserver {
                     'assets/images/backgrounds/background.png'), // 배경 이미지
               ),
             ),
-            child: (snapshot.connectionState == ConnectionState.waiting)
-                ?
-                // 인터넷 연결 확인 중 로딩
-                Center(
-                    child: MyFireFlyProgressbar(
-                        loadingText:
-                            'internet_connection_check_loading'.tr(context)),
-                  )
-                : (snapshot.hasData && snapshot.data == true)
+            child:
+                // (snapshot.connectionState == ConnectionState.waiting)
+                //     ?
+                //     // 인터넷 연결 확인 중 로딩
+                //     Center(
+                //         child: MyFireFlyProgressbar(
+                //             loadingText:
+                //                 'internet_connection_check_loading'.tr(context)),
+                //       )
+                //     :
+                (snapshot.connectionState == ConnectionState.waiting ||
+                        (snapshot.hasData && snapshot.data == true))
                     ?
                     // 데이터가 있으며 인터넷 연결이 성공한 경우
                     Scaffold(
