@@ -7,6 +7,8 @@
   "internet_connection_check": "인터넷 연결을 확인해주세요.",
   "internet_connection_refresh": "새로고침하기",
   "internet_connection_exit": "어플 종료하기",
+  "alarm_permission_approved": "알림 권한이 허용되었습니다.",
+  "alarm_permission_denied": "알림 권한이 허용되지 않았습니다.",
   "dialogue_message_exit_app": "어플리케이션을 종료하시겠나요?",
   "dialogue_message_ai_chat_reset": "대화 내용을 리셋하실건가요?\n리셋한 대화내용은 다시 볼 수 없어요.",
   "dialogue_message_alarm_setting": "알림 받지 않기를 선택하셨습니다.\n알림 권한 설정은 시스템 설정에서\n언제든지 변경할 수 있습니다.",

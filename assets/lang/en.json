@@ -7,6 +7,8 @@
   "internet_connection_check": "Please check your internet connection.",
   "internet_connection_refresh": "Refresh",
   "internet_connection_exit": "Exit App",
+  "alarm_permission_approved": "Notification permission has been granted.",
+  "alarm_permission_denied": "Notification permission has not been granted.",
   "dialogue_message_exit_app": "Do you want to exit the application?",
   "dialogue_message_ai_chat_reset": "Reset the converstaion?\nThis action is irreversibile.",
   "dialogue_message_alarm_setting": "You have chosen not to receive notifications.\nYou can change the notification settings\nat any time in the system settings.",

@@ -1,6 +1,8 @@
 import 'dart:developer';
 
+import 'package:bandi_official/controller/emotion_provider.dart';
 import 'package:bandi_official/controller/permission_controller.dart';
+import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/user/privacy_policy.dart';
 import 'package:bandi_official/view/user/settings_home.dart';
@@ -55,9 +57,9 @@ class _UserViewState extends State<UserView> with WidgetsBindingObserver {
         if (context.mounted && notificationTemp != isGranted) {
           notificationTemp = isGranted;
           if (isGranted) {
-            showSnackBar('알림 권한이 허용되었습니다.');
+            showSnackBar('alarm_permission_approved'.tr(context));
           } else {
-            showSnackBar('알림 권한이 허용되지 않았습니다.');
+            showSnackBar('alarm_permission_denied'.tr(context));
           }
         }
       });
