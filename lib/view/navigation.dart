@@ -143,95 +143,112 @@ class _NavigationState extends State<Navigation> with WidgetsBindingObserver {
                     'assets/images/backgrounds/background.png'), // 배경 이미지
               ),
             ),
-            child: (snapshot.data == true)
-                ? Scaffold(
-                    backgroundColor: BandiColor.transparent(context),
-                    body: Stack(
-                      children: [
-                        const FireFly(),
-                        (writeProvider.otherDiaryOpen == true &&
-                                writeProvider.step == 1)
-                            ? OtherDiary(
-                                writeProvider: writeProvider,
-                              )
-                            : (navigationToggleProvider.selectedIndex == -3)
-                                // 회원 가입 시의 빈 배경
-                                ? const SizedBox.shrink()
-                                : (navigationToggleProvider.selectedIndex <=
-                                            -1 &&
-                                        navigationToggleProvider
-                                                .selectedIndex !=
-                                            -2)
-                                    ? const LoginView()
-                                    : navigationToggleProvider.selectedIndex ==
-                                            0
-                                        ? const HomePage()
+            child: (snapshot.connectionState == ConnectionState.waiting)
+                ?
+                // 인터넷 연결 확인 중 로딩
+                Center(
+                    child: MyFireFlyProgressbar(
+                        loadingText:
+                            'internet_connection_check_loading'.tr(context)),
+                  )
+                : (snapshot.hasData && snapshot.data == true)
+                    ?
+                    // 데이터가 있으며 인터넷 연결이 성공한 경우
+                    Scaffold(
+                        backgroundColor: BandiColor.transparent(context),
+                        body: Stack(
+                          children: [
+                            const FireFly(),
+                            (writeProvider.otherDiaryOpen == true &&
+                                    writeProvider.step == 1)
+                                ? OtherDiary(
+                                    writeProvider: writeProvider,
+                                  )
+                                : (navigationToggleProvider.selectedIndex == -3)
+                                    // 회원 가입 시의 빈 배경
+                                    ? const SizedBox.shrink()
+                                    : (navigationToggleProvider.selectedIndex <=
+                                                -1 &&
+                                            navigationToggleProvider
+                                                    .selectedIndex !=
+                                                -2)
+                                        ? const LoginView()
                                         : navigationToggleProvider
                                                     .selectedIndex ==
-                                                1
-                                            ? const ListPage()
+                                                0
+                                            ? const HomePage()
                                             : navigationToggleProvider
                                                         .selectedIndex ==
-                                                    2
-                                                ? AnimatedOpacity(
-                                                    opacity: (!mailController
-                                                            .isDetailViewShowing)
-                                                        ? 1.0
-                                                        : 0.0,
-                                                    duration: const Duration(
-                                                        milliseconds: 300),
-                                                    child: const MailView(),
-                                                  )
+                                                    1
+                                                ? const ListPage()
                                                 : navigationToggleProvider
                                                             .selectedIndex ==
-                                                        100
-                                                    ? Center(
-                                                        child: MyFireFlyProgressbar(
-                                                            loadingText:
-                                                                'loading'.tr(
-                                                                    context)),
+                                                        2
+                                                    ? AnimatedOpacity(
+                                                        opacity: (!mailController
+                                                                .isDetailViewShowing)
+                                                            ? 1.0
+                                                            : 0.0,
+                                                        duration:
+                                                            const Duration(
+                                                                milliseconds:
+                                                                    300),
+                                                        child: const MailView(),
                                                       )
-                                                    : const UserView(),
-                        if (navigationToggleProvider.selectedIndex >= 0 &&
-                            navigationToggleProvider.selectedIndex != 100)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                ((!writeProvider.write &&
-                                            !diaryAiChatController.isChatOpen &&
-                                            !mailController
-                                                .isDetailViewShowing &&
-                                            !alarmController.isAlarmOpen) &&
-                                        !(writeProvider.otherDiaryOpen ==
-                                                true &&
-                                            writeProvider.step == 1))
-                                    ? navigationBar(context)
-                                    : const SizedBox.shrink()
-                              ],
-                            ),
-                          )
-                      ],
-                    ),
-                  )
-                : Scaffold(
-                    backgroundColor: BandiColor.transparent(context),
-                    body: Center(
-                      child: CustomResetDialogue(
-                        text: 'internet_connection_check'.tr(context),
-                        onYesText: 'internet_connection_refresh'.tr(context),
-                        onNoText: 'internet_connection_exit'.tr(context),
-                        onYesFunction: () {
-                          log('새로고침!');
-                          setState(() {});
-                        },
-                        onNoFunction: () {
-                          exit(0);
-                        },
+                                                    : navigationToggleProvider
+                                                                .selectedIndex ==
+                                                            100
+                                                        ? Center(
+                                                            child: MyFireFlyProgressbar(
+                                                                loadingText:
+                                                                    'loading'.tr(
+                                                                        context)),
+                                                          )
+                                                        : const UserView(),
+                            if (navigationToggleProvider.selectedIndex >= 0 &&
+                                navigationToggleProvider.selectedIndex != 100)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    ((!writeProvider.write &&
+                                                !diaryAiChatController
+                                                    .isChatOpen &&
+                                                !mailController
+                                                    .isDetailViewShowing &&
+                                                !alarmController.isAlarmOpen) &&
+                                            !(writeProvider.otherDiaryOpen ==
+                                                    true &&
+                                                writeProvider.step == 1))
+                                        ? navigationBar(context)
+                                        : const SizedBox.shrink()
+                                  ],
+                                ),
+                              )
+                          ],
+                        ),
+                      )
+                    :
+                    // 데이터가 없거나 인터넷 연결이 실패한 경우
+                    Scaffold(
+                        backgroundColor: BandiColor.transparent(context),
+                        body: Center(
+                          child: CustomResetDialogue(
+                            text: 'internet_connection_check'.tr(context),
+                            onYesText:
+                                'internet_connection_refresh'.tr(context),
+                            onNoText: 'internet_connection_exit'.tr(context),
+                            onYesFunction: () {
+                              log('새로고침!');
+                              setState(() {});
+                            },
+                            onNoFunction: () {
+                              exit(0);
+                            },
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
           );
         },
       ),

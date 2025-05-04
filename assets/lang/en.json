@@ -4,6 +4,7 @@
   "login_google": "Sign in with Google",
   "login_apple": "Sign in with Apple",
   "loading": "Loading...",
+  "internet_connection_check_loading": "Checking internet connection...",
   "internet_connection_check": "Please check your internet connection.",
   "internet_connection_refresh": "Refresh",
   "internet_connection_exit": "Exit App",

@@ -4,6 +4,7 @@
   "login_google": "구글로 시작하기",
   "login_apple": "애플로 시작하기",
   "loading": "로딩 중...",
+  "internet_connection_check_loading": "인터넷 연결 확인 중...",
   "internet_connection_check": "인터넷 연결을 확인해주세요.",
   "internet_connection_refresh": "새로고침하기",
   "internet_connection_exit": "어플 종료하기",
