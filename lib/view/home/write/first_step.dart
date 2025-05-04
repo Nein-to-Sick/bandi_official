@@ -1,3 +1,4 @@
+import 'package:bandi_official/string_extention.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
@@ -56,7 +57,7 @@ class _State extends State<FirstStep> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "기분이 어떠신가요?",
+                    'write_query_feeling'.tr(context),
                     style: BandiFont.displaySmall(context)
                         ?.copyWith(color: BandiColor.neutralColor100(context)),
                   ),
@@ -83,7 +84,7 @@ class _State extends State<FirstStep> {
                       ?.copyWith(color: BandiColor.neutralColor100(context)),
                   decoration: InputDecoration(
                     border: InputBorder.none,
-                    hintText: '겪었던 일과 느꼈던 감정에 대해 써주세요.',
+                    hintText: 'write_hint_text'.tr(context),
                     hintStyle: BandiFont.titleSmall(context)?.copyWith(
                       color: BandiColor.neutralColor40(context),
                     ),
@@ -100,7 +101,7 @@ class _State extends State<FirstStep> {
                 height: 25,
               ),
               CustomPrimaryButton(
-                title: '완료',
+                title: 'done'.tr(context),
                 onPrimaryButtonPressed: () {
                   writeProvider.aiAndSaveDiary(context);
                   writeProvider.nextWrite(2);

@@ -2,6 +2,7 @@ import 'package:bandi_official/components/loading/loading_page.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/model/letter.dart';
+import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/mail/letters_view.dart';
 import 'package:bandi_official/view/mail/liked_diary_view.dart';
@@ -101,14 +102,14 @@ class _EveryMailPageState extends State<EveryMailPage> {
     });
 
     return (mailController.isLoading)
-        ? const MyFireFlyProgressbar(
-            loadingText: '로딩 중...',
+        ? MyFireFlyProgressbar(
+            loadingText: 'loading'.tr(context),
           )
         : (mailController.letterList.isEmpty &&
                 mailController.likedDiaryList.isEmpty)
             ? Center(
                 child: Text(
-                  '보관함이 비었습니다',
+                  'inbox_no_all'.tr(context),
                   style: BandiFont.headlineMedium(context)?.copyWith(
                     color: BandiColor.neutralColor80(context),
                   ),

@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:bandi_official/controller/emotion_provider.dart';
+import 'package:bandi_official/string_extention.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -91,13 +93,13 @@ class _NicknameSettingStatefulState extends State<NicknameSettingStateful> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                "사용할 닉네임을 정해주세요",
+                "onboarding_nickname_title".tr(context),
                 style: BandiFont.displayMedium(context)
                     ?.copyWith(color: BandiColor.foundationColor80(context)),
               ),
               const SizedBox(height: 6),
               Text(
-                "나중에 언제든지 바꿀 수 있어요",
+                "onboarding_nickname_subtitle".tr(context),
                 style: BandiFont.titleMedium(context)
                     ?.copyWith(color: BandiColor.foundationColor40(context)),
               ),
@@ -118,7 +120,7 @@ class _NicknameSettingStatefulState extends State<NicknameSettingStateful> {
               ),
               const SizedBox(height: 17),
               CustomPrimaryButton(
-                title: '확인',
+                title: 'onboarding_nickname_button'.tr(context),
                 onPrimaryButtonPressed: () {
                   if (_nickname.isNotEmpty) {
                     // 비동기 작업을 호출하는 동기 함수로 래핑
@@ -135,94 +137,3 @@ class _NicknameSettingStatefulState extends State<NicknameSettingStateful> {
         ));
   }
 }
-
-// import 'dart:async';
-// import 'package:flutter/material.dart';
-// import 'package:provider/provider.dart';
-// import '../../theme/custom_theme_data.dart';
-// import '../../components/button/primary_button.dart';
-// import '../../controller/navigation_toggle_provider.dart';
-
-// class NicknameSettingSheet {
-//   Future<void> showNicknameSettingSheet(BuildContext context) {
-//     return showModalBottomSheet<void>(
-//       context: context,
-//       isScrollControlled: true,
-//       isDismissible: false,
-//       barrierColor: Colors.transparent,
-//       enableDrag: false,
-//       shape: const RoundedRectangleBorder(
-//         borderRadius: BorderRadius.only(
-//           topLeft: Radius.circular(10),
-//           topRight: Radius.circular(10),
-//         ),
-//       ),
-//       builder: (BuildContext context) {
-//         return NicknameSettingStateful();
-//       },
-//     );
-//   }
-// }
-
-// class NicknameSettingStateful extends StatefulWidget {
-//   const NicknameSettingStateful({super.key});
-
-//   @override
-//   State<NicknameSettingStateful> createState() =>
-//       _NicknameSettingStatefulState();
-// }
-
-// class _NicknameSettingStatefulState extends State<NicknameSettingStateful> {
-//   final TextEditingController _nicknameController = TextEditingController();
-
-//   @override
-//   Widget build(BuildContext context) {
-//     var navigationToggleProvider =
-//         Provider.of<NavigationToggleProvider>(context);
-
-//     return WillPopScope(
-//         onWillPop: () {
-//           return Future(() => false);
-//         },
-//         child: Container(
-//           decoration: BoxDecoration(
-//             color: BandiColor.neutralColor80(context).withOpacity(0.9),
-//             borderRadius: const BorderRadius.only(
-//               topLeft: Radius.circular(10),
-//               topRight: Radius.circular(10),
-//             ),
-//           ),
-//           height: 280,
-//           width: MediaQuery.of(context).size.width,
-//           padding: const EdgeInsets.all(24),
-//           child: Column(
-//             crossAxisAlignment: CrossAxisAlignment.center,
-//             children: [
-//               Text(
-//                 "사용할 닉네임을 정해주세요",
-//                 style: BandiFont.displayMedium(context)
-//                     ?.copyWith(color: BandiColor.foundationColor80(context)),
-//               ), 
-//               const SizedBox(height: 6),
-//               Text(
-//                 "나중에 언제든지 바꿀 수 있어요",
-//                 style: BandiFont.titleMedium(context)
-//                     ?.copyWith(color: BandiColor.foundationColor40(context)),
-//               ),
-//               const SizedBox(height: 20),
-
-//               //여기에 넣어줘.
-              
-//               const SizedBox(height: 20),
-//               // PrimaryButton(
-//               //   text: "Confirm",
-//               //   onPressed: () {
-//               //     // Handle click event
-//               //     // Placeholder for your code
-//               //   },
-//               // ),
-//             ],
-//           ),
-//         ));
-//   }
-// }

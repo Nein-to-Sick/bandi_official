@@ -2,6 +2,7 @@ import 'package:bandi_official/components/appbar/appbar.dart';
 import 'package:bandi_official/controller/alarm_controller.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/model/letter.dart';
+import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/mail/every_mail_view.dart';
 import 'package:bandi_official/view/mail/letters_view.dart';
@@ -59,7 +60,7 @@ class _MailViewState extends State<MailView>
       child: Scaffold(
         backgroundColor: BandiColor.transparent(context),
         appBar: CustomAppBar(
-          title: '보관함',
+          title: 'inbox_title'.tr(context),
           trailingIcon: PhosphorIcons.flask(PhosphorIconsStyle.fill),
           onTrailingIconPressed: () async {
             // For alarm test
@@ -91,21 +92,21 @@ class _MailViewState extends State<MailView>
                     indicatorColor: BandiColor.neutralColor100(context),
                     indicatorSize: TabBarIndicatorSize.tab,
                     dividerColor: BandiColor.neutralColor40(context),
-                    tabs: const [
+                    tabs: [
                       FittedBox(
                         fit: BoxFit.contain,
-                        child: Tab(text: "전체"),
+                        child: Tab(text: 'inbox_all'.tr(context)),
                       ),
                       FittedBox(
                         fit: BoxFit.contain,
                         child: Tab(
-                          text: "편지",
+                          text: 'inbox_letters'.tr(context),
                         ),
                       ),
                       FittedBox(
                         fit: BoxFit.contain,
                         child: Tab(
-                          text: "공감한 일기",
+                          text: 'inbox_reacted_diaries'.tr(context),
                         ),
                       ),
                     ],

@@ -1,22 +1,31 @@
 import 'package:bandi_official/model/keyword.dart';
+import 'package:bandi_official/string_extention.dart';
 import 'package:flutter/material.dart';
 
 class EmotionProvider with ChangeNotifier {
-  String _selectedEmotion = "기쁨";
+  late String _selectedEmotion;
   List<String> _emotionOptions = [];
   final List<String> _selectedEmotions = [];
+  bool _initialized = false;
+  bool get isInitialized => _initialized;
 
-  final _emotionChipOptions = Keyword().getEmotionChipOptions();
+
+  late Map<String, List<String>> _emotionChipOptions;
 
   String get selectedEmotion => _selectedEmotion;
   List<String> get emotionOptions => _emotionOptions;
   List<String> get selectedEmotions => _selectedEmotions;
-  List<String> get emotionKeys =>
-      _emotionChipOptions.keys.toList(); // Public getter for keys
+  List<String> get emotionKeys => _emotionChipOptions.keys.toList();
 
-  EmotionProvider() {
+  void initialize(BuildContext context) {
+    _selectedEmotion = 'emotion_category_happiness'.tr(context);
+
+    _emotionChipOptions = Keyword().getEmotionChipOptions(context);
     _emotionOptions = _emotionChipOptions[_selectedEmotion] ?? [];
+    _initialized = true;
+    notifyListeners();
   }
+
 
   void selectEmotion(String emotion) {
     _selectedEmotion = emotion;

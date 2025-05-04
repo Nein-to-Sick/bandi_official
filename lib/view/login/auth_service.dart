@@ -1,5 +1,5 @@
-import 'dart:developer' as dev;
 import 'dart:developer';
+import 'dart:math' as math;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -36,7 +36,7 @@ class AuthService {
 
     // accessToken과 idToken이 null이 아닌지 확인
     if (credential.accessToken == null) {
-      dev.log("Google 로그인 실패: accessToken 또는 idToken이 null입니다.");
+      log("Google 로그인 실패: accessToken 또는 idToken이 null입니다.");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Google 로그인에 실패했습니다. 다시 시도해주세요.")),
       );
@@ -84,7 +84,7 @@ class AuthService {
       await docRef.set({
         "created_at": FieldValue.serverTimestamp(),
         "email": userEmail,
-        "nickname": "null",
+        "nickname": '반디#${math.Random().nextInt(10000).toString().padLeft(4, '0')}',
         "likedDiaryId": [],
         "myDiaryId": [],
         "socialLoginProvider": "google",
@@ -184,7 +184,7 @@ class AuthService {
       await docRef.set({
         "created_at": FieldValue.serverTimestamp(),
         "email": userEmail,
-        "nickname": "null",
+        "nickname": '반디#${math.Random().nextInt(10000).toString().padLeft(4, '0')}',
         "likedDiaryId": [],
         "myDiaryId": [],
         "socialLoginProvider": "apple",
@@ -270,7 +270,7 @@ class AuthService {
         await docRef.set({
           "created_at": FieldValue.serverTimestamp(),
           "email": userEmail,
-          "nickname": "null",
+          "nickname": '반디#${math.Random().nextInt(10000).toString().padLeft(4, '0')}',
           "likedDiaryId": [],
           "myDiaryId": [],
           "socialLoginProvider": "google",
@@ -357,7 +357,7 @@ class AuthService {
         await docRef.set({
           "created_at": FieldValue.serverTimestamp(),
           "email": userEmail,
-          "nickname": "",
+          "nickname": '반디#${math.Random().nextInt(10000).toString().padLeft(4, '0')}',
           "likedDiaryId": [],
           "myDiaryId": [],
           "socialLoginProvider": "apple",

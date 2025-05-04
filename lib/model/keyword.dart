@@ -1,3 +1,6 @@
+import 'package:bandi_official/string_extention.dart';
+import 'package:flutter/cupertino.dart';
+
 enum Emotion {
   happiness, // 기쁨
   fear, // 두려움
@@ -120,32 +123,32 @@ class Keyword {
     ],
   };
 
-  Map<String, List<String>> getEmotionChipOptions() {
+  Map<String, List<String>> getEmotionChipOptions(BuildContext context) {
     final Map<String, List<String>> emotionChipOptions = {};
 
     emotionMap.forEach((emotion, keywords) {
-      switch (emotion) {
-        case Emotion.happiness:
-          emotionChipOptions[largeCategories[0]] = keywords;
-          break;
-        case Emotion.fear:
-          emotionChipOptions[largeCategories[1]] = keywords;
-          break;
-        case Emotion.discomfort:
-          emotionChipOptions[largeCategories[2]] = keywords;
-          break;
-        case Emotion.anger:
-          emotionChipOptions[largeCategories[3]] = keywords;
-          break;
-        case Emotion.sadness:
-          emotionChipOptions[largeCategories[4]] = keywords;
-          break;
-        case Emotion.unknown:
-          emotionChipOptions[largeCategories[5]] = keywords;
-          break;
-      }
+      final localizedKey = getLocalizedEmotionCategory(context, emotion);
+      emotionChipOptions[localizedKey] = keywords;
     });
 
     return emotionChipOptions;
   }
+
+  String getLocalizedEmotionCategory(BuildContext context, Emotion emotion) {
+    switch (emotion) {
+      case Emotion.happiness:
+        return "emotion_category_happiness".tr(context);
+      case Emotion.fear:
+        return "emotion_category_fear".tr(context);
+      case Emotion.discomfort:
+        return "emotion_category_discomfort".tr(context);
+      case Emotion.anger:
+        return "emotion_category_anger".tr(context);
+      case Emotion.sadness:
+        return "emotion_category_sadness".tr(context);
+      case Emotion.unknown:
+        return "emotion_category_unknown".tr(context);
+    }
+  }
+
 }

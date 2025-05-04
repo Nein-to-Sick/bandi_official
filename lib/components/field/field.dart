@@ -1,3 +1,5 @@
+import 'package:bandi_official/controller/emotion_provider.dart';
+import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -34,17 +36,19 @@ class _CustomFieldState extends State<CustomField> {
 
   @override
   Widget build(BuildContext context) {
+    String langCode = Localizations.localeOf(context).languageCode;
+    int maxLength = (langCode == 'ko') ? 10 : 20;
     return TextField(
       controller: _controller,
       onChanged: (value) {
         // 최대 10글자까지만 입력받도록 제한
-        if (value.characters.length <= 10) {
+        if (value.characters.length <= maxLength) {
           setState(() {
             _currentLength = value.characters.length;
           });
           widget.onChanged(value);
         } else {
-          String newValue = value.characters.take(10).toString();
+          String newValue = value.characters.take(maxLength).toString();
           _controller.text = newValue;
           _controller.selection = TextSelection.fromPosition(
             TextPosition(offset: _controller.text.length),
@@ -56,9 +60,9 @@ class _CustomFieldState extends State<CustomField> {
       },
       obscureText: widget.isPassword ? _isObscured : false,
       enabled: widget.isEnabled,
-      maxLength: 10, // 최대 10글자로 제한
+      maxLength: maxLength,
       decoration: InputDecoration(
-        hintText: '최대 10글자',
+        hintText: 'onboarding_nickname_textbar_message'.tr(context),
         hintStyle: BandiFont.labelMedium(context)?.copyWith(
           color: BandiColor.foundationColor40(context),
         ),
@@ -91,7 +95,7 @@ class _CustomFieldState extends State<CustomField> {
               ),
               const SizedBox(width: 7),
               Text(
-                '$_currentLength/10',
+                '$_currentLength/$maxLength',
                 style: BandiFont.labelMedium(context)?.copyWith(
                   color: BandiColor.foundationColor20(context),
                 ),
@@ -102,7 +106,8 @@ class _CustomFieldState extends State<CustomField> {
         ),
         counterText: '', // 글자 수 표시를 제거
       ),
-      cursorColor: BandiColor.neutralColor100(context), // 포커스 시 깜박이는 커서 색상
+      cursorHeight: 20,
+      cursorColor: BandiColor.foundationColor100(context), // 포커스 시 깜박이는 커서 색상
       style: BandiFont.labelMedium(context)?.copyWith(
         color: BandiColor.foundationColor100(context), // 텍스트 필드 안의 글자 색상
       ),

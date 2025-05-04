@@ -3,6 +3,7 @@ import 'package:bandi_official/components/dialogue/dialogue.dart';
 import 'package:bandi_official/components/no_reuse/chat_message_bar.dart';
 import 'package:bandi_official/components/no_reuse/reset_dialogue.dart';
 import 'package:bandi_official/controller/diary_ai_chat_controller.dart';
+import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
@@ -33,6 +34,7 @@ class _DiaryAIChatPageState extends State<DiaryAIChatPage> {
             diaryAiChatController.chatScrollController
                 .addListener(_scrollListener);
             diaryAiChatController.toggleIsListenerAdded(true);
+            diaryAiChatController.chatLogInitialization(context);
           });
         }
       });
@@ -69,16 +71,13 @@ class _DiaryAIChatPageState extends State<DiaryAIChatPage> {
     DiaryAiChatController diaryAiChatController =
         context.watch<DiaryAiChatController>();
 
-    return PopScope(
-      canPop: false,
-      onPopInvoked: (value) {
-        diaryAiChatController.toggleChatOpen(false);
-      },
+    return WillPopScope(
+      onWillPop: () => Future(() => false),
       child: Scaffold(
         resizeToAvoidBottomInset: true,
         backgroundColor: BandiColor.transparent(context),
         appBar: CustomAppBar(
-          title: '반디와 대화하기',
+          title: 'ai_chat_title'.tr(context),
           trailingIcon:
               PhosphorIcons.arrowCounterClockwise(PhosphorIconsStyle.regular),
           onLeadingIconPressed: () {
@@ -90,9 +89,11 @@ class _DiaryAIChatPageState extends State<DiaryAIChatPage> {
               barrierDismissible: false,
               builder: (BuildContext context) {
                 return CustomResetDialogue(
-                  text: '대화 내용을 리셋하실건가요?\n리셋한 대화내용은 다시 볼 수 없어요.',
+                  text: 'dialogue_message_ai_chat_reset'.tr(context),
+                  onYesText: 'dialogue_yes'.tr(context),
+                  onNoText: 'dialogue_no'.tr(context),
                   onYesFunction: () {
-                    diaryAiChatController.resetTheChat();
+                    diaryAiChatController.resetTheChat(context);
                     Navigator.pop(context);
                   },
                   onNoFunction: () {

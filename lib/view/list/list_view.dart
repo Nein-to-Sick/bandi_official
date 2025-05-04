@@ -1,3 +1,4 @@
+import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -24,8 +25,8 @@ class _ListPageState extends State<ListPage> {
         backgroundColor: BandiColor.transparent(context),
         // custom appbar 일단 임시로 leading icon 변경
         appBar: CustomAppBar(
-          title: '나의 일기',
-          trailingIcon: PhosphorIcons.calendarDots(PhosphorIconsStyle.fill),
+          title: 'journal_title'.tr(context),
+          trailingIcon: PhosphorIcons.calendarBlank(),
           onLeadingIconPressed: () {
             setState(() {
               dateProvider.clearDate();

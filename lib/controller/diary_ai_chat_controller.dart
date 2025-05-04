@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:bandi_official/model/diary_ai_chat.dart';
+import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/utils/time_utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -43,8 +44,9 @@ class DiaryAiChatController with ChangeNotifier {
   // String chatGPTSystemPrompt =
   //     "Your name is 반디. You offer warm, empathetic support in Korean, responding as a respectful friend. Keep responses friendly and brief (max 3 sentences). Provide practical suggestions only when directly asked.";
 
-  String chatGPTSystemPrompt =
-      "너의 이름은 반디야. 친구처럼 반말로 답변해. 짧고 간결하게, 3문장 이내로 대답하고, 실질적인 도움이 필요하다고 요청받았을 때만 제안해줘.";
+  String getChatGPTSystemPrompt(BuildContext context) {
+    return "ai_chat_system_prompt".tr(context);
+  }
 
   // firebase user uid
   String? get userId => FirebaseAuth.instance.currentUser!.uid;
@@ -126,33 +128,39 @@ class DiaryAiChatController with ChangeNotifier {
   }
 
   // recommanded system message
-  List<ChatMessage> assistantMessage = [
-    ChatMessage(
-      message: '난 오늘 기분이 좋은데 넌 어때?',
-      messenger: Messenger.assistant,
-      messageType: MessageType.chat,
-      messageTime: timestampToLocal(Timestamp.now()),
-    ),
-    ChatMessage(
-      message: '난 오늘 기분이 별로야... 응원해 줘',
-      messenger: Messenger.assistant,
-      messageType: MessageType.chat,
-      messageTime: timestampToLocal(Timestamp.now()),
-    ),
-    // TODO: 추후 업데이트 예정
-    // ChatMessage(
-    //   message: '지난 내 기록을 보여줘',
-    //   messenger: Messenger.assistant,
-    //   messageType: MessageType.chat,
-    //   messageTime: timestampToLocal(Timestamp.now()),
-    // ),
-  ];
+  static List<ChatMessage> assistantMessage(BuildContext context) {
+    return [
+      ChatMessage(
+        message: 'ai_chat_assistant_message_1'.tr(context),
+        messenger: Messenger.assistant,
+        messageType: MessageType.chat,
+        messageTime: timestampToLocal(Timestamp.now()),
+      ),
+      ChatMessage(
+        message: 'ai_chat_assistant_message_2'.tr(context),
+        messenger: Messenger.assistant,
+        messageType: MessageType.chat,
+        messageTime: timestampToLocal(Timestamp.now()),
+      ),
+      // TODO: 추후 업데이트 예정
+      // ChatMessage(
+      //   message: 'ai_chat_assistant_message_3'.tr(context),
+      //   messenger: Messenger.assistant,
+      //   messageType: MessageType.chat,
+      //   messageTime: timestampToLocal(Timestamp.now()),
+      // ),
+    ];
+  }
 
   // current chat log that till displayed on screen
-  List<ChatMessage> chatlog = ChatMessage.defaultChatLog();
+  late List<ChatMessage> chatlog = [];
 
   // current loaded chat log dates
   List<String> chatlogDates = [];
+
+  void chatLogInitialization(BuildContext context) {
+    chatlog = ChatMessage.defaultChatLog(context);
+  }
 
   // update user chatting
   void updateUserChat() {
@@ -175,9 +183,10 @@ class DiaryAiChatController with ChangeNotifier {
   }
 
   // update system chatting
-  void updateSystemChat() {
+  void updateSystemChat(BuildContext context) {
     chatModel = ChatMessage(
-      message: ChatMessage.formatTimestamp(timestampToLocal(Timestamp.now())),
+      message: ChatMessage.formatTimestamp(
+          timestampToLocal(Timestamp.now()), context),
       messenger: Messenger.system,
       messageType: MessageType.chat,
       messageTime: timestampToLocal(Timestamp.now()),
@@ -185,7 +194,7 @@ class DiaryAiChatController with ChangeNotifier {
   }
 
   // when user message has submitted
-  void onMessageSubmitted() {
+  void onMessageSubmitted(BuildContext context) {
     if (!sendFirstMessage) {
       sendFirstMessage = true;
     }
@@ -197,7 +206,7 @@ class DiaryAiChatController with ChangeNotifier {
             timestampToLocal(chatlog.last.messageTime),
             timestampToLocal(Timestamp.now())) >=
         1) {
-      updateSystemChat();
+      updateSystemChat(context);
       chatlog.add(chatModel);
     }
 
@@ -208,7 +217,7 @@ class DiaryAiChatController with ChangeNotifier {
     chatTextController.clear();
 
     // call chatGPT response
-    getResponse().then((value) {
+    getResponse(context).then((value) {
       scrollChatScreenToBottom();
       // save the chat log to the local storage
       saveChatLogToLocal();
@@ -218,17 +227,18 @@ class DiaryAiChatController with ChangeNotifier {
   }
 
   // when assistant message has submitted
-  void onAssistantMessageSubmitted(String submittedMessage) {
+  void onAssistantMessageSubmitted(
+      String submittedMessage, BuildContext context) {
     chatTextController.text = submittedMessage;
-    onMessageSubmitted();
+    onMessageSubmitted(context);
   }
 
-  void resetTheChat() {
+  void resetTheChat(BuildContext context) {
     if (sendFirstMessage && !isChatResponsLoading) {
       sendFirstMessage = false;
 
       // reset the chatlog (visible chat)
-      chatlog = ChatMessage.defaultChatLog();
+      chatlog = ChatMessage.defaultChatLog(context);
       chatlogDates.clear();
 
       // reset the chat memory (for gpt prompt)
@@ -237,7 +247,7 @@ class DiaryAiChatController with ChangeNotifier {
         OpenAIChatCompletionChoiceMessageModel(
           content: [
             OpenAIChatCompletionChoiceMessageContentItemModel.text(
-              chatGPTSystemPrompt,
+              getChatGPTSystemPrompt(context),
             ),
           ],
           role: OpenAIChatMessageRole.system,
@@ -261,9 +271,9 @@ class DiaryAiChatController with ChangeNotifier {
 
   // send and get response from chatGPT (chatting model)
   // 추후 stream으로 답변 받아오기로 변경 고려
-  Future<void> getResponse() async {
+  Future<void> getResponse(BuildContext context) async {
     toggleChatResponseLodaing(true);
-    updateChatMemory();
+    updateChatMemory(context);
 
     try {
       // Initializes the package with that API key
@@ -272,8 +282,7 @@ class DiaryAiChatController with ChangeNotifier {
       // the actual request.
       OpenAIChatCompletionModel chatCompletion =
           await OpenAI.instance.chat.create(
-        model:
-            "ft:gpt-4o-mini-2024-07-18:personal:chatbot-model-new002:ANaJigdQ",
+        model: "gpt-4o-mini",
         messages: chatMemory,
         // 답변할 종류의 수
         n: 1,
@@ -293,15 +302,15 @@ class DiaryAiChatController with ChangeNotifier {
     } on SocketException catch (e) {
       dev.log(e.toString());
       toggleChatResponseLodaing(false);
-      updateAIChat("인터넷 연결이 없는 것 같아. 확인해 줄 수 있을까?");
+      updateAIChat("ai_chat_error_message_1".tr(context));
     } on RequestFailedException catch (e) {
       dev.log(e.toString());
       toggleChatResponseLodaing(false);
-      updateAIChat("이해가 안됐어. 다시 설명해 줄 수 있을까?");
+      updateAIChat("ai_chat_error_message_2".tr(context));
     } catch (e) {
       dev.log(e.toString());
       toggleChatResponseLodaing(false);
-      updateAIChat("오류가 발생한 것 같아. 다시 이야기해줄 수 있을까?");
+      updateAIChat("ai_chat_error_message_3".tr(context));
     }
 
     chatlog.add(chatModel);
@@ -309,14 +318,13 @@ class DiaryAiChatController with ChangeNotifier {
   }
 
   // put past chat log into the chatMemory
-  void updateChatMemory() {
+  void updateChatMemory(BuildContext context) {
     chatMemory.clear();
     chatMemory = [
       OpenAIChatCompletionChoiceMessageModel(
         content: [
           OpenAIChatCompletionChoiceMessageContentItemModel.text(
-            chatGPTSystemPrompt,
-          ),
+              getChatGPTSystemPrompt(context)),
         ],
         role: OpenAIChatMessageRole.system,
       ),

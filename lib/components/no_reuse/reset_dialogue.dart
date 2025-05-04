@@ -6,8 +6,8 @@ class CustomResetDialogue extends StatefulWidget {
   const CustomResetDialogue({
     super.key,
     required this.text,
-    this.onYesText = '예',
-    this.onNoText = '아니오',
+    required this.onYesText,
+    required this.onNoText,
     required this.onYesFunction,
     required this.onNoFunction,
   });

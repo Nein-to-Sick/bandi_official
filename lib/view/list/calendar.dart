@@ -1,3 +1,4 @@
+import 'package:bandi_official/string_extention.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:intl/intl.dart';
@@ -20,11 +21,12 @@ class Calendar extends StatefulWidget {
 class _CalendarState extends State<Calendar> {
   late DateTime _selectedDate;
   bool _showMonthSelector = false;
+  final int _minYear = 2000; // 최소 선택 연도 (필요에 따라 조정)
 
   @override
   void initState() {
     super.initState();
-    _selectedDate = widget.selectedDate; // Initialize with selected date
+    _selectedDate = widget.selectedDate; // 초기 선택 날짜 지정
   }
 
   @override
@@ -42,17 +44,32 @@ class _CalendarState extends State<Calendar> {
   }
 
   Widget _buildCalendarHeader() {
+    final locale = Localizations.localeOf(context).languageCode;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         _buildMonthNavigationIcon(
           PhosphorIcons.caretLeft(),
           onTap: () => _changeMonth(-1),
-          isEnabled: _selectedDate.month > 1,
+          isEnabled: _canGoToPreviousMonth(),
         ),
         Row(
           children: [
-            _showMonthSelector ? _buildMonthDropdown() : _buildMonthDisplay(),
+            _showMonthSelector
+                ? Row(
+              children: locale == 'ko'
+                  ? [
+                _buildYearDropdown(),
+                const SizedBox(width: 4),
+                _buildMonthDropdown(),
+              ]
+                  : [
+                _buildMonthDropdown(),
+                const SizedBox(width: 4),
+                _buildYearDropdown(),
+              ],
+            )
+                : _buildMonthDisplay(),
             const SizedBox(width: 4),
             _buildCalendarToggleIcon(),
           ],
@@ -71,9 +88,52 @@ class _CalendarState extends State<Calendar> {
       onTap: isEnabled ? onTap : null,
       child: PhosphorIcon(
         icon,
-        color: isEnabled ? BandiColor.foundationColor100(context) : BandiColor.foundationColor20(context),
+        color: isEnabled
+            ? BandiColor.foundationColor100(context)
+            : BandiColor.foundationColor20(context),
         size: 14,
       ),
+    );
+  }
+
+  Widget _buildYearDropdown() {
+    final currentYear = DateTime.now().year;
+    final locale = Localizations.localeOf(context).languageCode;
+
+    return DropdownButton<int>(
+      value: _selectedDate.year,
+      isDense: true,
+      alignment: Alignment.bottomCenter,
+      menuMaxHeight: 150,
+      items: List.generate(currentYear - _minYear + 1, (index) {
+        final yearValue = _minYear + index;
+        final yearText = locale == 'ko' ? "$yearValue년" : "$yearValue";
+
+        return DropdownMenuItem<int>(
+          value: yearValue,
+          child: Text(
+            yearText,
+            style: BandiFont.bodySmall(context)?.copyWith(
+              color: BandiColor.foundationColor100(context),
+            ),
+          ),
+        );
+      }),
+      onChanged: (newYear) {
+        if (newYear != null) {
+          setState(() {
+            final currentDate = DateTime.now();
+            // 만약 선택한 연도가 현재 연도라면, 월이 현재월보다 클 경우 현재월로 조정
+            int newMonth = _selectedDate.month;
+            if (newYear == currentDate.year && newMonth > currentDate.month) {
+              newMonth = currentDate.month;
+            }
+            _selectedDate = DateTime(newYear, newMonth, _selectedDate.day);
+          });
+        }
+      },
+      underline: const SizedBox(),
+      icon: const SizedBox.shrink(),
     );
   }
 
@@ -86,13 +146,18 @@ class _CalendarState extends State<Calendar> {
       items: List.generate(12, (index) {
         final monthValue = index + 1;
         final isDisabled = !_canSelectMonth(monthValue);
+        final monthName = DateFormat.MMMM(Localizations.localeOf(context).toLanguageTag())
+            .format(DateTime(0, monthValue));
+
         return DropdownMenuItem<int>(
           value: monthValue,
           enabled: !isDisabled,
           child: Text(
-            "$monthValue월",
+            monthName,
             style: BandiFont.bodySmall(context)?.copyWith(
-              color: isDisabled ? BandiColor.foundationColor40(context) : BandiColor.foundationColor100(context),
+              color: isDisabled
+                  ? BandiColor.foundationColor40(context)
+                  : BandiColor.foundationColor100(context),
             ),
           ),
         );
@@ -114,7 +179,7 @@ class _CalendarState extends State<Calendar> {
     return GestureDetector(
       onTap: _toggleYearMonthSelector,
       child: Text(
-        DateFormat('yyyy년 M월').format(_selectedDate),
+        DateFormat('journal_calendar_header_1'.tr(context)).format(_selectedDate),
         style: BandiFont.bodySmall(context)?.copyWith(
           color: BandiColor.foundationColor100(context),
         ),
@@ -145,7 +210,12 @@ class _CalendarState extends State<Calendar> {
   }
 
   Widget _buildCalendar(BuildContext context) {
-    final daysOfWeek = ['일', '월', '화', '수', '목', '금', '토'];
+    final firstDayOfWeek = DateTime(2023, 1, 1); // 일요일
+    final daysOfWeek = List.generate(7, (index) {
+      final date = firstDayOfWeek.add(Duration(days: index));
+      return DateFormat.E(Localizations.localeOf(context).toLanguageTag()).format(date);
+    });
+
     final lastDayOfMonth = DateTime(_selectedDate.year, _selectedDate.month + 1, 0);
     final numberOfDays = lastDayOfMonth.day;
 
@@ -226,6 +296,12 @@ class _CalendarState extends State<Calendar> {
     final currentDate = DateTime.now();
     return _selectedDate.year < currentDate.year ||
         (_selectedDate.year == currentDate.year && _selectedDate.month < currentDate.month);
+  }
+
+  bool _canGoToPreviousMonth() {
+    final minDate = DateTime(_minYear, 1, 1);
+    // 이전 월로 갈 수 있는 조건: 현재 선택된 날짜가 최소 날짜 이후여야 함.
+    return _selectedDate.isAfter(minDate);
   }
 
   bool _canSelectDay(int day) {

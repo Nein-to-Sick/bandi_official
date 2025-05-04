@@ -1,4 +1,5 @@
 import 'package:bandi_official/components/appbar/appbar.dart';
+import 'package:bandi_official/components/button/primary_button.dart';
 import 'package:bandi_official/components/loading/loading_page.dart';
 import 'package:bandi_official/controller/alarm_controller.dart';
 import 'package:bandi_official/controller/home_to_write.dart';
@@ -7,6 +8,7 @@ import 'package:bandi_official/controller/navigation_toggle_provider.dart';
 import 'package:bandi_official/model/alarm.dart';
 import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/model/letter.dart';
+import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/mail/detail_view.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -48,17 +50,13 @@ class _AlarmViewState extends State<AlarmView> {
     final NavigationToggleProvider navigationToggleProvider =
         context.watch<NavigationToggleProvider>();
 
-    return PopScope(
-      canPop: false,
-      onPopInvoked: (value) {
-        alarmController.toggleAlarmOpen(false);
-        mailController.initializeNewNotificaitonCount();
-      },
+    return WillPopScope(
+      onWillPop: () => Future(() => false),
       child: Scaffold(
         resizeToAvoidBottomInset: true,
         backgroundColor: BandiColor.neutralColor80(context),
         appBar: CustomAppBar(
-          title: '알림',
+          title: 'notification_title'.tr(context),
           titleColor: BandiColor.foundationColor80(context),
           leadingIconColor: BandiColor.foundationColor80(context),
           onLeadingIconPressed: () {
@@ -74,14 +72,15 @@ class _AlarmViewState extends State<AlarmView> {
                 stream: alarmController.alarmStreamQuery(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                        child: MyFireFlyProgressbar(loadingText: '로딩 중...'));
+                    return Center(
+                        child: MyFireFlyProgressbar(
+                            loadingText: 'loading'.tr(context)));
                   }
 
                   if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                     return Center(
                       child: Text(
-                        '알림이 없습니다',
+                        'notification_no_data'.tr(context),
                         style: BandiFont.headlineMedium(context)?.copyWith(
                           color: BandiColor.foundationColor100(context),
                         ),
@@ -93,143 +92,193 @@ class _AlarmViewState extends State<AlarmView> {
                     return Alarm.fromFirestore(doc);
                   }).toList();
 
-                  return ListView.builder(
-                    controller: alarmController.alarmScrollController,
-                    itemCount: notifications.length,
-                    itemBuilder: (context, index) {
-                      String timeAgo = alarmController
-                          .formatTimeAgo(notifications[index].alarmTime);
-
-                      return Column(
-                        children: [
-                          if (index == 0)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: Text(
-                                '최근 15개의 알림을 보여줍니다',
-                                style:
-                                    BandiFont.headlineMedium(context)?.copyWith(
-                                  color: BandiColor.foundationColor100(context),
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: ListView.builder(
+                          controller: alarmController.alarmScrollController,
+                          itemCount: notifications.length,
+                          itemBuilder: (context, index) {
+                            String timeAgo = alarmController.formatTimeAgo(
+                                notifications[index].alarmTime, context);
+                            return Dismissible(
+                              key: ValueKey(notifications[index]
+                                  .notificationId), // 고유한 키 필요
+                              direction:
+                                  DismissDirection.endToStart, // 오른쪽 → 왼쪽 스와이프
+                              background: Container(
+                                alignment: Alignment.centerRight,
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 20),
+                                color: BandiColor.foundationColor100(context),
+                                child: Icon(
+                                  Icons.delete,
+                                  color: BandiColor.neutralColor100(context),
                                 ),
                               ),
-                            ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 25, vertical: 10),
-                            child: GestureDetector(
-                              onTap: () async {
-                                // 편지, 공감 페이지 이동
-                                if (notifications[index].type ==
-                                    AlarmType.likedDiary) {
-                                  Diary diary = await alarmController
-                                      .readLikedDiaryDataFromDB(
-                                          notifications[index].dataId);
-                                  writeProvider.readMyDiary(diary);
-                                  navigationToggleProvider.selectIndex(0);
-                                  writeProvider.toggleWrite();
-                                } else if (notifications[index].type ==
-                                    AlarmType.letter) {
-                                  navigationToggleProvider.selectIndex(2);
-                                  mailController.updateSavedCurrentIndex(1);
-                                  mailController.toggleDetailView(true);
 
-                                  Letter letter = await alarmController
-                                      .readLetterDataFromDB(
-                                          notifications[index].dataId);
-
-                                  WidgetsBinding.instance
-                                      .addPostFrameCallback((_) {
-                                    showDialog(
-                                      context:
-                                          alarmController.navigationContext,
-                                      barrierDismissible: false,
-                                      barrierColor:
-                                          BandiColor.transparent(context),
-                                      builder: (BuildContext context) {
-                                        return DetailView(
-                                          item: letter,
-                                          mailController: mailController,
-                                        );
-                                      },
-                                    );
-                                  });
-                                }
-
-                                alarmController.toggleAlarmOpen(false);
-                                mailController.initializeNewNotificaitonCount();
+                              onDismissed: (direction) async {
+                                // Firestore에서 삭제
+                                alarmController.deleteNotification(
+                                    notifications[index].notificationId);
                               },
-                              child: Row(
-                                mainAxisSize: MainAxisSize.max,
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Row(
+
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 25, vertical: 10),
+                                child: GestureDetector(
+                                  onTap: () async {
+                                    // 편지, 공감 페이지 이동
+                                    if (notifications[index].type ==
+                                        AlarmType.likedDiary) {
+                                      Diary diary = await alarmController
+                                          .readLikedDiaryDataFromDB(
+                                              notifications[index].dataId);
+                                      writeProvider.readMyDiary(diary);
+                                      navigationToggleProvider.selectIndex(0);
+                                      writeProvider.toggleWrite();
+                                    } else if (notifications[index].type ==
+                                        AlarmType.dailyReminder) {
+                                      navigationToggleProvider.selectIndex(0);
+                                    } else if (notifications[index].type ==
+                                        AlarmType.letter) {
+                                      navigationToggleProvider.selectIndex(2);
+                                      mailController.updateSavedCurrentIndex(1);
+                                      mailController.toggleDetailView(true);
+
+                                      Letter letter = await alarmController
+                                          .readLetterDataFromDB(
+                                              notifications[index].dataId);
+
+                                      WidgetsBinding.instance
+                                          .addPostFrameCallback((_) {
+                                        showDialog(
+                                          context:
+                                              alarmController.navigationContext,
+                                          barrierDismissible: false,
+                                          barrierColor:
+                                              BandiColor.transparent(context),
+                                          builder: (BuildContext context) {
+                                            return DetailView(
+                                              item: letter,
+                                              mailController: mailController,
+                                            );
+                                          },
+                                        );
+                                      });
+                                    }
+
+                                    alarmController.toggleAlarmOpen(false);
+                                    mailController
+                                        .initializeNewNotificaitonCount();
+                                  },
+                                  child: Row(
                                     mainAxisSize: MainAxisSize.max,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
-                                      PhosphorIcon(
-                                        (notifications[index].type ==
-                                                AlarmType.likedDiary)
-                                            ? PhosphorIcons.heart(
-                                                PhosphorIconsStyle.fill)
-                                            : PhosphorIcons.envelope(
-                                                PhosphorIconsStyle.fill),
-                                        color: BandiColor.foundationColor100(
-                                            context),
-                                      ),
-                                      const SizedBox(
-                                        width: 10,
-                                      ),
-                                      Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
+                                      Row(
+                                        mainAxisSize: MainAxisSize.max,
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                          Text(
-                                            notifications[index].title,
-                                            style: BandiFont.titleSmall(context)
-                                                ?.copyWith(
-                                              color:
-                                                  BandiColor.foundationColor100(
-                                                      context),
-                                            ),
+                                          PhosphorIcon(
+                                            (notifications[index].type ==
+                                                    AlarmType.likedDiary)
+                                                ? PhosphorIcons.heart(
+                                                    PhosphorIconsStyle.fill)
+                                                : PhosphorIcons.envelope(
+                                                    PhosphorIconsStyle.fill),
+                                            color:
+                                                BandiColor.foundationColor100(
+                                                    context),
                                           ),
                                           const SizedBox(
-                                            height: 5,
+                                            width: 10,
                                           ),
-                                          Text(
-                                            timeAgo,
-                                            style: BandiFont.labelSmall(context)
-                                                ?.copyWith(
-                                              color:
-                                                  BandiColor.foundationColor40(
-                                                      context),
-                                            ),
+                                          Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                notifications[index].title,
+                                                style: BandiFont.titleSmall(
+                                                        context)
+                                                    ?.copyWith(
+                                                  color: BandiColor
+                                                      .foundationColor100(
+                                                          context),
+                                                ),
+                                              ),
+                                              const SizedBox(
+                                                height: 5,
+                                              ),
+                                              Text(
+                                                timeAgo,
+                                                style: BandiFont.labelSmall(
+                                                        context)
+                                                    ?.copyWith(
+                                                  color: BandiColor
+                                                      .foundationColor40(
+                                                          context),
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ],
                                       ),
+                                      (index <
+                                              mailController
+                                                  .newNotificationCount)
+                                          ? ClipOval(
+                                              child: Container(
+                                                width: 10,
+                                                height: 10,
+                                                color: BandiColor
+                                                    .accentColorYellow(context),
+                                              ),
+                                            )
+                                          : const SizedBox.shrink(),
                                     ],
                                   ),
-                                  (index < mailController.newNotificationCount)
-                                      ? ClipOval(
-                                          child: Container(
-                                            width: 10,
-                                            height: 10,
-                                            color: BandiColor.accentColorYellow(
-                                                context),
-                                          ),
-                                        )
-                                      : const SizedBox.shrink(),
-                                ],
+                                ),
                               ),
+                            );
+                          },
+                        ),
+                      ),
+                      Column(
+                        children: [
+                          const SizedBox(
+                            height: 16,
+                          ),
+                          Text(
+                            'notification_message'.tr(context),
+                            style: BandiFont.headlineSmall(context)?.copyWith(
+                              color: BandiColor.foundationColor60(context),
                             ),
                           ),
+                          const SizedBox(
+                            height: 16,
+                          ),
+                          CustomPrimaryButton(
+                            title: 'notification_button'.tr(context),
+                            onPrimaryButtonPressed: () {
+                              alarmController.toggleAlarmOpen(false);
+                              mailController.initializeNewNotificaitonCount();
+                            },
+                            disableButton: false,
+                          ),
+                          const SizedBox(
+                            height: 32,
+                          ),
                         ],
-                      );
-                    },
+                      ),
+                    ],
                   );
                 }),
           ),
