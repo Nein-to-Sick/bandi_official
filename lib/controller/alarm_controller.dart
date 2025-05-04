@@ -289,13 +289,13 @@ class AlarmController with ChangeNotifier {
     final difference = now.difference(timestamp.toDate());
 
     if (difference.inDays > 0) {
-      return '${difference.inDays}${'notification_day'.tr(context)}';
+      return '${difference.inDays}${'notification_time_form_day'.tr(context)}';
     } else if (difference.inHours > 0) {
-      return '${difference.inHours}${'notification_hour'.tr(context)}';
+      return '${difference.inHours}${'notification_time_form_hour'.tr(context)}';
     } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}${'notification_minute'.tr(context)}';
+      return '${difference.inMinutes}${'notification_time_form_minute'.tr(context)}';
     } else {
-      return 'notification_second'.tr(context); // 1분 이내일 경우
+      return 'notification_time_form_second'.tr(context); // 1분 이내일 경우
     }
   }
 
