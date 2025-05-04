@@ -46,7 +46,7 @@ class PermissionController with ChangeNotifier {
             context: context,
             builder: (BuildContext context) {
               return CustomResetDialogue(
-                text: 'dialogue_message_alarm_setting.'.tr(context),
+                text: 'dialogue_message_alarm_setting'.tr(context),
                 onYesText: 'dialogue_close'.tr(context),
                 onNoText: 'dialogue_setting'.tr(context),
                 onYesFunction: () {
