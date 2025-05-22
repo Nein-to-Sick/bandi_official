@@ -83,12 +83,16 @@ class _MailViewState extends State<MailView>
               child: Column(
                 children: [
                   TabBar(
+                    isScrollable: true,
                     controller: mailController.tabController,
                     labelColor: BandiColor.neutralColor100(context),
                     unselectedLabelColor: BandiColor.neutralColor40(context),
                     labelStyle: BandiFont.headlineMedium(context)?.copyWith(
                       color: BandiColor.neutralColor100(context),
                     ),
+                    labelPadding: EdgeInsets.symmetric(
+                        horizontal: MediaQuery.of(context).size.width * 0.07),
+                    tabAlignment: TabAlignment.center,
                     indicatorColor: BandiColor.neutralColor100(context),
                     indicatorSize: TabBarIndicatorSize.tab,
                     dividerColor: BandiColor.neutralColor40(context),
