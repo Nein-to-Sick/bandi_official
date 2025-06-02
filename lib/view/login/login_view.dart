@@ -46,9 +46,11 @@ class _LoginViewState extends State<LoginView> {
   Future<void> _initializeSecureStorage() async {
     final storageProvider =
         Provider.of<SecureStorageProvider>(context, listen: false);
+    final authServiceProvider =
+        Provider.of<AuthService>(context, listen: false);
     await storageProvider.loadLoginInfo(); // SecureStorage에서 정보 로드
 
-    if (storageProvider.isLoggedIn) {
+    if (storageProvider.isLoggedIn && !authServiceProvider.checkOnce) {
       // 자동 로그인 시도
       log("storageProvider.isLoggedIn");
       await _checkAutoLogin();
@@ -61,10 +63,13 @@ class _LoginViewState extends State<LoginView> {
         Provider.of<SecureStorageProvider>(context, listen: false);
     final navigationToggleProvider =
         Provider.of<NavigationToggleProvider>(context, listen: false);
+    final authServiceProvider =
+        Provider.of<AuthService>(context, listen: false);
 
     try {
-      print("loading start");
+      log("loading start");
       // navigationToggleProvider.selectIndex(100); // 로딩 화면 표시
+      authServiceProvider.toggleCheckOnce();
 
       // Google 로그인 처리
       if (storageProvider.loginMethod == 'google' &&
@@ -108,7 +113,6 @@ class _LoginViewState extends State<LoginView> {
       rethrow;
     } catch (e) {
       log("자동 로그인 실패: $e");
-      print("자동 로그인 실패: $e");
       navigationToggleProvider.selectIndex(-1); // 로그인 화면으로 이동
     }
   }
