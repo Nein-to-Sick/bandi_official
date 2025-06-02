@@ -5,18 +5,23 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:http/http.dart' as http;
 
-import '../../controller/navigation_toggle_provider.dart';
 import '../../controller/securestorage_controller.dart';
 import '../../controller/user_info_controller.dart';
 import 'package:bandi_official/utils/apple_login_utils.dart' as custom_utils;
 
-class AuthService {
+class AuthService with ChangeNotifier {
+  bool checkOnce = false;
+
+  void toggleCheckOnce() {
+    checkOnce = true;
+    notifyListeners();
+  }
+
   Future<User?> signInWithGoogle(BuildContext context) async {
     GoogleSignIn _googleSignIn = GoogleSignIn();
     GoogleSignInAccount? gUser = await _googleSignIn.signIn();
@@ -84,7 +89,8 @@ class AuthService {
       await docRef.set({
         "created_at": FieldValue.serverTimestamp(),
         "email": userEmail,
-        "nickname": '반디#${math.Random().nextInt(10000).toString().padLeft(4, '0')}',
+        "nickname":
+            '반디#${math.Random().nextInt(10000).toString().padLeft(4, '0')}',
         "likedDiaryId": [],
         "myDiaryId": [],
         "socialLoginProvider": "google",
@@ -121,7 +127,6 @@ class AuthService {
     print("Generated rawNonce: $rawNonce");
     print("Generated hashedNonce: $hashedNonce");
 
-
     final AuthorizationCredentialAppleID appleCredential =
         await SignInWithApple.getAppleIDCredential(
       scopes: [
@@ -144,8 +149,8 @@ class AuthService {
     // Apple 로그인 정보를 SecureStorage에 저장
     final storageProvider =
         Provider.of<SecureStorageProvider>(context, listen: false);
-    await storageProvider.saveAppleLoginInfo(
-        appleCredential.identityToken!, appleCredential.authorizationCode, rawNonce);
+    await storageProvider.saveAppleLoginInfo(appleCredential.identityToken!,
+        appleCredential.authorizationCode, rawNonce);
 
     final userCollection = FirebaseFirestore.instance.collection("users");
 
@@ -184,7 +189,8 @@ class AuthService {
       await docRef.set({
         "created_at": FieldValue.serverTimestamp(),
         "email": userEmail,
-        "nickname": '반디#${math.Random().nextInt(10000).toString().padLeft(4, '0')}',
+        "nickname":
+            '반디#${math.Random().nextInt(10000).toString().padLeft(4, '0')}',
         "likedDiaryId": [],
         "myDiaryId": [],
         "socialLoginProvider": "apple",
@@ -270,7 +276,8 @@ class AuthService {
         await docRef.set({
           "created_at": FieldValue.serverTimestamp(),
           "email": userEmail,
-          "nickname": '반디#${math.Random().nextInt(10000).toString().padLeft(4, '0')}',
+          "nickname":
+              '반디#${math.Random().nextInt(10000).toString().padLeft(4, '0')}',
           "likedDiaryId": [],
           "myDiaryId": [],
           "socialLoginProvider": "google",
@@ -326,57 +333,58 @@ class AuthService {
 
   Future<User?> signInWithAppleTokens(BuildContext context) async {
     final userInfoProvider =
-    Provider.of<UserInfoValueModel>(context, listen: false);
-      User? userCredential = FirebaseAuth.instance.currentUser;
-      if (userCredential == null) {
-        throw Exception("사용자 정보가 유효하지 않습니다.");
+        Provider.of<UserInfoValueModel>(context, listen: false);
+    User? userCredential = FirebaseAuth.instance.currentUser;
+    if (userCredential == null) {
+      throw Exception("사용자 정보가 유효하지 않습니다.");
+    }
+    final userCollection = FirebaseFirestore.instance.collection("users");
+    String? userId = userCredential.uid;
+    String? userEmail = userCredential.email;
+
+    final docRef = userCollection.doc(userId);
+    DocumentSnapshot snapshot = await docRef.get();
+
+    String? fcmToken = await FirebaseMessaging.instance.getToken();
+
+    if (snapshot.exists) {
+      // 기존 사용자 데이터 업데이트
+      Map<String, dynamic> userData = snapshot.data() as Map<String, dynamic>;
+      String nickname = userData['nickname'];
+
+      userInfoProvider.updateUserID(userId);
+      userInfoProvider.updateUserEmail(userEmail!);
+      userInfoProvider.updateNickname(nickname);
+
+      if (fcmToken != null && userData["fcmToken"] != fcmToken) {
+        await docRef.update({'fcmToken': fcmToken});
       }
-      final userCollection = FirebaseFirestore.instance.collection("users");
-      String? userId = userCredential.uid;
-      String? userEmail = userCredential.email;
+    } else {
+      // Firestore에 새 사용자 데이터 저장
+      await docRef.set({
+        "created_at": FieldValue.serverTimestamp(),
+        "email": userEmail,
+        "nickname":
+            '반디#${math.Random().nextInt(10000).toString().padLeft(4, '0')}',
+        "likedDiaryId": [],
+        "myDiaryId": [],
+        "socialLoginProvider": "apple",
+        "updatedAt": FieldValue.serverTimestamp(),
+        "userId": userId,
+        "newLetterAvailable": false,
+        "newNotificationsAvailable": false,
+        "fcmToken": fcmToken,
+      });
 
-      final docRef = userCollection.doc(userId);
-      DocumentSnapshot snapshot = await docRef.get();
+      // 하위 컬렉션 초기화
+      await docRef.collection('letters').doc('0000_docSummary').set({});
+      await docRef.collection('otherDiary').doc('0000_docSummary').set({});
+      await docRef.collection('notifications').doc('0000_docSummary').set({});
 
-      String? fcmToken = await FirebaseMessaging.instance.getToken();
-
-      if (snapshot.exists) {
-        // 기존 사용자 데이터 업데이트
-        Map<String, dynamic> userData = snapshot.data() as Map<String, dynamic>;
-        String nickname = userData['nickname'];
-
-        userInfoProvider.updateUserID(userId);
-        userInfoProvider.updateUserEmail(userEmail!);
-        userInfoProvider.updateNickname(nickname);
-
-        if (fcmToken != null && userData["fcmToken"] != fcmToken) {
-          await docRef.update({'fcmToken': fcmToken});
-        }
-      } else {
-        // Firestore에 새 사용자 데이터 저장
-        await docRef.set({
-          "created_at": FieldValue.serverTimestamp(),
-          "email": userEmail,
-          "nickname": '반디#${math.Random().nextInt(10000).toString().padLeft(4, '0')}',
-          "likedDiaryId": [],
-          "myDiaryId": [],
-          "socialLoginProvider": "apple",
-          "updatedAt": FieldValue.serverTimestamp(),
-          "userId": userId,
-          "newLetterAvailable": false,
-          "newNotificationsAvailable": false,
-          "fcmToken": fcmToken,
-        });
-
-        // 하위 컬렉션 초기화
-        await docRef.collection('letters').doc('0000_docSummary').set({});
-        await docRef.collection('otherDiary').doc('0000_docSummary').set({});
-        await docRef.collection('notifications').doc('0000_docSummary').set({});
-
-        userInfoProvider.updateUserID(userId);
-        userInfoProvider.updateUserEmail(userEmail!);
-        userInfoProvider.updateNickname("");
-      }
-      return userCredential;
+      userInfoProvider.updateUserID(userId);
+      userInfoProvider.updateUserEmail(userEmail!);
+      userInfoProvider.updateNickname("");
+    }
+    return userCredential;
   }
 }

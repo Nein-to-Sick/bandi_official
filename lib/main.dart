@@ -9,6 +9,7 @@ import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/controller/permission_controller.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/theme/custom_theme_mode.dart';
+import 'package:bandi_official/view/login/auth_service.dart';
 import 'package:bandi_official/view/navigation.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
@@ -105,6 +106,9 @@ class MainApp extends StatelessWidget {
             ),
             ChangeNotifierProvider(
               create: (context) => InternetConnectionController(),
+            ),
+            ChangeNotifierProvider(
+              create: (context) => AuthService(),
             ),
           ],
           child: MaterialApp(
