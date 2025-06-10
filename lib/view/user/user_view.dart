@@ -4,6 +4,7 @@ import 'package:bandi_official/controller/emotion_provider.dart';
 import 'package:bandi_official/controller/permission_controller.dart';
 import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
+import 'package:bandi_official/view/user/eula_agreement.dart';
 import 'package:bandi_official/view/user/privacy_policy.dart';
 import 'package:bandi_official/view/user/settings_home.dart';
 import 'package:bandi_official/view/user/terms_of_use.dart';
@@ -26,6 +27,7 @@ class UserView extends StatefulWidget {
 class _UserViewState extends State<UserView> with WidgetsBindingObserver {
   // 0: 설정 홈, 1: 계정 관리, 2: 닉네임 변경, 3: 오픈 라이센스,
   // 4: 이용 약관, 5: 개인정보, 6: 사업자 정보, 7: 오픈 라이센스 상세
+  // 8: 최종 사용자 사용권 계약서 (EULA)
   int settings = 0;
 
   late bool notificationTemp;
@@ -195,6 +197,15 @@ class _UserViewState extends State<UserView> with WidgetsBindingObserver {
           description: selectedLicenseData?['description'] ?? '',
           licenseText: selectedLicenseData?['license'] ?? '',
           homepage: selectedLicenseData?['homepage'] ?? '',
+        );
+      case 8:
+        return EulaAgreementScreen(
+          onBack: () {
+            setState(() {
+              settings = 0;
+            });
+            navigationToggleProvider.selectIndex(3);
+          },
         );
 
       default:

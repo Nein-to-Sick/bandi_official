@@ -122,6 +122,13 @@ class SettingsHome extends StatelessWidget {
           const SizedBox(height: 8),
           _buildSettingOption(
             context: context,
+            text: 'settings_eula'.tr(context),
+            onTap: () => onNavigate(8),
+            autotext: 0,
+          ),
+          const SizedBox(height: 8),
+          _buildSettingOption(
+            context: context,
             text: 'settings_business_information'.tr(context),
             onTap: () => onNavigate(6),
             autotext: 0,
