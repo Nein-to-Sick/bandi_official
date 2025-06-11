@@ -26,7 +26,7 @@ class _CustomSecondaryButtonState extends State<CustomSecondaryButton> {
       onTapDown: widget.disableButton
           ? null
           : (_) {
-              dev.log('눌림!');
+              dev.log('Pressed!');
               setState(() {
                 isPressed = true;
               });
@@ -34,7 +34,7 @@ class _CustomSecondaryButtonState extends State<CustomSecondaryButton> {
       onTapUp: (widget.disableButton)
           ? null
           : (_) {
-              dev.log('실행!');
+              dev.log('Run!');
               setState(() {
                 isPressed = false;
               });
@@ -43,7 +43,7 @@ class _CustomSecondaryButtonState extends State<CustomSecondaryButton> {
       onTapCancel: widget.disableButton
           ? null
           : () {
-              dev.log('취소!');
+              dev.log('Cancel!');
               setState(() {
                 isPressed = false;
               });

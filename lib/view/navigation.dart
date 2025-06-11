@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:bandi_official/components/loading/loading_page.dart';
-import 'package:bandi_official/components/no_reuse/reset_dialogue.dart';
+import 'package:bandi_official/components/dialogue/reset_dialogue.dart';
 import 'package:bandi_official/controller/alarm_controller.dart';
 import 'package:bandi_official/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/controller/internet_connection_controller.dart';

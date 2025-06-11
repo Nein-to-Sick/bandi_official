@@ -30,20 +30,20 @@ class _CustomResetDialogueState extends State<CustomResetDialogue> {
       flex: 1,
       child: GestureDetector(
         onTapDown: (_) {
-          dev.log('눌림!');
+          dev.log('Pressed!');
           setState(() {
             isPressed = true;
           });
         },
         onTapUp: (_) {
-          dev.log('실행!');
+          dev.log('Run!');
           setState(() {
             isPressed = false;
           });
           onButtonPressed();
         },
         onTapCancel: () {
-          dev.log('취소!');
+          dev.log('Cancel!');
           setState(() {
             isPressed = false;
           });

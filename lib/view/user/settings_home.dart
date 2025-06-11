@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
-import '../../components/no_reuse/reset_dialogue.dart';
+import '../../components/dialogue/reset_dialogue.dart';
 import '../../controller/permission_controller.dart';
 import '../../theme/custom_theme_data.dart';
 

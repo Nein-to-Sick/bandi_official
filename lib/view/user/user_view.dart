@@ -77,7 +77,7 @@ class _UserViewState extends State<UserView> with WidgetsBindingObserver {
         content: Text(
           message,
           style: BandiFont.displaySmall(context)?.copyWith(
-            color: BandiColor.neutralColor100(context),
+            color: BandiColor.neutralColor90(context),
           ),
         ),
         margin: EdgeInsets.only(

@@ -1,11 +1,14 @@
+import 'dart:developer';
 import 'dart:ui';
 
+import 'package:bandi_official/components/dialogue/reset_dialogue.dart';
 import 'package:bandi_official/controller/alarm_controller.dart';
 import 'package:bandi_official/controller/home_to_write.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -50,7 +53,6 @@ class _OtherDiaryState extends State<OtherDiary> {
     translatedTitle = originalTitle;
     isKorean = originalLang == 'KO'; // 기본 토글 상태
   }
-
 
   void _togglePage() {
     setState(() {
@@ -130,6 +132,7 @@ class _OtherDiaryState extends State<OtherDiary> {
     );
   }
 
+  // 공감 일기 표시 부분
   Widget secondPage(BuildContext context, HomeToWrite writeProvider) {
     bool reaction1 = false;
     bool reaction2 = false;
@@ -156,10 +159,113 @@ class _OtherDiaryState extends State<OtherDiary> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Padding(
-                          padding: const EdgeInsets.only(top: 16.0, right: 16.0),
+                          padding:
+                              const EdgeInsets.only(top: 16.0, right: 16.0),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
+                              GestureDetector(
+                                onTap: () {
+                                  showDialog<bool>(
+                                    context: context,
+                                    barrierDismissible: false,
+                                    builder: (BuildContext context) {
+                                      return CustomResetDialogue(
+                                        text: 'dialogue_report_message'
+                                            .tr(context),
+                                        onYesText: 'dialogue_report_on_yes'
+                                            .tr(context),
+                                        onNoText:
+                                            'dialogue_report_on_no'.tr(context),
+                                        onYesFunction: () async {
+                                          // 다이얼 로그 닫기
+                                          Navigator.pop(context, true);
+
+                                          try {
+                                            // 개인의 공유 일기 사용자 차단 목록 추가
+                                            String userId = FirebaseAuth
+                                                .instance.currentUser!.uid;
+                                            await FirebaseFirestore.instance
+                                                .collection('users')
+                                                .doc(userId)
+                                                .update({
+                                              'blockedUsersList':
+                                                  FieldValue.arrayUnion([
+                                                writeProvider
+                                                    .otherDiaryModel.userId
+                                              ]),
+                                            });
+                                            log('update blocked user list');
+
+                                            // 신고 받은 일기 작성자의 신고 카운트 추가
+                                            await FirebaseFirestore.instance
+                                                .collection('users')
+                                                .doc(writeProvider
+                                                    .otherDiaryModel.userId)
+                                                .update({
+                                              'reported_count':
+                                                  FieldValue.increment(1),
+                                            });
+                                            log('update other user\'s reported count');
+                                          } on FirebaseException catch (e) {
+                                            // Firestore 관련 예외 처리
+                                            log('Firestore error: ${e.message}');
+                                          } catch (e) {
+                                            // 그 외 모든 예외 처리
+                                            log('unkown error: $e');
+                                          }
+
+                                          // 공유 일기 창 닫기
+                                          writeProvider.offDiaryOpen();
+                                        },
+                                        onNoFunction: () {
+                                          Navigator.pop(context, false);
+                                        },
+                                      );
+                                    },
+                                  ).then((result) {
+                                    if (result! && context.mounted) {
+                                      // 알림 스낵바 노출
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          elevation: 3,
+                                          content: Text(
+                                            "dialogue_report_snackBar_message"
+                                                .tr(context),
+                                            style:
+                                                BandiFont.displaySmall(context)
+                                                    ?.copyWith(
+                                              color: BandiColor.neutralColor90(
+                                                  context),
+                                            ),
+                                          ),
+                                          margin: EdgeInsets.only(
+                                            left: 25.0,
+                                            right: 25.0,
+                                            bottom: MediaQuery.of(context)
+                                                    .size
+                                                    .height *
+                                                0.1,
+                                          ),
+                                          behavior: SnackBarBehavior.floating,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BandiEffects.radius(),
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  });
+                                },
+                                child: PhosphorIcon(
+                                  PhosphorIcons.warningCircle(),
+                                  color: BandiColor.accentColorRed(context),
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 20,
+                              ),
+                              // 닫기 버튼
                               GestureDetector(
                                 onTap: () async {
                                   if (reaction1) {
@@ -206,26 +312,34 @@ class _OtherDiaryState extends State<OtherDiary> {
                             ],
                           ),
                         ),
+                        const SizedBox(
+                          height: 10,
+                        ),
                         Expanded(
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 24.0),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   translatedTitle,
-                                  style: BandiFont.displaySmall(context)?.copyWith(
-                                      color:
-                                          BandiColor.foundationColor100(context)),
+                                  style: BandiFont.displaySmall(context)
+                                      ?.copyWith(
+                                          color: BandiColor.foundationColor100(
+                                              context)),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  DateFormat('journal_calendar_header_2'.tr(context)).format(writeProvider
-                                      .otherDiaryModel.createdAt
-                                      .toDate()),
-                                  style: BandiFont.headlineSmall(context)?.copyWith(
-                                      color:
-                                          BandiColor.foundationColor100(context)),
+                                  DateFormat('journal_calendar_header_2'
+                                          .tr(context))
+                                      .format(writeProvider
+                                          .otherDiaryModel.createdAt
+                                          .toDate()),
+                                  style: BandiFont.headlineSmall(context)
+                                      ?.copyWith(
+                                          color: BandiColor.foundationColor100(
+                                              context)),
                                 ),
                                 const SizedBox(height: 16),
                                 Expanded(
@@ -234,8 +348,9 @@ class _OtherDiaryState extends State<OtherDiary> {
                                       translatedContent,
                                       style: BandiFont.titleSmall(context)
                                           ?.copyWith(
-                                              color: BandiColor.foundationColor100(
-                                                  context)),
+                                              color:
+                                                  BandiColor.foundationColor100(
+                                                      context)),
                                     ),
                                   ),
                                 ),
@@ -250,10 +365,14 @@ class _OtherDiaryState extends State<OtherDiary> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               LanguageToggleSwitch(
-                                originalContent: widget.writeProvider.otherDiaryModel.content,
-                                originalTitle: widget.writeProvider.otherDiaryModel.title,
-                                initialLanguage: originalLang, // 초기 언어 설정 ('KO' 또는 'EN')
-                                onToggleCompleted: (translatedContent, translatedTitle, currentLanguage) {
+                                originalContent: widget
+                                    .writeProvider.otherDiaryModel.content,
+                                originalTitle:
+                                    widget.writeProvider.otherDiaryModel.title,
+                                initialLanguage:
+                                    originalLang, // 초기 언어 설정 ('KO' 또는 'EN')
+                                onToggleCompleted: (translatedContent,
+                                    translatedTitle, currentLanguage) {
                                   setState(() {
                                     this.translatedContent = translatedContent;
                                     this.translatedTitle = translatedTitle;
@@ -267,7 +386,13 @@ class _OtherDiaryState extends State<OtherDiary> {
                       ],
                     ),
                     isLoading
-                        ? const Center(child: CircularProgressIndicator()) : Container()
+                        ? const Row(
+                            children: [
+                              SizedBox(width: 5),
+                              Center(child: CircularProgressIndicator()),
+                            ],
+                          )
+                        : Container()
                   ],
                 ),
               ),

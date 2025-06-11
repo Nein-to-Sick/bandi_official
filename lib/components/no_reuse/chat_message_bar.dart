@@ -199,7 +199,7 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                       onTapDown: (sendButtonCondition())
                           ? null
                           : (_) {
-                              dev.log('눌림!');
+                              dev.log('Pressed!');
                               setState(() {
                                 isSendButtonPressed = true;
                               });
@@ -207,7 +207,7 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                       onTapUp: (sendButtonCondition())
                           ? null
                           : (_) {
-                              dev.log('실행!');
+                              dev.log('Run!');
                               setState(() {
                                 isSendButtonPressed = false;
                               });
@@ -216,7 +216,7 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                       onTapCancel: (sendButtonCondition())
                           ? null
                           : () {
-                              dev.log('취소!');
+                              dev.log('Cancel!');
                               setState(() {
                                 isSendButtonPressed = false;
                               });

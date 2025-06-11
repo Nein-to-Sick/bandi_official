@@ -42,9 +42,6 @@ class AuthService with ChangeNotifier {
     // accessToken과 idToken이 null이 아닌지 확인
     if (credential.accessToken == null) {
       log("Google 로그인 실패: accessToken 또는 idToken이 null입니다.");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Google 로그인에 실패했습니다. 다시 시도해주세요.")),
-      );
       return null;
     }
 
