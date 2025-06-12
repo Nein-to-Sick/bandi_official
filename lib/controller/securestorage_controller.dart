@@ -12,7 +12,6 @@ class SecureStorageProvider with ChangeNotifier {
   String? _appleAuthorizationCode;
   String? _appleNonce;
 
-
   String? _userID;
   // String? email;
   // String? nickname;
@@ -61,7 +60,6 @@ class SecureStorageProvider with ChangeNotifier {
       _appleAuthorizationCode = authorizationCode;
       _appleNonce = nonce;
 
-
       // 로그 출력
       dev.log("Apple login saved with identity token and authorization code");
 
@@ -73,10 +71,9 @@ class SecureStorageProvider with ChangeNotifier {
 
   // 앱 시작 시 로그인 정보 로드
   Future<void> loadLoginInfo() async {
-
     try {
       _loginMethod = await _storage.read(key: 'login_method');
-      print(_loginMethod);
+
       if (_loginMethod == 'google') {
         _googleAccessToken = await _storage.read(key: 'google_access_token');
       } else if (_loginMethod == 'apple') {
@@ -84,11 +81,11 @@ class SecureStorageProvider with ChangeNotifier {
         _appleAuthorizationCode =
             await _storage.read(key: 'apple_authorization_code');
         _appleNonce = await _storage.read(key: 'apple_nonce');
-
       }
 
-      // 로그 출력
-      dev.log("Login method: $_loginMethod loaded with associated tokens");
+      if (_loginMethod != null) {
+        dev.log("Login method: $_loginMethod loaded with associated tokens");
+      }
 
       notifyListeners();
     } catch (error) {
@@ -105,7 +102,6 @@ class SecureStorageProvider with ChangeNotifier {
       _appleIdentityToken = null;
       _appleAuthorizationCode = null;
       _appleNonce = null;
-
 
       // 로그 출력
       dev.log("All login information cleared from SecureStorage");
