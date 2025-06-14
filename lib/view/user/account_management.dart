@@ -227,7 +227,6 @@ class _AccountManagementState extends State<AccountManagement> {
                             navigationToggleProvider.selectIndex(-1);
                           }
                         } catch (e) {
-                          log('1-00000000');
                           // 로그인 페이지로 이동
                           navigationToggleProvider.selectIndex(-1);
                         }
