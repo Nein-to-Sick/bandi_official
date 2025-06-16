@@ -235,7 +235,7 @@ class AuthService with ChangeNotifier {
         if (gUser != null) {
           final GoogleSignInAuthentication gAuth = await gUser.authentication;
           accessToken = gAuth.accessToken!;
-          log("새로운 Access Token 발급 성공: $accessToken");
+          // log("새로운 Access Token 발급 성공: $accessToken");
 
           await storageProvider.saveGoogleLoginInfo(gAuth.accessToken!);
         } else {
@@ -316,10 +316,10 @@ class AuthService with ChangeNotifier {
       final response = await http.get(Uri.parse(
           'https://oauth2.googleapis.com/tokeninfo?access_token=$accessToken'));
       if (response.statusCode == 200) {
-        log("Access Token 검증 성공: ${response.body}");
+        // log("Access Token 검증 성공: ${response.body}");
         return true;
       } else {
-        log("Access Token 검증 실패: ${response.body}");
+        // log("Access Token 검증 실패: ${response.body}");
         return false;
       }
     } catch (e) {
