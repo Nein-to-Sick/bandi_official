@@ -10,7 +10,7 @@ import 'package:provider/provider.dart';
 
 import '../../components/button/primary_button.dart';
 import '../../components/button/secondary_button.dart';
-import '../../components/no_reuse/reset_dialogue.dart';
+import '../../components/dialogue/reset_dialogue.dart';
 import '../../controller/mail_controller.dart';
 import '../../controller/navigation_toggle_provider.dart';
 import '../../controller/securestorage_controller.dart';

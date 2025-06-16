@@ -1,4 +1,4 @@
-import 'package:bandi_official/components/no_reuse/reset_dialogue.dart';
+import 'package:bandi_official/components/dialogue/reset_dialogue.dart';
 import 'package:bandi_official/string_extention.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
