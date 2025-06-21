@@ -55,6 +55,15 @@ class HomeToWrite with ChangeNotifier {
     notifyListeners();
   }
 
+  bool _isPublic = false;
+  bool get isPublic => _isPublic;
+
+  void setIsPublic(bool value) {
+    _isPublic = value;
+    notifyListeners();
+  }
+
+
   //--------------step 2--------------------------------------------------------
 
   void initialize() {
@@ -76,7 +85,9 @@ class HomeToWrite with ChangeNotifier {
         String emotionString = emotion.toString().split('.').last;
         String returnDiaryId = await scanAndCompareEmotionTimestamps(
             emotionString, diaryModel.diaryId);
-        sendOtherDiary(returnDiaryId);
+        if (_isPublic) {
+          sendOtherDiary(returnDiaryId);
+        }
       }
     }
   }

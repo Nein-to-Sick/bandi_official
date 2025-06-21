@@ -245,5 +245,6 @@
   "onboarding_nickname_subtitle": "나중에 언제든지 바꿀 수 있어요",
   "onboarding_nickname_textbar_message": "최대 10글자",
   "onboarding_nickname_button": "확인",
-  "onboarding_nickname_empty": "닉네임 없음"
+  "onboarding_nickname_empty": "닉네임 없음",
+  "sharing_diary": "일기 공유하기"
 }

@@ -100,6 +100,29 @@ class _State extends State<FirstStep> {
               const SizedBox(
                 height: 25,
               ),
+              // ✅ Toggle 추가
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'sharing_diary'.tr(context),
+                      style: BandiFont.titleMedium(context)?.copyWith(
+                        color: BandiColor.neutralColor100(context),
+                      ),
+                    ),
+                    Switch(
+                      value: writeProvider.isPublic,
+                      onChanged: writeProvider.setIsPublic,
+                      inactiveTrackColor: BandiColor.neutralColor40(context),
+                      trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
+                      inactiveThumbColor: BandiColor.foundationColor80(context),
+                      activeColor: BandiColor.accentColorYellow(context),
+                    ),
+                  ],
+                ),
+              ),
               CustomPrimaryButton(
                 title: 'done'.tr(context),
                 onPrimaryButtonPressed: () {
