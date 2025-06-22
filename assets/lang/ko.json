@@ -246,5 +246,6 @@
   "onboarding_nickname_textbar_message": "최대 10글자",
   "onboarding_nickname_button": "확인",
   "onboarding_nickname_empty": "닉네임 없음",
-  "sharing_diary": "일기 공유하기"
+  "sharing_diary_on": "일기를 함께 나누기",
+  "sharing_diary_off": "일기를 혼자 보기"
 }
