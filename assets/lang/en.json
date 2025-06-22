@@ -34,7 +34,7 @@
   "write_title_generating": "Generating Title...",
   "write_emotion_title": "Bandi's Emotion Analysis",
   "write_emotion_loading": "Analyzing emotions...",
-  "write_emotion_nothing": "Noting",
+  "write_emotion_nothing": "Nothing",
   "write_cheer_title": "A word from Bandi",
   "write_cheer_loading": "Gathering my thoughts...",
   "confirm": "Confirm",
@@ -245,5 +245,6 @@
   "onboarding_nickname_subtitle": "You can change it anytime.",
   "onboarding_nickname_textbar_message": "Max 20 characters",
   "onboarding_nickname_button": "Confirm",
-  "onboarding_nickname_empty": "no Nickname"
+  "onboarding_nickname_empty": "no Nickname",
+  "sharing_diary": "Sharing a Diary"
 }
