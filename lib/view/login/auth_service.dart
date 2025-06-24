@@ -42,9 +42,6 @@ class AuthService with ChangeNotifier {
     // accessToken과 idToken이 null이 아닌지 확인
     if (credential.accessToken == null) {
       log("Google 로그인 실패: accessToken 또는 idToken이 null입니다.");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Google 로그인에 실패했습니다. 다시 시도해주세요.")),
-      );
       return null;
     }
 
@@ -238,7 +235,7 @@ class AuthService with ChangeNotifier {
         if (gUser != null) {
           final GoogleSignInAuthentication gAuth = await gUser.authentication;
           accessToken = gAuth.accessToken!;
-          log("새로운 Access Token 발급 성공: $accessToken");
+          // log("새로운 Access Token 발급 성공: $accessToken");
 
           await storageProvider.saveGoogleLoginInfo(gAuth.accessToken!);
         } else {
@@ -319,10 +316,10 @@ class AuthService with ChangeNotifier {
       final response = await http.get(Uri.parse(
           'https://oauth2.googleapis.com/tokeninfo?access_token=$accessToken'));
       if (response.statusCode == 200) {
-        log("Access Token 검증 성공: ${response.body}");
+        // log("Access Token 검증 성공: ${response.body}");
         return true;
       } else {
-        log("Access Token 검증 실패: ${response.body}");
+        // log("Access Token 검증 실패: ${response.body}");
         return false;
       }
     } catch (e) {

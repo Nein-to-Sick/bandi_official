@@ -125,4 +125,83 @@ class CompanyInfo {
     'en':
         'This privacy policy is intended to explain how Bandi App collects and uses personal information. Users are advised to read the policy carefully before using the service and decide whether to agree.'
   };
+
+  Map<String, List<List<String>>> localizedEula = {
+    'ko': [
+      [
+        "제1조: 이용계약의 체결",
+        "1. 본 이용자 라이선스 계약(이하 \"본 계약\")은 사용자(이하 \"사용자\")와 나인투식(이하 \"회사\") 간에 체결되는 법적 계약입니다.\n2. 사용자가 앱을 다운로드, 설치, 또는 사용하는 경우 본 계약의 모든 조항에 동의한 것으로 간주됩니다."
+      ],
+      [
+        "제2조: 라이선스 부여",
+        "1. 회사는 사용자에게 본 앱(이하 \"소프트웨어\")을 개인적이고 비상업적인 용도로만 사용할 수 있는 제한적이고 비독점적이며 양도 불가능한 라이선스를 부여합니다.\n2. 사용자는 사전 서면 동의 없이 소프트웨어를 복사, 수정, 배포, 판매, 리버스 엔지니어링할 수 없습니다."
+      ],
+      [
+        "제3조: 사용자 의무 및 금지사항",
+        "1. 사용자는 다음 행위를 하여서는 안 됩니다:\n- 소프트웨어를 불법적이거나 타인의 권리를 침해하는 방식으로 사용하는 행위\n- 다른 사용자의 개인정보를 무단 수집, 사용, 유포하는 행위\n- 소프트웨어 또는 서버의 안정성을 해치는 행위\n- 타인을 사칭하거나 허위정보를 게시하는 행위"
+      ],
+      [
+        "제4조: 지적 재산권",
+        "1. 소프트웨어 및 관련 콘텐츠에 대한 저작권, 상표권 등 모든 지적 재산권은 회사에 귀속됩니다.\n2. 본 계약은 해당 권리에 대한 소유권을 사용자에게 이전하지 않습니다."
+      ],
+      [
+        "제5조: 불쾌한 콘텐츠 및 악의적 사용자에 대한 무관용 정책",
+        "1. 회사는 폭력적, 외설적, 혐오적, 차별적, 또는 타인을 불쾌하게 하는 콘텐츠를 게시하거나 악의적인 행동을 하는 사용자에 대해 무관용 원칙을 적용합니다.\n2. 위반 시 사전 통보 없이 해당 콘텐츠를 삭제하거나 사용자 계정을 제한 또는 해지할 수 있습니다."
+      ],
+      [
+        "제6조: 책임의 한계",
+        "1. 회사는 소프트웨어 사용과 관련하여 발생하는 직접, 간접, 부수적, 결과적 손해에 대해 책임을 지지 않습니다.\n2. 단, 고의 또는 중대한 과실에 의한 경우는 예외로 합니다."
+      ],
+      [
+        "제7조: 계약 해지",
+        "1. 사용자가 본 계약의 조항을 위반할 경우, 회사는 사전 통지 없이 계약을 해지하거나 사용자의 소프트웨어 사용을 제한할 수 있습니다.\n2. 해지 시 사용자는 즉시 소프트웨어 사용을 중지하고 모든 사본을 삭제해야 합니다."
+      ],
+      [
+        "제8조: 준거법 및 관할",
+        "본 계약은 대한민국 법률에 따라 해석되며, 이와 관련된 분쟁은 서울중앙지방법원을 전속 관할 법원으로 합니다."
+      ],
+      [
+        "제9조: 이용자의 동의",
+        "사용자는 소프트웨어를 다운로드, 설치 또는 사용함으로써 본 계약의 모든 조항에 동의하며, 특히 불쾌한 콘텐츠 및 악의적 사용자에 대한 무관용 정책을 숙지하고 이에 동의한 것으로 간주됩니다."
+      ]
+    ],
+    'en': [
+      [
+        "Article 1: Formation of Agreement",
+        "1. This End User License Agreement (\"Agreement\") is a legal contract between the user (\"User\") and Nein to Sick (\"Company\").\n2. By downloading, installing, or using the app, the User agrees to all terms in this Agreement."
+      ],
+      [
+        "Article 2: Grant of License",
+        "1. The Company grants the User a limited, non-exclusive, non-transferable license to use the application (\"Software\") for personal and non-commercial purposes only.\n2. The User may not copy, modify, distribute, sell, or reverse engineer the Software without prior written permission."
+      ],
+      [
+        "Article 3: User Obligations and Prohibited Conduct",
+        "1. The User shall not:\n- Use the Software for illegal purposes or to infringe the rights of others\n- Collect, use, or disclose others’ personal data without consent\n- Interfere with the stability or security of the Software or servers\n- Impersonate others or post false information"
+      ],
+      [
+        "Article 4: Intellectual Property Rights",
+        "1. All intellectual property rights, including copyrights and trademarks, in and to the Software and related content belong to the Company.\n2. Nothing in this Agreement transfers ownership of such rights to the User."
+      ],
+      [
+        "Article 5: Zero Tolerance Policy for Objectionable Content and Abusive Users",
+        "1. The Company enforces a strict zero tolerance policy against violent, obscene, hateful, discriminatory, or otherwise offensive content or behavior.\n2. Violations may result in removal of content or suspension/termination of accounts without prior notice."
+      ],
+      [
+        "Article 6: Limitation of Liability",
+        "1. The Company is not liable for any direct, indirect, incidental, or consequential damages related to the use of the Software.\n2. This exclusion does not apply in cases of willful misconduct or gross negligence."
+      ],
+      [
+        "Article 7: Termination",
+        "1. If the User violates any terms of this Agreement, the Company may terminate this Agreement or restrict use of the Software without prior notice.\n2. Upon termination, the User must stop using the Software and delete all copies."
+      ],
+      [
+        "Article 8: Governing Law and Jurisdiction",
+        "This Agreement is governed by the laws of the Republic of Korea, and any disputes shall be subject to the exclusive jurisdiction of the Seoul Central District Court."
+      ],
+      [
+        "Article 9: User Consent",
+        "By downloading, installing, or using the Software, the User acknowledges and agrees to all terms of this Agreement, including the zero tolerance policy on objectionable content and abusive users."
+      ]
+    ]
+  };
 }

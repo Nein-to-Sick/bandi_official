@@ -1,5 +1,6 @@
 import 'package:bandi_official/string_extention.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_switch/flutter_switch.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 
@@ -99,6 +100,35 @@ class _State extends State<FirstStep> {
               ),
               const SizedBox(
                 height: 25,
+              ),
+              // ✅ Toggle 추가
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0, ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      writeProvider.isPublic ? "sharing_diary_on".tr(context) : 'sharing_diary_off'.tr(context),
+                      style: BandiFont.titleSmall(context)?.copyWith(
+                        color: BandiColor.neutralColor100(context),
+                      ),
+                    ),
+                    FlutterSwitch(
+                      value: writeProvider.isPublic,
+                      onToggle: writeProvider.setIsPublic,
+                      inactiveColor: BandiColor.foundationColor40(context),
+                      activeColor: BandiColor.accentColorYellow(context),
+                      inactiveToggleColor: BandiColor.foundationColor40(context),
+                      width: 42.0,
+                      height: 21.0,
+                      padding: 2,
+                      toggleSize: 18.0,
+                    )
+                  ],
+                ),
+              ),
+              const SizedBox(
+                height: 12,
               ),
               CustomPrimaryButton(
                 title: 'done'.tr(context),

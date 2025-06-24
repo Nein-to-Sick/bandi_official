@@ -14,71 +14,76 @@ class PrivacyPolicyScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String langCode = Localizations.localeOf(context).languageCode;
-    List<List<String>>? privacy = CompanyInfo().localizedPrivacyPolicy[langCode] ??
-        CompanyInfo().localizedPrivacyPolicy['ko'];
-    String? privacyLastText = CompanyInfo().localizedPrivacyPolicyExplain[langCode] ??
-        CompanyInfo().localizedPrivacyPolicyExplain['ko'];
+    List<List<String>>? privacy =
+        CompanyInfo().localizedPrivacyPolicy[langCode] ??
+            CompanyInfo().localizedPrivacyPolicy['ko'];
+    String? privacyLastText =
+        CompanyInfo().localizedPrivacyPolicyExplain[langCode] ??
+            CompanyInfo().localizedPrivacyPolicyExplain['ko'];
     return Scaffold(
-        backgroundColor: BandiColor.neutralColor80(context).withOpacity(0.8),
-        appBar: AppBar(
-          scrolledUnderElevation: 0,
-          backgroundColor: BandiColor.transparent(context),
-          leading: IconButton(
-            icon: Icon(PhosphorIcons.caretLeft()),
-            onPressed: onBack,
-          ),
-          title: Text(
-            'settings_privacy_policy'.tr(context),
-            style: BandiFont.displaySmall(context)?.copyWith(
-              color: BandiColor.foundationColor80(context),
-            ),
-          ),
-          centerTitle: true,
+      backgroundColor: BandiColor.neutralColor80(context).withOpacity(0.8),
+      appBar: AppBar(
+        scrolledUnderElevation: 0,
+        backgroundColor: BandiColor.transparent(context),
+        leading: IconButton(
+          icon: Icon(PhosphorIcons.caretLeft()),
+          onPressed: onBack,
         ),
-        body: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 23.0),
-            child: Column(
-              children: [
-                for (int i = 0; i < privacy!.length; i++)
-                  Column(
-                    children: [
-                      if (i != 0) const SizedBox(height: 44),
-                      SizedBox(
-                        width: MediaQuery.of(context).size.width,
-                        child: WrappedKoreanText(
-                          privacy[i][0],
-                          style: BandiFont.headlineMedium(context)?.copyWith(
-                            color: BandiColor.foundationColor80(context),
-                          ),
+        title: Text(
+          'settings_privacy_policy'.tr(context),
+          style: BandiFont.displaySmall(context)?.copyWith(
+            color: BandiColor.foundationColor80(context),
+          ),
+        ),
+        centerTitle: true,
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 23.0),
+          child: Column(
+            children: [
+              for (int i = 0; i < privacy!.length; i++)
+                Column(
+                  children: [
+                    if (i != 0) const SizedBox(height: 44),
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width,
+                      child: WrappedKoreanText(
+                        privacy[i][0],
+                        style: BandiFont.headlineMedium(context)?.copyWith(
+                          color: BandiColor.foundationColor80(context),
                         ),
                       ),
-                      const SizedBox(height: 11),
-                      SizedBox(
-                        width: MediaQuery.of(context).size.width,
-                        child: WrappedKoreanText(
-                          privacy[i][1],
-                          style: BandiFont.bodySmall(context)?.copyWith(
-                            color: BandiColor.foundationColor80(context),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                const SizedBox(height: 50,),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width,
-                  child: WrappedKoreanText(
-                    privacyLastText!,
-                    style: BandiFont.bodySmall(context)?.copyWith(
-                      color: BandiColor.foundationColor80(context),
                     ),
+                    const SizedBox(height: 11),
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width,
+                      child: WrappedKoreanText(
+                        privacy[i][1],
+                        style: BandiFont.bodySmall(context)?.copyWith(
+                          color: BandiColor.foundationColor80(context),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              const SizedBox(
+                height: 50,
+              ),
+              SizedBox(
+                width: MediaQuery.of(context).size.width,
+                child: WrappedKoreanText(
+                  privacyLastText!,
+                  style: BandiFont.bodySmall(context)?.copyWith(
+                    color: BandiColor.foundationColor80(context),
                   ),
                 ),
-                const SizedBox(height: 60),
-              ],
-            ),
+              ),
+              const SizedBox(height: 60),
+            ],
           ),
-        ));
+        ),
+      ),
+    );
   }
 }

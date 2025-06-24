@@ -7,240 +7,284 @@ import '../../theme/custom_theme_data.dart';
 import '../button/primary_button.dart';
 
 class EmotionBottomSheet extends StatefulWidget {
-  const EmotionBottomSheet({super.key, required this.emotion, required this.writeProvider, required this.provider});
+  const EmotionBottomSheet({
+    super.key,
+    required this.emotion,
+    required this.writeProvider,
+    required this.provider,
+  });
+
   final List<dynamic> emotion;
   final HomeToWrite writeProvider;
   final EmotionProvider provider;
-
 
   @override
   _EmotionBottomSheetState createState() => _EmotionBottomSheetState();
 }
 
 class _EmotionBottomSheetState extends State<EmotionBottomSheet> {
+  final List<GlobalKey> _tabKeys = [];
+  double _underlineLeft = 24;
+  double _underlineWidth = 43.7684326171875;
+  bool _isInitialized = false;
+  bool _providerInitialized = false;
+
+  late ScrollController _scrollController;
 
   @override
   void initState() {
     super.initState();
-    final emotionProvider = Provider.of<EmotionProvider>(context, listen: false);
-
-    for(String emotion in widget.emotion) {
-      if (!emotionProvider.selectedEmotions.contains(emotion)) {
-        emotionProvider.selectedEmotions.add(emotion);
-      }
-    }
+    _scrollController = ScrollController();
+    _scrollController.addListener(_updateUnderline);
   }
-  bool _isInitialized = false;
+
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-
     if (!_isInitialized) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        widget.provider.initialize(context);
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        final provider = widget.provider;
+        await provider.initialize(context);
+
+        _tabKeys.clear();
+        _tabKeys.addAll(List.generate(provider.emotionKeys.length, (_) => GlobalKey()));
+
         for (String emotion in widget.emotion) {
-          if (!widget.provider.selectedEmotions.contains(emotion)) {
-            widget.provider.selectedEmotions.add(emotion);
+          if (!provider.selectedEmotions.contains(emotion)) {
+            provider.selectedEmotions.add(emotion);
           }
         }
+
+        _updateUnderline();
+
+        setState(() {
+          _providerInitialized = true;
+        });
       });
       _isInitialized = true;
     }
+
   }
 
+  void _updateUnderline() {
+    final selectedIndex = widget.provider.emotionKeys.indexOf(widget.provider.selectedEmotion);
+    if (selectedIndex < 0 || selectedIndex >= _tabKeys.length) return;
+    final key = _tabKeys[selectedIndex];
+    final ctx = key.currentContext;
+    if (ctx == null) return;
+
+    final box = ctx.findRenderObject() as RenderBox?;
+    if (box == null) return;
+
+    final position = box.localToGlobal(Offset.zero, ancestor: context.findRenderObject());
+
+    setState(() {
+      _underlineLeft = position.dx;
+      _underlineWidth = box.size.width;
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_updateUnderline);
+    _scrollController.dispose();
+    super.dispose();
+  }
 
 
   @override
   Widget build(BuildContext context) {
-    final emotionProvider = Provider.of<EmotionProvider>(context);
-    if (!emotionProvider.isInitialized) {
-      return const Center(child: CircularProgressIndicator());
-    }
+    return Consumer<EmotionProvider>(
+      builder: (context, provider, _) {
+        if (!provider.isInitialized || !_providerInitialized) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-    return ChangeNotifierProvider.value(
-      value: emotionProvider,
-      child: Consumer<EmotionProvider>(
-        builder: (context, provider, child) {
-          double flag = 0;
-          int index = provider.emotionKeys.indexOf(provider.selectedEmotion);
-          if (index < 3) {
-            flag = 3;
-          } else if (index == 3) {
-            flag = 1;
-          } else if (index == 4) {
-            flag = 0;
-          } else if (index == 5) {
-            flag = -0.5;
-          }
-          return SafeArea(
-            child: Container(
-              height: MediaQuery.of(context).size.height * 0.58,
-              padding: const EdgeInsets.symmetric(vertical: 13),
-              child: Column(
-                children: [
-                  Container(
-                    width: 50,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Stack(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          for (int i = 0; i < provider.emotionKeys.length; i++)
-                            GestureDetector(
-                              onTap: () {
-                                provider.selectEmotion(provider.emotionKeys[i]);
-                              },
-                              child: Column(
-                                children: [
-                                  Text(
-                                    provider.emotionKeys[i],
-                                    style: BandiFont.headlineMedium(context)
-                                        ?.copyWith(
-                                      color: provider.selectedEmotion ==
-                                          provider.emotionKeys[i]
-                                          ? BandiColor.foundationColor100(
-                                          context)
-                                          : BandiColor.foundationColor20(
-                                          context),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                ],
-                              ),
-                            ),
-                        ],
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 34.0),
-                        child: Stack(
+        final isEnglish = Localizations.localeOf(context).languageCode == 'en';
+
+        Widget emotionTabBar = isEnglish
+            ? Column(
+          children: [
+            SingleChildScrollView(
+              controller: _scrollController,  // ✅ 여기에 추가
+              scrollDirection: Axis.horizontal,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Row(
+                  children: List.generate(provider.emotionKeys.length, (i) {
+                    final isSelected = provider.selectedEmotion == provider.emotionKeys[i];
+                    return GestureDetector(
+                      key: _tabKeys[i],
+                      onTap: () {
+                        provider.selectEmotion(provider.emotionKeys[i]);
+                        WidgetsBinding.instance.addPostFrameCallback((_) => _updateUnderline());
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            AnimatedPositioned(
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.easeInOut,
-                              bottom: 0,
-                              left: (MediaQuery.of(context).size.width - 25) /
-                                  6 *
-                                  provider.emotionKeys
-                                      .indexOf(provider.selectedEmotion) +
-                                  22 +
-                                  flag *
-                                      (provider.emotionKeys
-                                          .indexOf(provider.selectedEmotion)),
-                              child: Container(
-                                width:
-                                (MediaQuery.of(context).size.width - 115) /
-                                    6,
-                                height: 2,
-                                color: BandiColor.foundationColor100(context),
+                            Text(
+                              provider.emotionKeys[i],
+                              style: BandiFont.headlineMedium(context)?.copyWith(
+                                color: isSelected
+                                    ? BandiColor.foundationColor100(context)
+                                    : BandiColor.foundationColor20(context),
                               ),
                             ),
-                            Divider(
-                                height: 1,
-                                color: BandiColor.foundationColor10(context)),
-                            Container(
-                              height: 2,
-                            )
+                            const SizedBox(height: 8),
                           ],
                         ),
                       ),
+                    );
+                  }),
+                ),
+              ),
+            ),
+            Stack(
+              children: [
+                Divider(
+                    height: 1,
+                    color: BandiColor.foundationColor10(context)),
+                Positioned(
+                  left: _underlineLeft,
+                  bottom: 0,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    width: _underlineWidth,
+                    height: 2,
+                    color: BandiColor.foundationColor100(context),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 15),
+          ],
+        )
+            : Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: List.generate(provider.emotionKeys.length, (i) {
+                final isSelected = provider.selectedEmotion == provider.emotionKeys[i];
+                return GestureDetector(
+                  key: _tabKeys[i], // 👈 key 추가
+                  onTap: () {
+                    provider.selectEmotion(provider.emotionKeys[i]);
+                    WidgetsBinding.instance.addPostFrameCallback((_) => _updateUnderline());
+                  },
+                  child: Column(
+                    children: [
+                      Text(
+                        provider.emotionKeys[i],
+                        style: BandiFont.headlineMedium(context)?.copyWith(
+                          color: isSelected
+                              ? BandiColor.foundationColor100(context)
+                              : BandiColor.foundationColor20(context),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
                     ],
                   ),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.only(
-                                      top: 24, left: 24, right: 24, bottom: 24),
-                                  child: Wrap(
-                                    spacing: 8.0,
-                                    runSpacing: 8.0,
-                                    children: provider.emotionOptions
-                                        .map<Widget>((emotion) {
-                                      return GestureDetector(
-                                        onTap: () {
-                                          if (provider.selectedEmotions
-                                              .contains(emotion)) {
-                                            provider.removeEmotion(emotion);
-                                          } else {
-                                            provider.addEmotion(emotion);
-                                          }
-                                        },
-                                        child: Container(
-                                          padding: const EdgeInsets.all(8.0),
-                                          decoration: BoxDecoration(
-                                            color: provider.selectedEmotions
-                                                .contains(emotion)
-                                                ? BandiColor.foundationColor100(
-                                                context)
-                                                : BandiColor.foundationColor10(
-                                                context),
-                                            borderRadius: BandiEffects.radius(),
-                                          ),
-                                          child: Text(
-                                              "emotion_keyword_$emotion".tr(context),
-                                            style: BandiFont.bodySmall(context)
-                                                ?.copyWith(
-                                              color: provider.selectedEmotions
-                                                  .contains(emotion)
-                                                  ? BandiColor.neutralColor80(
-                                                  context)
-                                                  : BandiColor
-                                                  .foundationColor20(
-                                                  context),
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    }).toList(),
-                                  ),
+                );
+              }),
+            ),
+            Stack(
+              children: [
+                Divider(
+                  height: 1,
+                  color: BandiColor.foundationColor10(context),
+                ),
+                Positioned(
+                  left: _underlineLeft,
+                  bottom: 0,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    width: _underlineWidth,
+                    height: 2,
+                    color: BandiColor.foundationColor100(context),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 15),
+          ],
+        );
+
+        return SafeArea(
+          child: Container(
+            height: MediaQuery.of(context).size.height * 0.58,
+            padding: const EdgeInsets.symmetric(vertical: 13),
+            child: Column(
+              children: [
+                Container(
+                  width: 50,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                emotionTabBar,
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24), // 양쪽 여백 24px
+                    child: Align(
+                      alignment: Alignment.topLeft, // 왼쪽 정렬 보장
+                      child: Wrap(
+                        alignment: WrapAlignment.start, // 줄 내에서 왼쪽 정렬
+                        spacing: 8, // 가로 간격
+                        runSpacing: 8, // 세로 간격
+                        children: provider.emotionOptions.map((emotion) {
+                          final isSelected = provider.selectedEmotions.contains(emotion);
+                          return GestureDetector(
+                            onTap: () => provider.toggleEmotion(emotion),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? BandiColor.foundationColor100(context)
+                                    : BandiColor.foundationColor10(context),
+                                borderRadius: BandiEffects.radius(),
+                              ),
+                              child: Text(
+                                "emotion_keyword_$emotion".tr(context),
+                                style: BandiFont.bodySmall(context)?.copyWith(
+                                  color: isSelected
+                                      ? BandiColor.neutralColor80(context)
+                                      : BandiColor.foundationColor20(context),
                                 ),
                               ),
-                            ],
-                          ),
-                        ],
+                            ),
+                          );
+                        }).toList(),
                       ),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24.0,
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: CustomPrimaryButton(
-                            title: 'confirm'.tr(context),
-                            onPrimaryButtonPressed: () {
-                              widget.writeProvider.changeDiaryValue(provider.selectedEmotions);
+                ),
 
-                              Navigator.pop(context);
-                            },
-                            disableButton: false,
-                          ),
-                        ),
-                      ],
-                    ),
+
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: CustomPrimaryButton(
+                    title: 'confirm'.tr(context),
+                    onPrimaryButtonPressed: () {
+                      widget.writeProvider.changeDiaryValue(provider.selectedEmotions);
+                      Navigator.pop(context);
+                    },
+                    disableButton: false,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }
@@ -267,4 +311,3 @@ void showMoreBottomSheet(BuildContext context, HomeToWrite writeProvider) {
     },
   );
 }
-

@@ -55,6 +55,15 @@ class HomeToWrite with ChangeNotifier {
     notifyListeners();
   }
 
+  bool _isPublic = false;
+  bool get isPublic => _isPublic;
+
+  void setIsPublic(bool value) {
+    _isPublic = value;
+    notifyListeners();
+  }
+
+
   //--------------step 2--------------------------------------------------------
 
   void initialize() {
@@ -76,7 +85,9 @@ class HomeToWrite with ChangeNotifier {
         String emotionString = emotion.toString().split('.').last;
         String returnDiaryId = await scanAndCompareEmotionTimestamps(
             emotionString, diaryModel.diaryId);
-        sendOtherDiary(returnDiaryId);
+        if (_isPublic) {
+          sendOtherDiary(returnDiaryId);
+        }
       }
     }
   }
@@ -207,10 +218,43 @@ class HomeToWrite with ChangeNotifier {
 
           DateTime now = DateTime.now();
           bool updated = false;
+          int representativeDocumentLength = 4;
+          List<int> usableDiaryList =
+              List.generate(representativeDocumentLength, (index) => index + 1);
 
-          for (int i = 1; i <= 4; i++) {
+          String userId = FirebaseAuth.instance.currentUser!.uid;
+          var userData = await FirebaseFirestore.instance
+              .collection('users')
+              .doc(userId)
+              .get();
+
+          List<String> blockedUsersList = [];
+          if (userData.exists &&
+              userData.data()!.containsKey('blockedUsersList')) {
+            blockedUsersList =
+                List<String>.from(userData.get('blockedUsersList'));
+            dev.log('blocked user list exist');
+            for (int i = 0; i < blockedUsersList.length; i++) {
+              dev.log('${blockedUsersList[i]} \n');
+            }
+          } else {
+            dev.log('blocked user list never exist');
+          }
+
+          for (int i = 1; i <= representativeDocumentLength; i++) {
             String timeFieldKey = '$emotion${i}_time';
             String idFieldKey = '$emotion${i}_id';
+
+            dev.log('try to confirm ${data[idFieldKey]} value');
+
+            bool isBlockedUser = blockedUsersList
+                .any((blockedId) => data[idFieldKey].startsWith(blockedId));
+
+            if (isBlockedUser) {
+              dev.log('blocked User diary found no.$i');
+              usableDiaryList.remove(i);
+              continue;
+            }
 
             if (data.containsKey(timeFieldKey) &&
                 data[timeFieldKey] is Timestamp) {
@@ -233,13 +277,19 @@ class HomeToWrite with ChangeNotifier {
                     .update(updates);
 
                 updated = true;
+                dev.log('new representativeDocument Diary updated!');
                 return id;
               }
             }
           }
 
-          if (!updated) {
-            return data['$emotion${Random().nextInt(4) + 1}_id'];
+          if (!updated && usableDiaryList.isNotEmpty) {
+            // 조건에 맞지 않을 경우, 차단되지 않은 사용자 일기 목록 중에서 무작위로 선택해 보여줌
+            int randomNum =
+                usableDiaryList[Random().nextInt(usableDiaryList.length)];
+            dev.log(
+                'There is no porper diary to replace but show random result');
+            return data['$emotion${randomNum}_id'];
           } else {
             return "null";
           }

@@ -52,6 +52,7 @@ class _AgreementStatfulState extends State<AgreementStatful> {
   bool option1Selected = false;
   bool option2Selected = false;
   bool option3Selected = false;
+  bool option4Selected = false;
 
   @override
   Widget build(BuildContext context) {
@@ -66,6 +67,9 @@ class _AgreementStatfulState extends State<AgreementStatful> {
     String? privacyLastText =
         CompanyInfo().localizedPrivacyPolicyExplain[langCode] ??
             CompanyInfo().localizedPrivacyPolicyExplain['ko'];
+
+    List<List<String>>? eulaContent = CompanyInfo().localizedEula[langCode] ??
+        CompanyInfo().localizedEula['ko'];
 
     var navigationToggleProvider =
         Provider.of<NavigationToggleProvider>(context);
@@ -83,7 +87,7 @@ class _AgreementStatfulState extends State<AgreementStatful> {
             topRight: Radius.circular(8),
           ),
         ),
-        height: 420,
+        height: 480,
         width: MediaQuery.of(context).size.width,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -119,6 +123,7 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                       option1Selected = allSelected;
                       option2Selected = allSelected;
                       option3Selected = allSelected;
+                      option4Selected = allSelected;
                     });
                   },
                   child: allSelected
@@ -152,8 +157,10 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                   onTap: () {
                     setState(() {
                       option1Selected = !option1Selected;
-                      allSelected =
-                          option1Selected && option2Selected && option3Selected;
+                      allSelected = option1Selected &&
+                          option2Selected &&
+                          option3Selected &&
+                          option4Selected;
                     });
                   },
                   child: option1Selected
@@ -177,7 +184,6 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                     showDialog(
                       context: context,
                       builder: (BuildContext context) {
-                        var screenSize = MediaQuery.of(context).size;
                         return Scaffold(
                             backgroundColor: BandiColor.neutralColor80(context)
                                 .withOpacity(0.8),
@@ -321,8 +327,10 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                   onTap: () {
                     setState(() {
                       option2Selected = !option2Selected;
-                      allSelected =
-                          option1Selected && option2Selected && option3Selected;
+                      allSelected = option1Selected &&
+                          option2Selected &&
+                          option3Selected &&
+                          option4Selected;
                     });
                   },
                   child: option2Selected
@@ -346,7 +354,6 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                     showDialog(
                       context: context,
                       builder: (BuildContext context) {
-                        var screenSize = MediaQuery.of(context).size;
                         return Scaffold(
                             backgroundColor: BandiColor.neutralColor80(context)
                                 .withOpacity(0.8),
@@ -477,11 +484,170 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                   onTap: () {
                     setState(() {
                       option3Selected = !option3Selected;
-                      allSelected =
-                          option1Selected && option2Selected && option3Selected;
+                      allSelected = option1Selected &&
+                          option2Selected &&
+                          option3Selected &&
+                          option4Selected;
                     });
                   },
                   child: option3Selected
+                      ? PhosphorIcon(
+                          PhosphorIconsFill.checkCircle,
+                          color: BandiColor.foundationColor80(context),
+                        )
+                      : PhosphorIcon(
+                          PhosphorIcons.checkCircle(),
+                          color: BandiColor.foundationColor20(context),
+                          // fill: 1.0,
+                        ),
+                ),
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: GestureDetector(
+                  onTap: () {
+                    // 웹뷰 또는 다이얼로그로 약관을 보여주는 로직을 구현
+                    // "EULA"을 눌렀을 때
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return Scaffold(
+                            backgroundColor: BandiColor.neutralColor80(context)
+                                .withOpacity(0.8),
+                            // custom appbar 일단 임시로 leading icon 변경
+                            appBar: AppBar(
+                              scrolledUnderElevation: 0,
+                              backgroundColor: BandiColor.transparent(context),
+                              automaticallyImplyLeading: false,
+                              title: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
+                                child: Text(
+                                  "onboarding_agreement_condition_4"
+                                      .tr(context),
+                                  style:
+                                      BandiFont.displaySmall(context)?.copyWith(
+                                    color:
+                                        BandiColor.foundationColor80(context),
+                                  ),
+                                ),
+                              ),
+                              centerTitle: true,
+                            ),
+                            body: Column(
+                              children: [
+                                Expanded(
+                                  child: SingleChildScrollView(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 23.0),
+                                      child: Column(
+                                        children: [
+                                          for (int i = 0;
+                                              i < eulaContent!.length;
+                                              i++)
+                                            Column(
+                                              children: [
+                                                if (i != 0)
+                                                  const SizedBox(height: 80),
+                                                SizedBox(
+                                                  width: MediaQuery.of(context)
+                                                      .size
+                                                      .width,
+                                                  child: WrappedKoreanText(
+                                                    eulaContent[i][0],
+                                                    style: BandiFont
+                                                            .headlineMedium(
+                                                                context)
+                                                        ?.copyWith(
+                                                      color: BandiColor
+                                                          .foundationColor80(
+                                                              context),
+                                                    ),
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 11),
+                                                SizedBox(
+                                                  width: MediaQuery.of(context)
+                                                      .size
+                                                      .width,
+                                                  child: WrappedKoreanText(
+                                                    eulaContent[i][1],
+                                                    style: BandiFont.bodySmall(
+                                                            context)
+                                                        ?.copyWith(
+                                                      color: BandiColor
+                                                          .foundationColor80(
+                                                              context),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          const SizedBox(
+                                            height: 50,
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                CustomPrimaryButton(
+                                  title: 'onboarding_button'.tr(context),
+                                  onPrimaryButtonPressed: () {
+                                    Navigator.pop(context);
+                                  },
+                                  disableButton: false,
+                                ),
+                                const SizedBox(
+                                  height: 32,
+                                )
+                              ],
+                            ));
+                      },
+                    );
+                  },
+                  child: RichText(
+                    text: TextSpan(
+                      style: BandiFont.bodySmall(context)?.copyWith(
+                        color: BandiColor.foundationColor80(context),
+                      ),
+                      children: (langCode == 'ko')
+                          ? const [
+                              TextSpan(text: '(필수) '),
+                              TextSpan(
+                                text: '최종사용자사용권계약서(EULA)',
+                                style: TextStyle(
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                              TextSpan(text: '에 동의하시나요?'),
+                            ]
+                          : const [
+                              TextSpan(text: '(Required) '),
+                              TextSpan(text: 'Do you agree to the '),
+                              TextSpan(
+                                text: 'End User License Agreement(EULA)',
+                                style: TextStyle(
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ],
+                    ),
+                  ),
+                ),
+                trailing: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      option4Selected = !option4Selected;
+                      allSelected = option1Selected &&
+                          option2Selected &&
+                          option3Selected &&
+                          option4Selected;
+                    });
+                  },
+                  child: option4Selected
                       ? PhosphorIcon(
                           PhosphorIconsFill.checkCircle,
                           color: BandiColor.foundationColor80(context),
