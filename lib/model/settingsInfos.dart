@@ -102,6 +102,10 @@ class CompanyInfo {
         "제3조",
         "개인정보의 이용\n반디 앱은 다음과 같은 목적으로 개인정보를 이용합니다:\n- 사용자 식별 및 인증\n- 개인화된 서비스 제공\n- 서비스 개선 및 확장\n- 문의 사항 및 요청에 대한 응답\n\na. 개인정보의 보유 및 삭제\n반디 앱은 사용자의 개인정보를 서비스 이용 기간 동안 보유합니다. 사용자가 앱 서비스를 해지하거나 개인정보 삭제를 요청한 경우, 해당 개인정보는 즉시 삭제되거나 파기됩니다.\n\nb. 개인정보의 제공 및 공유\n반디 앱은 사용자의 개인정보를 제3자와 공유하지 않습니다. 다만, 법률에 의거하거나 사용자의 동의가 있는 경우에는 예외적으로 제3자와 개인정보를 공유할 수 있습니다.\n\nc. 개인정보의 보안\n반디 앱은 사용자의 개인정보를 보호하기 위해 관련 법률 및 보안 절차를 준수합니다. 암호화된 통신 채널을 통해 개인정보를 전송하고, 보안 시스템을 사용하여 개인정보에 대한 접근과 무단 사용을 방지합니다.\n\nd. 개인정보 관련 권리\n사용자는 개인정보에 대한 일정한 권리를 가지고 있습니다. 개인정보의 열람, 수정, 삭제를 요청할 수 있으며, 개인정보 처리에 대한 동의 철회도 가능합니다. 이러한 권리를 행사하기 위해서는 반디 앱의 개인정보 관련 문의 채널을 이용하시기 바랍니다.\n\ne. 개인정보 처리방침의 변경\n반디 앱은 개인정보 처리방침을 개정할 수 있습니다. 개인정보 처리방침의 변경 시 앱 내 알림을 통해 사용자에게 공지하고, 변경된 내용을 공개합니다."
       ],
+      [
+        "\n",
+        "위 개인정보 처리방침은 반디 앱에서 수집하는 개인정보에 대한 설명과 사용 방법을 안내하기 위한 것입니다. 사용자는 앱 서비스 이용 전에 본 개인정보 처리방침을 주의 깊게 읽고 동의 여부를 결정할 수 있습니다."
+      ]
     ],
     'en': [
       [
@@ -116,14 +120,11 @@ class CompanyInfo {
         "Article 3",
         "Use of Personal Information\nBandi App uses personal information for the following purposes:\n- User identification and authentication\n- Providing personalized services\n- Improving and expanding services\n- Responding to inquiries and requests\n\na. Retention and Deletion of Personal Information\nBandi App retains users' personal information during the period of service use. If a user cancels the service or requests deletion of their data, the relevant information will be deleted or destroyed immediately.\n\nb. Provision and Sharing of Personal Information\nBandi App does not share users' personal information with third parties. However, exceptions may apply if required by law or with the user's consent.\n\nc. Security of Personal Information\nBandi App complies with relevant laws and security procedures to protect users' personal information. It transmits data through encrypted channels and uses security systems to prevent unauthorized access or use.\n\nd. User Rights Regarding Personal Information\nUsers have certain rights regarding their personal information. They may request to view, modify, or delete their information, or withdraw their consent for data processing. To exercise these rights, users should contact Bandi App's privacy inquiry channel.\n\ne. Changes to the Privacy Policy\nBandi App may revise its Privacy Policy. In the event of changes, users will be notified via in-app alerts and the updated policy will be made publicly available."
       ],
+      [
+        "\n",
+        "This privacy policy is intended to explain how Bandi App collects and uses personal information. Users are advised to read the policy carefully before using the service and decide whether to agree."
+      ]
     ]
-  };
-
-  Map<String, String> localizedPrivacyPolicyExplain = {
-    'ko':
-        '위 개인정보 처리방침은 반디 앱에서 수집하는 개인정보에 대한 설명과 사용 방법을 안내하기 위한 것입니다. 사용자는 앱 서비스 이용 전에 본 개인정보 처리방침을 주의 깊게 읽고 동의 여부를 결정할 수 있습니다.',
-    'en':
-        'This privacy policy is intended to explain how Bandi App collects and uses personal information. Users are advised to read the policy carefully before using the service and decide whether to agree.'
   };
 
   Map<String, List<List<String>>> localizedEula = {

@@ -8,13 +8,8 @@ import 'package:provider/provider.dart';
 import 'package:wrapped_korean_text/wrapped_korean_text.dart';
 import '../../components/button/primary_button.dart';
 import '../../controller/navigation_toggle_provider.dart';
-import '../../controller/user_info_controller.dart';
 import '../../theme/custom_theme_data.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart'; // 아이콘 패키지 임포트
-
-// 다이얼로그에 표시할 "이용약관"과 "개인정보처리동의서" 내용을 정의
-final String termsOfUseContent = "이용약관 내용 여기에 표시됩니다.";
-final String privacyPolicyContent = "개인정보처리동의서 내용 여기에 표시됩니다.";
 
 class AgreementSheet {
   Future<bool?> agreementTermSheet(BuildContext context) {
@@ -64,10 +59,6 @@ class _AgreementStatfulState extends State<AgreementStatful> {
         CompanyInfo().localizedPrivacyPolicy[langCode] ??
             CompanyInfo().localizedPrivacyPolicy['ko'];
 
-    String? privacyLastText =
-        CompanyInfo().localizedPrivacyPolicyExplain[langCode] ??
-            CompanyInfo().localizedPrivacyPolicyExplain['ko'];
-
     List<List<String>>? eulaContent = CompanyInfo().localizedEula[langCode] ??
         CompanyInfo().localizedEula['ko'];
 
@@ -80,7 +71,7 @@ class _AgreementStatfulState extends State<AgreementStatful> {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: BandiColor.neutralColor40(context).withOpacity(1.0),
+          color: BandiColor.neutralColor40(context).withOpacity(0.8),
           // color: Colors.black,
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(8),
@@ -128,13 +119,14 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                   },
                   child: allSelected
                       ? PhosphorIcon(
+                          size: 26,
                           PhosphorIconsFill.checkCircle,
                           color: BandiColor.foundationColor80(context),
                         )
                       : PhosphorIcon(
+                          size: 26,
                           PhosphorIcons.checkCircle(),
                           color: BandiColor.foundationColor20(context),
-                          // fill: 1.0,
                         ),
                 ),
               ),
@@ -165,13 +157,14 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                   },
                   child: option1Selected
                       ? PhosphorIcon(
+                          size: 26,
                           PhosphorIconsFill.checkCircle,
                           color: BandiColor.foundationColor80(context),
                         )
                       : PhosphorIcon(
+                          size: 26,
                           PhosphorIcons.checkCircle(),
                           color: BandiColor.foundationColor20(context),
-                          // fill: 1.0,
                         ),
                 ),
               ),
@@ -181,118 +174,7 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                   onTap: () {
                     // 웹뷰 또는 다이얼로그로 약관을 보여주는 로직을 구현
                     // "개인정보처리동의서"를 눌렀을 때
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return Scaffold(
-                            backgroundColor: BandiColor.neutralColor80(context)
-                                .withOpacity(0.8),
-                            // custom appbar 일단 임시로 leading icon 변경
-                            appBar: AppBar(
-                              scrolledUnderElevation: 0,
-                              automaticallyImplyLeading: false,
-                              backgroundColor: BandiColor.transparent(context),
-                              // leading: null,
-                              title: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 16,
-                                ),
-                                child: Text(
-                                  "onboarding_agreement_condition_2"
-                                      .tr(context),
-                                  style:
-                                      BandiFont.displaySmall(context)?.copyWith(
-                                    color:
-                                        BandiColor.foundationColor80(context),
-                                  ),
-                                ),
-                              ),
-                              centerTitle: true,
-                            ),
-                            body: Column(
-                              children: [
-                                Expanded(
-                                  child: SingleChildScrollView(
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 23.0),
-                                      child: Column(
-                                        children: [
-                                          for (int i = 0;
-                                              i < privacy!.length;
-                                              i++)
-                                            Column(
-                                              children: [
-                                                if (i != 0)
-                                                  const SizedBox(height: 44),
-                                                SizedBox(
-                                                  width: MediaQuery.of(context)
-                                                      .size
-                                                      .width,
-                                                  child: WrappedKoreanText(
-                                                    privacy[i][0],
-                                                    style: BandiFont
-                                                            .headlineMedium(
-                                                                context)
-                                                        ?.copyWith(
-                                                      color: BandiColor
-                                                          .foundationColor80(
-                                                              context),
-                                                    ),
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 11),
-                                                SizedBox(
-                                                  width: MediaQuery.of(context)
-                                                      .size
-                                                      .width,
-                                                  child: WrappedKoreanText(
-                                                    privacy[i][1],
-                                                    style: BandiFont.bodySmall(
-                                                            context)
-                                                        ?.copyWith(
-                                                      color: BandiColor
-                                                          .foundationColor80(
-                                                              context),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          SizedBox(
-                                            width: MediaQuery.of(context)
-                                                .size
-                                                .width,
-                                            child: WrappedKoreanText(
-                                              privacyLastText!,
-                                              style:
-                                                  BandiFont.bodySmall(context)
-                                                      ?.copyWith(
-                                                color: BandiColor
-                                                    .foundationColor80(context),
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 60),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                CustomPrimaryButton(
-                                  title: 'onboarding_button'.tr(context),
-                                  onPrimaryButtonPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                  disableButton: false,
-                                ),
-                                const SizedBox(
-                                  height: 32,
-                                )
-                              ],
-                            ));
-                      },
-                    );
+                    detailsOfAgreementPage(context, privacy!);
                   },
                   child: RichText(
                     text: TextSpan(
@@ -335,13 +217,14 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                   },
                   child: option2Selected
                       ? PhosphorIcon(
+                          size: 26,
                           PhosphorIconsFill.checkCircle,
                           color: BandiColor.foundationColor80(context),
                         )
                       : PhosphorIcon(
+                          size: 26,
                           PhosphorIcons.checkCircle(),
                           color: BandiColor.foundationColor20(context),
-                          // fill: 1.0,
                         ),
                 ),
               ),
@@ -351,105 +234,7 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                   onTap: () {
                     // 웹뷰 또는 다이얼로그로 약관을 보여주는 로직을 구현
                     // "이용약관"을 눌렀을 때
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return Scaffold(
-                            backgroundColor: BandiColor.neutralColor80(context)
-                                .withOpacity(0.8),
-                            // custom appbar 일단 임시로 leading icon 변경
-                            appBar: AppBar(
-                              scrolledUnderElevation: 0,
-                              backgroundColor: BandiColor.transparent(context),
-                              automaticallyImplyLeading: false,
-                              title: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 16,
-                                ),
-                                child: Text(
-                                  "onboarding_agreement_condition_3"
-                                      .tr(context),
-                                  style:
-                                      BandiFont.displaySmall(context)?.copyWith(
-                                    color:
-                                        BandiColor.foundationColor80(context),
-                                  ),
-                                ),
-                              ),
-                              centerTitle: true,
-                            ),
-                            body: Column(
-                              children: [
-                                Expanded(
-                                  child: SingleChildScrollView(
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 23.0),
-                                      child: Column(
-                                        children: [
-                                          for (int i = 0;
-                                              i < terms!.length;
-                                              i++)
-                                            Column(
-                                              children: [
-                                                if (i != 0)
-                                                  const SizedBox(height: 80),
-                                                SizedBox(
-                                                  width: MediaQuery.of(context)
-                                                      .size
-                                                      .width,
-                                                  child: WrappedKoreanText(
-                                                    terms[i][0],
-                                                    style: BandiFont
-                                                            .headlineMedium(
-                                                                context)
-                                                        ?.copyWith(
-                                                      color: BandiColor
-                                                          .foundationColor80(
-                                                              context),
-                                                    ),
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 11),
-                                                SizedBox(
-                                                  width: MediaQuery.of(context)
-                                                      .size
-                                                      .width,
-                                                  child: WrappedKoreanText(
-                                                    terms[i][1],
-                                                    style: BandiFont.bodySmall(
-                                                            context)
-                                                        ?.copyWith(
-                                                      color: BandiColor
-                                                          .foundationColor80(
-                                                              context),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          const SizedBox(
-                                            height: 50,
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                CustomPrimaryButton(
-                                  title: 'onboarding_button'.tr(context),
-                                  onPrimaryButtonPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                  disableButton: false,
-                                ),
-                                const SizedBox(
-                                  height: 32,
-                                )
-                              ],
-                            ));
-                      },
-                    );
+                    detailsOfAgreementPage(context, terms!);
                   },
                   child: RichText(
                     text: TextSpan(
@@ -492,13 +277,14 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                   },
                   child: option3Selected
                       ? PhosphorIcon(
+                          size: 26,
                           PhosphorIconsFill.checkCircle,
                           color: BandiColor.foundationColor80(context),
                         )
                       : PhosphorIcon(
+                          size: 26,
                           PhosphorIcons.checkCircle(),
                           color: BandiColor.foundationColor20(context),
-                          // fill: 1.0,
                         ),
                 ),
               ),
@@ -508,105 +294,7 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                   onTap: () {
                     // 웹뷰 또는 다이얼로그로 약관을 보여주는 로직을 구현
                     // "EULA"을 눌렀을 때
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return Scaffold(
-                            backgroundColor: BandiColor.neutralColor80(context)
-                                .withOpacity(0.8),
-                            // custom appbar 일단 임시로 leading icon 변경
-                            appBar: AppBar(
-                              scrolledUnderElevation: 0,
-                              backgroundColor: BandiColor.transparent(context),
-                              automaticallyImplyLeading: false,
-                              title: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 16,
-                                ),
-                                child: Text(
-                                  "onboarding_agreement_condition_4"
-                                      .tr(context),
-                                  style:
-                                      BandiFont.displaySmall(context)?.copyWith(
-                                    color:
-                                        BandiColor.foundationColor80(context),
-                                  ),
-                                ),
-                              ),
-                              centerTitle: true,
-                            ),
-                            body: Column(
-                              children: [
-                                Expanded(
-                                  child: SingleChildScrollView(
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 23.0),
-                                      child: Column(
-                                        children: [
-                                          for (int i = 0;
-                                              i < eulaContent!.length;
-                                              i++)
-                                            Column(
-                                              children: [
-                                                if (i != 0)
-                                                  const SizedBox(height: 80),
-                                                SizedBox(
-                                                  width: MediaQuery.of(context)
-                                                      .size
-                                                      .width,
-                                                  child: WrappedKoreanText(
-                                                    eulaContent[i][0],
-                                                    style: BandiFont
-                                                            .headlineMedium(
-                                                                context)
-                                                        ?.copyWith(
-                                                      color: BandiColor
-                                                          .foundationColor80(
-                                                              context),
-                                                    ),
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 11),
-                                                SizedBox(
-                                                  width: MediaQuery.of(context)
-                                                      .size
-                                                      .width,
-                                                  child: WrappedKoreanText(
-                                                    eulaContent[i][1],
-                                                    style: BandiFont.bodySmall(
-                                                            context)
-                                                        ?.copyWith(
-                                                      color: BandiColor
-                                                          .foundationColor80(
-                                                              context),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          const SizedBox(
-                                            height: 50,
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                CustomPrimaryButton(
-                                  title: 'onboarding_button'.tr(context),
-                                  onPrimaryButtonPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                  disableButton: false,
-                                ),
-                                const SizedBox(
-                                  height: 32,
-                                )
-                              ],
-                            ));
-                      },
-                    );
+                    detailsOfAgreementPage(context, eulaContent!);
                   },
                   child: RichText(
                     text: TextSpan(
@@ -649,13 +337,14 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                   },
                   child: option4Selected
                       ? PhosphorIcon(
+                          size: 26,
                           PhosphorIconsFill.checkCircle,
                           color: BandiColor.foundationColor80(context),
                         )
                       : PhosphorIcon(
+                          size: 26,
                           PhosphorIcons.checkCircle(),
                           color: BandiColor.foundationColor20(context),
-                          // fill: 1.0,
                         ),
                 ),
               ),
@@ -694,4 +383,96 @@ class _AgreementStatfulState extends State<AgreementStatful> {
       },
     );
   }
+}
+
+Future detailsOfAgreementPage(
+  BuildContext context,
+  List<List<String>> data,
+) {
+  return showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return Scaffold(
+        backgroundColor: BandiColor.neutralColor80(context).withOpacity(0.8),
+        appBar: AppBar(
+          scrolledUnderElevation: 0,
+          backgroundColor: BandiColor.transparent(context),
+          title: Padding(
+            padding: const EdgeInsets.symmetric(
+              vertical: 16,
+            ),
+            child: Text(
+              "onboarding_agreement_condition_3".tr(context),
+              style: BandiFont.displaySmall(context)?.copyWith(
+                color: BandiColor.foundationColor80(context),
+              ),
+            ),
+          ),
+          leading: IconButton(
+            icon: Icon(
+              size: 26,
+              PhosphorIcons.caretLeft(),
+              color: BandiColor.foundationColor80(context),
+            ),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ),
+        body: Stack(
+          children: [
+            SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.only(left: 24, right: 24, top: 24),
+                child: Column(
+                  children: [
+                    for (int i = 0; i < data.length; i++)
+                      Column(
+                        children: [
+                          if (i != 0) const SizedBox(height: 80),
+                          SizedBox(
+                            width: MediaQuery.of(context).size.width,
+                            child: WrappedKoreanText(
+                              data[i][0],
+                              style:
+                                  BandiFont.headlineMedium(context)?.copyWith(
+                                color: BandiColor.foundationColor80(context),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 11),
+                          SizedBox(
+                            width: MediaQuery.of(context).size.width,
+                            child: WrappedKoreanText(
+                              data[i][1],
+                              style: BandiFont.bodySmall(context)?.copyWith(
+                                color: BandiColor.foundationColor80(context),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    const SizedBox(
+                      height: 150,
+                    )
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 32),
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: CustomPrimaryButton(
+                  title: 'onboarding_button'.tr(context),
+                  onPrimaryButtonPressed: () {
+                    Navigator.pop(context);
+                  },
+                  disableButton: false,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
 }
