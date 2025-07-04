@@ -10,9 +10,12 @@ import 'package:provider/provider.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:http/http.dart' as http;
 
+import '../../controller/navigation_toggle_provider.dart';
 import '../../controller/securestorage_controller.dart';
 import '../../controller/user_info_controller.dart';
 import 'package:bandi_official/utils/apple_login_utils.dart' as custom_utils;
+
+import 'login_view.dart';
 
 class AuthService with ChangeNotifier {
   bool checkOnce = false;
@@ -235,13 +238,17 @@ class AuthService with ChangeNotifier {
         if (gUser != null) {
           final GoogleSignInAuthentication gAuth = await gUser.authentication;
           accessToken = gAuth.accessToken!;
-          // log("새로운 Access Token 발급 성공: $accessToken");
-
-          await storageProvider.saveGoogleLoginInfo(gAuth.accessToken!);
+          await storageProvider.saveGoogleLoginInfo(accessToken);
         } else {
-          log("새로운 Access Token 발급 실패");
-          return null; // 실패 시 함수 종료
+          log("사용자가 Google 로그인을 취소했습니다.");
+          // 로그인 취소 시 LoginView로 이동
+          final navigationProvider =
+          Provider.of<NavigationToggleProvider>(context, listen: false);
+          navigationProvider.selectIndex(-1);
+
+          return null;
         }
+
       }
 
       final userCollection = FirebaseFirestore.instance.collection("users");
