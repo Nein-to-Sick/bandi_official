@@ -174,7 +174,8 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                   onTap: () {
                     // 웹뷰 또는 다이얼로그로 약관을 보여주는 로직을 구현
                     // "개인정보처리동의서"를 눌렀을 때
-                    detailsOfAgreementPage(context, privacy!);
+                    detailsOfAgreementPage(
+                        context, privacy!, "onboarding_agreement_condition_2");
                   },
                   child: RichText(
                     text: TextSpan(
@@ -234,7 +235,8 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                   onTap: () {
                     // 웹뷰 또는 다이얼로그로 약관을 보여주는 로직을 구현
                     // "이용약관"을 눌렀을 때
-                    detailsOfAgreementPage(context, terms!);
+                    detailsOfAgreementPage(
+                        context, terms!, "onboarding_agreement_condition_3");
                   },
                   child: RichText(
                     text: TextSpan(
@@ -294,7 +296,8 @@ class _AgreementStatfulState extends State<AgreementStatful> {
                   onTap: () {
                     // 웹뷰 또는 다이얼로그로 약관을 보여주는 로직을 구현
                     // "EULA"을 눌렀을 때
-                    detailsOfAgreementPage(context, eulaContent!);
+                    detailsOfAgreementPage(context, eulaContent!,
+                        "onboarding_agreement_condition_4");
                   },
                   child: RichText(
                     text: TextSpan(
@@ -388,6 +391,7 @@ class _AgreementStatfulState extends State<AgreementStatful> {
 Future detailsOfAgreementPage(
   BuildContext context,
   List<List<String>> data,
+  String title,
 ) {
   return showDialog(
     context: context,
@@ -402,7 +406,7 @@ Future detailsOfAgreementPage(
               vertical: 16,
             ),
             child: Text(
-              "onboarding_agreement_condition_3".tr(context),
+              title.tr(context),
               style: BandiFont.displaySmall(context)?.copyWith(
                 color: BandiColor.foundationColor80(context),
               ),
