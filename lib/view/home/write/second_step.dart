@@ -131,18 +131,22 @@ class SecondStep extends StatelessWidget {
             const SizedBox(
               height: 24,
             ),
-            Center(
-              child: CustomPrimaryButton(
-                title: 'confirm'.tr(context),
-                onPrimaryButtonPressed: () {
-                  if (writeProvider.gotoDirectListPage) {
-                    navigationToggleProvider.selectIndex(1);
-                  }
-                  writeProvider.initialize();
-                  writeProvider.toggleWrite();
-                },
-                disableButton: writeProvider.diaryModel.cheerText == '' ? true : false,
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: CustomPrimaryButton(
+                    title: 'confirm'.tr(context),
+                    onPrimaryButtonPressed: () {
+                      if (writeProvider.gotoDirectListPage) {
+                        navigationToggleProvider.selectIndex(1);
+                      }
+                      writeProvider.initialize();
+                      writeProvider.toggleWrite();
+                    },
+                    disableButton: writeProvider.diaryModel.cheerText == '' ? true : false,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
