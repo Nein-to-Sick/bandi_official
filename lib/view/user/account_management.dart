@@ -79,7 +79,7 @@ class _AccountManagementState extends State<AccountManagement> {
               text: 'settings_my_account_email'.tr(context),
               onTap: () {},
               trailing: Text(
-                userInfo.userEmail.isNotEmpty ? userInfo.userEmail : "이메일 없음",
+                userInfo.userEmail.isNotEmpty ? userInfo.userEmail : "none",
                 style: BandiFont.bodyMedium(context)?.copyWith(
                   color: BandiColor.foundationColor40(context),
                 ),
@@ -361,6 +361,7 @@ class _AccountManagementState extends State<AccountManagement> {
                       color: BandiColor.foundationColor80(context),
                     ),
                     maxLines: 1,
+                    overflow: TextOverflow.fade,
                   ),
             if (trailing != null) ...[
               const Spacer(),
