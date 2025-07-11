@@ -42,7 +42,6 @@ class _State extends State<FirstStep> {
   Widget build(BuildContext context) {
     final writeProvider = Provider.of<HomeToWrite>(context);
 
-    print(writeProvider.diaryModel.content);
     return GestureDetector(
       onTap: () {
         _focusNode.unfocus();
@@ -75,7 +74,7 @@ class _State extends State<FirstStep> {
                   ),
                 ],
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 26),
               Expanded(
                 child: TextField(
                   controller: _textEditingController,
@@ -102,42 +101,45 @@ class _State extends State<FirstStep> {
                 height: 25,
               ),
               // ✅ Toggle 추가
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0, ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      writeProvider.isPublic ? "sharing_diary_on".tr(context) : 'sharing_diary_off'.tr(context),
-                      style: BandiFont.titleSmall(context)?.copyWith(
-                        color: BandiColor.neutralColor100(context),
-                      ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    writeProvider.isPublic ? "sharing_diary_on".tr(context) : 'sharing_diary_off'.tr(context),
+                    style: BandiFont.titleSmall(context)?.copyWith(
+                      color: BandiColor.neutralColor100(context),
                     ),
-                    FlutterSwitch(
-                      value: writeProvider.isPublic,
-                      onToggle: writeProvider.setIsPublic,
-                      inactiveColor: BandiColor.foundationColor40(context),
-                      activeColor: BandiColor.accentColorYellow(context),
-                      inactiveToggleColor: BandiColor.foundationColor40(context),
-                      width: 42.0,
-                      height: 21.0,
-                      padding: 2,
-                      toggleSize: 18.0,
-                    )
-                  ],
-                ),
+                  ),
+                  FlutterSwitch(
+                    value: writeProvider.isPublic,
+                    onToggle: writeProvider.setIsPublic,
+                    inactiveColor: BandiColor.foundationColor40(context),
+                    activeColor: BandiColor.accentColorYellow(context),
+                    inactiveToggleColor: BandiColor.foundationColor40(context),
+                    width: 42.0,
+                    height: 21.0,
+                    padding: 2,
+                    toggleSize: 18.0,
+                  )
+                ],
               ),
               const SizedBox(
                 height: 12,
               ),
-              CustomPrimaryButton(
-                title: 'done'.tr(context),
-                onPrimaryButtonPressed: () {
-                  writeProvider.aiAndSaveDiary(context);
-                  writeProvider.nextWrite(2);
-                },
-                disableButton:
-                    writeProvider.diaryModel.content.isNotEmpty ? false : true,
+              Row(
+                children: [
+                  Expanded(
+                    child: CustomPrimaryButton(
+                      title: 'done'.tr(context),
+                      onPrimaryButtonPressed: () {
+                        writeProvider.aiAndSaveDiary(context);
+                        writeProvider.nextWrite(2);
+                      },
+                      disableButton:
+                          writeProvider.diaryModel.content.isNotEmpty ? false : true,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
