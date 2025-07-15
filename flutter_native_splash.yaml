@@ -6,7 +6,7 @@ flutter_native_splash:
   image_android: assets/images/splash/splash_en.png
 
   # iOS-specific splash image
-  image_ios: assets/images/splash/splash_ios_en.png
+  image_ios: assets/images/splash/splash_en.png
 
   android_12:
     # Splash image for Android 12 only
