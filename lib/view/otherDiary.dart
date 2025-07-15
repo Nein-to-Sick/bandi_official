@@ -258,12 +258,13 @@ class _OtherDiaryState extends State<OtherDiary> {
                                   });
                                 },
                                 child: PhosphorIcon(
-                                  PhosphorIcons.warningCircle(),
-                                  color: BandiColor.accentColorRed(context),
+                                  PhosphorIcons.siren(),
+                                  size: 24,
+                                  color: BandiColor.foundationColor40(context),
                                 ),
                               ),
                               const SizedBox(
-                                width: 20,
+                                width: 8,
                               ),
                               // 닫기 버튼
                               GestureDetector(
@@ -306,6 +307,7 @@ class _OtherDiaryState extends State<OtherDiary> {
                                 },
                                 child: PhosphorIcon(
                                   PhosphorIcons.x(),
+                                  size: 24,
                                   color: BandiColor.foundationColor40(context),
                                 ),
                               ),
