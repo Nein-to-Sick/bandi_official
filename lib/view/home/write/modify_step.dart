@@ -85,7 +85,7 @@ class _ThirdStepState extends State<ThirdStep> {
               ],
             ),
             const SizedBox(
-              height: 32,
+              height: 26,
             ),
             Expanded(
               child: TextField(
@@ -151,25 +151,29 @@ class _ThirdStepState extends State<ThirdStep> {
             const SizedBox(
               height: 24,
             ),
-            Center(
-              child: CustomPrimaryButton(
-                title: 'done'.tr(context),
-                onPrimaryButtonPressed: () async {
-                  // 저장
-                  writeProvider.modifyDatabaseDiaryValue(
-                      titleText, contentText, writeProvider.diaryModel.diaryId);
-                  if (writeProvider.gotoDirectListPage) {
-                    navigationToggleProvider.selectIndex(1);
-                  }
-                  writeProvider.toggleWrite();
-                  writeProvider.initialize();
-                },
-                disableButton: (writeProvider.diaryModel.title == titleText &&
-                        writeProvider.diaryModel.content == contentText &&
-                        writeProvider.flag == 0)
-                    ? true
-                    : false,
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: CustomPrimaryButton(
+                    title: 'done'.tr(context),
+                    onPrimaryButtonPressed: () async {
+                      // 저장
+                      writeProvider.modifyDatabaseDiaryValue(
+                          titleText, contentText, writeProvider.diaryModel.diaryId);
+                      if (writeProvider.gotoDirectListPage) {
+                        navigationToggleProvider.selectIndex(1);
+                      }
+                      writeProvider.toggleWrite();
+                      writeProvider.initialize();
+                    },
+                    disableButton: (writeProvider.diaryModel.title == titleText &&
+                            writeProvider.diaryModel.content == contentText &&
+                            writeProvider.flag == 0)
+                        ? true
+                        : false,
+                  ),
+                ),
+              ],
             )
           ],
         ),

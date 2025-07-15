@@ -17,9 +17,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
     List<List<String>>? privacy =
         CompanyInfo().localizedPrivacyPolicy[langCode] ??
             CompanyInfo().localizedPrivacyPolicy['ko'];
-    String? privacyLastText =
-        CompanyInfo().localizedPrivacyPolicyExplain[langCode] ??
-            CompanyInfo().localizedPrivacyPolicyExplain['ko'];
+
     return Scaffold(
       backgroundColor: BandiColor.neutralColor80(context).withOpacity(0.8),
       appBar: AppBar(
@@ -67,18 +65,6 @@ class PrivacyPolicyScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-              const SizedBox(
-                height: 50,
-              ),
-              SizedBox(
-                width: MediaQuery.of(context).size.width,
-                child: WrappedKoreanText(
-                  privacyLastText!,
-                  style: BandiFont.bodySmall(context)?.copyWith(
-                    color: BandiColor.foundationColor80(context),
-                  ),
-                ),
-              ),
               const SizedBox(height: 60),
             ],
           ),

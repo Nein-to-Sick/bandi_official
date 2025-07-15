@@ -150,7 +150,7 @@ class SettingsHome extends StatelessWidget {
       onTap: onTap,
       onLongPress: onTap,
       child: Container(
-        color: Colors.transparent,
+        color: BandiColor.transparent(context),
         height: 42.0,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,

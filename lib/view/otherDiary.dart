@@ -258,54 +258,91 @@ class _OtherDiaryState extends State<OtherDiary> {
                                   });
                                 },
                                 child: PhosphorIcon(
-                                  PhosphorIcons.warningCircle(),
-                                  color: BandiColor.accentColorRed(context),
+                                  PhosphorIcons.siren(),
+                                  size: 24,
+                                  color: BandiColor.foundationColor40(context),
                                 ),
                               ),
                               const SizedBox(
-                                width: 20,
+                                width: 8,
                               ),
                               // 닫기 버튼
                               GestureDetector(
                                 onTap: () async {
-                                  if (reaction1) {
-                                    reactionValue = 0;
-                                  } else if (reaction2) {
-                                    reactionValue = 1;
-                                  } else if (reaction3) {
-                                    reactionValue = 2;
-                                  }
+                                  try {
+                                    // 1. 반응값 설정
+                                    if (reaction1) {
+                                      reactionValue = 0;
+                                    } else if (reaction2) {
+                                      reactionValue = 1;
+                                    } else if (reaction3) {
+                                      reactionValue = 2;
+                                    } else {
+                                      reactionValue = -1;
+                                    }
 
-                                  if (reactionValue != -1) {
+                                    if (reactionValue == -1) return;
+
+                                    final diaryModel =
+                                        writeProvider.otherDiaryModel;
+                                    final diaryId = diaryModel.diaryId;
+                                    final userId = diaryModel.userId;
+
+                                    // 2. 로컬 저장
                                     mailController.saveLikedDiaryToLocal(
-                                        writeProvider.otherDiaryModel,
-                                        reactionValue);
+                                        diaryModel, reactionValue);
 
-                                    saveReactionInDB(
-                                        writeProvider.otherDiaryModel.diaryId,
-                                        writeProvider.otherDiaryModel.reaction,
+                                    // 3. Firestore에 반응 업데이트 (문서 존재 확인 후)
+                                    final diaryRef = FirebaseFirestore.instance
+                                        .collection('allDiary')
+                                        .doc(diaryId);
+                                    final docSnapshot = await diaryRef.get();
+
+                                    if (docSnapshot.exists) {
+                                      await saveReactionInDB(
+                                        diaryId,
+                                        diaryModel.reaction,
                                         reaction1,
                                         reaction2,
-                                        reaction3);
+                                        reaction3,
+                                      );
+                                    } else {
+                                      log("Diary document not found: $diaryId");
+                                    }
 
-                                    String fcmToken = (await FirebaseFirestore
-                                            .instance
+                                    // 4. 유저의 fcmToken 가져오기
+                                    final userDocSnapshot =
+                                        await FirebaseFirestore.instance
                                             .collection('users')
-                                            .doc(writeProvider
-                                                .otherDiaryModel.userId)
-                                            .get())
-                                        .data()?['fcmToken'];
+                                            .doc(userId)
+                                            .get();
 
-                                    alarmController.sendLikedDiaryNotification(
-                                      writeProvider.otherDiaryModel.diaryId,
-                                      fcmToken,
-                                      writeProvider.otherDiaryModel.userId,
-                                    );
+                                    final fcmToken =
+                                        userDocSnapshot.data()?['fcmToken'];
+
+                                    // 5. FCM 전송 조건 확인 후 알림 전송
+                                    if (fcmToken != null &&
+                                        fcmToken is String &&
+                                        fcmToken.isNotEmpty) {
+                                      alarmController
+                                          .sendLikedDiaryNotification(
+                                        diaryId,
+                                        fcmToken,
+                                        userId,
+                                      );
+                                    } else {
+                                      log("Invalid or missing FCM token for user: $userId");
+                                    }
+                                  } catch (e, stack) {
+                                    log("Error in reaction process: $e\n$stack");
+                                  } finally {
+                                    // 6. 페이지 닫기 (성공/실패 상관없이 항상 수행)
+                                    writeProvider.offDiaryOpen();
                                   }
-                                  writeProvider.offDiaryOpen();
                                 },
                                 child: PhosphorIcon(
                                   PhosphorIcons.x(),
+                                  size: 24,
                                   color: BandiColor.foundationColor40(context),
                                 ),
                               ),
@@ -428,17 +465,42 @@ class _OtherDiaryState extends State<OtherDiary> {
   }
 }
 
-Future<void> saveReactionInDB(String diaryId, List currReaction, bool reaction1,
-    bool reaction2, bool reaction3) async {
-  int newReaction1 = currReaction[0];
-  int newReaction2 = currReaction[1];
-  int newReaction3 = currReaction[2];
-  if (reaction1) newReaction1++;
-  if (reaction2) newReaction2++;
-  if (reaction3) newReaction3++;
+Future<void> saveReactionInDB(
+  String diaryId,
+  List currReaction,
+  bool reaction1,
+  bool reaction2,
+  bool reaction3,
+) async {
+  try {
+    if (currReaction.length != 3) {
+      log("currReaction does not have 3 elements: $currReaction");
+      return;
+    }
 
-  final FirebaseFirestore firestore = FirebaseFirestore.instance;
-  await firestore.collection('allDiary').doc(diaryId).update({
-    'reaction': [newReaction1, newReaction2, newReaction3]
-  });
+    int newReaction1 = currReaction[0] ?? 0;
+    int newReaction2 = currReaction[1] ?? 0;
+    int newReaction3 = currReaction[2] ?? 0;
+
+    if (reaction1) newReaction1++;
+    if (reaction2) newReaction2++;
+    if (reaction3) newReaction3++;
+
+    final firestore = FirebaseFirestore.instance;
+    final docRef = firestore.collection('allDiary').doc(diaryId);
+
+    final docSnapshot = await docRef.get();
+    if (!docSnapshot.exists) {
+      log("Diary document not found in saveReactionInDB: $diaryId");
+      return;
+    }
+
+    await docRef.update({
+      'reaction': [newReaction1, newReaction2, newReaction3]
+    });
+
+    log("Reaction updated in Firestore: [$newReaction1, $newReaction2, $newReaction3]");
+  } catch (e, stack) {
+    log("Error in saveReactionInDB: $e\n$stack");
+  }
 }
