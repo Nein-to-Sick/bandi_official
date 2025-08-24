@@ -1,4 +1,5 @@
-# 반디 (Bandi) - AI 기반 감정 일기 플랫폼
+<img width="1920" height="686" alt="image" src="https://github.com/user-attachments/assets/5e6923ee-a23b-4a81-8cb3-9fc7a8267725" />
+
 
 [![PlayStore](https://img.shields.io/badge/PlayStore-Download-green)](https://play.google.com/store/apps/details?id=com.bandi.official)
 [![AppStore](https://img.shields.io/badge/AppStore-Download-blue)](https://apps.apple.com/kr/app/%EB%B0%98%EB%94%94-ai-%EA%B0%90%EC%A0%95-%EC%9D%BC%EC%A7%80/id6717578973)
