@@ -72,6 +72,7 @@ flutter:
    - assets/config/
    - assets/bgm/
    - assets/lang/
+   - assets/screenshots
 
 fonts:
   - family: IBMPlexSansKR
