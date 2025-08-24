@@ -51,32 +51,17 @@ Flutter와 Firebase를 기반으로 개발되었으며, 실제 **구글 플레�
 ```mermaid
 flowchart TD
 
-subgraph Client[모바일 앱 (Flutter)]
-  UI[UI/UX 화면]
-  State[Provider 상태관리]
-end
-
-subgraph Firebase[Firebase & GCP]
-  Auth[Authentication (Google/Apple OAuth)]
-  DB[(Firestore Database)]
-  Functions[Cloud Functions]
-  FCM[Cloud Messaging]
-end
-
-subgraph External[외부 API]
-  OpenAI[ChatGPT API]
-  DeepL[DeepL API]
-end
-
-User((사용자)) -->|일기 작성| UI
-UI --> State
-State --> DB
-UI -->|로그인| Auth
-DB --> Functions
-Functions -->|알림 Trigger| FCM
-Functions -->|AI 호출| OpenAI
-Functions -->|번역| DeepL
+User((사용자)) -->|일기 작성| UI[Flutter 앱 UI]
+UI --> State[Provider 상태관리]
+UI -->|로그인| Auth[Firebase Authentication]
+State --> DB[(Firestore Database)]
+DB --> Functions[Firebase Cloud Functions]
+Functions -->|알림 Trigger| FCM[Firebase Cloud Messaging]
+Functions -->|AI 호출| OpenAI[ChatGPT API]
+Functions -->|번역| DeepL[DeepL API]
 FCM --> UI
+
+---
 
 ## 🔥 기술적 도전 과제 & 해결 방법
 
@@ -99,6 +84,8 @@ FCM --> UI
 문제: ChatGPT API 호출 시 토큰 과다 사용 → 응답 지연 및 비용 증가
 
 해결: 감정 키워드 추출 프롬프트 최소화 + Firebase Functions 캐싱 → 응답 속도 개선 & 비용 절감
+
+---
 
 ## 📂 코드 스니펫 (Cloud Functions)
 
@@ -137,6 +124,8 @@ exports.sendLikedDiaryNotification = functions.firestore
     await admin.messaging().send(message);
   });
 
+---
+
 ## 📊 프로젝트 성과
 
 ✅ iOS AppStore & Android PlayStore 동시 출시
@@ -146,6 +135,8 @@ exports.sendLikedDiaryNotification = functions.firestore
 🏆 SW 창업경진대회 대상 수상
 
 🏆 포스텍 미니 아이코어 프로그램 우수상 수상
+
+---
 
 ## 👥 역할
 
@@ -165,6 +156,8 @@ ChatGPT API 연동 및 최적화
 권세한
 
 
+---
+
 ## 📌 배운 점
 
 Firebase Functions, FCM 등 실무 수준 난이도 있는 문제 해결 경험
@@ -173,6 +166,8 @@ iOS/Android 플랫폼별 차이를 고려한 운영 능력 확보
 
 실제 사용자 피드백 기반 지속적인 개선 사이클 운영
 
+---
+
 ## ✨ 한 줄 소개
 
-“실서비스를 개발·출시·운영하며, 복잡한 기술적 문제를 해결할 수 있는 풀스택 모바일 개발자”
+“실서비스를 개발·출시·운영하며, 복잡한 기술적 문제를 해결할 수 있는 풀스택 모바일 개발 경험”
