@@ -60,6 +60,7 @@ Functions -->|알림 Trigger| FCM[Firebase Cloud Messaging]
 Functions -->|AI 호출| OpenAI[ChatGPT API]
 Functions -->|번역| DeepL[DeepL API]
 FCM --> UI
+```
 
 ---
 
