@@ -4,8 +4,6 @@
 [![PlayStore](https://img.shields.io/badge/PlayStore-Download-green)](https://play.google.com/store/apps/details?id=com.bandi.official)
 [![AppStore](https://img.shields.io/badge/AppStore-Download-blue)](https://apps.apple.com/kr/app/%EB%B0%98%EB%94%94-ai-%EA%B0%90%EC%A0%95-%EC%9D%BC%EC%A7%80/id6717578973)
 
----
-
 ## 📑 목차
 
 1. [프로젝트 소개](#-프로젝트-소개)
