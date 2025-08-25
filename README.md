@@ -30,6 +30,18 @@ Flutter와 Firebase를 기반으로 개발되었으며, 실제 **구글 플레�
 
 ---
 
+## 📊 프로젝트 성과
+
+✅ iOS AppStore & Android PlayStore 동시 출시
+
+✅ 예비창업패키지 선정 프로젝트 (경북창조경제혁신센터)
+
+🏆 SW 창업경진대회 대상 수상
+
+🏆 포스텍 미니 아이코어 프로그램 우수상 수상
+
+---
+
 ## 🛠️ 기술 스택
 - **Frontend**
   - Flutter (Dart), Provider (상태관리)
@@ -138,18 +150,6 @@ exports.sendLikedDiaryNotification = functions.firestore
     // 알림 발송
     await admin.messaging().send(message);
   });
-
----
-
-## 📊 프로젝트 성과
-
-✅ iOS AppStore & Android PlayStore 동시 출시
-
-✅ 예비창업패키지 선정 프로젝트 (경북창조경제혁신센터)
-
-🏆 SW 창업경진대회 대상 수상
-
-🏆 포스텍 미니 아이코어 프로그램 우수상 수상
 
 ---
 
