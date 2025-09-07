@@ -45,20 +45,27 @@ Flutter와 Firebase를 기반으로 개발되었으며, 실제 **구글 플레�
 
 ## 🛠️ 기술 스택
 
-- **Frontend**
-  - Flutter (Dart), Provider (상태관리)
-  - Responsive UI (모바일/태블릿 대응)
-- **Backend & Infra**
-  - Firebase Firestore (NoSQL DB)
-  - Firebase Cloud Functions (Serverless API)
-  - Firebase Cloud Messaging (푸시 알림)
-  - Firebase Authentication (Google, Apple OAuth)
-- **AI & 번역**
-  - OpenAI ChatGPT API (감정 분석, 회고 챗봇)
-  - DeepL API (다국어 번역 지원)
-- **배포**
-  - Google PlayStore / Apple AppStore
-  - CI/CD 배포 경험  
+### Frontend
+![Flutter](https://img.shields.io/badge/Flutter-02569B?logo=flutter&logoColor=white)
+![Dart](https://img.shields.io/badge/Dart-0175C2?logo=dart&logoColor=white)
+![Provider](https://img.shields.io/badge/Provider-20232A?logo=flutter&logoColor=61DAFB)
+![Responsive UI](https://img.shields.io/badge/Responsive%20UI-FF9800?logo=responsive&logoColor=white)
+
+### Backend & Infra
+![Firebase Firestore](https://img.shields.io/badge/Firebase%20Firestore-FFCA28?logo=firebase&logoColor=black)
+![Cloud Functions](https://img.shields.io/badge/Firebase%20Functions-039BE5?logo=firebase&logoColor=white)
+![Cloud Messaging](https://img.shields.io/badge/Firebase%20Messaging-FF6F00?logo=firebase&logoColor=white)
+![Firebase Auth](https://img.shields.io/badge/Firebase%20Auth-DD2C00?logo=firebase&logoColor=white)
+
+### AI & 번역
+![OpenAI](https://img.shields.io/badge/OpenAI-412991?logo=openai&logoColor=white)
+![DeepL](https://img.shields.io/badge/DeepL-0A4D8C?logo=deepl&logoColor=white)
+
+### 배포
+![Google Play](https://img.shields.io/badge/Google%20Play-414141?logo=googleplay&logoColor=white)
+![App Store](https://img.shields.io/badge/App%20Store-0D96F6?logo=appstore&logoColor=white)
+<!--![CI/CD](https://img.shields.io/badge/CI%2FCD-2088FF?logo=githubactions&logoColor=white) -->
+
 
 ---
 
