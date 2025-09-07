@@ -34,7 +34,7 @@ Flutter와 Firebase를 기반으로 개발되었으며, 실제 **구글 플레�
 
 ✅ iOS AppStore & Android PlayStore 동시 출시  
 
-| **✅ K-Startup 예비창업패키지 지원 선정** | **🏆 제 13 회 창업경진대회 RPM 대상** |
+| **🏆 K-Startup 예비창업패키지 지원 선정** | **🏆 제 13 회 창업경진대회 RPM 대상** |
 |:---:|:---:|
 | <img width="225" height="382" alt="image" src="https://github.com/user-attachments/assets/8538ab94-4612-4fc8-935b-438ca61fdaa7" /> | <img width="225" height="381" alt="image" src="https://github.com/user-attachments/assets/1eac3d4c-171d-48d7-b670-76a48cdadc6d" /> |
 | 2024-04-29 | 2024-12-24 |
