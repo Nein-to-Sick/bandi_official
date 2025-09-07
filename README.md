@@ -34,13 +34,10 @@ Flutter와 Firebase를 기반으로 개발되었으며, 실제 **구글 플레�
 
 ✅ iOS AppStore & Android PlayStore 동시 출시  
 
-✅ 예비창업패키지 선정 프로젝트 (경북창조경제혁신센터)  
-- [관련 기사 1](https://www.christian-journal.com/news/articleView.html?idxno=1096)  
-- [관련 기사 2](http://www.mediagb.kr/news/view.php?idx=34988)  
-
-🏆 SW 창업경진대회 대상 수상  
-- [관련 기사 1](https://www.christiandaily.co.kr/news/130618)  
-- [관련 기사 2](https://www.christiandaily.co.kr/news/141242)  
+| **✅ 예비창업패키지 선정 프로젝트** | **🏆 SW 창업경진대회 대상 수상** |
+|---|---|
+| <img width="225" height="382" alt="image" src="https://github.com/user-attachments/assets/8538ab94-4612-4fc8-935b-438ca61fdaa7" /> | <img width="225" height="381" alt="image" src="https://github.com/user-attachments/assets/1eac3d4c-171d-48d7-b670-76a48cdadc6d" /> |
+| [관련 기사 1](https://www.christian-journal.com/news/articleView.html?idxno=1096)   [관련 기사 2](http://www.mediagb.kr/news/view.php?idx=34988) | [관련 기사 1](https://www.christiandaily.co.kr/news/130618)   [관련 기사 2](https://www.christiandaily.co.kr/news/141242) |
 
 🏆 포스텍 미니 아이코어 프로그램 우수상 수상  
 
