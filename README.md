@@ -56,7 +56,7 @@
 ![Provider](https://img.shields.io/badge/Provider-20232A?logo=flutter&logoColor=61DAFB)
 ![Responsive UI](https://img.shields.io/badge/Responsive%20UI-FF9800?logo=responsive&logoColor=white)
 
-### Backend & Infra
+### Backend & DB
 ![Firebase Firestore](https://img.shields.io/badge/Firebase%20Firestore-FFCA28?logo=firebase&logoColor=black)
 ![Cloud Functions](https://img.shields.io/badge/Firebase%20Functions-039BE5?logo=firebase&logoColor=white)
 ![Cloud Messaging](https://img.shields.io/badge/Firebase%20Messaging-FF6F00?logo=firebase&logoColor=white)
@@ -65,6 +65,7 @@
 ### AI & 번역
 ![OpenAI](https://img.shields.io/badge/OpenAI-412991?logo=openai&logoColor=white)
 ![DeepL](https://img.shields.io/badge/DeepL-0A4D8C?logo=deepl&logoColor=white)
+![Flutter Localization](https://img.shields.io/badge/Flutter%20Localization-02569B?logo=flutter&logoColor=white)
 
 ### 배포
 ![Google Play](https://img.shields.io/badge/Google%20Play-414141?logo=googleplay&logoColor=white)
