@@ -73,7 +73,7 @@ Flutter와 Firebase를 기반으로 개발되었으며, 실제 **구글 플레�
 
 | 홈 화면 | 감정 일기 작성 | 감정 분석 결과 |
 |:---:|:---:|:---:|
-| ![홈](assets/screenshots/home.png) | ![일기](assets/screenshots/diary.png) | ![분석](assets/screenshots/analysis.png) |
+| <img src="https://github.com/user-attachments/assets/b5905b67-bae9-4a02-8ce6-fa549daa2978" alt="홈" width="202" height="438" /> | <img src="https://github.com/user-attachments/assets/076a1fd5-e872-46e2-860e-1b20c2457d8e" alt="일기" width="202" height="438" /> | <img src="https://github.com/user-attachments/assets/028cb29c-b555-42d9-becf-e9cda9e4b451" alt="분석" width="202" height="438" /> |
 
 | 챗봇 회고 | 알림 기능 | 다국어 지원 |
 |:---:|:---:|:---:|
