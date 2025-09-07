@@ -169,11 +169,12 @@ exports.sendLikedDiaryNotification = functions.firestore
 
 ## 👥 역할
 
-| 이름   | 역할 |
-|--------|------|
-| 김형진 | Flutter 프론트엔드 & Firebase 백엔드 개발, Cloud Functions 및 서버리스 아키텍처 구현, ChatGPT API 연동 및 최적화, 배포 및 스토어 심사 대응 |
-| 김경록 | 팀 내 역할 (디자인/개발 보조) |
-| 권세한 | 팀 내 역할 (개발/운영 보조) |
+| 이름 | 역할 |
+|------|------|
+| <pre>김형진</pre> | Flutter 프론트엔드 & Firebase 백엔드 개발, Cloud Functions 및 서버리스 아키텍처 구현, ChatGPT API 연동 및 최적화, 배포 및 스토어 심사 대응 |
+| <pre>김경록</pre> | 일기 작성 및 공유 기능 중심 개발, 대표 문서 체계 도입, DeepL API 기반 다국어화 적용 |
+| <pre>권세한</pre> | 팀 내 역할 (개발/운영 보조) |
+| <pre>박창휘</pre> | 팀 내 역할 (디자인) |
 
 ---
 
