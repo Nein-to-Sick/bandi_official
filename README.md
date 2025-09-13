@@ -22,19 +22,18 @@
 ## 🌟 프로젝트 소개
 
 **반디(Bandi)** 는 AI 기반 감정 분석과 회고 기능을 제공하는 **일상 감정 관리 플랫폼**입니다.  
-<!-- Flutter와 Firebase를 기반으로 개발되었으며, 실제 **구글 플레이스토어와 애플 앱스토어에 출시**되어 운영 중입니다. (이건 없어도 될듯 밑에 있어서)--> 
 
-- 감정 일기 작성 및 자동 감정 키워드 분석  
-- ChatGPT 기반 맞춤형 회고 챗봇  
-- Firebase Cloud Messaging 기반 푸시 알림  
-- DeepL API를 통한 번역 및 다국어 지원  
+- 감정 일기 작성 및 자동 키워드 분석 기능을 Flutter와 Firebase 기반으로 구현하며, 데이터 흐름과 비동기 처리 경험 축적  
+- ChatGPT 기반 맞춤형 회고 챗봇 구현, API 연동과 상태관리 최적화 학습  
+- Firebase Cloud Messaging 활용 푸시 알림 설계, 앱-서버리스 연동 경험  
+- DeepL API를 통한 다국어 지원 구현, Flutter Localization 적용 및 글로벌 사용자 확장 경험  
 
 ---
 
 <a id="project-achievements"></a>
 ## 📊 프로젝트 성과
 
-✅ iOS AppStore & Android PlayStore 동시 출시  
+✅ iOS AppStore & Android PlayStore 동시 출시, 실사용자를 대상으로 기술 구현 및 운영 경험 확보
 
 | **🏆 K-Startup 예비창업패키지 지원 선정** | **🏆 제 13 회 창업경진대회 RPM 대상** |
 |:---:|:---:|
@@ -117,7 +116,7 @@ Functions -->|AI 호출| OpenAI[ChatGPT API]
 1. **다국어화 및 번역 토글 구현**
    - PR: [#133 Feature 다국어화(localization) 설정하기](https://github.com/Nein-to-Sick/bandi_official/pull/133)  
    - 내용: Flutter UI 전반과 Firebase Function에 다국어(Localization) 적용, 사용자 입력 일기 공유 시 DeepL API 기반 번역 토글 기능 구현  
-   - 의미: 글로벌 사용자 대상 확장 및 플랫폼 내 언어 선택 유연성 강화  
+   - 의미: 글로벌 사용자 대상 확장 및 플랫폼 내 언어 선택 유연성 강화, Flutter와 서버리스 연동 실무 경험 확보  
 
 2. **기록 공유의 신고 및 차단 기능 추가**
    - PR: [#144 Release 공유 알고리즘 개선 등](https://github.com/Nein-to-Sick/bandi_official/pull/144)  
@@ -143,6 +142,9 @@ Functions -->|AI 호출| OpenAI[ChatGPT API]
 
 <a id="code-snippets-cloud-functions"></a>
 ## 📂 코드 스니펫 (Cloud Functions)
+
+> Flutter와 Firebase를 단순히 사용하는 수준을 넘어, 실제 서비스에서 발생하는 이벤트 기반 기능을 직접 구현하며 **클라이언트-서버리스 연동, 데이터 흐름, 비동기 처리**를 깊이 탐구.  
+> 아래 코드는 이러한 경험을 통해 작성된, 공유된 일기 콘텐츠에 '좋아요'가 발생했을 때 작성자에게 실시간 알림을 전송하는 Cloud Function 예제.
 
 ```js
 // functions/index.js
@@ -198,7 +200,7 @@ exports.sendLikedDiaryNotification = functions.firestore
 <a id="lessons-learned"></a>
 ## 📌 배운 점
 
-- 앱 심사와 서비스 운영 과정에서 발생하는 **실제 문제 해결 경험** 축적  
+- 앱 심사와 서비스 운영 과정에서 발생하는 **실제 문제 해결 경험** 축적, Flutter/Firebase/Cloud Functions 적용 및 심화 이해  
 - 소셜 로그인, 다국어, 네트워크 등 **실무 난이도 높은 문제 해결 능력 확보**  
 - 실제 사용자 피드백 기반으로 **지속적인 개선 사이클** 운영  
 
