@@ -92,10 +92,14 @@
 ```mermaid
 flowchart TD
 
-User((사용자)) -->|소셜 로그인| Auth[Google/Apple OAuth] --> Provider[상태관리] --> DB[(Firestore Database)]
-User -->|일기 작성| Local[로컬 저장소] & DB
-User -->|기록 공유| Share[공유된 기록] -->|공감| Functions[Firebase Cloud Functions] --> FCM[Firebase Cloud Messaging] --> 상대방앱
-User -->|기록 공유| Share -->|번역| DeepL[DeepL API]
+User((사용자)) -->|소셜 로그인| Auth[Google/Apple OAuth] --> Provider[상태관리 (Provider)] --> DB[(Firestore Database)]
+User -->|일기 작성| Write[일기 작성]
+Write --> Local[로컬 저장소]
+Write --> DB
+
+User -->|기록 공유| Share[공유된 기록]
+Share -->|공감| Functions[Firebase Cloud Functions] --> FCM[Firebase Cloud Messaging] -->|알림| App[상대방앱]
+Share -->|번역| DeepL[DeepL API]
 
 Functions -->|알림 Trigger| FCM
 Functions -->|AI 호출| OpenAI[ChatGPT API]
