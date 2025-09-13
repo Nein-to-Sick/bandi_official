@@ -5,19 +5,20 @@
 
 ## 📑 목차
 
-1. [🌟 프로젝트 소개](#-프로젝트-소개)  
-2. [📊 프로젝트 성과](#-프로젝트-성과)  
-3. [🛠️ 기술 스택](#tech-stack)
-4. [🖼️ 앱 스크린샷](#-앱-스크린샷)  
-5. [🏗️ 시스템 아키텍처](#-시스템-아키텍처)  
-6. [🚀 기술적 도전 과제 & 해결 방법](#-기술적-도전-과제--해결-방법)  
-7. [💻 코드 스니펫 (Cloud Functions)](#-코드-스니펫-cloud-functions)  
-8. [👤 역할](#-역할)  
-9. [📚 배운 점](#-배운-점)  
-10. [✨ 한 줄 정리](#-한-줄-정리)  
+1. [🌟 프로젝트 소개](#project-introduction)  
+2. [📊 프로젝트 성과](#project-achievements)  
+3. [🛠️ 기술 스택](#tech-stack)  
+4. [🖼️ 앱 스크린샷](#app-screenshots)  
+5. [🏗️ 시스템 아키텍처](#system-architecture)  
+6. [🚀 기술적 도전 과제 & 해결 방법](#technical-challenges-and-solutions)  
+7. [💻 코드 스니펫 (Cloud Functions)](#code-snippets-cloud-functions)  
+8. [👤 역할](#role)  
+9. [📚 배운 점](#lessons-learned)  
+10. [✨ 한 줄 정리](#summary)
 
 ---
 
+<a id="project-introduction"></a>
 ## 🌟 프로젝트 소개
 
 **반디(Bandi)** 는 AI 기반 감정 분석과 회고 기능을 제공하는 **일상 감정 관리 플랫폼**입니다.  
@@ -30,6 +31,7 @@
 
 ---
 
+<a id="project-achievements"></a>
 ## 📊 프로젝트 성과
 
 ✅ iOS AppStore & Android PlayStore 동시 출시  
@@ -76,6 +78,7 @@
 
 ---
 
+<a id="app-screenshots"></a>
 ## 🖼️ 앱 스크린샷
 
 | 홈 화면 | 감정 일기 작성 | 감정 분석 결과 |
@@ -88,6 +91,7 @@
 
 ---
 
+<a id="system-architecture"></a>
 ## 🏗️ 시스템 아키텍처
 
 ```mermaid
@@ -107,6 +111,7 @@ Functions -->|AI 호출| OpenAI[ChatGPT API]
 
 ---
 
+<a id="technical-challenges-and-solutions"></a>
 ## 🔥 기술적 도전 과제 & 해결 방법
 
 1. **다국어화 및 번역 토글 구현**
@@ -136,6 +141,7 @@ Functions -->|AI 호출| OpenAI[ChatGPT API]
 
 ---
 
+<a id="code-snippets-cloud-functions"></a>
 ## 📂 코드 스니펫 (Cloud Functions)
 
 ```js
@@ -177,6 +183,7 @@ exports.sendLikedDiaryNotification = functions.firestore
 
 ---
 
+<a id="role"></a>
 ## 👥 역할
 
 | 이름 | 역할 |
@@ -188,6 +195,7 @@ exports.sendLikedDiaryNotification = functions.firestore
 
 ---
 
+<a id="lessons-learned"></a>
 ## 📌 배운 점
 
 - 앱 심사와 서비스 운영 과정에서 발생하는 **실제 문제 해결 경험** 축적  
@@ -196,6 +204,7 @@ exports.sendLikedDiaryNotification = functions.firestore
 
 ---
 
+<a id="summary"></a>
 ## ✨ 한 줄 정리
 
 **“실서비스를 개발·출시·운영하며, 복잡한 기술적 문제를 해결할 수 있는 풀스택 모바일 개발 경험”**
