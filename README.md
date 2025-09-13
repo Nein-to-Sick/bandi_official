@@ -92,7 +92,7 @@
 ```mermaid
 flowchart TD
 
-User((사용자)) -->|소셜 로그인| Auth[Google/Apple OAuth] --> Provider[상태관리 (Provider)] --> DB[(Firestore Database)]
+User((사용자)) -->|소셜 로그인| Auth[Google/Apple OAuth] --> Provider[상태관리: Provider] --> DB[(Firestore Database)]
 User -->|일기 작성| Write[일기 작성]
 Write --> Local[로컬 저장소]
 Write --> DB
