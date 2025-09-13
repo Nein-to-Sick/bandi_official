@@ -82,11 +82,11 @@
 
 | 홈 화면 | 감정 일기 작성 | 감정 분석 결과 |
 |:---:|:---:|:---:|
-| <img src="https://github.com/user-attachments/assets/b5905b67-bae9-4a02-8ce6-fa549daa2978" alt="홈" width="202" height="438" /> | <img src="https://github.com/user-attachments/assets/076a1fd5-e872-46e2-860e-1b20c2457d8e" alt="일기" width="202" height="438" /> | <img src="https://github.com/user-attachments/assets/028cb29c-b555-42d9-becf-e9cda9e4b451" alt="분석" width="202" height="438" /> |
+| <img src="https://github.com/user-attachments/assets/4aa48a7a-f2b6-4fc5-b4ce-1160b56005cc" alt="홈" width="202" height="438" /> | <img src="https://github.com/user-attachments/assets/0fdb5957-9dc6-418b-b89f-d905d392cba9" alt="일기" width="202" height="438" /> | <img src="https://github.com/user-attachments/assets/065afde6-2276-4948-be95-acdc2c9cb778" alt="분석" width="202" height="438" /> |
 
 | 챗봇 회고 | 알림 기능 | 다국어 지원 |
 |:---:|:---:|:---:|
-| ![챗봇](assets/screenshots/chatbot.png) | ![알림](assets/screenshots/notification.png) | ![번역](assets/screenshots/multilang.png) |
+| <img src="https://github.com/user-attachments/assets/924612cb-3bba-4474-a0c5-d2c8075d5ba5" alt="챗봇" width="202" height="438" /> | <img src="https://github.com/user-attachments/assets/fabbd916-e497-474a-9312-261aa3bdda2f" alt="알림" width="202" height="438" />  | <img src="https://github.com/user-attachments/assets/f006acfe-513c-434c-9a4b-53eda72a32c6" alt="번역" width="202" height="438" />  |
 
 ---
 
