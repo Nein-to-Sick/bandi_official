@@ -3,8 +3,10 @@ import 'package:bandi_official/components/dialogue/dialogue.dart';
 import 'package:bandi_official/components/no_reuse/chat_message_bar.dart';
 import 'package:bandi_official/components/dialogue/reset_dialogue.dart';
 import 'package:bandi_official/controller/diary_ai_chat_controller.dart';
+import 'package:bandi_official/model/diary_ai_chat.dart';
 import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
@@ -34,7 +36,9 @@ class _DiaryAIChatPageState extends State<DiaryAIChatPage> {
             diaryAiChatController.chatScrollController
                 .addListener(_scrollListener);
             diaryAiChatController.toggleIsListenerAdded(true);
-            diaryAiChatController.chatLogInitialization(context);
+            if (!diaryAiChatController.sendFirstMessage) {
+              diaryAiChatController.chatLogInitialization(context);
+            }
           });
         }
       });
