@@ -32,6 +32,7 @@ class _OtherDiaryState extends State<OtherDiary> {
 
   bool isKorean = true;
   bool isLoading = false;
+  bool isAlarmSendOnce = false;
   String originalLang = 'KO'; // 초기 언어 ('KO' or 'EN')
   String translatedContent = '';
   String translatedTitle = '';
@@ -321,9 +322,11 @@ class _OtherDiaryState extends State<OtherDiary> {
                                         userDocSnapshot.data()?['fcmToken'];
 
                                     // 5. FCM 전송 조건 확인 후 알림 전송
-                                    if (fcmToken != null &&
+                                    if (!isAlarmSendOnce &&
+                                        fcmToken != null &&
                                         fcmToken is String &&
                                         fcmToken.isNotEmpty) {
+                                      isAlarmSendOnce = true;
                                       alarmController
                                           .sendLikedDiaryNotification(
                                         diaryId,
