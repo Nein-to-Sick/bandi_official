@@ -1,11 +1,11 @@
 import 'dart:ui';
-import 'package:bandi_official/view/home/write/first_step.dart';
-import 'package:bandi_official/view/home/write/second_step.dart';
-import 'package:bandi_official/view/home/write/modify_step.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../controller/home_to_write.dart';
 import '../../theme/custom_theme_data.dart';
+import '../write/first_step.dart';
+import '../write/modify_step.dart';
+import '../write/second_step.dart';
 
 class WriteDiary extends StatelessWidget {
   const WriteDiary({super.key});
