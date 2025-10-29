@@ -4,9 +4,12 @@ import 'package:flutter_switch/flutter_switch.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 
+import '../../../analytics/logJournalCreate.dart';
 import '../../../components/button/primary_button.dart';
 import '../../../controller/home_to_write.dart';
 import '../../../theme/custom_theme_data.dart';
+
+import 'dart:developer' as dev;
 
 class FirstStep extends StatefulWidget {
   const FirstStep({Key? key}) : super(key: key);
@@ -131,9 +134,10 @@ class _State extends State<FirstStep> {
                   Expanded(
                     child: CustomPrimaryButton(
                       title: 'done'.tr(context),
-                      onPrimaryButtonPressed: () {
+                      onPrimaryButtonPressed: () async {
                         writeProvider.aiAndSaveDiary(context);
                         writeProvider.nextWrite(2);
+                        await logJournalCreate(usedAI: writeProvider.isPublic);
                       },
                       disableButton:
                           writeProvider.diaryModel.content.isNotEmpty ? false : true,
