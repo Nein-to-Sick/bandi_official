@@ -14,9 +14,12 @@ import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 
-import '../components/button/primary_button.dart';
-import '../components/button/reaction_button.dart';
-import '../components/toggle/language_toggle_switch.dart';
+import '../../components/button/primary_button.dart';
+import '../../components/button/reaction_button.dart';
+import '../../components/toggle/language_toggle_switch.dart';
+import '../../controller/other_diary_controller.dart';
+
+
 
 class OtherDiary extends StatefulWidget {
   const OtherDiary({super.key, required this.writeProvider});
@@ -32,10 +35,17 @@ class _OtherDiaryState extends State<OtherDiary> {
 
   bool isKorean = true;
   bool isLoading = false;
-  bool isAlarmSendOnce = false;
   String originalLang = 'KO'; // 초기 언어 ('KO' or 'EN')
   String translatedContent = '';
   String translatedTitle = '';
+
+  // 반응 선택 상태 (UI state)
+  bool reaction1 = false;
+  bool reaction2 = false;
+  bool reaction3 = false;
+
+  // 컨트롤러 (로직 담당)
+  late OtherDiaryController _controller;
 
   bool containsKorean(String text) {
     final koreanRegex = RegExp(r'[가-힣]');
@@ -53,6 +63,8 @@ class _OtherDiaryState extends State<OtherDiary> {
     translatedContent = originalContent;
     translatedTitle = originalTitle;
     isKorean = originalLang == 'KO'; // 기본 토글 상태
+
+    _controller = OtherDiaryController();
   }
 
   void _togglePage() {
@@ -64,15 +76,16 @@ class _OtherDiaryState extends State<OtherDiary> {
   @override
   Widget build(BuildContext context) {
     return showFirstPage
-        ? firstPage(context, widget.writeProvider)
-        : secondPage(context, widget.writeProvider);
+        ? _firstPage(context, widget.writeProvider)
+        : _secondPage(context, widget.writeProvider);
   }
 
-  Widget firstPage(context, HomeToWrite writeProvider) {
+  Widget _firstPage(context, HomeToWrite writeProvider) {
     return BackdropFilter(
       filter: ImageFilter.blur(
-          sigmaX: BandiEffects.backgroundBlur(),
-          sigmaY: BandiEffects.backgroundBlur()),
+        sigmaX: BandiEffects.backgroundBlur(),
+        sigmaY: BandiEffects.backgroundBlur(),
+      ),
       child: Container(
         color: BandiColor.neutralColor10(context),
         child: Padding(
@@ -104,18 +117,15 @@ class _OtherDiaryState extends State<OtherDiary> {
                           'other_diary_title'.tr(context),
                           textAlign: TextAlign.center,
                           style: BandiFont.headlineMedium(context)?.copyWith(
-                              color: BandiColor.neutralColor100(context)),
+                            color: BandiColor.neutralColor100(context),
+                          ),
                         ),
-                        const SizedBox(
-                          height: 40,
-                        ),
+                        const SizedBox(height: 40),
                         Image.asset(
                           "./assets/images/icons/otherDiary.png",
                           scale: 2,
                         ),
-                        const SizedBox(
-                          height: 20,
-                        ),
+                        const SizedBox(height: 20),
                       ],
                     ),
                   ),
@@ -123,7 +133,7 @@ class _OtherDiaryState extends State<OtherDiary> {
                     title: 'other_diary_view'.tr(context),
                     onPrimaryButtonPressed: _togglePage,
                     disableButton: false,
-                  )
+                  ),
                 ],
               ),
             ),
@@ -133,15 +143,9 @@ class _OtherDiaryState extends State<OtherDiary> {
     );
   }
 
-  // 공감 일기 표시 부분
-  Widget secondPage(BuildContext context, HomeToWrite writeProvider) {
-    bool reaction1 = false;
-    bool reaction2 = false;
-    bool reaction3 = false;
-    int reactionValue = -1;
-
-    MailController mailController = context.watch<MailController>();
-    AlarmController alarmController = context.watch<AlarmController>();
+  Widget _secondPage(BuildContext context, HomeToWrite writeProvider) {
+    final mailController = context.watch<MailController>();
+    final alarmController = context.watch<AlarmController>();
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
@@ -161,10 +165,11 @@ class _OtherDiaryState extends State<OtherDiary> {
                       children: [
                         Padding(
                           padding:
-                              const EdgeInsets.only(top: 16.0, right: 16.0),
+                          const EdgeInsets.only(top: 16.0, right: 16.0),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
+                              // 신고 버튼
                               GestureDetector(
                                 onTap: () {
                                   showDialog<bool>(
@@ -177,21 +182,20 @@ class _OtherDiaryState extends State<OtherDiary> {
                                         onYesText: 'dialogue_report_on_yes'
                                             .tr(context),
                                         onNoText:
-                                            'dialogue_report_on_no'.tr(context),
+                                        'dialogue_report_on_no'.tr(context),
                                         onYesFunction: () async {
-                                          // 다이얼 로그 닫기
                                           Navigator.pop(context, true);
 
                                           try {
                                             // 개인의 공유 일기 사용자 차단 목록 추가
-                                            String userId = FirebaseAuth
+                                            final userId = FirebaseAuth
                                                 .instance.currentUser!.uid;
                                             await FirebaseFirestore.instance
                                                 .collection('users')
                                                 .doc(userId)
                                                 .update({
                                               'blockedUsersList':
-                                                  FieldValue.arrayUnion([
+                                              FieldValue.arrayUnion([
                                                 writeProvider
                                                     .otherDiaryModel.userId
                                               ]),
@@ -202,17 +206,16 @@ class _OtherDiaryState extends State<OtherDiary> {
                                             await FirebaseFirestore.instance
                                                 .collection('users')
                                                 .doc(writeProvider
-                                                    .otherDiaryModel.userId)
+                                                .otherDiaryModel.userId)
                                                 .update({
                                               'reported_count':
-                                                  FieldValue.increment(1),
+                                              FieldValue.increment(1),
                                             });
-                                            log('update other user\'s reported count');
+                                            log(
+                                                'update other user\'s reported count');
                                           } on FirebaseException catch (e) {
-                                            // Firestore 관련 예외 처리
                                             log('Firestore error: ${e.message}');
                                           } catch (e) {
-                                            // 그 외 모든 예외 처리
                                             log('unkown error: $e');
                                           }
 
@@ -226,7 +229,6 @@ class _OtherDiaryState extends State<OtherDiary> {
                                     },
                                   ).then((result) {
                                     if (result! && context.mounted) {
-                                      // 알림 스낵바 노출
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(
                                         SnackBar(
@@ -234,24 +236,26 @@ class _OtherDiaryState extends State<OtherDiary> {
                                           content: Text(
                                             "dialogue_report_snackBar_message"
                                                 .tr(context),
-                                            style:
-                                                BandiFont.displaySmall(context)
-                                                    ?.copyWith(
+                                            style: BandiFont.displaySmall(
+                                              context,
+                                            )?.copyWith(
                                               color: BandiColor.neutralColor90(
-                                                  context),
+                                                context,
+                                              ),
                                             ),
                                           ),
                                           margin: EdgeInsets.only(
                                             left: 25.0,
                                             right: 25.0,
                                             bottom: MediaQuery.of(context)
-                                                    .size
-                                                    .height *
+                                                .size
+                                                .height *
                                                 0.1,
                                           ),
                                           behavior: SnackBarBehavior.floating,
                                           shape: RoundedRectangleBorder(
-                                            borderRadius: BandiEffects.radius(),
+                                            borderRadius:
+                                            BandiEffects.radius(),
                                           ),
                                         ),
                                       );
@@ -264,84 +268,23 @@ class _OtherDiaryState extends State<OtherDiary> {
                                   color: BandiColor.foundationColor40(context),
                                 ),
                               ),
-                              const SizedBox(
-                                width: 8,
-                              ),
-                              // 닫기 버튼
+                              const SizedBox(width: 8),
+
+                              // 닫기 + 반응 저장 버튼
                               GestureDetector(
                                 onTap: () async {
-                                  try {
-                                    // 1. 반응값 설정
-                                    if (reaction1) {
-                                      reactionValue = 0;
-                                    } else if (reaction2) {
-                                      reactionValue = 1;
-                                    } else if (reaction3) {
-                                      reactionValue = 2;
-                                    } else {
-                                      reactionValue = -1;
-                                    }
-
-                                    if (reactionValue == -1) return;
-
-                                    final diaryModel =
-                                        writeProvider.otherDiaryModel;
-                                    final diaryId = diaryModel.diaryId;
-                                    final userId = diaryModel.userId;
-
-                                    // 2. 로컬 저장
-                                    mailController.saveLikedDiaryToLocal(
-                                        diaryModel, reactionValue);
-
-                                    // 3. Firestore에 반응 업데이트 (문서 존재 확인 후)
-                                    final diaryRef = FirebaseFirestore.instance
-                                        .collection('allDiary')
-                                        .doc(diaryId);
-                                    final docSnapshot = await diaryRef.get();
-
-                                    if (docSnapshot.exists) {
-                                      await saveReactionInDB(
-                                        diaryId,
-                                        diaryModel.reaction,
-                                        reaction1,
-                                        reaction2,
-                                        reaction3,
-                                      );
-                                    } else {
-                                      log("Diary document not found: $diaryId");
-                                    }
-
-                                    // 4. 유저의 fcmToken 가져오기
-                                    final userDocSnapshot =
-                                        await FirebaseFirestore.instance
-                                            .collection('users')
-                                            .doc(userId)
-                                            .get();
-
-                                    final fcmToken =
-                                        userDocSnapshot.data()?['fcmToken'];
-
-                                    // 5. FCM 전송 조건 확인 후 알림 전송
-                                    if (!isAlarmSendOnce &&
-                                        fcmToken != null &&
-                                        fcmToken is String &&
-                                        fcmToken.isNotEmpty) {
-                                      isAlarmSendOnce = true;
-                                      alarmController
-                                          .sendLikedDiaryNotification(
-                                        diaryId,
-                                        fcmToken,
-                                        userId,
-                                      );
-                                    } else {
-                                      log("Invalid or missing FCM token for user: $userId");
-                                    }
-                                  } catch (e, stack) {
-                                    log("Error in reaction process: $e\n$stack");
-                                  } finally {
-                                    // 6. 페이지 닫기 (성공/실패 상관없이 항상 수행)
-                                    writeProvider.offDiaryOpen();
-                                  }
+                                  await _controller.handleCloseAndReaction(
+                                    writeProvider: writeProvider,
+                                    reaction1: reaction1,
+                                    reaction2: reaction2,
+                                    reaction3: reaction3,
+                                    mailController: mailController,
+                                    alarmController: alarmController,
+                                    onDone: () {
+                                      // UI 마무리: 페이지 닫기
+                                      writeProvider.offDiaryOpen();
+                                    },
+                                  );
                                 },
                                 child: PhosphorIcon(
                                   PhosphorIcons.x(),
@@ -352,45 +295,54 @@ class _OtherDiaryState extends State<OtherDiary> {
                             ],
                           ),
                         ),
-                        const SizedBox(
-                          height: 10,
-                        ),
+                        const SizedBox(height: 10),
                         Expanded(
                           child: Padding(
                             padding:
-                                const EdgeInsets.symmetric(horizontal: 24.0),
+                            const EdgeInsets.symmetric(horizontal: 24.0),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                // 제목
                                 Text(
                                   translatedTitle,
                                   style: BandiFont.displaySmall(context)
                                       ?.copyWith(
-                                          color: BandiColor.foundationColor100(
-                                              context)),
+                                    color: BandiColor.foundationColor100(
+                                      context,
+                                    ),
+                                  ),
                                 ),
                                 const SizedBox(height: 4),
+
+                                // 날짜
                                 Text(
-                                  DateFormat('journal_calendar_header_2'
-                                          .tr(context))
-                                      .format(writeProvider
-                                          .otherDiaryModel.createdAt
-                                          .toDate()),
+                                  DateFormat(
+                                    'journal_calendar_header_2'.tr(context),
+                                  ).format(
+                                    writeProvider.otherDiaryModel.createdAt
+                                        .toDate(),
+                                  ),
                                   style: BandiFont.headlineSmall(context)
                                       ?.copyWith(
-                                          color: BandiColor.foundationColor100(
-                                              context)),
+                                    color: BandiColor.foundationColor100(
+                                      context,
+                                    ),
+                                  ),
                                 ),
                                 const SizedBox(height: 16),
+
+                                // 내용
                                 Expanded(
                                   child: SingleChildScrollView(
                                     child: Text(
                                       translatedContent,
                                       style: BandiFont.titleSmall(context)
                                           ?.copyWith(
-                                              color:
-                                                  BandiColor.foundationColor100(
-                                                      context)),
+                                        color: BandiColor.foundationColor100(
+                                          context,
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -399,6 +351,8 @@ class _OtherDiaryState extends State<OtherDiary> {
                             ),
                           ),
                         ),
+
+                        // 언어 토글
                         Padding(
                           padding: const EdgeInsets.only(bottom: 20.0),
                           child: Row(
@@ -408,9 +362,8 @@ class _OtherDiaryState extends State<OtherDiary> {
                                 originalContent: widget
                                     .writeProvider.otherDiaryModel.content,
                                 originalTitle:
-                                    widget.writeProvider.otherDiaryModel.title,
-                                initialLanguage:
-                                    originalLang, // 초기 언어 설정 ('KO' 또는 'EN')
+                                widget.writeProvider.otherDiaryModel.title,
+                                initialLanguage: originalLang,
                                 onToggleCompleted: (translatedContent,
                                     translatedTitle, currentLanguage) {
                                   setState(() {
@@ -427,35 +380,43 @@ class _OtherDiaryState extends State<OtherDiary> {
                     ),
                     isLoading
                         ? const Row(
-                            children: [
-                              SizedBox(width: 5),
-                              Center(child: CircularProgressIndicator()),
-                            ],
-                          )
-                        : Container()
+                      children: [
+                        SizedBox(width: 5),
+                        Center(child: CircularProgressIndicator()),
+                      ],
+                    )
+                        : Container(),
                   ],
                 ),
               ),
             ),
             const SizedBox(height: 20),
+
+            // 공감 버튼 3개
             Row(
               children: [
                 Expanded(
                   child: CustomReactionButton(
                     onFirstButtonPressed: () {
-                      reaction1 = true;
-                      reaction2 = false;
-                      reaction3 = false;
+                      setState(() {
+                        reaction1 = true;
+                        reaction2 = false;
+                        reaction3 = false;
+                      });
                     },
                     onSecondButtonPressed: () {
-                      reaction1 = false;
-                      reaction2 = true;
-                      reaction3 = false;
+                      setState(() {
+                        reaction1 = false;
+                        reaction2 = true;
+                        reaction3 = false;
+                      });
                     },
                     onThirdButtonPressed: () {
-                      reaction1 = false;
-                      reaction2 = false;
-                      reaction3 = true;
+                      setState(() {
+                        reaction1 = false;
+                        reaction2 = false;
+                        reaction3 = true;
+                      });
                     },
                   ),
                 ),
@@ -465,45 +426,5 @@ class _OtherDiaryState extends State<OtherDiary> {
         ),
       ),
     );
-  }
-}
-
-Future<void> saveReactionInDB(
-  String diaryId,
-  List currReaction,
-  bool reaction1,
-  bool reaction2,
-  bool reaction3,
-) async {
-  try {
-    if (currReaction.length != 3) {
-      log("currReaction does not have 3 elements: $currReaction");
-      return;
-    }
-
-    int newReaction1 = currReaction[0] ?? 0;
-    int newReaction2 = currReaction[1] ?? 0;
-    int newReaction3 = currReaction[2] ?? 0;
-
-    if (reaction1) newReaction1++;
-    if (reaction2) newReaction2++;
-    if (reaction3) newReaction3++;
-
-    final firestore = FirebaseFirestore.instance;
-    final docRef = firestore.collection('allDiary').doc(diaryId);
-
-    final docSnapshot = await docRef.get();
-    if (!docSnapshot.exists) {
-      log("Diary document not found in saveReactionInDB: $diaryId");
-      return;
-    }
-
-    await docRef.update({
-      'reaction': [newReaction1, newReaction2, newReaction3]
-    });
-
-    log("Reaction updated in Firestore: [$newReaction1, $newReaction2, $newReaction3]");
-  } catch (e, stack) {
-    log("Error in saveReactionInDB: $e\n$stack");
   }
 }

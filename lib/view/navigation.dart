@@ -14,7 +14,7 @@ import 'package:bandi_official/view/home/home_view.dart';
 import 'package:bandi_official/view/list/list_view.dart';
 import 'package:bandi_official/view/login/login_view.dart';
 import 'package:bandi_official/view/mail/mail_view.dart';
-import 'package:bandi_official/view/otherDiary.dart';
+import 'package:bandi_official/view/sharing_diary/otherDiary.dart';
 import 'package:bandi_official/view/user/user_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

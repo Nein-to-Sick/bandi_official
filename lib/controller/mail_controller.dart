@@ -190,7 +190,6 @@ class MailController with ChangeNotifier {
 
   // toggle the detail view value
   void toggleDetailView(bool value) {
-    dev.log('dhkdhdkdh');
     isDetailViewShowing = value;
     notifyListeners();
   }

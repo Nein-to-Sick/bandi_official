@@ -1,5 +1,5 @@
 import 'package:bandi_official/string_extention.dart';
-import 'package:bandi_official/view/home/write/second_step.dart';
+import 'package:bandi_official/view/write/second_step.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
