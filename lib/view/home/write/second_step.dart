@@ -45,7 +45,7 @@ class SecondStep extends StatelessWidget {
                         height: 4,
                       ),
                       Text(
-                        DateFormat('journal_calendar_header_2'.tr(context)).format(DateTime.now()),
+                        DateFormat('journal_calendar_header_2'.tr(context)).format(writeProvider.diaryModel.createdAt.toDate()),
                         style: BandiFont.headlineSmall(context)?.copyWith(
                             color: BandiColor.neutralColor100(context)),
                       )
