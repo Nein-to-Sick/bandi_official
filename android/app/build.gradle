@@ -49,8 +49,8 @@ android {
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
         minSdk = 23
         targetSdk = 35 //flutter.targetSdkVersion
-        versionCode = 115
-        versionName = 115
+        versionCode = 119
+        versionName = 119
         externalNativeBuild {
             // For ndk-build, instead use the ndkBuild block.
             cmake {
@@ -90,4 +90,8 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    implementation 'com.google.firebase:firebase-analytics-ktx'
 }

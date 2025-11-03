@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:bandi_official/analytics/log_ai_chat_send.dart';
 import 'package:bandi_official/model/diary_ai_chat.dart';
 import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/utils/time_utils.dart';
@@ -25,6 +26,8 @@ class DiaryAiChatController with ChangeNotifier {
   FocusNode chatFocusNode = FocusNode();
   // determine whether to display the recommended message
   bool sendFirstMessage = false;
+  // determine whether chat is used for one app life cycle
+  bool sendFirstMessageForAnalysis = false;
   // while the ai answering the message
   bool isChatResponsLoading = false;
   // determine whether to display the chat view
@@ -76,6 +79,10 @@ class DiaryAiChatController with ChangeNotifier {
   void toggleIsListenerAdded(value) {
     isListenerAdded = value;
     notifyListeners();
+  }
+
+  void toggleChatAnalysis(bool value) {
+    sendFirstMessageForAnalysis = value;
   }
 
   // toggle the message send button while the gpt respoonse loading
@@ -214,7 +221,6 @@ class DiaryAiChatController with ChangeNotifier {
     updateUserChat();
     chatlog.add(chatModel);
     scrollChatScreenToBottom();
-    chatTextController.clear();
 
     // call chatGPT response
     getResponse(context).then((value) {
@@ -222,6 +228,13 @@ class DiaryAiChatController with ChangeNotifier {
       // save the chat log to the local storage
       saveChatLogToLocal();
     });
+
+    if (!sendFirstMessageForAnalysis) {
+      logAIChatSend(chatSend: true, chatLength: chatTextController.text.length);
+      toggleChatAnalysis(true);
+    }
+
+    chatTextController.clear();
 
     notifyListeners();
   }
@@ -236,6 +249,7 @@ class DiaryAiChatController with ChangeNotifier {
   void resetTheChat(BuildContext context) {
     if (sendFirstMessage && !isChatResponsLoading) {
       sendFirstMessage = false;
+      toggleChatAnalysis(false);
 
       // reset the chatlog (visible chat)
       chatlog = ChatMessage.defaultChatLog(context);
