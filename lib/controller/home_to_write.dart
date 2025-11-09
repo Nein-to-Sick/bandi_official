@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer' as developer;
 import 'dart:math';
 
+import 'package:bandi_official/analytics/logOtherDiaryReceived.dart';
 import 'package:bandi_official/controller/diary_ai_analysis_controller.dart';
 import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/utils/time_utils.dart';
@@ -87,6 +88,7 @@ class HomeToWrite with ChangeNotifier {
             emotionString, diaryModel.diaryId);
         if (_isPublic) {
           sendOtherDiary(returnDiaryId);
+          await logOtherDiaryReceived();
         }
       }
     }
