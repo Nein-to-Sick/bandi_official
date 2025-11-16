@@ -1,4 +1,4 @@
-import 'package:bandi_official/controller/emotion_provider.dart';
+import 'package:bandi_official/analytics/log_notification_open.dart';
 import 'package:bandi_official/controller/home_to_write.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/controller/navigation_toggle_provider.dart';
@@ -69,7 +69,7 @@ class AlarmController with ChangeNotifier {
   // foreground notification receive
   void firebaseOnMessageListen() async {
     dev.log('foreground message setting done');
-    FirebaseMessaging.onMessage.listen((RemoteMessage? message) {
+    FirebaseMessaging.onMessage.listen((RemoteMessage? message) async {
       if (message != null && message.notification != null) {
         dev.log('local message received');
         WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -99,9 +99,14 @@ class AlarmController with ChangeNotifier {
         final screen = message.data['screen'];
         final letterId = message.data['letterId'] ?? '';
         final likedDiaryDetail = message.data['likedDiaryId'] ?? '';
+        const campaignId = "notification_open_v1";
 
-        final payload = '$screen/$letterId/$likedDiaryDetail';
+        final payload = '$screen/$letterId/$likedDiaryDetail/$campaignId';
 
+        // 알람 송신 여부 로깅
+        /*
+          await logNotificationReceive(campaignId: campaignId);
+        */
         _local.show(1, message.notification!.title!,
             message.notification!.body!, details,
             payload: payload);
@@ -112,7 +117,7 @@ class AlarmController with ChangeNotifier {
   // background notification receive
   void firebaseOnMessageOpenedApp() {
     dev.log('message receive interact setting done');
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
       if (message.notification != null) {
         dev.log('back ground message received');
         WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -123,6 +128,15 @@ class AlarmController with ChangeNotifier {
           mailController.updateIsNewNotifications(true);
         });
 
+        // 알람 클릭 여부 로깅
+        final campaignId = message.data['campaignId'] ?? '';
+        final destination = message.data['screen'] ?? '';
+        if (campaignId.isNotEmpty) {
+          await logNotificationOpen(
+            campaignId: campaignId,
+            destination: destination,
+          );
+        }
         messageInteractionDeclaration(message);
       }
     });
@@ -241,7 +255,17 @@ class AlarmController with ChangeNotifier {
         'screen': parts[0],
         'letterId': parts[1],
         'likedDiaryId': parts[2],
+        'campaignId': parts.length > 3 ? parts[3] : '',
       });
+      // 알람 클릭 여부 로깅
+      final campaignId = parts.length > 3 ? parts[3] : '';
+      final destination = parts[0];
+      if (campaignId.isNotEmpty) {
+        logNotificationOpen(
+          campaignId: campaignId,
+          destination: destination,
+        );
+      }
       messageInteractionDeclaration(remoteMessage);
     }
   }

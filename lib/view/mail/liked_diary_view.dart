@@ -1,3 +1,4 @@
+import 'package:bandi_official/analytics/log_other_journal_search.dart';
 import 'package:bandi_official/components/loading/loading_page.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/model/diary.dart';
@@ -167,6 +168,7 @@ Widget likedDiaryWidget(
           child: GestureDetector(
             // 일기 열람 기능 추가
             onTap: () {
+              logOtherJournalSearch(journalType: 'others');
               mailController.toggleDetailView(true);
               showDialog(
                 context: context,
