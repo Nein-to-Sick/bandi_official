@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 
+import '../../analytics/logMyPastDiaryTracking.dart';
 import '../../controller/home_to_write.dart';
 import '../../controller/navigation_toggle_provider.dart';
 import '../../model/diary.dart';
@@ -216,6 +217,7 @@ class _DiaryListState extends State<DiaryList> {
                         writeProvider.readMyDiary(diary);
                         navigationToggleProvider.selectIndex(0);
                         writeProvider.toggleWrite();
+                        logMyPastDiaryTracking();
                       },
                       child: Container(
                         color: BandiColor.transparent(context),

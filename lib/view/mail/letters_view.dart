@@ -1,3 +1,4 @@
+import 'package:bandi_official/analytics/log_other_journal_search.dart';
 import 'package:bandi_official/components/loading/loading_page.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/model/letter.dart';
@@ -99,6 +100,7 @@ Widget lettersWidget(
     padding: const EdgeInsets.symmetric(vertical: 8),
     child: GestureDetector(
       onTap: () {
+        logOtherJournalSearch(journalType: 'letters');
         mailController.toggleDetailView(true);
         showDialog(
           context: context,
