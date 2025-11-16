@@ -2,13 +2,13 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 
 final analytics = FirebaseAnalytics.instance;
 
-Future<void> logAIChatSend(
-    {required bool chatSend, required int chatLength}) async {
+Future<void> logAIChatSendCount(
+    {required int chatLengthCount, required int chatResetCount}) async {
   await FirebaseAnalytics.instance.logEvent(
-    name: 'ai_chat_send',
+    name: 'ai_chat_send_count',
     parameters: {
-      'message_send': chatSend ? 'yes' : 'no',
-      'message_length': chatLength,
+      'message_length_count': chatLengthCount,
+      'message_reset_count': chatResetCount,
     },
   );
 }
