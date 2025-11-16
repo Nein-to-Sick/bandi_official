@@ -5,6 +5,8 @@ import 'package:bandi_official/controller/home_to_write.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../analytics/logOtherDiaryReacted.dart';
+
 class OtherDiaryController {
   bool _isProcessing = false;
   bool _isAlarmSendOnce = false;
@@ -40,6 +42,8 @@ class OtherDiaryController {
         onDone();
         return;
       }
+
+      await logOtherDiaryReacted(kind: reactionValue == 0 ? "응원해요" : reactionValue == 1 ? "공감해요" : "함께해요");
 
       final diaryModel = writeProvider.otherDiaryModel;
       final diaryId = diaryModel.diaryId;
