@@ -7,7 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 
-import '../../analytics/logMyPastDiaryTracking.dart';
+import '../../analytics/log_my_past_diary_tracking.dart';
 import '../../controller/home_to_write.dart';
 import '../../controller/navigation_toggle_provider.dart';
 import '../../model/diary.dart';

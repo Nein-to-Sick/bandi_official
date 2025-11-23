@@ -1,10 +1,11 @@
+import 'package:bandi_official/analytics/log_journal_share.dart';
 import 'package:bandi_official/string_extention.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_switch/flutter_switch.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 
-import '../../../analytics/logJournalCreate.dart';
+import '../../../analytics/log_journal_create.dart';
 import '../../../components/button/primary_button.dart';
 import '../../../controller/home_to_write.dart';
 import '../../../theme/custom_theme_data.dart';
@@ -138,6 +139,9 @@ class _State extends State<FirstStep> {
                         writeProvider.aiAndSaveDiary(context);
                         writeProvider.nextWrite(2);
                         await logJournalCreate(usedAI: writeProvider.isPublic);
+                        if (writeProvider.isPublic) {
+                          await logJournalShare();
+                        }
                       },
                       disableButton:
                           writeProvider.diaryModel.content.isNotEmpty ? false : true,
