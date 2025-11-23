@@ -26,8 +26,10 @@ class DiaryAiChatController with ChangeNotifier {
   FocusNode chatFocusNode = FocusNode();
   // determine whether to display the recommended message
   bool sendFirstMessage = false;
-  // determine whether chat is used for one app life cycle
-  bool sendFirstMessageForAnalysis = false;
+  // count chat message for one chatting
+  int countMessageForAnalysis = 0;
+  // count chat reset for analysis
+  int countMessageResetForAnalysis = 0;
   // while the ai answering the message
   bool isChatResponsLoading = false;
   // determine whether to display the chat view
@@ -66,6 +68,13 @@ class DiaryAiChatController with ChangeNotifier {
   // toggle the chat page view
   void toggleChatOpen(value) {
     isChatOpen = value;
+    if (!isChatOpen && countMessageForAnalysis != 0) {
+      logAIChatSendCount(
+          chatLengthCount: countMessageForAnalysis,
+          chatResetCount: countMessageResetForAnalysis);
+      initializeCountChatAnalysis();
+      initializeCountMessageResetForAnalysisAnalysis();
+    }
     notifyListeners();
   }
 
@@ -81,8 +90,26 @@ class DiaryAiChatController with ChangeNotifier {
     notifyListeners();
   }
 
-  void toggleChatAnalysis(bool value) {
-    sendFirstMessageForAnalysis = value;
+  // make count value for analysis to 0
+  void initializeCountChatAnalysis() {
+    countMessageForAnalysis = 0;
+    notifyListeners();
+  }
+
+  // make reset count value for analysis to 0
+  void initializeCountMessageResetForAnalysisAnalysis() {
+    countMessageResetForAnalysis = 0;
+    notifyListeners();
+  }
+
+  // increase count value for analysis
+  void countChatAnalysis() {
+    countMessageForAnalysis++;
+  }
+
+  // increase reset count value for analysis
+  void countMessageResetForAnalysisAnalysis() {
+    countMessageResetForAnalysis++;
   }
 
   // toggle the message send button while the gpt respoonse loading
@@ -206,6 +233,8 @@ class DiaryAiChatController with ChangeNotifier {
       sendFirstMessage = true;
     }
 
+    countChatAnalysis();
+
     // dev.log(chatlog.last.messageTime.toString());
 
     // when submitted message's date is different with latest message's date
@@ -229,11 +258,6 @@ class DiaryAiChatController with ChangeNotifier {
       saveChatLogToLocal();
     });
 
-    if (!sendFirstMessageForAnalysis) {
-      logAIChatSend(chatSend: true, chatLength: chatTextController.text.length);
-      toggleChatAnalysis(true);
-    }
-
     chatTextController.clear();
 
     notifyListeners();
@@ -249,7 +273,7 @@ class DiaryAiChatController with ChangeNotifier {
   void resetTheChat(BuildContext context) {
     if (sendFirstMessage && !isChatResponsLoading) {
       sendFirstMessage = false;
-      toggleChatAnalysis(false);
+      countMessageResetForAnalysisAnalysis();
 
       // reset the chatlog (visible chat)
       chatlog = ChatMessage.defaultChatLog(context);
