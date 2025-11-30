@@ -5,7 +5,7 @@ import 'package:bandi_official/controller/home_to_write.dart';
 import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import '../analytics/logOtherDiaryReacted.dart';
+import '../analytics/log_other_diary_reacted.dart';
 
 class OtherDiaryController {
   bool _isProcessing = false;
