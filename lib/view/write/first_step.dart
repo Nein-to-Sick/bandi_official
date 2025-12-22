@@ -62,7 +62,7 @@ class _State extends State<FirstStep> {
                 children: [
                   Text(
                     'write_query_feeling'.tr(context),
-                    style: BandiFont.displaySmall(context)
+                    style: BandiFont.headlineMedium(context)
                         ?.copyWith(color: BandiColor.neutralColor100(context)),
                   ),
                   GestureDetector(
@@ -109,7 +109,9 @@ class _State extends State<FirstStep> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    writeProvider.isPublic ? "sharing_diary_on".tr(context) : 'sharing_diary_off'.tr(context),
+                    writeProvider.isPublic
+                        ? "sharing_diary_on".tr(context)
+                        : 'sharing_diary_off'.tr(context),
                     style: BandiFont.titleSmall(context)?.copyWith(
                       color: BandiColor.neutralColor100(context),
                     ),
@@ -143,8 +145,9 @@ class _State extends State<FirstStep> {
                           await logJournalShare();
                         }
                       },
-                      disableButton:
-                          writeProvider.diaryModel.content.isNotEmpty ? false : true,
+                      disableButton: writeProvider.diaryModel.content.isNotEmpty
+                          ? false
+                          : true,
                     ),
                   ),
                 ],

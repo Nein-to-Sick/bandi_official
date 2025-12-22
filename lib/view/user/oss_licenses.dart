@@ -30,7 +30,7 @@ class OssLicensesScreen extends StatelessWidget {
         ),
         title: Text(
           'settings_open_license'.tr(context),
-          style: BandiFont.displaySmall(context)?.copyWith(
+          style: BandiFont.headlineMedium(context)?.copyWith(
             color: BandiColor.foundationColor80(context),
           ),
         ),
@@ -86,7 +86,6 @@ class OssLicensesScreen extends StatelessWidget {
   }
 }
 
-
 class MiscOssLicenseSingle extends StatelessWidget {
   final VoidCallback onBack;
   final String name;
@@ -106,13 +105,10 @@ class MiscOssLicenseSingle extends StatelessWidget {
   });
 
   String _bodyText() {
-    return licenseText
-        .split('\n')
-        .map((line) {
+    return licenseText.split('\n').map((line) {
       if (line.startsWith('//')) line = line.substring(2);
       return line.trim();
-    })
-        .join('\n');
+    }).join('\n');
   }
 
   @override
@@ -129,7 +125,7 @@ class MiscOssLicenseSingle extends StatelessWidget {
         ),
         title: Text(
           "오픈 라이센스",
-          style: BandiFont.displaySmall(context)?.copyWith(
+          style: BandiFont.headlineMedium(context)?.copyWith(
             color: BandiColor.foundationColor80(context),
           ),
         ),

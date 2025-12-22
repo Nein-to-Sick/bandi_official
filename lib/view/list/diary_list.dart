@@ -135,9 +135,11 @@ class _DiaryListState extends State<DiaryList> {
       DateTime createdAt = (diaryData['createdAt'] as Timestamp).toDate();
       String currentMonth;
       if (widget.selectedDate != null) {
-        currentMonth = DateFormat('journal_calendar_header_2'.tr(context)).format(widget.selectedDate!);
+        currentMonth = DateFormat('journal_calendar_header_2'.tr(context))
+            .format(widget.selectedDate!);
       } else {
-        currentMonth = DateFormat('journal_calendar_header_1'.tr(context)).format(createdAt);
+        currentMonth = DateFormat('journal_calendar_header_1'.tr(context))
+            .format(createdAt);
       }
 
       if (currentMonth != lastDisplayedMonth && first) {
@@ -157,12 +159,12 @@ class _DiaryListState extends State<DiaryList> {
 
     if (_isInitialLoading) {
       return Center(
-        child: MyFireFlyProgressbar(loadingText: 'journal_loading'.tr(context))
-      );
+          child:
+              MyFireFlyProgressbar(loadingText: 'journal_loading'.tr(context)));
     }
 
     return _groupedDiaries.isEmpty
-        ? noDiary(context, widget.selectedDate ?? DateTime(1999,1,1))
+        ? noDiary(context, widget.selectedDate ?? DateTime(1999, 1, 1))
         : ListView.builder(
             controller: _scrollController,
             itemCount: _groupedDiaries.length + 1,
@@ -184,7 +186,7 @@ class _DiaryListState extends State<DiaryList> {
                               vertical: 5, horizontal: 31),
                           child: Text(
                             item['header'],
-                            style: BandiFont.headlineSmall(context)?.copyWith(
+                            style: BandiFont.bodyMedium(context)?.copyWith(
                               color: BandiColor.neutralColor100(context),
                             ),
                           ),
@@ -236,7 +238,7 @@ class _DiaryListState extends State<DiaryList> {
                               diaryData['content'] ?? '내용 없음',
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
-                              style: BandiFont.headlineSmall(context)?.copyWith(
+                              style: BandiFont.bodyMedium(context)?.copyWith(
                                 color: BandiColor.neutralColor60(context),
                               ),
                             ),
@@ -245,8 +247,8 @@ class _DiaryListState extends State<DiaryList> {
                               children: [
                                 Text(
                                   DateFormat('yyyy.M.d').format(createdAt),
-                                  style: BandiFont.headlineSmall(context)
-                                      ?.copyWith(
+                                  style:
+                                      BandiFont.bodyMedium(context)?.copyWith(
                                     color: BandiColor.neutralColor60(context),
                                   ),
                                 ),
@@ -254,8 +256,8 @@ class _DiaryListState extends State<DiaryList> {
                                 Expanded(
                                   child: Text(
                                     combinedEmotions,
-                                    style: BandiFont.headlineSmall(context)
-                                        ?.copyWith(
+                                    style:
+                                        BandiFont.bodyMedium(context)?.copyWith(
                                       color: BandiColor.neutralColor60(context),
                                     ),
                                     overflow: TextOverflow.ellipsis,
@@ -344,30 +346,33 @@ class _DiaryListState extends State<DiaryList> {
 Widget noDiary(context, DateTime date) {
   return Stack(
     children: [
-      date == DateTime(1999, 1, 1) ? Container() : Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 18, top: 10),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(100),
-                color: BandiColor.foundationColor40(context),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                    vertical: 5, horizontal: 31),
-                child: Text(
-                  DateFormat('journal_calendar_header_2'.tr(context)).format(date),
-                  style: BandiFont.headlineSmall(context)?.copyWith(
-                    color: BandiColor.neutralColor100(context),
+      date == DateTime(1999, 1, 1)
+          ? Container()
+          : Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 18, top: 10),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(100),
+                      color: BandiColor.foundationColor40(context),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 5, horizontal: 31),
+                      child: Text(
+                        DateFormat('journal_calendar_header_2'.tr(context))
+                            .format(date),
+                        style: BandiFont.bodyMedium(context)?.copyWith(
+                          color: BandiColor.neutralColor100(context),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ),
-        ],
-      ),
       Center(
           child: Text('journal_nodiary'.tr(context),
               style: BandiFont.headlineMedium(context)?.copyWith(

@@ -80,12 +80,24 @@ class BandiColor {
     return Theme.of(context).colorScheme.surface.withOpacity(0.8);
   }
 
+  static Color neutralColor70(BuildContext context) {
+    return Theme.of(context).colorScheme.surface.withOpacity(0.7);
+  }
+
   static Color neutralColor60(BuildContext context) {
     return Theme.of(context).colorScheme.surface.withOpacity(0.6);
   }
 
+  static Color neutralColor50(BuildContext context) {
+    return Theme.of(context).colorScheme.surface.withOpacity(0.5);
+  }
+
   static Color neutralColor40(BuildContext context) {
     return Theme.of(context).colorScheme.surface.withOpacity(0.4);
+  }
+
+  static Color neutralColor30(BuildContext context) {
+    return Theme.of(context).colorScheme.surface.withOpacity(0.3);
   }
 
   static Color neutralColor20(BuildContext context) {
@@ -121,67 +133,29 @@ class BandiColor {
 }
 
 class BandiFont {
-  static TextStyle? displayLarge(BuildContext context) {
-    return Theme.of(context).textTheme.displayLarge;
-  }
-
-  static TextStyle? displayMedium(BuildContext context) {
-    return Theme.of(context).textTheme.displayMedium;
-  }
-
-  static TextStyle? displaySmall(BuildContext context) {
-    return Theme.of(context).textTheme.displaySmall;
-  }
-
-  static TextStyle? headlineMedium(BuildContext context) {
-    return Theme.of(context).textTheme.headlineMedium;
-  }
-
-  static TextStyle? headlineSmall(BuildContext context) {
-    return Theme.of(context).textTheme.headlineSmall;
-  }
-
-  static TextStyle? titleLarge(BuildContext context) {
-    return Theme.of(context).textTheme.titleLarge;
-  }
-
-  static TextStyle? titleMedium(BuildContext context) {
-    return Theme.of(context).textTheme.titleMedium;
-  }
-
-  static TextStyle? titleSmall(BuildContext context) {
-    return Theme.of(context).textTheme.titleSmall;
-  }
-
-  static TextStyle? bodyLarge(BuildContext context) {
-    return Theme.of(context).textTheme.bodyLarge;
-  }
-
-  static TextStyle? bodyMedium(BuildContext context) {
-    return Theme.of(context).textTheme.bodyMedium;
-  }
-
-  static TextStyle? bodySmall(BuildContext context) {
-    return Theme.of(context).textTheme.bodySmall;
-  }
-
-  static TextStyle? labelLarge(BuildContext context) {
-    return Theme.of(context).textTheme.labelLarge;
-  }
-
-  static TextStyle? labelMedium(BuildContext context) {
-    return Theme.of(context).textTheme.labelMedium;
-  }
-
-  static TextStyle? labelSmall(BuildContext context) {
-    return Theme.of(context).textTheme.labelSmall;
-  }
-
-  static TextStyle? headlineLarge(BuildContext context) {
-    return Theme.of(context).textTheme.headlineLarge;
-  }
-
-  static medium(BuildContext context) {}
+  // Helper methods to easily access styles from context
+  static TextStyle? displayLarge(BuildContext context) =>
+      Theme.of(context).textTheme.displayLarge;
+  static TextStyle? headlineLarge(BuildContext context) =>
+      Theme.of(context).textTheme.headlineLarge;
+  static TextStyle? headlineMedium(BuildContext context) =>
+      Theme.of(context).textTheme.headlineMedium;
+  static TextStyle? titleMedium(BuildContext context) =>
+      Theme.of(context).textTheme.titleMedium;
+  static TextStyle? titleSmall(BuildContext context) =>
+      Theme.of(context).textTheme.titleSmall;
+  static TextStyle? bodyLarge(BuildContext context) =>
+      Theme.of(context).textTheme.bodyLarge;
+  static TextStyle? bodyMedium(BuildContext context) =>
+      Theme.of(context).textTheme.bodyMedium;
+  static TextStyle? bodySmall(BuildContext context) =>
+      Theme.of(context).textTheme.bodySmall;
+  static TextStyle? labelLarge(BuildContext context) =>
+      Theme.of(context).textTheme.labelLarge;
+  static TextStyle? labelMedium(BuildContext context) =>
+      Theme.of(context).textTheme.labelMedium;
+  static TextStyle? labelSmall(BuildContext context) =>
+      Theme.of(context).textTheme.labelSmall;
 }
 
 class BandiEffects {
@@ -251,6 +225,10 @@ class CustomThemeData {
     textTheme: textTheme,
   );
 
+  // ---------------------------------------------------------------------------
+  // TEXT THEME DEFINITION
+  // ---------------------------------------------------------------------------
+
   /*
     FontWeight.w100: Thin
     FontWeight.w200: ExtraLight
@@ -263,104 +241,117 @@ class CustomThemeData {
     FontWeight.w900: Black
   */
 
-  static TextTheme textTheme = const TextTheme(
-    /**Headline1 */
+  static const TextTheme textTheme = TextTheme(
+    /// [Display]
+    /// Image: Display (50px / 120% / 0.00% / SemiBold)
     displayLarge: TextStyle(
       fontFamily: "IBMPlexSansKR",
-      fontSize: 28,
-      height: 36 / 28,
-      fontWeight: FontWeight.w600, // SemiBold
+      fontSize: 50,
+      height: 1.2, // 120%
+      letterSpacing: 0.0, // 0%
+      fontWeight: FontWeight.w600,
     ),
-    /**Headline2 */
-    displayMedium: TextStyle(
+
+    /// [Headline 1]
+    /// Image: Headline 1 (20px / 130% / -1.00% / SemiBold)
+    headlineLarge: TextStyle(
       fontFamily: "IBMPlexSansKR",
       fontSize: 20,
-      height: 28 / 20,
-      fontWeight: FontWeight.w600, // SemiBold
+      height: 1.3, // 130%
+      letterSpacing: -0.2, // 20 * -0.01
+      fontWeight: FontWeight.w600,
     ),
-    /**Headline3 */
-    displaySmall: TextStyle(
-      fontFamily: "IBMPlexSansKR",
-      fontSize: 18,
-      height: 24 / 18,
-      fontWeight: FontWeight.w600, // SemiBold
-    ),
-    /**Headline4 */
+
+    /// [Headline 2]
+    /// Image: Headline 2 (18px / 130% / -1.00% / SemiBold)
     headlineMedium: TextStyle(
       fontFamily: "IBMPlexSansKR",
-      fontSize: 16,
-      height: 26 / 16,
-      fontWeight: FontWeight.w600, // SemiBold
+      fontSize: 18,
+      height: 1.3, // 130%
+      letterSpacing: -0.18, // 18 * -0.01
+      fontWeight: FontWeight.w600,
     ),
-    /**Body1 */
+
+    /// [Subtitle 1]
+    /// Image: Subtitle 1 (16px / 140% / -1.00% / Medium)
     titleMedium: TextStyle(
       fontFamily: "IBMPlexSansKR",
       fontSize: 16,
-      height: 24 / 16,
-      fontWeight: FontWeight.w400, // Regular
+      height: 1.4, // 140%
+      letterSpacing: -0.16, // 16 * -0.01
+      fontWeight: FontWeight.w500,
     ),
-    /**Body2 */
+
+    /// [Subtitle 2]
+    /// Image: Subtitle 2 (14px / 140% / -1.00% / Medium)
     titleSmall: TextStyle(
       fontFamily: "IBMPlexSansKR",
       fontSize: 14,
-      height: 26 / 14,
-      fontWeight: FontWeight.w400, // Regular
+      height: 1.4, // 140%
+      letterSpacing: -0.14, // 14 * -0.01
+      fontWeight: FontWeight.w500,
     ),
-    /**Body3 */
-    headlineSmall: TextStyle(
-      fontFamily: "IBMPlexSansKR",
-      fontSize: 12,
-      height: 16 / 12,
-      fontWeight: FontWeight.w400, // Regular
-    ),
-    /**Normal */
+
+    /// [Body 1] & [Placeholder]
+    /// Image: Body 1 (14px / 180% / -1.00% / Regular)
+    /// Image: Placeholder (Same specs)
     bodyLarge: TextStyle(
       fontFamily: "IBMPlexSansKR",
-      fontSize: 12,
-      height: 16 / 12,
-      fontWeight: FontWeight.w500, // Medium
+      fontSize: 14,
+      height: 1.8, // 180%
+      letterSpacing: -0.14, // 14 * -0.01
+      fontWeight: FontWeight.w400,
     ),
-    /**Medium */
+
+    /// [Body 2]
+    /// Image: Body 2 (12px / 160% / -1.00% / Regular)
     bodyMedium: TextStyle(
       fontFamily: "IBMPlexSansKR",
-      fontSize: 18,
-      height: 24 / 18,
-      fontWeight: FontWeight.w500, // Medium
+      fontSize: 12,
+      height: 1.6, // 160%
+      letterSpacing: -0.12, // 12 * -0.01
+      fontWeight: FontWeight.w400,
     ),
-    /**Small */
+
+    /// [Body 3]
+    /// Image: Body 3 (12px / 130% / -1.00% / SemiBold)
     bodySmall: TextStyle(
       fontFamily: "IBMPlexSansKR",
-      fontSize: 14,
-      height: 16 / 14,
-      fontWeight: FontWeight.w500, // Medium
+      fontSize: 12,
+      height: 1.3, // 130%
+      letterSpacing: -0.12, // 12 * -0.01
+      fontWeight: FontWeight.w600,
     ),
-    /**Small2 */
+
+    /// [Button 1]
+    /// Image: Button 1 (16px / 120% / -1.00% / Medium)
     labelLarge: TextStyle(
       fontFamily: "IBMPlexSansKR",
-      fontSize: 11,
-      height: 19 / 11,
-      fontWeight: FontWeight.w600, // SemiBold
+      fontSize: 16,
+      height: 1.2, // 120%
+      letterSpacing: -0.16, // 16 * -0.01
+      fontWeight: FontWeight.w500,
     ),
-    /**Text1 */
+
+    /// [Button 2]
+    /// Image: Button 2 (12px / 130% / -1.00% / Medium)
     labelMedium: TextStyle(
       fontFamily: "IBMPlexSansKR",
-      fontSize: 16,
-      height: 24 / 16,
-      fontWeight: FontWeight.w400, // Regular
+      fontSize: 12,
+      height: 1.3, // 130%
+      letterSpacing: -0.12, // 12 * -0.01
+      fontWeight: FontWeight.w500,
     ),
-    /**Text2 */
+
+    /// [Caption/Subtext]
+    /// Image: Caption 2 (12px / 140% / -1.00% / Regular)
+    /// Caption 1(14px/140%)은 titleSmall과 유사하고, Caption 2를 labelSmall에 배정
     labelSmall: TextStyle(
       fontFamily: "IBMPlexSansKR",
-      fontSize: 11,
-      height: 24 / 11,
-      fontWeight: FontWeight.w400, // Regular
-    ),
-    /**Mobile & Field */
-    headlineLarge: TextStyle(
-      fontFamily: "IBMPlexSansKR",
-      fontSize: 16,
-      height: 24 / 16,
-      fontWeight: FontWeight.w600, // SemiBold
+      fontSize: 12,
+      height: 1.4, // 140%
+      letterSpacing: -0.12, // 12 * -0.01
+      fontWeight: FontWeight.w400,
     ),
   );
 }

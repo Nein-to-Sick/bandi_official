@@ -29,7 +29,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
         ),
         title: Text(
           'settings_privacy_policy'.tr(context),
-          style: BandiFont.displaySmall(context)?.copyWith(
+          style: BandiFont.headlineMedium(context)?.copyWith(
             color: BandiColor.foundationColor80(context),
           ),
         ),

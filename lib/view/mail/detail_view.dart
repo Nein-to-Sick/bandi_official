@@ -80,7 +80,7 @@ class DetailView extends StatelessWidget {
                         ),
                         Text(
                           title,
-                          style: BandiFont.displaySmall(context)?.copyWith(
+                          style: BandiFont.headlineMedium(context)?.copyWith(
                             color: BandiColor.foundationColor100(context),
                           ),
                         ),
@@ -89,7 +89,7 @@ class DetailView extends StatelessWidget {
                         ),
                         Text(
                           date,
-                          style: BandiFont.headlineSmall(context)?.copyWith(
+                          style: BandiFont.bodyMedium(context)?.copyWith(
                             color: BandiColor.foundationColor100(context),
                           ),
                         ),

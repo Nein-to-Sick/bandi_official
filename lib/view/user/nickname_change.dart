@@ -14,11 +14,13 @@ import '../../theme/custom_theme_data.dart';
 
 class NicknameChange extends StatelessWidget {
   final VoidCallback onBack;
-  const NicknameChange({super.key, required this.onBack,});
+  const NicknameChange({
+    super.key,
+    required this.onBack,
+  });
 
   @override
   Widget build(BuildContext context) {
-
     void updateNickname(BuildContext context, String newNickname) async {
       // Firebase Firestore에서 현재 사용자 문서를 업데이트
       String? userId = FirebaseAuth.instance.currentUser?.uid;
@@ -32,6 +34,7 @@ class NicknameChange extends StatelessWidget {
         });
       }
     }
+
     return Scaffold(
       backgroundColor: BandiColor.neutralColor80(context).withOpacity(0.8),
       appBar: AppBar(
@@ -39,7 +42,7 @@ class NicknameChange extends StatelessWidget {
         backgroundColor: BandiColor.transparent(context),
         title: Text(
           'settings_nickname_change'.tr(context),
-          style: BandiFont.displaySmall(context)?.copyWith(
+          style: BandiFont.headlineMedium(context)?.copyWith(
             color: BandiColor.foundationColor80(context),
           ),
         ),
@@ -58,7 +61,6 @@ class NicknameChange extends StatelessWidget {
 
             return ListView(
               physics: const NeverScrollableScrollPhysics(),
-
               children: [
                 const SizedBox(height: 17),
                 CustomField(

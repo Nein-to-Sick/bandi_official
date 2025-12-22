@@ -28,7 +28,7 @@ class SettingsHome extends StatelessWidget {
           ),
           child: Text(
             'settings_title'.tr(context),
-            style: BandiFont.displaySmall(context)?.copyWith(
+            style: BandiFont.headlineMedium(context)?.copyWith(
               color: BandiColor.foundationColor80(context),
             ),
           ),
