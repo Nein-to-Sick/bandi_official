@@ -1,82 +1,120 @@
 import 'package:flutter/material.dart';
 
+// Raw Color 값 정의
+class BandiPalette {
+  static const Color black = Color(0xFF000000);
+  static const Color white = Color(0xFFFFFFFF);
+
+  // Yellow Hex Code
+  static const Color yellow = Color(0xFFFFDB58);
+
+  // Red Hex Code
+  static const Color red = Color(0xFFFF5C46);
+}
+
 class BandiColor {
-  /// Black Color
+  /// --------------------------------------------------------------------------
+  /// Foundation Color (Light: Black / Dark: White)
+  /// Theme.of(context).colorScheme.onSurface를 참조
+  /// --------------------------------------------------------------------------
+
   static Color foundationColor100(BuildContext context) {
-    return Theme.of(context).colorScheme.primary;
+    return Theme.of(context).colorScheme.onSurface;
   }
 
-  /// Black Color
+  static Color foundationColor90(BuildContext context) {
+    return Theme.of(context).colorScheme.onSurface.withOpacity(0.9);
+  }
+
   static Color foundationColor80(BuildContext context) {
-    return Theme.of(context).colorScheme.primary.withOpacity(0.8);
+    return Theme.of(context).colorScheme.onSurface.withOpacity(0.8);
+    //return Theme.of(context).colorScheme.onSurface.withOpacity(0.8);
   }
 
-  /// Black Color
+  static Color foundationColor70(BuildContext context) {
+    return Theme.of(context).colorScheme.onSurface.withOpacity(0.7);
+  }
+
   static Color foundationColor60(BuildContext context) {
-    return Theme.of(context).colorScheme.primary.withOpacity(0.6);
+    return Theme.of(context).colorScheme.onSurface.withOpacity(0.6);
   }
 
-  /// Black Color
+  static Color foundationColor50(BuildContext context) {
+    return Theme.of(context).colorScheme.onSurface.withOpacity(0.5);
+  }
+
   static Color foundationColor40(BuildContext context) {
-    return Theme.of(context).colorScheme.primary.withOpacity(0.4);
+    return Theme.of(context).colorScheme.onSurface.withOpacity(0.4);
   }
 
-  /// Black Color
+  static Color foundationColor30(BuildContext context) {
+    return Theme.of(context).colorScheme.onSurface.withOpacity(0.3);
+  }
+
   static Color foundationColor20(BuildContext context) {
-    return Theme.of(context).colorScheme.primary.withOpacity(0.2);
+    return Theme.of(context).colorScheme.onSurface.withOpacity(0.2);
   }
 
-  /// Black Color
   static Color foundationColor10(BuildContext context) {
-    return Theme.of(context).colorScheme.primary.withOpacity(0.1);
+    return Theme.of(context).colorScheme.onSurface.withOpacity(0.1);
   }
 
-  /// Neutral Color
+  static Color foundationColor04(BuildContext context) {
+    return Theme.of(context).colorScheme.onSurface.withOpacity(0.04);
+  }
+
+  /// --------------------------------------------------------------------------
+  /// Neutral Color (Light: White / Dark: Black)
+  /// Theme.of(context).colorScheme.surface를 참조
+  /// --------------------------------------------------------------------------
+
   static Color neutralColor100(BuildContext context) {
     return Theme.of(context).colorScheme.surface;
   }
 
-  /// Neutral Color
   static Color neutralColor90(BuildContext context) {
     return Theme.of(context).colorScheme.surface.withOpacity(0.9);
   }
 
-  /// Neutral Color
   static Color neutralColor80(BuildContext context) {
     return Theme.of(context).colorScheme.surface.withOpacity(0.8);
   }
 
-  /// Neutral Color
   static Color neutralColor60(BuildContext context) {
     return Theme.of(context).colorScheme.surface.withOpacity(0.6);
   }
 
-  /// Neutral Color
   static Color neutralColor40(BuildContext context) {
     return Theme.of(context).colorScheme.surface.withOpacity(0.4);
   }
 
-  /// Neutral Color
   static Color neutralColor20(BuildContext context) {
     return Theme.of(context).colorScheme.surface.withOpacity(0.2);
   }
 
-  /// Neutral Color
   static Color neutralColor10(BuildContext context) {
     return Theme.of(context).colorScheme.surface.withOpacity(0.1);
   }
 
-  /// Accent Color
-  static Color accentColorYellow(BuildContext context) {
-    return Theme.of(context).colorScheme.secondary;
+  static Color neutralColor04(BuildContext context) {
+    return Theme.of(context).colorScheme.surface.withOpacity(0.04);
   }
 
-  /// Accent Color
+  /// --------------------------------------------------------------------------
+  /// Accent & Semantic Colors
+  /// --------------------------------------------------------------------------
+
+  /// Primary (Yellow)
+  static Color accentColorYellow(BuildContext context) {
+    return Theme.of(context).colorScheme.primary;
+  }
+
+  /// Semantic (Red)
   static Color accentColorRed(BuildContext context) {
     return Theme.of(context).colorScheme.error;
   }
 
-  /// Transparent Color
+  /// Transparent
   static Color transparent(BuildContext context) {
     return Colors.transparent;
   }
@@ -158,22 +196,23 @@ class BandiEffects {
 
 class CustomThemeData {
   static final ThemeData light = ThemeData(
+    useMaterial3: true,
     colorScheme: const ColorScheme.light(
-      /// Foundation
-      primary: Color(0xff000000),
+      /// [Primary] Image: Yellow
+      primary: BandiPalette.yellow,
+      onPrimary: BandiPalette.black,
 
-      /// Neutral
-      surface: Color(0xffFFFFFF),
+      /// [Content] Image: White (Background) / Black (Text)
+      surface: BandiPalette.white,
+      onSurface: BandiPalette.black,
 
-      /// Accent Yellow
-      secondary: Color(0xffFFCB46),
+      /// [Semantic] Image: Red
+      error: BandiPalette.red,
+      onError: BandiPalette.black,
 
-      /// Accent Red
-      error: Color(0xffC33025),
-      onPrimary: Color(0xffFFFFFF),
-      onSurface: Color(0xff000000),
-      onSecondary: Color(0xff000000),
-      onError: Color(0xffFFFFFF),
+      // Accent Yellow
+      secondary: BandiPalette.yellow,
+      onSecondary: BandiPalette.black,
     ),
     disabledColor: const Color(0xffF7F7F7), // Border
     dividerColor: const Color(0xffD5D5D5), // Button -inactive
@@ -185,15 +224,23 @@ class CustomThemeData {
   );
 
   static final ThemeData dark = ThemeData(
+    useMaterial3: true,
     colorScheme: const ColorScheme.dark(
-      primary: Color(0xffffffff),
-      surface: Color(0xff000000),
-      secondary: Color(0xffFFCB46),
-      error: Color(0xffC33025),
-      onPrimary: Color(0xff000000),
-      onSurface: Color(0xffFFFFFF),
-      onSecondary: Color(0xff000000),
-      onError: Color(0xffFFFFFF),
+      /// [Primary] Dark Mode에서도 브랜드 컬러 유지
+      primary: BandiPalette.yellow,
+      onPrimary: BandiPalette.black,
+
+      /// [Content] Image: Black (Background) / White (Text)
+      surface: BandiPalette.black,
+      onSurface: BandiPalette.white,
+
+      /// [Semantic]
+      error: BandiPalette.red,
+      onError: BandiPalette.black,
+
+      // Accent Yellow
+      secondary: BandiPalette.yellow,
+      onSecondary: BandiPalette.black,
     ),
     disabledColor: const Color(0xff1C1C1C), // Border
     dividerColor: const Color(0xff444444), // Button -inactive
