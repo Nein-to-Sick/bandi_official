@@ -28,7 +28,6 @@ class BandiColor {
 
   static Color foundationColor80(BuildContext context) {
     return Theme.of(context).colorScheme.onSurface.withOpacity(0.8);
-    //return Theme.of(context).colorScheme.onSurface.withOpacity(0.8);
   }
 
   static Color foundationColor70(BuildContext context) {
