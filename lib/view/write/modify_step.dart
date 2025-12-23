@@ -64,7 +64,7 @@ class _ThirdStepState extends State<ThirdStep> {
                     controller: titleController,
                     decoration: const InputDecoration(border: InputBorder.none),
                     cursorColor: BandiColor.neutralColor100(context),
-                    style: BandiFont.headlineMedium(context)
+                    style: BandiFont.displaySmall(context)
                         ?.copyWith(color: BandiColor.neutralColor100(context)),
                     onChanged: (value) {
                       setState(() => titleText = value);
@@ -122,39 +122,32 @@ class _ThirdStepState extends State<ThirdStep> {
             const SizedBox(
               height: 8,
             ),
-            writeProvider.diaryModel.emotion.isEmpty
-                ? Text(
-                    'done'.tr(context),
-                    style: BandiFont.titleSmall(context)
-                        ?.copyWith(color: BandiColor.neutralColor100(context)),
-                  )
-                : SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        for (String emotion in writeProvider.diaryModel.emotion)
-                          Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
-                            child: Row(
-                              children: [
-                                Text("#",
-                                    style: BandiFont.titleSmall(context)
-                                        ?.copyWith(
-                                            color: BandiColor.neutralColor100(
-                                                context))),
-                                Text(
-                                  "emotion_keyword_$emotion".tr(context),
-                                  style: BandiFont.titleSmall(context)
-                                      ?.copyWith(
-                                          color: BandiColor.neutralColor100(
-                                              context)),
-                                ),
-                              ],
-                            ),
+            writeProvider.diaryModel.emotion.isEmpty ? Text(
+              'done'.tr(context),
+              style: BandiFont.titleSmall(context)?.copyWith(
+                  color: BandiColor.neutralColor100(context)),
+            ) : SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  for (String emotion in writeProvider.diaryModel.emotion)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: Row(
+                        children: [
+                          Text("#", style: BandiFont.titleSmall(context)?.copyWith(
+                              color: BandiColor.neutralColor100(context))),
+                          Text(
+                            "emotion_keyword_$emotion".tr(context),
+                            style: BandiFont.titleSmall(context)?.copyWith(
+                                color: BandiColor.neutralColor100(context)),
                           ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
+                ],
+              ),
+            ),
             const SizedBox(
               height: 24,
             ),
@@ -165,16 +158,15 @@ class _ThirdStepState extends State<ThirdStep> {
                     title: 'done'.tr(context),
                     onPrimaryButtonPressed: () async {
                       // 저장
-                      writeProvider.modifyDatabaseDiaryValue(titleText,
-                          contentText, writeProvider.diaryModel.diaryId);
+                      writeProvider.modifyDatabaseDiaryValue(
+                          titleText, contentText, writeProvider.diaryModel.diaryId);
                       if (writeProvider.gotoDirectListPage) {
                         navigationToggleProvider.selectIndex(1);
                       }
                       writeProvider.toggleWrite();
                       writeProvider.initialize();
                     },
-                    disableButton: (writeProvider.diaryModel.title ==
-                                titleText &&
+                    disableButton: (writeProvider.diaryModel.title == titleText &&
                             writeProvider.diaryModel.content == contentText &&
                             writeProvider.flag == 0)
                         ? true

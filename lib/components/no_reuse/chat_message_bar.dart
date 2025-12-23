@@ -69,7 +69,7 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                   children: [
                     Text(
                       'ai_chat_assistant_message_guide'.tr(context),
-                      style: BandiFont.bodyMedium(context)?.copyWith(
+                      style: BandiFont.headlineSmall(context)?.copyWith(
                         color: BandiColor.neutralColor100(context),
                       ),
                     ),

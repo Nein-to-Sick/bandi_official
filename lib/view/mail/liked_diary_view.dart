@@ -195,7 +195,7 @@ Widget likedDiaryWidget(
                     diary.content,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: BandiFont.bodyMedium(context)
+                    style: BandiFont.headlineSmall(context)
                         ?.copyWith(color: BandiColor.neutralColor60(context)),
                   ),
                   const SizedBox(height: 8),
@@ -203,14 +203,14 @@ Widget likedDiaryWidget(
                     children: [
                       Text(
                         diary.otherUserLikedAt,
-                        style: BandiFont.bodyMedium(context)?.copyWith(
+                        style: BandiFont.headlineSmall(context)?.copyWith(
                             color: BandiColor.neutralColor60(context)),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           combinedEmotions,
-                          style: BandiFont.bodyMedium(context)?.copyWith(
+                          style: BandiFont.headlineSmall(context)?.copyWith(
                               color: BandiColor.neutralColor60(context)),
                           overflow: TextOverflow.ellipsis,
                         ),

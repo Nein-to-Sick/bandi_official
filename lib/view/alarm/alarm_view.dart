@@ -258,7 +258,7 @@ class _AlarmViewState extends State<AlarmView> {
                           ),
                           Text(
                             'notification_message'.tr(context),
-                            style: BandiFont.bodyMedium(context)?.copyWith(
+                            style: BandiFont.headlineSmall(context)?.copyWith(
                               color: BandiColor.foundationColor60(context),
                             ),
                           ),

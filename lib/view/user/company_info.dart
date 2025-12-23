@@ -13,9 +13,7 @@ class CompanyInfoScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String langCode = Localizations.localeOf(context).languageCode;
-    Map<String, String>? companyInfo =
-        CompanyInfo().localizedCompanyInfo[langCode] ??
-            CompanyInfo().localizedCompanyInfo['ko'];
+    Map<String, String>? companyInfo = CompanyInfo().localizedCompanyInfo[langCode] ?? CompanyInfo().localizedCompanyInfo['ko'];
 
     return Scaffold(
         backgroundColor: BandiColor.neutralColor80(context).withOpacity(0.8),
@@ -28,7 +26,7 @@ class CompanyInfoScreen extends StatelessWidget {
           ),
           title: Text(
             'settings_business_information'.tr(context),
-            style: BandiFont.headlineMedium(context)?.copyWith(
+            style: BandiFont.displaySmall(context)?.copyWith(
               color: BandiColor.foundationColor80(context),
             ),
           ),
@@ -116,6 +114,7 @@ class CompanyInfoScreen extends StatelessWidget {
               ],
             ),
           ),
-        ));
+        )
+    );
   }
 }

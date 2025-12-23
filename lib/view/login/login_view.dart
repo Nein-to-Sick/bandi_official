@@ -140,8 +140,11 @@ class _LoginViewState extends State<LoginView> {
                     children: [
                       Text(
                         'login_title'.tr(context),
-                        style: BandiFont.displayLarge(context)?.copyWith(
-                          color: BandiColor.neutralColor90(context),
+                        style: TextStyle(
+                          fontFamily: "IBMPlexSansKR",
+                          fontSize: 50,
+                          fontWeight: FontWeight.bold, // Regular
+                          color: BandiColor.neutralColor100(context),
                         ),
                       ),
                     ],
@@ -151,9 +154,8 @@ class _LoginViewState extends State<LoginView> {
                   ),
                   Text(
                     'login_subtitle'.tr(context),
-                    style: BandiFont.bodyLarge(context)?.copyWith(
-                      color: BandiColor.neutralColor70(context),
-                    ),
+                    style: BandiFont.bodyMedium(context)
+                        ?.copyWith(color: BandiColor.neutralColor100(context)),
                   ),
                 ],
               ),
@@ -336,7 +338,7 @@ class _LoginViewState extends State<LoginView> {
                       : _onboarding == 2
                           ? "onboarding_step_title_2".tr(context)
                           : "onboarding_step_title_3".tr(context),
-                  style: BandiFont.headlineLarge(context)
+                  style: BandiFont.displayMedium(context)
                       ?.copyWith(color: BandiColor.neutralColor90(context)),
                 ),
               if (_onboarding < 4)
@@ -350,7 +352,7 @@ class _LoginViewState extends State<LoginView> {
                       : _onboarding == 2
                           ? "onboarding_step_subtitle_2".tr(context)
                           : "onboarding_step_subtitle_3".tr(context),
-                  style: BandiFont.headlineMedium(context)
+                  style: BandiFont.displaySmall(context)
                       ?.copyWith(color: BandiColor.neutralColor60(context)),
                   textAlign: TextAlign.center,
                 ),

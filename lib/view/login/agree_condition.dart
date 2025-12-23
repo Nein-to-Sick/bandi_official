@@ -407,7 +407,7 @@ Future detailsOfAgreementPage(
             ),
             child: Text(
               title.tr(context),
-              style: BandiFont.headlineMedium(context)?.copyWith(
+              style: BandiFont.displaySmall(context)?.copyWith(
                 color: BandiColor.foundationColor80(context),
               ),
             ),

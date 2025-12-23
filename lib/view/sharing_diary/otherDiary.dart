@@ -19,6 +19,8 @@ import '../../components/button/reaction_button.dart';
 import '../../components/toggle/language_toggle_switch.dart';
 import '../../controller/other_diary_controller.dart';
 
+
+
 class OtherDiary extends StatefulWidget {
   const OtherDiary({super.key, required this.writeProvider});
 
@@ -163,7 +165,7 @@ class _OtherDiaryState extends State<OtherDiary> {
                       children: [
                         Padding(
                           padding:
-                              const EdgeInsets.only(top: 16.0, right: 16.0),
+                          const EdgeInsets.only(top: 16.0, right: 16.0),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
@@ -180,7 +182,7 @@ class _OtherDiaryState extends State<OtherDiary> {
                                         onYesText: 'dialogue_report_on_yes'
                                             .tr(context),
                                         onNoText:
-                                            'dialogue_report_on_no'.tr(context),
+                                        'dialogue_report_on_no'.tr(context),
                                         onYesFunction: () async {
                                           Navigator.pop(context, true);
 
@@ -193,7 +195,7 @@ class _OtherDiaryState extends State<OtherDiary> {
                                                 .doc(userId)
                                                 .update({
                                               'blockedUsersList':
-                                                  FieldValue.arrayUnion([
+                                              FieldValue.arrayUnion([
                                                 writeProvider
                                                     .otherDiaryModel.userId
                                               ]),
@@ -204,12 +206,13 @@ class _OtherDiaryState extends State<OtherDiary> {
                                             await FirebaseFirestore.instance
                                                 .collection('users')
                                                 .doc(writeProvider
-                                                    .otherDiaryModel.userId)
+                                                .otherDiaryModel.userId)
                                                 .update({
                                               'reported_count':
-                                                  FieldValue.increment(1),
+                                              FieldValue.increment(1),
                                             });
-                                            log('update other user\'s reported count');
+                                            log(
+                                                'update other user\'s reported count');
                                           } on FirebaseException catch (e) {
                                             log('Firestore error: ${e.message}');
                                           } catch (e) {
@@ -233,7 +236,7 @@ class _OtherDiaryState extends State<OtherDiary> {
                                           content: Text(
                                             "dialogue_report_snackBar_message"
                                                 .tr(context),
-                                            style: BandiFont.headlineMedium(
+                                            style: BandiFont.displaySmall(
                                               context,
                                             )?.copyWith(
                                               color: BandiColor.neutralColor90(
@@ -245,13 +248,14 @@ class _OtherDiaryState extends State<OtherDiary> {
                                             left: 25.0,
                                             right: 25.0,
                                             bottom: MediaQuery.of(context)
-                                                    .size
-                                                    .height *
+                                                .size
+                                                .height *
                                                 0.1,
                                           ),
                                           behavior: SnackBarBehavior.floating,
                                           shape: RoundedRectangleBorder(
-                                            borderRadius: BandiEffects.radius(),
+                                            borderRadius:
+                                            BandiEffects.radius(),
                                           ),
                                         ),
                                       );
@@ -295,14 +299,14 @@ class _OtherDiaryState extends State<OtherDiary> {
                         Expanded(
                           child: Padding(
                             padding:
-                                const EdgeInsets.symmetric(horizontal: 24.0),
+                            const EdgeInsets.symmetric(horizontal: 24.0),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 // 제목
                                 Text(
                                   translatedTitle,
-                                  style: BandiFont.headlineMedium(context)
+                                  style: BandiFont.displaySmall(context)
                                       ?.copyWith(
                                     color: BandiColor.foundationColor100(
                                       context,
@@ -319,8 +323,8 @@ class _OtherDiaryState extends State<OtherDiary> {
                                     writeProvider.otherDiaryModel.createdAt
                                         .toDate(),
                                   ),
-                                  style:
-                                      BandiFont.bodyMedium(context)?.copyWith(
+                                  style: BandiFont.headlineSmall(context)
+                                      ?.copyWith(
                                     color: BandiColor.foundationColor100(
                                       context,
                                     ),
@@ -358,7 +362,7 @@ class _OtherDiaryState extends State<OtherDiary> {
                                 originalContent: widget
                                     .writeProvider.otherDiaryModel.content,
                                 originalTitle:
-                                    widget.writeProvider.otherDiaryModel.title,
+                                widget.writeProvider.otherDiaryModel.title,
                                 initialLanguage: originalLang,
                                 onToggleCompleted: (translatedContent,
                                     translatedTitle, currentLanguage) {
@@ -376,11 +380,11 @@ class _OtherDiaryState extends State<OtherDiary> {
                     ),
                     isLoading
                         ? const Row(
-                            children: [
-                              SizedBox(width: 5),
-                              Center(child: CircularProgressIndicator()),
-                            ],
-                          )
+                      children: [
+                        SizedBox(width: 5),
+                        Center(child: CircularProgressIndicator()),
+                      ],
+                    )
                         : Container(),
                   ],
                 ),

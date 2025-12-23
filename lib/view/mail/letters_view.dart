@@ -127,7 +127,7 @@ Widget lettersWidget(
               letter.content,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: BandiFont.bodyMedium(context)
+              style: BandiFont.headlineSmall(context)
                   ?.copyWith(color: BandiColor.neutralColor60(context)),
             ),
             const SizedBox(height: 16),

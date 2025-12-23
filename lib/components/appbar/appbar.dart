@@ -49,7 +49,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
         backgroundColor: BandiColor.transparent(context),
         title: Text(
           widget.title ?? '',
-          style: BandiFont.headlineMedium(context)?.copyWith(
+          style: BandiFont.displaySmall(context)?.copyWith(
             color: (widget.titleColor != null)
                 ? widget.titleColor
                 : BandiColor.neutralColor100(context),

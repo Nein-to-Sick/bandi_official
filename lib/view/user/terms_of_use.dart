@@ -27,7 +27,7 @@ class TermsOfUseScreen extends StatelessWidget {
         ),
         title: Text(
           'settings_terms_of_use'.tr(context),
-          style: BandiFont.headlineMedium(context)?.copyWith(
+          style: BandiFont.displaySmall(context)?.copyWith(
             color: BandiColor.foundationColor80(context),
           ),
         ),
