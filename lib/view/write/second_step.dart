@@ -16,7 +16,7 @@ class SecondStep extends StatelessWidget {
   Widget build(BuildContext context) {
     final writeProvider = Provider.of<HomeToWrite>(context);
     final navigationToggleProvider =
-    Provider.of<NavigationToggleProvider>(context);
+        Provider.of<NavigationToggleProvider>(context);
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -37,7 +37,7 @@ class SecondStep extends StatelessWidget {
                           writeProvider.diaryModel.cheerText == ''
                               ? 'write_title_generating'.tr(context)
                               : writeProvider.diaryModel.title,
-                          style: BandiFont.displaySmall(context)?.copyWith(
+                          style: BandiFont.headlineMedium(context)?.copyWith(
                               color: BandiColor.neutralColor100(context)),
                         ),
                       ),
@@ -45,20 +45,26 @@ class SecondStep extends StatelessWidget {
                         height: 4,
                       ),
                       Text(
-                        DateFormat('journal_calendar_header_2'.tr(context)).format(writeProvider.diaryModel.createdAt.toDate()),
-                        style: BandiFont.headlineSmall(context)?.copyWith(
+                        DateFormat('journal_calendar_header_2'.tr(context))
+                            .format(
+                                writeProvider.diaryModel.createdAt.toDate()),
+                        style: BandiFont.bodyMedium(context)?.copyWith(
                             color: BandiColor.neutralColor100(context)),
                       )
                     ],
                   ),
                 ),
                 GestureDetector(
-                  onTap: writeProvider.diaryModel.cheerText == '' ? null : () {
-                    writeProvider.nextWrite(3);
-                  },
+                  onTap: writeProvider.diaryModel.cheerText == ''
+                      ? null
+                      : () {
+                          writeProvider.nextWrite(3);
+                        },
                   child: PhosphorIcon(
                     PhosphorIcons.pencilSimple(),
-                    color: writeProvider.diaryModel.cheerText == '' ? BandiColor.neutralColor10(context) : BandiColor.neutralColor40(context),
+                    color: writeProvider.diaryModel.cheerText == ''
+                        ? BandiColor.neutralColor10(context)
+                        : BandiColor.neutralColor40(context),
                   ),
                 )
               ],
@@ -84,36 +90,45 @@ class SecondStep extends StatelessWidget {
             ),
             writeProvider.diaryModel.cheerText == ''
                 ? Text(
-              'write_emotion_loading'.tr(context),
-              style: BandiFont.titleSmall(context)
-                  ?.copyWith(color: BandiColor.neutralColor100(context)),
-            )
-                : writeProvider.diaryModel.emotion.isEmpty ? Text(
-              'write_emotion_nothing'.tr(context),
-              style: BandiFont.titleSmall(context)?.copyWith(
-                  color: BandiColor.neutralColor100(context)),
-            ) : SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  for (String emotion in writeProvider.diaryModel.emotion)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
-                      child: Row(
-                        children: [
-                          Text("#", style: BandiFont.titleSmall(context)?.copyWith(
-                              color: BandiColor.neutralColor100(context))),
-                          Text(
-                            "emotion_keyword_$emotion".tr(context),
-                            style: BandiFont.titleSmall(context)?.copyWith(
-                                color: BandiColor.neutralColor100(context)),
-                          ),
-                        ],
+                    'write_emotion_loading'.tr(context),
+                    style: BandiFont.titleSmall(context)
+                        ?.copyWith(color: BandiColor.neutralColor100(context)),
+                  )
+                : writeProvider.diaryModel.emotion.isEmpty
+                    ? Text(
+                        'write_emotion_nothing'.tr(context),
+                        style: BandiFont.titleSmall(context)?.copyWith(
+                            color: BandiColor.neutralColor100(context)),
+                      )
+                    : SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            for (String emotion
+                                in writeProvider.diaryModel.emotion)
+                              Padding(
+                                padding: const EdgeInsets.only(right: 8.0),
+                                child: Row(
+                                  children: [
+                                    Text("#",
+                                        style: BandiFont.titleSmall(context)
+                                            ?.copyWith(
+                                                color:
+                                                    BandiColor.neutralColor100(
+                                                        context))),
+                                    Text(
+                                      "emotion_keyword_$emotion".tr(context),
+                                      style: BandiFont.titleSmall(context)
+                                          ?.copyWith(
+                                              color: BandiColor.neutralColor100(
+                                                  context)),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
-                    ),
-                ],
-              ),
-            ),
             const SizedBox(
               height: 16,
             ),
@@ -143,7 +158,8 @@ class SecondStep extends StatelessWidget {
                       writeProvider.initialize();
                       writeProvider.toggleWrite();
                     },
-                    disableButton: writeProvider.diaryModel.cheerText == '' ? true : false,
+                    disableButton:
+                        writeProvider.diaryModel.cheerText == '' ? true : false,
                   ),
                 ),
               ],
@@ -164,7 +180,7 @@ Widget containerBox(context, String text) {
       padding: const EdgeInsets.symmetric(vertical: 2.5, horizontal: 12),
       child: Text(
         text,
-        style: BandiFont.headlineSmall(context)
+        style: BandiFont.bodyMedium(context)
             ?.copyWith(color: BandiColor.neutralColor100(context)),
       ),
     ),

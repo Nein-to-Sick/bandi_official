@@ -106,7 +106,7 @@ class _CustomDialogueState extends State<CustomDialogue> {
                                 maxLines: 15,
                                 overflow: TextOverflow.ellipsis,
                                 textAlign: TextAlign.left,
-                                style: BandiFont.headlineSmall(context)
+                                style: BandiFont.bodyMedium(context)
                                     ?.copyWith(color: textColor),
                               ),
                       ),

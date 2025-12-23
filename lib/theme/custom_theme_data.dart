@@ -1,149 +1,160 @@
 import 'package:flutter/material.dart';
 
+// Raw Color 값 정의
+class BandiPalette {
+  static const Color black = Color(0xFF000000);
+  static const Color white = Color(0xFFFFFFFF);
+
+  // Yellow Hex Code
+  static const Color yellow = Color(0xFFFFDB58);
+
+  // Red Hex Code
+  static const Color red = Color(0xFFFF5C46);
+}
+
 class BandiColor {
-  /// Black Color
+  /// --------------------------------------------------------------------------
+  /// Foundation Color (Light: Black / Dark: White)
+  /// Theme.of(context).colorScheme.onSurface를 참조
+  /// --------------------------------------------------------------------------
+
   static Color foundationColor100(BuildContext context) {
-    return Theme.of(context).colorScheme.primary;
+    return Theme.of(context).colorScheme.onSurface;
   }
 
-  /// Black Color
+  static Color foundationColor90(BuildContext context) {
+    return Theme.of(context).colorScheme.onSurface.withOpacity(0.9);
+  }
+
   static Color foundationColor80(BuildContext context) {
-    return Theme.of(context).colorScheme.primary.withOpacity(0.8);
+    return Theme.of(context).colorScheme.onSurface.withOpacity(0.8);
   }
 
-  /// Black Color
+  static Color foundationColor70(BuildContext context) {
+    return Theme.of(context).colorScheme.onSurface.withOpacity(0.7);
+  }
+
   static Color foundationColor60(BuildContext context) {
-    return Theme.of(context).colorScheme.primary.withOpacity(0.6);
+    return Theme.of(context).colorScheme.onSurface.withOpacity(0.6);
   }
 
-  /// Black Color
+  static Color foundationColor50(BuildContext context) {
+    return Theme.of(context).colorScheme.onSurface.withOpacity(0.5);
+  }
+
   static Color foundationColor40(BuildContext context) {
-    return Theme.of(context).colorScheme.primary.withOpacity(0.4);
+    return Theme.of(context).colorScheme.onSurface.withOpacity(0.4);
   }
 
-  /// Black Color
+  static Color foundationColor30(BuildContext context) {
+    return Theme.of(context).colorScheme.onSurface.withOpacity(0.3);
+  }
+
   static Color foundationColor20(BuildContext context) {
-    return Theme.of(context).colorScheme.primary.withOpacity(0.2);
+    return Theme.of(context).colorScheme.onSurface.withOpacity(0.2);
   }
 
-  /// Black Color
   static Color foundationColor10(BuildContext context) {
-    return Theme.of(context).colorScheme.primary.withOpacity(0.1);
+    return Theme.of(context).colorScheme.onSurface.withOpacity(0.1);
   }
 
-  /// Neutral Color
+  static Color foundationColor04(BuildContext context) {
+    return Theme.of(context).colorScheme.onSurface.withOpacity(0.04);
+  }
+
+  /// --------------------------------------------------------------------------
+  /// Neutral Color (Light: White / Dark: Black)
+  /// Theme.of(context).colorScheme.surface를 참조
+  /// --------------------------------------------------------------------------
+
   static Color neutralColor100(BuildContext context) {
     return Theme.of(context).colorScheme.surface;
   }
 
-  /// Neutral Color
   static Color neutralColor90(BuildContext context) {
     return Theme.of(context).colorScheme.surface.withOpacity(0.9);
   }
 
-  /// Neutral Color
   static Color neutralColor80(BuildContext context) {
     return Theme.of(context).colorScheme.surface.withOpacity(0.8);
   }
 
-  /// Neutral Color
+  static Color neutralColor70(BuildContext context) {
+    return Theme.of(context).colorScheme.surface.withOpacity(0.7);
+  }
+
   static Color neutralColor60(BuildContext context) {
     return Theme.of(context).colorScheme.surface.withOpacity(0.6);
   }
 
-  /// Neutral Color
+  static Color neutralColor50(BuildContext context) {
+    return Theme.of(context).colorScheme.surface.withOpacity(0.5);
+  }
+
   static Color neutralColor40(BuildContext context) {
     return Theme.of(context).colorScheme.surface.withOpacity(0.4);
   }
 
-  /// Neutral Color
+  static Color neutralColor30(BuildContext context) {
+    return Theme.of(context).colorScheme.surface.withOpacity(0.3);
+  }
+
   static Color neutralColor20(BuildContext context) {
     return Theme.of(context).colorScheme.surface.withOpacity(0.2);
   }
 
-  /// Neutral Color
   static Color neutralColor10(BuildContext context) {
     return Theme.of(context).colorScheme.surface.withOpacity(0.1);
   }
 
-  /// Accent Color
-  static Color accentColorYellow(BuildContext context) {
-    return Theme.of(context).colorScheme.secondary;
+  static Color neutralColor04(BuildContext context) {
+    return Theme.of(context).colorScheme.surface.withOpacity(0.04);
   }
 
-  /// Accent Color
+  /// --------------------------------------------------------------------------
+  /// Accent & Semantic Colors
+  /// --------------------------------------------------------------------------
+
+  /// Primary (Yellow)
+  static Color accentColorYellow(BuildContext context) {
+    return Theme.of(context).colorScheme.primary;
+  }
+
+  /// Semantic (Red)
   static Color accentColorRed(BuildContext context) {
     return Theme.of(context).colorScheme.error;
   }
 
-  /// Transparent Color
+  /// Transparent
   static Color transparent(BuildContext context) {
     return Colors.transparent;
   }
 }
 
 class BandiFont {
-  static TextStyle? displayLarge(BuildContext context) {
-    return Theme.of(context).textTheme.displayLarge;
-  }
-
-  static TextStyle? displayMedium(BuildContext context) {
-    return Theme.of(context).textTheme.displayMedium;
-  }
-
-  static TextStyle? displaySmall(BuildContext context) {
-    return Theme.of(context).textTheme.displaySmall;
-  }
-
-  static TextStyle? headlineMedium(BuildContext context) {
-    return Theme.of(context).textTheme.headlineMedium;
-  }
-
-  static TextStyle? headlineSmall(BuildContext context) {
-    return Theme.of(context).textTheme.headlineSmall;
-  }
-
-  static TextStyle? titleLarge(BuildContext context) {
-    return Theme.of(context).textTheme.titleLarge;
-  }
-
-  static TextStyle? titleMedium(BuildContext context) {
-    return Theme.of(context).textTheme.titleMedium;
-  }
-
-  static TextStyle? titleSmall(BuildContext context) {
-    return Theme.of(context).textTheme.titleSmall;
-  }
-
-  static TextStyle? bodyLarge(BuildContext context) {
-    return Theme.of(context).textTheme.bodyLarge;
-  }
-
-  static TextStyle? bodyMedium(BuildContext context) {
-    return Theme.of(context).textTheme.bodyMedium;
-  }
-
-  static TextStyle? bodySmall(BuildContext context) {
-    return Theme.of(context).textTheme.bodySmall;
-  }
-
-  static TextStyle? labelLarge(BuildContext context) {
-    return Theme.of(context).textTheme.labelLarge;
-  }
-
-  static TextStyle? labelMedium(BuildContext context) {
-    return Theme.of(context).textTheme.labelMedium;
-  }
-
-  static TextStyle? labelSmall(BuildContext context) {
-    return Theme.of(context).textTheme.labelSmall;
-  }
-
-  static TextStyle? headlineLarge(BuildContext context) {
-    return Theme.of(context).textTheme.headlineLarge;
-  }
-
-  static medium(BuildContext context) {}
+  // Helper methods to easily access styles from context
+  static TextStyle? displayLarge(BuildContext context) =>
+      Theme.of(context).textTheme.displayLarge;
+  static TextStyle? headlineLarge(BuildContext context) =>
+      Theme.of(context).textTheme.headlineLarge;
+  static TextStyle? headlineMedium(BuildContext context) =>
+      Theme.of(context).textTheme.headlineMedium;
+  static TextStyle? titleMedium(BuildContext context) =>
+      Theme.of(context).textTheme.titleMedium;
+  static TextStyle? titleSmall(BuildContext context) =>
+      Theme.of(context).textTheme.titleSmall;
+  static TextStyle? bodyLarge(BuildContext context) =>
+      Theme.of(context).textTheme.bodyLarge;
+  static TextStyle? bodyMedium(BuildContext context) =>
+      Theme.of(context).textTheme.bodyMedium;
+  static TextStyle? bodySmall(BuildContext context) =>
+      Theme.of(context).textTheme.bodySmall;
+  static TextStyle? labelLarge(BuildContext context) =>
+      Theme.of(context).textTheme.labelLarge;
+  static TextStyle? labelMedium(BuildContext context) =>
+      Theme.of(context).textTheme.labelMedium;
+  static TextStyle? labelSmall(BuildContext context) =>
+      Theme.of(context).textTheme.labelSmall;
 }
 
 class BandiEffects {
@@ -158,22 +169,23 @@ class BandiEffects {
 
 class CustomThemeData {
   static final ThemeData light = ThemeData(
+    useMaterial3: true,
     colorScheme: const ColorScheme.light(
-      /// Foundation
-      primary: Color(0xff000000),
+      /// [Primary] Image: Yellow
+      primary: BandiPalette.yellow,
+      onPrimary: BandiPalette.black,
 
-      /// Neutral
-      surface: Color(0xffFFFFFF),
+      /// [Content] Image: White (Background) / Black (Text)
+      surface: BandiPalette.white,
+      onSurface: BandiPalette.black,
 
-      /// Accent Yellow
-      secondary: Color(0xffFFCB46),
+      /// [Semantic] Image: Red
+      error: BandiPalette.red,
+      onError: BandiPalette.black,
 
-      /// Accent Red
-      error: Color(0xffC33025),
-      onPrimary: Color(0xffFFFFFF),
-      onSurface: Color(0xff000000),
-      onSecondary: Color(0xff000000),
-      onError: Color(0xffFFFFFF),
+      // Accent Yellow
+      secondary: BandiPalette.yellow,
+      onSecondary: BandiPalette.black,
     ),
     disabledColor: const Color(0xffF7F7F7), // Border
     dividerColor: const Color(0xffD5D5D5), // Button -inactive
@@ -185,15 +197,23 @@ class CustomThemeData {
   );
 
   static final ThemeData dark = ThemeData(
+    useMaterial3: true,
     colorScheme: const ColorScheme.dark(
-      primary: Color(0xffffffff),
-      surface: Color(0xff000000),
-      secondary: Color(0xffFFCB46),
-      error: Color(0xffC33025),
-      onPrimary: Color(0xff000000),
-      onSurface: Color(0xffFFFFFF),
-      onSecondary: Color(0xff000000),
-      onError: Color(0xffFFFFFF),
+      /// [Primary] Dark Mode에서도 브랜드 컬러 유지
+      primary: BandiPalette.yellow,
+      onPrimary: BandiPalette.black,
+
+      /// [Content] Image: Black (Background) / White (Text)
+      surface: BandiPalette.black,
+      onSurface: BandiPalette.white,
+
+      /// [Semantic]
+      error: BandiPalette.red,
+      onError: BandiPalette.black,
+
+      // Accent Yellow
+      secondary: BandiPalette.yellow,
+      onSecondary: BandiPalette.black,
     ),
     disabledColor: const Color(0xff1C1C1C), // Border
     dividerColor: const Color(0xff444444), // Button -inactive
@@ -203,6 +223,10 @@ class CustomThemeData {
     hoverColor: const Color(0xffE2E2E2), // Header
     textTheme: textTheme,
   );
+
+  // ---------------------------------------------------------------------------
+  // TEXT THEME DEFINITION
+  // ---------------------------------------------------------------------------
 
   /*
     FontWeight.w100: Thin
@@ -216,104 +240,117 @@ class CustomThemeData {
     FontWeight.w900: Black
   */
 
-  static TextTheme textTheme = const TextTheme(
-    /**Headline1 */
+  static const TextTheme textTheme = TextTheme(
+    /// [Display]
+    /// Image: Display (50px / 120% / 0.00% / SemiBold)
     displayLarge: TextStyle(
       fontFamily: "IBMPlexSansKR",
-      fontSize: 28,
-      height: 36 / 28,
-      fontWeight: FontWeight.w600, // SemiBold
+      fontSize: 50,
+      height: 1.2, // 120%
+      letterSpacing: 0.0, // 0%
+      fontWeight: FontWeight.w600,
     ),
-    /**Headline2 */
-    displayMedium: TextStyle(
+
+    /// [Headline 1]
+    /// Image: Headline 1 (20px / 130% / -1.00% / SemiBold)
+    headlineLarge: TextStyle(
       fontFamily: "IBMPlexSansKR",
       fontSize: 20,
-      height: 28 / 20,
-      fontWeight: FontWeight.w600, // SemiBold
+      height: 1.3, // 130%
+      letterSpacing: -0.2, // 20 * -0.01
+      fontWeight: FontWeight.w600,
     ),
-    /**Headline3 */
-    displaySmall: TextStyle(
-      fontFamily: "IBMPlexSansKR",
-      fontSize: 18,
-      height: 24 / 18,
-      fontWeight: FontWeight.w600, // SemiBold
-    ),
-    /**Headline4 */
+
+    /// [Headline 2]
+    /// Image: Headline 2 (18px / 130% / -1.00% / SemiBold)
     headlineMedium: TextStyle(
       fontFamily: "IBMPlexSansKR",
-      fontSize: 16,
-      height: 26 / 16,
-      fontWeight: FontWeight.w600, // SemiBold
+      fontSize: 18,
+      height: 1.3, // 130%
+      letterSpacing: -0.18, // 18 * -0.01
+      fontWeight: FontWeight.w600,
     ),
-    /**Body1 */
+
+    /// [Subtitle 1]
+    /// Image: Subtitle 1 (16px / 140% / -1.00% / Medium)
     titleMedium: TextStyle(
       fontFamily: "IBMPlexSansKR",
       fontSize: 16,
-      height: 24 / 16,
-      fontWeight: FontWeight.w400, // Regular
+      height: 1.4, // 140%
+      letterSpacing: -0.16, // 16 * -0.01
+      fontWeight: FontWeight.w500,
     ),
-    /**Body2 */
+
+    /// [Subtitle 2]
+    /// Image: Subtitle 2 (14px / 140% / -1.00% / Medium)
     titleSmall: TextStyle(
       fontFamily: "IBMPlexSansKR",
       fontSize: 14,
-      height: 26 / 14,
-      fontWeight: FontWeight.w400, // Regular
+      height: 1.4, // 140%
+      letterSpacing: -0.14, // 14 * -0.01
+      fontWeight: FontWeight.w500,
     ),
-    /**Body3 */
-    headlineSmall: TextStyle(
-      fontFamily: "IBMPlexSansKR",
-      fontSize: 12,
-      height: 16 / 12,
-      fontWeight: FontWeight.w400, // Regular
-    ),
-    /**Normal */
+
+    /// [Body 1] & [Placeholder]
+    /// Image: Body 1 (14px / 180% / -1.00% / Regular)
+    /// Image: Placeholder (Same specs)
     bodyLarge: TextStyle(
       fontFamily: "IBMPlexSansKR",
-      fontSize: 12,
-      height: 16 / 12,
-      fontWeight: FontWeight.w500, // Medium
+      fontSize: 14,
+      height: 1.8, // 180%
+      letterSpacing: -0.14, // 14 * -0.01
+      fontWeight: FontWeight.w400,
     ),
-    /**Medium */
+
+    /// [Body 2]
+    /// Image: Body 2 (12px / 160% / -1.00% / Regular)
     bodyMedium: TextStyle(
       fontFamily: "IBMPlexSansKR",
-      fontSize: 18,
-      height: 24 / 18,
-      fontWeight: FontWeight.w500, // Medium
+      fontSize: 12,
+      height: 1.6, // 160%
+      letterSpacing: -0.12, // 12 * -0.01
+      fontWeight: FontWeight.w400,
     ),
-    /**Small */
+
+    /// [Body 3]
+    /// Image: Body 3 (12px / 130% / -1.00% / SemiBold)
     bodySmall: TextStyle(
       fontFamily: "IBMPlexSansKR",
-      fontSize: 14,
-      height: 16 / 14,
-      fontWeight: FontWeight.w500, // Medium
+      fontSize: 12,
+      height: 1.3, // 130%
+      letterSpacing: -0.12, // 12 * -0.01
+      fontWeight: FontWeight.w600,
     ),
-    /**Small2 */
+
+    /// [Button 1]
+    /// Image: Button 1 (16px / 120% / -1.00% / Medium)
     labelLarge: TextStyle(
       fontFamily: "IBMPlexSansKR",
-      fontSize: 11,
-      height: 19 / 11,
-      fontWeight: FontWeight.w600, // SemiBold
+      fontSize: 16,
+      height: 1.2, // 120%
+      letterSpacing: -0.16, // 16 * -0.01
+      fontWeight: FontWeight.w500,
     ),
-    /**Text1 */
+
+    /// [Button 2]
+    /// Image: Button 2 (12px / 130% / -1.00% / Medium)
     labelMedium: TextStyle(
       fontFamily: "IBMPlexSansKR",
-      fontSize: 16,
-      height: 24 / 16,
-      fontWeight: FontWeight.w400, // Regular
+      fontSize: 12,
+      height: 1.3, // 130%
+      letterSpacing: -0.12, // 12 * -0.01
+      fontWeight: FontWeight.w500,
     ),
-    /**Text2 */
+
+    /// [Caption/Subtext]
+    /// Image: Caption 2 (12px / 140% / -1.00% / Regular)
+    /// Caption 1(14px/140%)은 titleSmall과 유사하고, Caption 2를 labelSmall에 배정
     labelSmall: TextStyle(
       fontFamily: "IBMPlexSansKR",
-      fontSize: 11,
-      height: 24 / 11,
-      fontWeight: FontWeight.w400, // Regular
-    ),
-    /**Mobile & Field */
-    headlineLarge: TextStyle(
-      fontFamily: "IBMPlexSansKR",
-      fontSize: 16,
-      height: 24 / 16,
-      fontWeight: FontWeight.w600, // SemiBold
+      fontSize: 12,
+      height: 1.4, // 140%
+      letterSpacing: -0.12, // 12 * -0.01
+      fontWeight: FontWeight.w400,
     ),
   );
 }

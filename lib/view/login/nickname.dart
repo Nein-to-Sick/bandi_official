@@ -94,7 +94,7 @@ class _NicknameSettingStatefulState extends State<NicknameSettingStateful> {
             children: [
               Text(
                 "onboarding_nickname_title".tr(context),
-                style: BandiFont.displayMedium(context)
+                style: BandiFont.headlineLarge(context)
                     ?.copyWith(color: BandiColor.foundationColor80(context)),
               ),
               const SizedBox(height: 6),
