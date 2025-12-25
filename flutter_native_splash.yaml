@@ -3,14 +3,14 @@ flutter_native_splash:
   color: "#000000"
 
   # Default image for Android 13 and below
-  image_android: assets/images/splash/img.png
+  image_android: assets/images/splash/splash_kr_2.png
 
   # iOS-specific splash image
-  image_ios: assets/images/splash/img.png
+  image_ios: assets/images/splash/splash_kr_2.png
 
   android_12:
     # Splash image for Android 12 only
-    image: assets/images/splash/img.png
+    image: assets/images/splash/splash_kr_2.png
     icon_background_color: "#000000"
     background_image: assets/images/splash/splash_background.png
 

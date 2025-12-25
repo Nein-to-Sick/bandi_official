@@ -52,60 +52,72 @@ class _NicknameStatefulState extends State<_NicknameStateful> {
     final userInfo = context.read<UserInfoValueModel>();
     final repo = context.read<UserProfileRepository>();
 
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+
     return PopScope(
       canPop: false,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: BandiColor.neutralColor80(context),
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                "onboarding_nickname_title".tr(context),
-                style: BandiFont.headlineMedium(context)
-                    ?.copyWith(color: BandiColor.foundationColor100(context)),
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: AnimatedPadding(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOut,
+          padding: EdgeInsets.only(bottom: bottomInset),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: BandiColor.neutralColor80(context),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(24),
+                topRight: Radius.circular(24),
               ),
-              const SizedBox(height: 6),
-              Text(
-                "onboarding_nickname_subtitle".tr(context),
-                style: BandiFont.titleSmall(context)
-                    ?.copyWith(color: BandiColor.foundationColor40(context)),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(height: 8,),
+                  Text(
+                    "onboarding_nickname_title".tr(context),
+                    style: BandiFont.headlineMedium(context)
+                        ?.copyWith(color: BandiColor.foundationColor90(context)),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "onboarding_nickname_subtitle".tr(context),
+                    style: BandiFont.labelSmall(context)
+                        ?.copyWith(color: BandiColor.foundationColor40(context)),
+                  ),
+                  const SizedBox(height: 40),
+                  CustomField(
+                    initialValue: nickname,
+                    onChanged: (value) => setState(() => nickname = value),
+                    isPassword: false,
+                    isEnabled: true,
+                  ),
+                  const SizedBox(height: 17),
+                  CustomPrimaryButton(
+                    title: 'onboarding_nickname_button'.tr(context),
+                    disableButton: nickname.trim().isEmpty,
+                    onPrimaryButtonPressed: () async {
+                      final nick = nickname.trim();
+                      if (nick.isEmpty) return;
+
+                      final uid = userInfo.userId;
+                      if (uid.isEmpty) return;
+
+                      await repo.updateNickname(userId: uid, nickname: nick);
+                      userInfo.updateNickname(nick);
+
+                      if (!mounted) return;
+
+                      // ✅ bool이 아니라 닉네임을 반환
+                      Navigator.pop(context, nick);
+                    },
+                  ),
+                ],
               ),
-              const SizedBox(height: 32),
-              CustomField(
-                initialValue: nickname,
-                onChanged: (value) => setState(() => nickname = value),
-                isPassword: false,
-                isEnabled: true,
-              ),
-              const SizedBox(height: 17),
-              CustomPrimaryButton(
-                title: 'onboarding_nickname_button'.tr(context),
-                disableButton: nickname.trim().isEmpty,
-                onPrimaryButtonPressed: () async {
-                  final nick = nickname.trim();
-                  if (nick.isEmpty) return;
-
-                  final uid = userInfo.userId;
-                  if (uid.isEmpty) return;
-
-                  await repo.updateNickname(userId: uid, nickname: nick);
-                  userInfo.updateNickname(nick);
-
-                  if (!mounted) return;
-
-                  // ✅ bool이 아니라 닉네임을 반환
-                  Navigator.pop(context, nick);
-                },
-              ),
-            ],
+            ),
           ),
         ),
       ),

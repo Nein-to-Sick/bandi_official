@@ -25,7 +25,7 @@ import '../components/no_reuse/firefly.dart';
 import '../components/no_reuse/navigation_bar.dart';
 import '../controller/home_to_write.dart';
 import '../controller/navigation_toggle_provider.dart';
-import 'login/OnboardingGate.dart';
+import 'login/onboarding_gate.dart';
 import 'login/controller/login_controller.dart';
 
 late AssetsAudioPlayer assetsAudioPlayer = AssetsAudioPlayer.newPlayer();
