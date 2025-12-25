@@ -9,7 +9,10 @@ import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/controller/permission_controller.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/theme/custom_theme_mode.dart';
-import 'package:bandi_official/view/login/auth_service.dart';
+import 'package:bandi_official/view/login/controller/login_controller.dart';
+import 'package:bandi_official/view/login/data/agreement_repository.dart';
+import 'package:bandi_official/view/login/data/auth_service.dart';
+import 'package:bandi_official/view/login/data/user_profile_repository.dart';
 import 'package:bandi_official/view/navigation.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
@@ -74,9 +77,30 @@ class MainApp extends StatelessWidget {
       builder: (context, mode, child) {
         return MultiProvider(
           providers: [
-            ChangeNotifierProvider(
-              create: (context) => NavigationToggleProvider(),
+            ChangeNotifierProvider(create: (_) => SecureStorageProvider()),
+            ChangeNotifierProvider(create: (_) => UserInfoValueModel()),
+            ChangeNotifierProvider(create: (_) => NavigationToggleProvider()),
+
+            Provider(create: (_) => UserProfileRepository()),
+            Provider(create: (_) => AgreementRepository()),
+
+            Provider<AuthService>(
+              create: (ctx) => AuthService(
+                storage: ctx.read<SecureStorageProvider>(),
+                userInfo: ctx.read<UserInfoValueModel>(),
+                userProfileRepository: ctx.read<UserProfileRepository>(),
+              ),
             ),
+
+            ChangeNotifierProvider<LoginController>(
+              create: (ctx) => LoginController(
+                authService: ctx.read<AuthService>(),
+                storage: ctx.read<SecureStorageProvider>(),
+                nav: ctx.read<NavigationToggleProvider>(),
+                userInfo: ctx.read<UserInfoValueModel>(),
+              ),
+            ),
+
             ChangeNotifierProvider(
               create: (context) => DiaryAIAnalysisController(),
             ),
@@ -85,9 +109,6 @@ class MainApp extends StatelessWidget {
             ),
             ChangeNotifierProvider(
               create: (context) => HomeToWrite(),
-            ),
-            ChangeNotifierProvider(
-              create: (context) => UserInfoValueModel(),
             ),
             ChangeNotifierProvider(
               create: (context) => MailController(),
@@ -99,16 +120,10 @@ class MainApp extends StatelessWidget {
               create: (context) => PermissionController(),
             ),
             ChangeNotifierProvider(
-              create: (context) => SecureStorageProvider(),
-            ),
-            ChangeNotifierProvider(
               create: (context) => DateProvider(),
             ),
             ChangeNotifierProvider(
               create: (context) => InternetConnectionController(),
-            ),
-            ChangeNotifierProvider(
-              create: (context) => AuthService(),
             ),
           ],
           child: MaterialApp(
