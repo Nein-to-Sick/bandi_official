@@ -72,7 +72,7 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       backgroundColor: BandiColor.transparent(context),
-      body: const HomeTopBar(),
+      body: Container(),
     );
   }
 }
