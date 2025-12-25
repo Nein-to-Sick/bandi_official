@@ -18,6 +18,7 @@ import 'package:bandi_official/theme/custom_theme_data.dart';
 import '../../components/no_reuse/firefly.dart';
 import '../../controller/home_to_write.dart';
 import '../../controller/navigation_toggle_provider.dart';
+import '../login/controller/login_controller.dart';
 import 'app_router.dart';
 import 'components/frosted_nav_bar.dart';
 import 'controller/bgm_controller.dart';
@@ -33,14 +34,23 @@ class _NavigationViewState extends State<NavigationView> {
   Future<bool>? _networkFuture;
   String? _lastLangCode;
 
+  bool _loginInitDone = false;
+
   @override
   void initState() {
     super.initState();
 
-    // ✅ BGM 컨트롤러 init (1회)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+
+      // ✅ BGM init (1회)
       context.read<BgmController>().init();
+
+      // ✅ 자동 로그인 init (1회)
+      if (!_loginInitDone) {
+        _loginInitDone = true;
+        context.read<LoginController>().init();
+      }
 
       final internet = context.read<InternetConnectionController>();
       setState(() {

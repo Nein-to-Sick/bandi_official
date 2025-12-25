@@ -82,8 +82,6 @@ class LoginController extends ChangeNotifier {
     if (_initialized) return;
     _initialized = true;
 
-    log("init called. navIndex=${nav.getIndex()}");
-
     if (nav.getIndex() != -1) return;
 
     await storage.loadLoginInfo();
