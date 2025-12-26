@@ -25,6 +25,8 @@ import '../components/no_reuse/firefly.dart';
 import '../components/no_reuse/navigation_bar.dart';
 import '../controller/home_to_write.dart';
 import '../controller/navigation_toggle_provider.dart';
+import 'login/onboarding_gate.dart';
+import 'login/controller/login_controller.dart';
 
 late AssetsAudioPlayer assetsAudioPlayer = AssetsAudioPlayer.newPlayer();
 bool speakerOn = true; // Default to true
@@ -37,6 +39,7 @@ class Navigation extends StatefulWidget {
 }
 
 class _NavigationState extends State<Navigation> with WidgetsBindingObserver {
+
   @override
   void initState() {
     super.initState();
@@ -140,7 +143,7 @@ class _NavigationState extends State<Navigation> with WidgetsBindingObserver {
               image: DecorationImage(
                 fit: BoxFit.cover,
                 image: AssetImage(
-                    'assets/images/backgrounds/background.png'), // 배경 이미지
+                    'assets/images/backgrounds/background_dark.png'), // 배경 이미지
               ),
             ),
             child:
@@ -169,7 +172,7 @@ class _NavigationState extends State<Navigation> with WidgetsBindingObserver {
                                   )
                                 : (navigationToggleProvider.selectedIndex == -3)
                                     // 회원 가입 시의 빈 배경
-                                    ? const SizedBox.shrink()
+                                    ? const OnboardingGate()
                                     : (navigationToggleProvider.selectedIndex <=
                                                 -1 &&
                                             navigationToggleProvider

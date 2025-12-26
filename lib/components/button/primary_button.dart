@@ -50,23 +50,23 @@ class _CustomPrimaryButtonState extends State<CustomPrimaryButton> {
             },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 100),
-        width: 327,
+        width: MediaQuery.of(context).size.width,
         height: 46,
         decoration: BoxDecoration(
           color: (widget.disableButton)
-              ? BandiColor.foundationColor20(context) // Disabled
+              ? BandiColor.foundationColor40(context) // Disabled
               : (isPressed)
-                  ? BandiColor.foundationColor100(context) // Pressed
-                  : BandiColor.foundationColor80(context), // Default
-          borderRadius: BandiEffects.radius(),
+                  ? BandiColor.foundationColor40(context) // Pressed
+                  : BandiColor.foundationColor90(context), // Default
+          borderRadius: BorderRadius.circular(100),
         ),
         child: Center(
           child: Text(
             widget.title,
-            style: BandiFont.bodyMedium(context)?.copyWith(
+            style: BandiFont.labelLarge(context)?.copyWith(
               color: (widget.disableButton)
                   ? BandiColor.neutralColor20(context) // Disabled
-                  : BandiColor.neutralColor100(context), // Default
+                  : BandiColor.neutralColor90(context), // Default
             ),
           ),
         ),

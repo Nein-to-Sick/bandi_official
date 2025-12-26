@@ -4,6 +4,7 @@ class UserInfoValueModel with ChangeNotifier {
   String userId = '';
   String userEmail = '';
   String nickname = '';
+  bool isAgreed = false;
 
   void updateUserID(String value) {
     userId = value;
@@ -20,14 +21,18 @@ class UserInfoValueModel with ChangeNotifier {
     notifyListeners();
   }
 
+  void updateIsAgreed(bool value) {
+    isAgreed = value;
+    notifyListeners();
+  }
+
   void clearUserInfo() {
     userId = '';
     userEmail = '';
     nickname = '';
+    isAgreed = false;
     notifyListeners();
   }
 
-  String getNickName() {
-    return (nickname);
-  }
+  String getNickName() => nickname;
 }
