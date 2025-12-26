@@ -1,5 +1,5 @@
-import 'package:bandi_official/controller/alarm_controller.dart';
-import 'package:bandi_official/controller/mail_controller.dart';
+import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
+import 'package:bandi_official/view/mail/controller/mail_controller.dart';
 import 'package:bandi_official/controller/permission_controller.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/mail/new_letter_popup.dart';

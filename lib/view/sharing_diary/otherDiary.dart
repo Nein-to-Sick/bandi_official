@@ -2,9 +2,9 @@ import 'dart:developer';
 import 'dart:ui';
 
 import 'package:bandi_official/components/dialogue/reset_dialogue.dart';
-import 'package:bandi_official/controller/alarm_controller.dart';
+import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
 import 'package:bandi_official/controller/home_to_write.dart';
-import 'package:bandi_official/controller/mail_controller.dart';
+import 'package:bandi_official/view/mail/controller/mail_controller.dart';
 import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';

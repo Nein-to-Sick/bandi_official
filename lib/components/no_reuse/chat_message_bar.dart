@@ -1,7 +1,7 @@
 import 'dart:ui';
 
 import 'package:bandi_official/components/dialogue/dialogue.dart';
-import 'package:bandi_official/controller/diary_ai_chat_controller.dart';
+import 'package:bandi_official/view/diary_ai_chat/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/controller/emotion_provider.dart';
 import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';

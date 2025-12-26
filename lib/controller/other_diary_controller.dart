@@ -1,8 +1,8 @@
 import 'dart:developer';
 
-import 'package:bandi_official/controller/alarm_controller.dart';
+import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
 import 'package:bandi_official/controller/home_to_write.dart';
-import 'package:bandi_official/controller/mail_controller.dart';
+import 'package:bandi_official/view/mail/controller/mail_controller.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../analytics/log_other_diary_reacted.dart';
@@ -43,7 +43,12 @@ class OtherDiaryController {
         return;
       }
 
-      await logOtherDiaryReacted(kind: reactionValue == 0 ? "응원해요" : reactionValue == 1 ? "공감해요" : "함께해요");
+      await logOtherDiaryReacted(
+          kind: reactionValue == 0
+              ? "응원해요"
+              : reactionValue == 1
+                  ? "공감해요"
+                  : "함께해요");
 
       final diaryModel = writeProvider.otherDiaryModel;
       final diaryId = diaryModel.diaryId;
@@ -53,9 +58,8 @@ class OtherDiaryController {
       mailController.saveLikedDiaryToLocal(diaryModel, reactionValue);
 
       // 4) Firestore에 반응 업데이트
-      final diaryRef = FirebaseFirestore.instance
-          .collection('allDiary')
-          .doc(diaryId);
+      final diaryRef =
+          FirebaseFirestore.instance.collection('allDiary').doc(diaryId);
       final docSnapshot = await diaryRef.get();
 
       if (docSnapshot.exists) {
@@ -101,12 +105,12 @@ class OtherDiaryController {
 }
 
 Future<void> saveReactionInDB(
-    String diaryId,
-    List currReaction,
-    bool reaction1,
-    bool reaction2,
-    bool reaction3,
-    ) async {
+  String diaryId,
+  List currReaction,
+  bool reaction1,
+  bool reaction2,
+  bool reaction3,
+) async {
   try {
     if (currReaction.length != 3) {
       log("currReaction does not have 3 elements: $currReaction");
@@ -136,7 +140,7 @@ Future<void> saveReactionInDB(
 
     log(
       "Reaction updated in Firestore: "
-          "[$newReaction1, $newReaction2, $newReaction3]",
+      "[$newReaction1, $newReaction2, $newReaction3]",
     );
   } catch (e, stack) {
     log("Error in saveReactionInDB: $e\n$stack");

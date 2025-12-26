@@ -2,7 +2,7 @@ import 'package:bandi_official/components/appbar/appbar.dart';
 import 'package:bandi_official/components/dialogue/dialogue.dart';
 import 'package:bandi_official/components/no_reuse/chat_message_bar.dart';
 import 'package:bandi_official/components/dialogue/reset_dialogue.dart';
-import 'package:bandi_official/controller/diary_ai_chat_controller.dart';
+import 'package:bandi_official/view/diary_ai_chat/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/model/diary_ai_chat.dart';
 import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
