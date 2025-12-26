@@ -1,5 +1,6 @@
 import 'dart:ui'; // Blur 처리를 위해 필요
 import 'package:bandi_official/components/appbar/appbar.dart';
+import 'package:bandi_official/components/appbar/custom_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/rendering.dart';
@@ -107,14 +108,12 @@ class _DiaryAIChatStatefulState extends State<_DiaryAIChatStateful> {
       child: Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: BandiColor.transparent(context),
-        appBar: CustomAppBar(
+        appBar: CustomAppBar2(
+          appBarType: AppBarType.twoButtonFoundation,
           title: 'ai_chat_title'.tr(context),
-          trailingIcon:
-              PhosphorIcons.arrowCounterClockwise(PhosphorIconsStyle.regular),
-          onLeadingIconPressed: () {
-            diaryAiChatController.toggleChatOpen(false);
-          },
-          onTrailingIconPressed: () {
+          leftActionButtonIcon: PhosphorIcons.signOut(PhosphorIconsStyle.thin),
+          rightActionButtonIcon: PhosphorIcons.x(PhosphorIconsStyle.thin),
+          onLeftActionButtonPressed: () {
             showDialog<bool>(
               context: context,
               barrierDismissible: false,
@@ -134,8 +133,11 @@ class _DiaryAIChatStatefulState extends State<_DiaryAIChatStateful> {
               },
             );
           },
-          disableLeadingButton: diaryAiChatController.isChatResponsLoading,
-          disableTrailingButton: diaryAiChatController.isChatResponsLoading,
+          onRightActionButtonPressed: () {
+            Navigator.pop(context);
+          },
+          disableLefttActionButton: diaryAiChatController.isChatResponsLoading,
+          disableRightActionButton: diaryAiChatController.isChatResponsLoading,
         ),
         body: GestureDetector(
           onTap: () {
