@@ -9,11 +9,12 @@ import 'package:bandi_official/controller/mail_controller.dart';
 import 'package:bandi_official/controller/permission_controller.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/theme/custom_theme_mode.dart';
+import 'package:bandi_official/view/home/controller/bgm_controller.dart';
 import 'package:bandi_official/view/login/controller/login_controller.dart';
 import 'package:bandi_official/view/login/data/agreement_repository.dart';
 import 'package:bandi_official/view/login/data/auth_service.dart';
 import 'package:bandi_official/view/login/data/user_profile_repository.dart';
-import 'package:bandi_official/view/navigation.dart';
+import 'package:bandi_official/view/navigation/navigation_view.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_app_badge_control/flutter_app_badge_control.dart';
@@ -77,6 +78,7 @@ class MainApp extends StatelessWidget {
       builder: (context, mode, child) {
         return MultiProvider(
           providers: [
+            ChangeNotifierProvider(create: (_) => BgmController()),
             ChangeNotifierProvider(create: (_) => SecureStorageProvider()),
             ChangeNotifierProvider(create: (_) => UserInfoValueModel()),
             ChangeNotifierProvider(create: (_) => NavigationToggleProvider()),
@@ -151,7 +153,7 @@ class MainApp extends StatelessWidget {
               }
               return supportedLocales.first;
             },
-            home: const Navigation(),
+            home: const NavigationView(),
           ),
           // AuthWrapper(),
         );

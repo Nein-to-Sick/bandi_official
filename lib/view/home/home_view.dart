@@ -5,7 +5,7 @@ import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/mail/new_letter_popup.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../components/no_reuse/home_top_bar.dart';
+import 'home_root_layer.dart';
 import 'dart:developer' as dev;
 
 class HomePage extends StatefulWidget {
@@ -72,7 +72,7 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       backgroundColor: BandiColor.transparent(context),
-      body: const HomeTopBar(),
+      body: const HomeRootLayer(),
     );
   }
 }
