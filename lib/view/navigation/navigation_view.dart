@@ -18,10 +18,10 @@ import 'package:bandi_official/theme/custom_theme_data.dart';
 import '../../components/no_reuse/firefly.dart';
 import '../../controller/home_to_write.dart';
 import '../../controller/navigation_toggle_provider.dart';
+import '../home/controller/bgm_controller.dart';
 import '../login/controller/login_controller.dart';
 import 'app_router.dart';
 import 'components/frosted_nav_bar.dart';
-import 'controller/bgm_controller.dart';
 
 class NavigationView extends StatefulWidget {
   const NavigationView({super.key});
@@ -154,7 +154,7 @@ class _NavigationViewState extends State<NavigationView> {
                     Positioned(
                       left: 0,
                       right: 0,
-                      bottom: MediaQuery.of(context).padding.bottom + 12,
+                      bottom: MediaQuery.of(context).padding.bottom,
                       child: FrostedNavBar(
                         width: 327,
                         selectedIndex: nav.selectedIndex,
