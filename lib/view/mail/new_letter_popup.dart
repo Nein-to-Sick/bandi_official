@@ -51,8 +51,8 @@ class NewLetterPopuView extends StatelessWidget {
           ),
           BackdropFilter(
             filter: ImageFilter.blur(
-              sigmaX: BandiEffects.backgroundBlur(),
-              sigmaY: BandiEffects.backgroundBlur(),
+              sigmaX: BandiEffects.blurSmall,
+              sigmaY: BandiEffects.blurSmall,
             ),
             child: Container(
               color: BandiColor.transparent(context),

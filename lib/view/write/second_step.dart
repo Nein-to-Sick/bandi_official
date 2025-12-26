@@ -174,8 +174,9 @@ class SecondStep extends StatelessWidget {
 Widget containerBox(context, String text) {
   return Container(
     decoration: BoxDecoration(
-        color: BandiColor.neutralColor20(context),
-        borderRadius: BandiEffects.radius()),
+      color: BandiColor.neutralColor20(context),
+      borderRadius: BandiEffects.radiusSmall,
+    ),
     child: Padding(
       padding: const EdgeInsets.symmetric(vertical: 2.5, horizontal: 12),
       child: Text(

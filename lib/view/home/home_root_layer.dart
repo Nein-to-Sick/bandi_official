@@ -1,3 +1,4 @@
+import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
 import 'package:bandi_official/view/diary_ai_chat/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/controller/home_to_write.dart';
@@ -32,7 +33,7 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
     final bgm = context.watch<BgmController>();
 
     final isHomeVisible = !writeProvider.write &&
-        !diaryAiChatController.isChatOpen &&
+        //!diaryAiChatController.isChatOpen &&
         !mailController.isDetailViewShowing &&
         !alarmController.isAlarmOpen;
 
@@ -47,6 +48,7 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
               : const SizedBox.shrink(),
         ),
 
+        /*
         // AI Chat 화면
         AnimatedOpacity(
           opacity: diaryAiChatController.isChatOpen ? 1.0 : 0.0,
@@ -55,6 +57,7 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
               ? const DiaryAIChatPage()
               : const SizedBox.shrink(),
         ),
+        */
 
         // (메일 디테일 뷰는 기존 로직 유지. 실제 화면 있으면 여기 연결)
         AnimatedOpacity(
@@ -109,11 +112,17 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
                       children: [
                         Expanded(
                           child: HomeActionCardButton(
-                            icon: PhosphorIcons.chat(PhosphorIconsStyle.light),
-                            label: "반디와 대화하기",
-                            onTap: () =>
-                                diaryAiChatController.toggleChatOpen(true),
-                          ),
+                              icon:
+                                  PhosphorIcons.chat(PhosphorIconsStyle.light),
+                              label: "ai_chat_title".tr(context),
+                              onTap: () async {
+                                diaryAiChatController.toggleChatOpen(true);
+                                DiaryAIChatSheet().show(context).then((_) {
+                                  if (context.mounted) {
+                                    diaryAiChatController.toggleChatOpen(false);
+                                  }
+                                });
+                              }),
                         ),
                         const SizedBox(width: 16),
                         Expanded(

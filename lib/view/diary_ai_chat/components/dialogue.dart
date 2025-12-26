@@ -39,8 +39,9 @@ class _CustomDialogueState extends State<CustomDialogue> {
         boxColor = BandiColor.neutralColor20(context);
         textColor = BandiColor.neutralColor100(context);
         boxBlur = ImageFilter.blur(
-            sigmaX: BandiEffects.backgroundBlur(),
-            sigmaY: BandiEffects.backgroundBlur());
+          sigmaX: BandiEffects.blurSmall,
+          sigmaY: BandiEffects.blurSmall,
+        );
         break;
       case Messenger.special:
         boxColor = BandiColor.neutralColor90(context);
@@ -70,7 +71,7 @@ class _CustomDialogueState extends State<CustomDialogue> {
                     : 0),
             child: IntrinsicWidth(
               child: ClipRRect(
-                borderRadius: BandiEffects.radius(),
+                borderRadius: BandiEffects.radiusSmall,
                 child: BackdropFilter(
                   filter: boxBlur,
                   child: Container(

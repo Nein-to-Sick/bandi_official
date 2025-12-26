@@ -66,7 +66,7 @@ class _CustomResetDialogueState extends State<CustomResetDialogue> {
   Widget build(BuildContext context) {
     return AlertDialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BandiEffects.radius(),
+        borderRadius: BandiEffects.radiusSmall,
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 27),
       backgroundColor: BandiColor.neutralColor100(context),
@@ -92,7 +92,7 @@ class _CustomResetDialogueState extends State<CustomResetDialogue> {
                 widget.onNoText,
                 BoxDecoration(
                   color: BandiColor.foundationColor10(context),
-                  borderRadius: BandiEffects.radius(),
+                  borderRadius: BandiEffects.radiusSmall,
                 ),
                 BandiFont.labelLarge(context)!.copyWith(
                   color: BandiColor.foundationColor100(
@@ -111,7 +111,7 @@ class _CustomResetDialogueState extends State<CustomResetDialogue> {
                 widget.onYesText,
                 BoxDecoration(
                   color: BandiColor.foundationColor80(context),
-                  borderRadius: BandiEffects.radius(),
+                  borderRadius: BandiEffects.radiusSmall,
                 ),
                 BandiFont.labelLarge(context)!.copyWith(
                   color: BandiColor.neutralColor100(

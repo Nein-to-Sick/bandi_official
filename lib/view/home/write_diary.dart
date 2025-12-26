@@ -16,17 +16,19 @@ class WriteDiary extends StatelessWidget {
 
     return BackdropFilter(
       filter: ImageFilter.blur(
-          sigmaX: BandiEffects.backgroundBlur(),
-          sigmaY: BandiEffects.backgroundBlur()),
+        sigmaX: BandiEffects.blurSmall,
+        sigmaY: BandiEffects.blurSmall,
+      ),
       child: Container(
         color: BandiColor.neutralColor10(context),
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.only(top: 32, left: 24, right: 24),
             child: writeProvider.step == 1
-                ? const FirstStep() :
-            writeProvider.step == 2 ?
-                const SecondStep() : const ThirdStep(),
+                ? const FirstStep()
+                : writeProvider.step == 2
+                    ? const SecondStep()
+                    : const ThirdStep(),
           ),
         ),
       ),

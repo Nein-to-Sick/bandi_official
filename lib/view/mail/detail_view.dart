@@ -53,8 +53,9 @@ class DetailView extends StatelessWidget {
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                      color: BandiColor.neutralColor100(context),
-                      borderRadius: BandiEffects.radius()),
+                    color: BandiColor.neutralColor100(context),
+                    borderRadius: BandiEffects.radiusSmall,
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 24.0, vertical: 32),

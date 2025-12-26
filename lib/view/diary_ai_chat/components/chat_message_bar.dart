@@ -1,8 +1,7 @@
 import 'dart:ui';
 
-import 'package:bandi_official/components/dialogue/dialogue.dart';
+import 'package:bandi_official/view/diary_ai_chat/components/dialogue.dart';
 import 'package:bandi_official/view/diary_ai_chat/controller/diary_ai_chat_controller.dart';
-import 'package:bandi_official/controller/emotion_provider.dart';
 import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:flutter/material.dart';
@@ -131,8 +130,8 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
         ClipRRect(
           child: BackdropFilter(
             filter: ImageFilter.blur(
-              sigmaX: BandiEffects.backgroundBlur(),
-              sigmaY: BandiEffects.backgroundBlur(),
+              sigmaX: BandiEffects.blurSmall,
+              sigmaY: BandiEffects.blurSmall,
             ),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 100),
@@ -233,7 +232,7 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                                       context) // Pressed
                                   : BandiColor.neutralColor20(
                                       context), // Default
-                          borderRadius: BandiEffects.radius(),
+                          borderRadius: BandiEffects.radiusSmall,
                         ),
                         child: Center(
                           child: PhosphorIcon(

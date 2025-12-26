@@ -87,7 +87,7 @@ class _UserViewState extends State<UserView> with WidgetsBindingObserver {
         ),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
-          borderRadius: BandiEffects.radius(),
+          borderRadius: BandiEffects.radiusSmall,
         ),
       ),
     );

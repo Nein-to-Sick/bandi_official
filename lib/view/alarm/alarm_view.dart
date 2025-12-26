@@ -50,8 +50,8 @@ class _AlarmViewState extends State<AlarmView> {
     final NavigationToggleProvider navigationToggleProvider =
         context.watch<NavigationToggleProvider>();
 
-    return WillPopScope(
-      onWillPop: () => Future(() => false),
+    return PopScope(
+      canPop: false,
       child: Scaffold(
         resizeToAvoidBottomInset: true,
         backgroundColor: BandiColor.neutralColor80(context),

@@ -58,7 +58,7 @@ class _CustomSecondaryButtonState extends State<CustomSecondaryButton> {
               : (isPressed)
                   ? BandiColor.neutralColor60(context) // Pressed
                   : BandiColor.neutralColor20(context), // Default
-          borderRadius: BandiEffects.radius(),
+          borderRadius: BandiEffects.radiusSmall,
         ),
         child: Center(
           child: Text(
