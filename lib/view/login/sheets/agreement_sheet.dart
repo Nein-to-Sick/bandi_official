@@ -113,11 +113,14 @@ class _AgreementStatefulState extends State<_AgreementStateful> {
                             });
                           },
                         ),
-                        Container(
-                          width: double.maxFinite,
-                          height: 1.5,
-                          decoration: BoxDecoration(
-                            color: BandiColor.foundationColor10(context),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10.0),
+                          child: Container(
+                            width: double.maxFinite,
+                            height: 1,
+                            decoration: BoxDecoration(
+                              color: BandiColor.foundationColor04(context),
+                            ),
                           ),
                         ),
                         _tile(
@@ -222,6 +225,9 @@ class _AgreementStatefulState extends State<_AgreementStateful> {
     required VoidCallback onTap,
   }) {
     return ListTile(
+      dense: true,
+      visualDensity: const VisualDensity(vertical: -3),
+      minVerticalPadding: 0,
       contentPadding: EdgeInsets.zero,
       title: Text(
         title,
@@ -255,6 +261,9 @@ class _AgreementStatefulState extends State<_AgreementStateful> {
     required VoidCallback onTapCheck,
   }) {
     return ListTile(
+      dense: true,
+      visualDensity: const VisualDensity(vertical: -3),
+      minVerticalPadding: 0,
       contentPadding: EdgeInsets.zero,
       title: GestureDetector(
         onTap: onOpenDetail,
