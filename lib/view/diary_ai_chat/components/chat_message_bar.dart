@@ -144,35 +144,46 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                   flex: 3,
                   child: IgnorePointer(
                     ignoring: diaryAiChatController.isChatResponsLoading,
-                    child: Container(
-                      height: 46,
-                      decoration: BoxDecoration(
-                        color: BandiColor.neutralColor60(context),
-                        borderRadius: BandiEffects.radiusLarge,
-                      ),
-                      child: TextField(
-                        onChanged: (text) {
-                          diaryAiChatController.updateTexfieldMessage();
-                        },
-                        controller: diaryAiChatController.chatTextController,
-                        focusNode: diaryAiChatController.chatFocusNode,
-                        keyboardType: TextInputType.multiline,
-                        maxLines: null,
-                        cursorColor: BandiColor.foundationColor90(context),
-                        cursorWidth: 1.5,
-                        cursorHeight: 18,
-                        style: BandiFont.bodyLarge(context)?.copyWith(
-                          color: BandiColor.foundationColor90(context),
+                    child: ClipRRect(
+                      borderRadius: BandiEffects.radiusLarge,
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(
+                          sigmaX: BandiEffects.blurLarge,
+                          sigmaY: BandiEffects.blurLarge,
                         ),
-                        decoration: InputDecoration(
-                          hintText: (diaryAiChatController.isChatResponsLoading)
-                              ? '  ${'ai_chat_textbar_message_1'.tr(context)}'
-                              : '  ${'ai_chat_textbar_message_2'.tr(context)}',
-                          hintStyle: BandiFont.bodyLarge(context)?.copyWith(
-                            color: BandiColor.foundationColor20(context),
+                        child: Container(
+                          height: 46,
+                          decoration: BoxDecoration(
+                            color: BandiColor.neutralColor40(context),
+                            borderRadius: BandiEffects.radiusLarge,
                           ),
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.only(left: 16),
+                          child: TextField(
+                            onChanged: (text) {
+                              diaryAiChatController.updateTexfieldMessage();
+                            },
+                            controller:
+                                diaryAiChatController.chatTextController,
+                            focusNode: diaryAiChatController.chatFocusNode,
+                            keyboardType: TextInputType.multiline,
+                            maxLines: null,
+                            cursorColor: BandiColor.foundationColor90(context),
+                            cursorWidth: 1.5,
+                            cursorHeight: 18,
+                            style: BandiFont.bodyLarge(context)?.copyWith(
+                              color: BandiColor.foundationColor90(context),
+                            ),
+                            decoration: InputDecoration(
+                              hintText: (diaryAiChatController
+                                      .isChatResponsLoading)
+                                  ? '  ${'ai_chat_textbar_message_1'.tr(context)}'
+                                  : '  ${'ai_chat_textbar_message_2'.tr(context)}',
+                              hintStyle: BandiFont.bodyLarge(context)?.copyWith(
+                                color: BandiColor.foundationColor20(context),
+                              ),
+                              border: InputBorder.none,
+                              contentPadding: const EdgeInsets.only(left: 16),
+                            ),
+                          ),
                         ),
                       ),
                     ),

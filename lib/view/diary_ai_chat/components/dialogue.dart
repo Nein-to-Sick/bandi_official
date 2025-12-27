@@ -105,7 +105,7 @@ class _CustomDialogueState extends State<CustomDialogue> {
                     minHeight: 49,
                     maxWidth: (isMessageTypeSysOrAssist)
                         ? double.infinity
-                        : MediaQuery.of(context).size.width * 0.66,
+                        : MediaQuery.of(context).size.width * 0.60,
                   ),
                   decoration: boxDeco,
                   child: Center(

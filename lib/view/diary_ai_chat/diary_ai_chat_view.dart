@@ -105,7 +105,7 @@ class _DiaryAIChatStatefulState extends State<_DiaryAIChatStateful> {
         ),
       ),
       child: Scaffold(
-        resizeToAvoidBottomInset: false,
+        resizeToAvoidBottomInset: true,
         backgroundColor: BandiColor.transparent(context),
         appBar: NewCustomAppBar(
           appBarType: AppBarType.twoButtonFoundation,
@@ -144,42 +144,45 @@ class _DiaryAIChatStatefulState extends State<_DiaryAIChatStateful> {
               diaryAiChatController.chatFocusNode.unfocus();
             }
           },
-          child: Column(
+          child: Stack(
             children: [
               // chat content
-              Expanded(
-                child: Align(
-                  alignment: Alignment.topCenter,
-                  child: ListView.builder(
-                    controller: diaryAiChatController.chatScrollController,
-                    shrinkWrap: true,
-                    reverse: true,
-                    itemCount: diaryAiChatController.chatlog.length,
-                    itemBuilder: (context, index) {
-                      final chatMsg = diaryAiChatController.chatlog[
-                          diaryAiChatController.chatlog.length - index - 1];
-
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 10, bottom: 10),
-                        child: IgnorePointer(
-                          ignoring: true,
-                          child: CustomDialogue(
-                            chatMessage: chatMsg,
-                            onDialoguePressed: () {},
+              Align(
+                alignment: Alignment.topCenter,
+                child: ListView.builder(
+                  controller: diaryAiChatController.chatScrollController,
+                  shrinkWrap: true,
+                  reverse: true,
+                  itemCount: diaryAiChatController.chatlog.length,
+                  itemBuilder: (context, index) {
+                    final chatMsg = diaryAiChatController.chatlog[
+                        diaryAiChatController.chatlog.length - index - 1];
+                    return Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 10, bottom: 10),
+                          child: IgnorePointer(
+                            ignoring: true,
+                            child: CustomDialogue(
+                              chatMessage: chatMsg,
+                              onDialoguePressed: () {},
+                            ),
                           ),
                         ),
-                      );
-                    },
-                  ),
+                        if (index == 0)
+                          SizedBox(
+                            height: MediaQuery.of(context).padding.bottom + 94,
+                          )
+                      ],
+                    );
+                  },
                 ),
               ),
 
               // chat bar
-              Padding(
-                padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).viewInsets.bottom,
-                ),
-                child: const ChatMessageBar(),
+              const Align(
+                alignment: Alignment.bottomCenter,
+                child: ChatMessageBar(),
               ),
             ],
           ),
