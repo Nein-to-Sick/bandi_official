@@ -154,9 +154,8 @@ class _NavigationViewState extends State<NavigationView> {
                     Positioned(
                       left: 0,
                       right: 0,
-                      bottom: MediaQuery.of(context).padding.bottom,
+                      bottom: 32,
                       child: FrostedNavBar(
-                        width: 327,
                         selectedIndex: nav.selectedIndex,
                         onTap: (i) => nav.selectIndex(i),
                         items: [

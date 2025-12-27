@@ -32,7 +32,7 @@ dependencies:
   phosphor_flutter: ^2.1.0
   intl: ^0.19.0
   shared_preferences: ^2.3.1
-  assets_audio_player: ^3.1.1
+  just_audio: ^0.9.46
   google_sign_in_ios: ^5.7.6
   http: ^1.2.2
   wrapped_korean_text: ^0.0.3

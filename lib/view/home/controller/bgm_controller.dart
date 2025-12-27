@@ -1,9 +1,9 @@
-import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:flutter/material.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class BgmController with WidgetsBindingObserver, ChangeNotifier {
-  final AssetsAudioPlayer _player = AssetsAudioPlayer.withId('bgm');
+  final AudioPlayer _player = AudioPlayer();
 
   bool speakerOn = true;
   bool _initialized = false;
@@ -21,12 +21,15 @@ class BgmController with WidgetsBindingObserver, ChangeNotifier {
       await _player.stop();
     } catch (_) {}
 
-    await _player.open(
-      Audio("assets/bgm/bgm.mp3"),
-      loopMode: LoopMode.single,
-      autoStart: speakerOn,
-      showNotification: false,
-    );
+    // asset 로드
+    await _player.setAsset('assets/bgm/bgm.mp3');
+
+    // 루프
+    await _player.setLoopMode(LoopMode.one);
+
+    if (speakerOn) {
+      await _player.play();
+    }
 
     notifyListeners();
   }
@@ -51,9 +54,7 @@ class BgmController with WidgetsBindingObserver, ChangeNotifier {
     if (!_initialized) return;
 
     if (state == AppLifecycleState.resumed) {
-      if (speakerOn) {
-        _player.play();
-      }
+      if (speakerOn) _player.play();
     } else {
       _player.pause();
     }
@@ -62,7 +63,6 @@ class BgmController with WidgetsBindingObserver, ChangeNotifier {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _player.stop();
     _player.dispose();
     super.dispose();
   }
