@@ -65,16 +65,14 @@ class NewCustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool disableLefttActionButton;
   final bool disableRightActionButton;
 
-  // 피그마의 전체 높이 64px 반영
   @override
-  Size get preferredSize => const Size.fromHeight(64.0);
+  Size get preferredSize => const Size.fromHeight(72.0);
 
   @override
   Widget build(BuildContext context) {
     final iconColor = appBarType.getIconColor(context);
 
     return Container(
-      height: 64,
       decoration: BoxDecoration(
         color: BandiColor.transparent(context),
         border: Border(
@@ -82,7 +80,7 @@ class NewCustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               color: BandiColor.foundationColor10(context), width: 1),
         ),
       ),
-      padding: const EdgeInsets.only(left: 24, right: 24, top: 16, bottom: 0),
+      padding: const EdgeInsets.only(left: 24, right: 24, top: 16, bottom: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
