@@ -185,6 +185,7 @@
   "ai_chat_textbar_message_2": "Begin your conversation",
   "ai_chat_date_form": "EEE, MMM d",
   "ai_chat_date_form_country": "en_US",
+  "ai_chat_today": "Today",
   "ai_chat_system_prompt": "Your name is Bandi. Respond in English like a friend using casual speech. Keep answers short and concise, within 3 sentences, and only make suggestions when practical help is requested.",
   "ai_chat_greeting": "Hi! What's on your mind?",
   "ai_chat_assistant_message_guide": "Start a conversation like this!",

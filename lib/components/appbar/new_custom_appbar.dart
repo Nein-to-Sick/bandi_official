@@ -43,8 +43,8 @@ extension AppBarTypeExtension on AppBarType {
   }
 }
 
-class CustomAppBar2 extends StatelessWidget implements PreferredSizeWidget {
-  const CustomAppBar2({
+class NewCustomAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const NewCustomAppBar({
     super.key,
     this.title,
     required this.appBarType,
@@ -79,7 +79,7 @@ class CustomAppBar2 extends StatelessWidget implements PreferredSizeWidget {
         color: BandiColor.transparent(context),
         border: Border(
           bottom: BorderSide(
-              color: BandiColor.foundationColor20(context), width: 1),
+              color: BandiColor.foundationColor10(context), width: 1),
         ),
       ),
       padding: const EdgeInsets.only(left: 24, right: 24, top: 16, bottom: 0),

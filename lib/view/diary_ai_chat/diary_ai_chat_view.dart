@@ -1,6 +1,5 @@
 import 'dart:ui'; // Blur 처리를 위해 필요
-import 'package:bandi_official/components/appbar/appbar.dart';
-import 'package:bandi_official/components/appbar/custom_appbar.dart';
+import 'package:bandi_official/components/appbar/new_custom_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/rendering.dart';
@@ -20,7 +19,7 @@ class DiaryAIChatSheet {
       // 드래그로 닫기 가능 여부
       enableDrag: true,
       barrierColor: BandiColor.transparent(context),
-      backgroundColor: BandiColor.neutralColor80(context),
+      backgroundColor: BandiColor.neutralColor60(context),
       builder: (_) {
         return BackdropFilter(
           filter: ImageFilter.blur(
@@ -108,7 +107,7 @@ class _DiaryAIChatStatefulState extends State<_DiaryAIChatStateful> {
       child: Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: BandiColor.transparent(context),
-        appBar: CustomAppBar2(
+        appBar: NewCustomAppBar(
           appBarType: AppBarType.twoButtonFoundation,
           title: 'ai_chat_title'.tr(context),
           leftActionButtonIcon: PhosphorIcons.signOut(PhosphorIconsStyle.thin),

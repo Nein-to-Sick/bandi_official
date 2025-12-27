@@ -2,8 +2,10 @@ import 'dart:ui';
 
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:bandi_official/model/diary_ai_chat.dart';
+import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class CustomDialogue extends StatefulWidget {
   const CustomDialogue(
@@ -16,36 +18,56 @@ class CustomDialogue extends StatefulWidget {
 }
 
 class _CustomDialogueState extends State<CustomDialogue> {
-  Color? boxColor;
-  Color? textColor;
-  ImageFilter boxBlur = ImageFilter.blur(sigmaX: 0, sigmaY: 0);
+  bool _isMessageToday(String message, BuildContext context) {
+    DateTime now = DateTime.now();
+    String todayFormatted = DateFormat(
+      'ai_chat_date_form'.tr(context),
+      'ai_chat_date_form_country'.tr(context),
+    ).format(now);
+
+    return message == todayFormatted;
+  }
 
   @override
   Widget build(BuildContext context) {
+    BoxDecoration? boxDeco;
+    Color? textColor;
+    EdgeInsets padding =
+        const EdgeInsets.symmetric(horizontal: 24, vertical: 12);
+
+    String textData = widget.chatMessage.message;
+    bool isMessageTypeSysOrAssist =
+        widget.chatMessage.messenger == Messenger.system ||
+            widget.chatMessage.messenger == Messenger.assistant;
+
     switch (widget.chatMessage.messenger) {
       case Messenger.user:
-        boxColor = BandiColor.foundationColor80(context);
+        boxDeco = BoxDecoration(color: BandiColor.foundationColor80(context));
         textColor = BandiColor.neutralColor100(context);
         break;
+      case Messenger.special:
       case Messenger.ai:
-        boxColor = BandiColor.neutralColor90(context);
+        boxDeco = BoxDecoration(color: BandiColor.neutralColor90(context));
         textColor = BandiColor.foundationColor100(context);
         break;
       case Messenger.system:
-        boxColor = BandiColor.foundationColor10(context);
-        textColor = BandiColor.neutralColor100(context);
+        bool isToday = _isMessageToday(widget.chatMessage.message, context);
+        textData = isToday ? 'ai_chat_today'.tr(context) : textData;
+        boxDeco = BoxDecoration(color: BandiColor.transparent(context));
+        textColor = BandiColor.foundationColor40(context);
+        padding = const EdgeInsets.symmetric(horizontal: 12);
         break;
       case Messenger.assistant:
-        boxColor = BandiColor.neutralColor20(context);
-        textColor = BandiColor.neutralColor100(context);
-        boxBlur = ImageFilter.blur(
-          sigmaX: BandiEffects.blurSmall,
-          sigmaY: BandiEffects.blurSmall,
+        boxDeco = BoxDecoration(
+          border: Border.all(
+            color: BandiColor.foundationColor10(context),
+            width: 1,
+          ),
+          borderRadius: BandiEffects.radiusSmall,
+          color: BandiColor.transparent(context),
         );
-        break;
-      case Messenger.special:
-        boxColor = BandiColor.neutralColor90(context);
-        textColor = BandiColor.foundationColor100(context);
+        textColor = BandiColor.foundationColor30(context);
+        padding = const EdgeInsets.symmetric(horizontal: 12);
         break;
     }
     return GestureDetector(
@@ -55,68 +77,74 @@ class _CustomDialogueState extends State<CustomDialogue> {
       child: Row(
         mainAxisAlignment: (widget.chatMessage.messenger == Messenger.user)
             ? MainAxisAlignment.end
-            : (widget.chatMessage.messenger == Messenger.ai ||
-                    widget.chatMessage.messenger == Messenger.special)
-                ? MainAxisAlignment.start
-                : (widget.chatMessage.messenger == Messenger.system)
-                    ? MainAxisAlignment.center
-                    : MainAxisAlignment.start,
+            : (widget.chatMessage.messenger == Messenger.system)
+                ? MainAxisAlignment.center
+                : MainAxisAlignment.start,
         children: [
+          if (widget.chatMessage.messenger == Messenger.system)
+            Flexible(
+              child: Padding(
+                padding: const EdgeInsets.only(left: 24),
+                child: Container(
+                  height: 1,
+                  color: BandiColor.foundationColor10(context),
+                ),
+              ),
+            )
+          else
+            const SizedBox.shrink(),
           Padding(
             padding: EdgeInsets.symmetric(
-                horizontal: (widget.chatMessage.messenger == Messenger.user ||
-                        widget.chatMessage.messenger == Messenger.ai ||
-                        widget.chatMessage.messenger == Messenger.special)
-                    ? 25
-                    : 0),
+                horizontal: (isMessageTypeSysOrAssist) ? 0 : 24),
             child: IntrinsicWidth(
               child: ClipRRect(
                 borderRadius: BandiEffects.radiusSmall,
-                child: BackdropFilter(
-                  filter: boxBlur,
-                  child: Container(
-                    constraints: BoxConstraints(
-                      minHeight: 32,
-                      maxWidth:
-                          (widget.chatMessage.messenger == Messenger.assistant)
-                              ? double.infinity
-                              : MediaQuery.of(context).size.width * 0.55,
-                    ),
-                    decoration: BoxDecoration(
-                      color: boxColor,
-                    ),
-                    child:
-                        // inner padding
-                        Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 10),
-                      child: Center(
-                        child: (widget.chatMessage.messenger ==
-                                Messenger.special)
-                            ? AnimatedTextKit(
-                                repeatForever: true,
-                                animatedTexts: [
-                                  TyperAnimatedText(
-                                    '. . . . .',
-                                    speed: const Duration(milliseconds: 150),
-                                  ),
-                                ],
-                              )
-                            : Text(
-                                widget.chatMessage.message,
-                                maxLines: 15,
-                                overflow: TextOverflow.ellipsis,
-                                textAlign: TextAlign.left,
-                                style: BandiFont.bodyMedium(context)
-                                    ?.copyWith(color: textColor),
+                child: Container(
+                  padding: padding,
+                  constraints: BoxConstraints(
+                    minHeight: 49,
+                    maxWidth: (isMessageTypeSysOrAssist)
+                        ? double.infinity
+                        : MediaQuery.of(context).size.width * 0.66,
+                  ),
+                  decoration: boxDeco,
+                  child: Center(
+                    child: (widget.chatMessage.messenger == Messenger.special)
+                        ? AnimatedTextKit(
+                            repeatForever: true,
+                            animatedTexts: [
+                              TyperAnimatedText(
+                                '. . . . .',
+                                speed: const Duration(milliseconds: 150),
                               ),
-                      ),
-                    ),
+                            ],
+                          )
+                        : Text(
+                            textData,
+                            maxLines: 15,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.left,
+                            style: BandiFont.bodyMedium(context)?.copyWith(
+                              color: textColor,
+                            ),
+                          ),
                   ),
                 ),
               ),
             ),
           ),
+          if (widget.chatMessage.messenger == Messenger.system)
+            Flexible(
+              child: Padding(
+                padding: const EdgeInsets.only(right: 24),
+                child: Container(
+                  height: 1,
+                  color: BandiColor.foundationColor10(context),
+                ),
+              ),
+            )
+          else
+            const SizedBox.shrink(),
         ],
       ),
     );
