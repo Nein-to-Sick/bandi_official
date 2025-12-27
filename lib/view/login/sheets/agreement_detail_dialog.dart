@@ -102,7 +102,7 @@ class _AgreementDetailDialog extends StatelessWidget {
                     Positioned(
                       left: 24,
                       right: 24,
-                      bottom: safeBottom,
+                      bottom: 32,
                       child: CustomPrimaryButton(
                         title: 'onboarding_button'.tr(context), // "닫기" 등
                         onPrimaryButtonPressed: () => Navigator.pop(context),
