@@ -11,7 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import 'dart:developer' as dev;
-
+/*
 class EveryMailPage extends StatefulWidget {
   const EveryMailPage({super.key});
 
@@ -136,3 +136,4 @@ class _EveryMailPageState extends State<EveryMailPage> {
               );
   }
 }
+*/

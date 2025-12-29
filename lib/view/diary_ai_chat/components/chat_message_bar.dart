@@ -152,7 +152,8 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                           sigmaY: BandiEffects.blurLarge,
                         ),
                         child: Container(
-                          height: 46,
+                          constraints: const BoxConstraints(
+                              minHeight: 48, maxHeight: 96),
                           decoration: BoxDecoration(
                             color: BandiColor.neutralColor40(context),
                             borderRadius: BandiEffects.radiusLarge,
@@ -181,7 +182,8 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                                 color: BandiColor.foundationColor20(context),
                               ),
                               border: InputBorder.none,
-                              contentPadding: const EdgeInsets.only(left: 16),
+                              contentPadding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
                             ),
                           ),
                         ),
@@ -220,8 +222,10 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                               });
                             },
                       child: AnimatedContainer(
+                        height: 48,
                         duration: const Duration(milliseconds: 300),
-                        height: 46,
+                        constraints:
+                            const BoxConstraints(minHeight: 48, maxHeight: 96),
                         decoration: BoxDecoration(
                           color: (sendButtonCondition())
                               ? BandiColor.foundationColor10(
@@ -241,7 +245,7 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                             color: (sendButtonCondition())
                                 ? BandiColor.neutralColor40(context) // Disabled
                                 : BandiColor.neutralColor90(context), // Default
-                            size: 26,
+                            size: 16,
                           ),
                         ),
                       ),

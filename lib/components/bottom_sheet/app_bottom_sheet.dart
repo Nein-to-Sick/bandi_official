@@ -10,7 +10,6 @@ Future<T?> showAppBottomSheet<T>({
   bool useSafeAreaBottomPadding = true,
   bool enableDragToDismiss = true,
 }) {
-
   return showGeneralDialog<T>(
     context: context,
     barrierDismissible: barrierDismissible,
@@ -21,7 +20,7 @@ Future<T?> showAppBottomSheet<T>({
     transitionBuilder: (ctx, anim, _, __) {
       final fade = CurvedAnimation(parent: anim, curve: Curves.easeOut);
       final sheetCurve =
-      CurvedAnimation(parent: anim, curve: Curves.easeOutCubic);
+          CurvedAnimation(parent: anim, curve: Curves.easeOutCubic);
 
       // ===== Sheet content (컨테이너) =====
       Widget sheetBody = Container(
