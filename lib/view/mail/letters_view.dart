@@ -7,6 +7,7 @@ import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/mail/detail_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'dart:developer' as dev;
 
@@ -66,6 +67,7 @@ class _MyLettersPageState extends State<MyLettersPage> {
   @override
   Widget build(BuildContext context) {
     MailController mailController = context.watch<MailController>();
+
     return (mailController.isLoading)
         ? MyFireFlyProgressbar(
             loadingText: 'loading'.tr(context),
@@ -87,15 +89,23 @@ class _MyLettersPageState extends State<MyLettersPage> {
                   itemBuilder: (context, index) {
                     Letter letter = mailController.letterList[
                         mailController.letterList.length - index - 1];
-                    return lettersWidget(letter, mailController, context);
+                    return lettersWidget(
+                        index, letter, mailController, context);
                   },
                 ),
               );
   }
 }
 
-Widget lettersWidget(
-    Letter letter, MailController mailController, BuildContext context) {
+Widget lettersWidget(int num, Letter letter, MailController mailController,
+    BuildContext context) {
+  String title = mailController.formatMailTitle(
+      letter.title, 'detail_view_date_form_country'.tr(context));
+  String date = DateFormat('detail_view_letter_date_form'.tr(context),
+          'detail_view_date_form_country'.tr(context))
+      .format(letter.date.toDate());
+  String numbering = (num + 1).toString().padLeft(3, '0');
+
   return Padding(
     padding: const EdgeInsets.symmetric(vertical: 8),
     child: GestureDetector(
@@ -115,24 +125,26 @@ Widget lettersWidget(
         );
       },
       child: Container(
-        color: BandiColor.transparent(context),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        decoration: BoxDecoration(
+          color: BandiColor.transparent(context),
+          border: Border(
+            bottom:
+                BorderSide(color: BandiColor.neutralColor20(context), width: 1),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(letter.title,
-                style: BandiFont.headlineMedium(context)
-                    ?.copyWith(color: BandiColor.neutralColor100(context))),
-            const SizedBox(height: 8),
+            Text('$numbering. $title',
+                style: BandiFont.titleSmall(context)
+                    ?.copyWith(color: BandiColor.neutralColor90(context))),
             Text(
-              letter.content,
-              maxLines: 2,
+              date,
+              maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: BandiFont.bodyMedium(context)
+              style: BandiFont.labelSmall(context)
                   ?.copyWith(color: BandiColor.neutralColor60(context)),
-            ),
-            const SizedBox(height: 16),
-            Divider(
-              color: BandiColor.neutralColor20(context),
             ),
           ],
         ),

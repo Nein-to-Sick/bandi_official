@@ -108,7 +108,7 @@ class _DiaryAIChatStatefulState extends State<_DiaryAIChatStateful> {
         resizeToAvoidBottomInset: true,
         backgroundColor: BandiColor.transparent(context),
         appBar: NewCustomAppBar(
-          appBarType: AppBarType.twoButtonFoundation,
+          appBarType: AppBarType.titleFoundation,
           title: 'ai_chat_title'.tr(context),
           leftActionButtonIcon: PhosphorIcons.signOut(PhosphorIconsStyle.thin),
           rightActionButtonIcon: PhosphorIcons.x(PhosphorIconsStyle.thin),

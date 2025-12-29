@@ -42,9 +42,9 @@ class MailController with ChangeNotifier {
   List<String> letterListDates = [];
 
   // Manage the page scroll
-  late ScrollController _everyMailScrollController;
-  ScrollController get everyMailScrollController => _everyMailScrollController;
-  double everyMailScrollPosition = 0.0;
+  // ScrollController _everyMailScrollController;
+  // ScrollController get everyMailScrollController => _everyMailScrollController;
+  // double everyMailScrollPosition = 0.0;
 
   late ScrollController _letterScrollController;
   ScrollController get letterScrollController => _letterScrollController;
@@ -56,14 +56,14 @@ class MailController with ChangeNotifier {
   double likedDiaryScrollPosition = 0.0;
 
   void initScrollControllers() {
-    _everyMailScrollController = ScrollController();
+    // _everyMailScrollController = ScrollController();
     _letterScrollController = ScrollController();
     _likedDiaryScrollController = ScrollController();
 
     // Add listener to save scroll position for everyMail
-    _everyMailScrollController.addListener(() {
-      everyMailScrollPosition = _everyMailScrollController.position.pixels;
-    });
+    // _everyMailScrollController.addListener(() {
+    //   everyMailScrollPosition = _everyMailScrollController.position.pixels;
+    // });
 
     // Add listener to save scroll position for letter
     _letterScrollController.addListener(() {
@@ -76,13 +76,13 @@ class MailController with ChangeNotifier {
     });
   }
 
-  void restoreEveryMailScrollPosition() {
-    if (_everyMailScrollController.hasClients) {
-      _everyMailScrollController.jumpTo(everyMailScrollPosition);
-    } else {
-      dev.log('_everyMailScrollController has no clients');
-    }
-  }
+  // void restoreEveryMailScrollPosition() {
+  //   if (_everyMailScrollController.hasClients) {
+  //     _everyMailScrollController.jumpTo(everyMailScrollPosition);
+  //   } else {
+  //     dev.log('_everyMailScrollController has no clients');
+  //   }
+  // }
 
   void restoreLetterScrollPosition() {
     if (_letterScrollController.hasClients) {
@@ -122,7 +122,7 @@ class MailController with ChangeNotifier {
   bool loadMoreLikedDiaryData = true;
 
   // Flag variable to track whether the scroll listener has already been added
-  bool isEveryMailListenerAdded = false;
+  // bool isEveryMailListenerAdded = false;
   bool isLettersListenerAdded = false;
   bool isLikedDiaryListenerAdded = false;
 
@@ -209,11 +209,11 @@ class MailController with ChangeNotifier {
   }
 
   // toggle the isListenerAdded value
-  void toggleIsEveryMailListenerAdded(value) {
-    // dev.log('모든 메일 리스너 토글: $value');
-    isEveryMailListenerAdded = value;
-    notifyListeners();
-  }
+  // void toggleIsEveryMailListenerAdded(value) {
+  //   // dev.log('모든 메일 리스너 토글: $value');
+  //   isEveryMailListenerAdded = value;
+  //   notifyListeners();
+  // }
 
   // toggle the isListenerAdded value
   void toggleIsLettersListenerAdded(value) {
@@ -816,5 +816,52 @@ class MailController with ChangeNotifier {
   void initializeNewNotificaitonCount() {
     newNotificationCount = 0;
     notifyListeners();
+  }
+
+  String formatMailTitle(String fullTitle, String localeCode) {
+    // 1. 연도(2025년 등) 제거
+    final yearRegExp = RegExp(r'^\d{4}[년\.\-\s]+');
+    String titleWithoutYear = fullTitle.replaceFirst(yearRegExp, '').trim();
+
+    // 2. 월 숫자 추출 (예: "7월 편지"에서 "7" 추출)
+    final monthRegExp = RegExp(r'(\d+)월');
+    final match = monthRegExp.firstMatch(titleWithoutYear);
+
+    if (match == null) return titleWithoutYear; // 월 숫자가 없으면 그대로 반환
+
+    String monthNum = match.group(1)!;
+    int monthInt = int.parse(monthNum);
+
+    // 3. 지역 코드에 따른 결과 생성
+    switch (localeCode) {
+      case 'ko':
+        // "7월 편지" -> "7월의 편지"
+        return titleWithoutYear.replaceFirst('월', '월의');
+
+      case 'enUs':
+      case 'en':
+        // 월 숫자를 영문 월 이름으로 변환
+        const englishMonths = [
+          'January',
+          'February',
+          'March',
+          'April',
+          'May',
+          'June',
+          'July',
+          'August',
+          'September',
+          'October',
+          'November',
+          'December'
+        ];
+        String monthName = englishMonths[monthInt - 1];
+
+        // "7월 편지" -> "Letter of July"
+        return 'Letter of $monthName';
+
+      default:
+        return titleWithoutYear;
+    }
   }
 }

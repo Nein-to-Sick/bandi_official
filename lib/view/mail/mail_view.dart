@@ -1,10 +1,12 @@
-import 'package:bandi_official/components/appbar/appbar.dart';
+import 'dart:ui';
+
+import 'package:bandi_official/components/appbar/new_custom_appbar.dart';
 import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
 import 'package:bandi_official/view/mail/controller/mail_controller.dart';
 import 'package:bandi_official/model/letter.dart';
 import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
-import 'package:bandi_official/view/mail/every_mail_view.dart';
+// import 'package:bandi_official/view/mail/every_mail_view.dart';
 import 'package:bandi_official/view/mail/letters_view.dart';
 import 'package:bandi_official/view/mail/liked_diary_view.dart';
 import 'package:bandi_official/view/mail/new_letter_popup.dart';
@@ -32,7 +34,7 @@ class _MailViewState extends State<MailView>
 
     // InitState of the ScrollControllers
     mailController!
-        .initTabController(this, 3, mailController!.savedCurrentIndex);
+        .initTabController(this, 2, mailController!.savedCurrentIndex);
 
     // InitState of the TabController
     mailController?.initScrollControllers();
@@ -41,7 +43,7 @@ class _MailViewState extends State<MailView>
   @override
   void dispose() {
     // Dispose of the ScrollControllers
-    mailController!.everyMailScrollController.dispose();
+    // mailController!.everyMailScrollController.dispose();
     mailController!.letterScrollController.dispose();
     mailController!.likedDiaryScrollController.dispose();
 
@@ -54,85 +56,136 @@ class _MailViewState extends State<MailView>
   @override
   Widget build(BuildContext context) {
     MailController mailController = context.watch<MailController>();
-    AlarmController alarmController = context.watch<AlarmController>();
+    // AlarmController alarmController = context.watch<AlarmController>();
 
     return SafeArea(
       child: Scaffold(
         backgroundColor: BandiColor.transparent(context),
-        appBar: CustomAppBar(
+        appBar: NewCustomAppBar(
+          appBarType: AppBarType.dateNeutral,
           title: 'inbox_title'.tr(context),
-          trailingIcon: PhosphorIcons.flask(PhosphorIconsStyle.fill),
-          onTrailingIconPressed: () async {
+          leftActionButtonIcon: (mailController.tabController.index == 1)
+              ? PhosphorIcons.funnelSimple(PhosphorIconsStyle.thin)
+              : null,
+          rightActionButtonIcon:
+              PhosphorIcons.calendarBlank(PhosphorIconsStyle.thin),
+          onLeftActionButtonPressed: () {
             // For alarm test
-            // messageTestFunction(alarmController);
-            // For test delete finction
-            // mailController.deleteEveryMailDataFromLocal();
-            // For new Letter pop page test
-            // newLetterPopUpPageTestFunction(context);
+            /*
+            messageTestFunction(alarmController);
+            For test delete finction
+            mailController.deleteEveryMailDataFromLocal();
+            For new Letter pop page test
+            newLetterPopUpPageTestFunction(context);
+            */
           },
-          isVisibleLeadingButton: false,
-          isVisibleTrailingButton: false,
+          onRightActionButtonPressed: () {},
+          disableLefttActionButton: false,
         ),
         body: Padding(
-          padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).size.height * 0.1, top: 10),
-          child: DefaultTabController(
-            length: 3,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Column(
-                children: [
-                  TabBar(
-                    isScrollable: true,
-                    controller: mailController.tabController,
-                    labelColor: BandiColor.neutralColor100(context),
-                    unselectedLabelColor: BandiColor.neutralColor40(context),
-                    labelStyle: BandiFont.headlineMedium(context)?.copyWith(
-                      color: BandiColor.neutralColor100(context),
-                    ),
-                    labelPadding: EdgeInsets.symmetric(
-                        horizontal: MediaQuery.of(context).size.width * 0.07),
-                    tabAlignment: TabAlignment.center,
-                    indicatorColor: BandiColor.neutralColor100(context),
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    dividerColor: BandiColor.neutralColor40(context),
-                    tabs: [
-                      FittedBox(
-                        fit: BoxFit.contain,
-                        child: Tab(text: 'inbox_all'.tr(context)),
-                      ),
-                      FittedBox(
-                        fit: BoxFit.contain,
-                        child: Tab(
-                          text: 'inbox_letters'.tr(context),
-                        ),
-                      ),
-                      FittedBox(
-                        fit: BoxFit.contain,
-                        child: Tab(
-                          text: 'inbox_reacted_diaries'.tr(context),
-                        ),
-                      ),
-                    ],
-                  ),
-                  Expanded(
-                    child: TabBarView(
-                      controller: mailController.tabController,
-                      children: const [
-                        EveryMailPage(),
-                        MyLettersPage(),
-                        LikedDiaryPage(),
-                      ],
-                    ),
-                  ),
+          padding: const EdgeInsets.only(bottom: 0, left: 24, right: 24),
+          child: Stack(
+            children: [
+              TabBarView(
+                controller: mailController.tabController,
+                physics: const NeverScrollableScrollPhysics(),
+                children: const [
+                  // EveryMailPage(),
+                  MyLettersPage(),
+                  LikedDiaryPage(),
                 ],
               ),
-            ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 112),
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: _buildCustomToggle(
+                    context,
+                    mailController,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
+}
+
+Widget _buildCustomToggle(BuildContext context, MailController controller) {
+  return ClipRRect(
+    borderRadius: BandiEffects.radiusLarge,
+    child: BackdropFilter(
+      filter: ImageFilter.blur(
+        sigmaX: BandiEffects.blurSmall,
+        sigmaY: BandiEffects.blurSmall,
+      ),
+      child: Container(
+        width: 239,
+        height: 40,
+        decoration: BoxDecoration(
+          color: BandiColor.foundationColor40(context),
+          borderRadius: BandiEffects.radiusLarge,
+        ),
+        child: Stack(
+          children: [
+            // 슬라이딩되는 선택 배경
+            AnimatedAlign(
+              duration: const Duration(milliseconds: 150),
+              curve: Curves.easeInOut,
+              alignment: Alignment(
+                controller.tabController.index == 0 ? -1.0 : 1.0,
+                0,
+              ),
+              child: FractionallySizedBox(
+                widthFactor: 0.5,
+                child: Container(
+                  margin: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: BandiColor.neutralColor10(context),
+                    borderRadius: BandiEffects.radiusLarge,
+                  ),
+                ),
+              ),
+            ),
+            // 탭 버튼들
+            Row(
+              children: List.generate(
+                2,
+                (index) {
+                  bool isSelected = controller.tabController.index == index;
+                  String label = index == 0 ? '편지' : '나눔 일기';
+
+                  return Expanded(
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        controller.tabController.animateTo(index);
+                      },
+                      child: Center(
+                        child: Text(
+                          label,
+                          style: BandiFont.bodyMedium(context)?.copyWith(
+                            color: isSelected
+                                ? BandiColor.neutralColor70(context)
+                                : BandiColor.neutralColor40(context),
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 }
 
 void messageTestFunction(AlarmController alarmController) {

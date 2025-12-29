@@ -10,7 +10,6 @@ Future<T?> showAppBottomSheet<T>({
   bool useSafeAreaBottomPadding = true,
   bool enableDragToDismiss = true,
 }) {
-
   return showGeneralDialog<T>(
     context: context,
     barrierDismissible: barrierDismissible,
@@ -21,7 +20,7 @@ Future<T?> showAppBottomSheet<T>({
     transitionBuilder: (ctx, anim, _, __) {
       final fade = CurvedAnimation(parent: anim, curve: Curves.easeOut);
       final sheetCurve =
-      CurvedAnimation(parent: anim, curve: Curves.easeOutCubic);
+          CurvedAnimation(parent: anim, curve: Curves.easeOutCubic);
 
       // ===== Sheet content (컨테이너) =====
       Widget sheetBody = Container(
@@ -62,8 +61,8 @@ Future<T?> showAppBottomSheet<T>({
                   onTap: barrierDismissible ? () => Navigator.pop(ctx) : null,
                   child: BackdropFilter(
                     filter: ImageFilter.blur(
-                      sigmaX: BandiEffects.backgroundBlur(),
-                      sigmaY: BandiEffects.backgroundBlur(),
+                      sigmaX: BandiEffects.blurLarge,
+                      sigmaY: BandiEffects.blurLarge,
                     ),
                     child: Container(
                       color: BandiColor.foundationColor10(ctx),

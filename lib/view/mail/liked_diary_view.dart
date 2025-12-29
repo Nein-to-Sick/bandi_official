@@ -7,6 +7,7 @@ import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/mail/detail_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'dart:developer' as dev;
 
@@ -133,40 +134,35 @@ class _LikedDiaryPageState extends State<LikedDiaryPage> {
                   ),
                 ),
               )
-            : Column(
-                children: [
-                  const SizedBox(height: 16),
-                  filterChips(mailController),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 10),
-                      child: ListView.builder(
-                        controller: mailController.likedDiaryScrollController,
-                        itemCount: mailController.likedDiaryList.length,
-                        itemBuilder: (context, index) {
-                          Diary diary = mailController.likedDiaryList[
-                              mailController.likedDiaryList.length - index - 1];
-                          return likedDiaryWidget(
-                              diary, mailController, context);
-                        },
-                      ),
-                    ),
-                  ),
-                ],
+            : Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: ListView.builder(
+                  controller: mailController.likedDiaryScrollController,
+                  itemCount: mailController.likedDiaryList.length,
+                  itemBuilder: (context, index) {
+                    Diary diary = mailController.likedDiaryList[
+                        mailController.likedDiaryList.length - index - 1];
+                    return likedDiaryWidget(diary, mailController, context);
+                  },
+                ),
               );
   }
 }
 
 Widget likedDiaryWidget(
     Diary diary, MailController mailController, BuildContext context) {
-  String combinedEmotions = (diary.emotion).join(', ');
+  DateTime parsedDate = DateTime.parse(diary.otherUserLikedAt);
+
+  String date = DateFormat('detail_view_diary_date_form'.tr(context),
+          'detail_view_date_form_country'.tr(context))
+      .format(parsedDate);
+
   return (mailController.currentIndex == 0 ||
           mailController.filteredKeywordValue == 0 ||
           mailController.filteredKeywordValue == diary.otherUserReaction + 1)
       ? Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: GestureDetector(
-            // 일기 열람 기능 추가
             onTap: () {
               logOtherJournalSearch(journalType: 'others');
               mailController.toggleDetailView(true);
@@ -183,43 +179,26 @@ Widget likedDiaryWidget(
               );
             },
             child: Container(
-              color: BandiColor.transparent(context),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              decoration: BoxDecoration(
+                color: BandiColor.transparent(context),
+                border: Border(
+                  bottom: BorderSide(
+                      color: BandiColor.neutralColor20(context), width: 1),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(diary.title,
-                      style: BandiFont.headlineMedium(context)?.copyWith(
-                          color: BandiColor.neutralColor100(context))),
-                  const SizedBox(height: 8),
+                      style: BandiFont.titleSmall(context)?.copyWith(
+                          color: BandiColor.neutralColor90(context))),
                   Text(
-                    diary.content,
-                    maxLines: 2,
+                    date,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: BandiFont.bodyMedium(context)
+                    style: BandiFont.labelSmall(context)
                         ?.copyWith(color: BandiColor.neutralColor60(context)),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Text(
-                        diary.otherUserLikedAt,
-                        style: BandiFont.bodyMedium(context)?.copyWith(
-                            color: BandiColor.neutralColor60(context)),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          combinedEmotions,
-                          style: BandiFont.bodyMedium(context)?.copyWith(
-                              color: BandiColor.neutralColor60(context)),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Divider(
-                    color: BandiColor.neutralColor20(context),
                   ),
                 ],
               ),

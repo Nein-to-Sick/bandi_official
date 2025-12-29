@@ -7,14 +7,14 @@ import '../../theme/custom_theme_data.dart';
 /// - 카드 시트: 사방 라운드 + 바닥과 간격(24) + 좌우 16
 /// - 제목/설명/버튼 텍스트/색상/리턴값을 파라미터로 제어
 Future<bool?> showFloatingConfirmSheet(
-    BuildContext context, {
-      required String title,
-      required String description,
-      String cancelText = '취소',
-      String confirmText = '확인',
-      bool barrierDismissible = true,
-      bool returnFalseOnBarrierTap = true,
-    }) {
+  BuildContext context, {
+  required String title,
+  required String description,
+  String cancelText = '취소',
+  String confirmText = '확인',
+  bool barrierDismissible = true,
+  bool returnFalseOnBarrierTap = true,
+}) {
   return showGeneralDialog<bool>(
     context: context,
     barrierDismissible: barrierDismissible,
@@ -38,12 +38,13 @@ Future<bool?> showFloatingConfirmSheet(
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: barrierDismissible
-                      ? () => Navigator.pop(ctx, returnFalseOnBarrierTap ? false : null)
+                      ? () => Navigator.pop(
+                          ctx, returnFalseOnBarrierTap ? false : null)
                       : null,
                   child: BackdropFilter(
                     filter: ImageFilter.blur(
-                      sigmaX: BandiEffects.backgroundBlur(),
-                      sigmaY: BandiEffects.backgroundBlur(),
+                      sigmaX: BandiEffects.blurLarge,
+                      sigmaY: BandiEffects.blurLarge,
                     ),
                     child: Container(
                       color: BandiColor.foundationColor10(ctx),
@@ -91,7 +92,6 @@ Future<bool?> showFloatingConfirmSheet(
                               textAlign: TextAlign.center,
                             ),
                             const SizedBox(height: 20),
-
                             _SheetButton(
                               text: cancelText,
                               background: BandiColor.foundationColor10(ctx),
