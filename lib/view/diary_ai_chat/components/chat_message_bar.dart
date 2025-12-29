@@ -224,10 +224,10 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                         height: 46,
                         decoration: BoxDecoration(
                           color: (sendButtonCondition())
-                              ? BandiColor.foundationColor50(
+                              ? BandiColor.foundationColor10(
                                   context) // Disabled
                               : (isSendButtonPressed)
-                                  ? BandiColor.foundationColor50(
+                                  ? BandiColor.foundationColor10(
                                       context) // Pressed
                                   : BandiColor.foundationColor90(
                                       context), // Default
@@ -239,7 +239,7 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                               PhosphorIconsStyle.fill,
                             ),
                             color: (sendButtonCondition())
-                                ? BandiColor.neutralColor50(context) // Disabled
+                                ? BandiColor.neutralColor40(context) // Disabled
                                 : BandiColor.neutralColor90(context), // Default
                             size: 26,
                           ),
