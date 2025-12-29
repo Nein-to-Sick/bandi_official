@@ -40,7 +40,7 @@
   "write_cheer_loading": "할 말 생각중...",
   "confirm": "확인",
   "write_query_feeling": "기분이 어떠신가요?",
-  "write_hint_text": "겪었던 일과 느꼈던 감정에 대해 써주세요.",
+  "write_hint_text": "지금 느끼는 기분이나, 가장 먼저 떠오르는 이야기부터 적어 보세요.",
   "done": "확인",
   "write_see_more": "더보기",
   "reaction_all": "전체",
@@ -248,6 +248,6 @@
   "onboarding_nickname_textbar_message": "최대 10글자",
   "onboarding_nickname_button": "확인",
   "onboarding_nickname_empty": "닉네임 없음",
-  "sharing_diary_on": "일기를 함께 나누기",
-  "sharing_diary_off": "일기를 혼자 보기"
+  "sharing_diary_on": "함께 나누기",
+  "sharing_diary_off": "혼자 보기"
 }

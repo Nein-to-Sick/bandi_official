@@ -12,7 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 
-import '../../view/home/write_diary.dart';
+import '../writing/write_diary.dart';
 import 'controller/bgm_controller.dart';
 
 class HomeRootLayer extends StatefulWidget {
