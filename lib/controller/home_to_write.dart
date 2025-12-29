@@ -14,16 +14,6 @@ import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 import 'dart:developer' as dev;
 
-/*
-gpt 호출의 경우 Diary 모델을 인수로 전달해주시면 됩니다!
-(이미 diary의 변수가 초기화(content 내용 등)된 이후에 호출되어야 합니다)
-
-D:\flutter project\bandi_official\lib\model\diary.dart
-diary 모델은 아래 코드에서 사용하는 변수 기준으로 수정했으며,
-toMap, update, intialize 등 초기화 함수도 작성해놨습니다
-아마 gpt 물어보시면 어떻게 쓰는지 알아서 짜줄겁니다
-*/
-
 class HomeToWrite with ChangeNotifier {
   Diary diaryModel = Diary(
     userId: 'userId',
@@ -45,6 +35,7 @@ class HomeToWrite with ChangeNotifier {
   int step = 1;
 
   bool get write => _write;
+
 
   void toggleWrite() {
     _write = !_write;
@@ -392,6 +383,56 @@ class HomeToWrite with ChangeNotifier {
       await firestore.collection('allDiary').doc(diaryId).update(diaryData);
     } catch (e) {
       developer.log("Error modifying diary: $e");
+    }
+  }
+
+
+  bool _deleting = false;
+  bool get deleting => _deleting;
+
+  Future<void> deleteDiaryById(String diaryId) async {
+    if (diaryId.isEmpty) return;
+    if (_deleting) return;
+
+    _deleting = true;
+    notifyListeners();
+
+    try {
+      final uid = userId;
+      final diaryRef = firestore.collection('allDiary').doc(diaryId);
+      final userRef = firestore.collection('users').doc(uid);
+
+      final snap = await diaryRef.get();
+      if (!snap.exists) {
+        developer.log("Diary not found: $diaryId");
+        return;
+      }
+      final data = snap.data() as Map<String, dynamic>;
+      if (data['userId'] != uid) {
+        developer.log("Permission denied: not owner");
+        return;
+      }
+
+      final batch = firestore.batch();
+      batch.delete(diaryRef);
+      batch.update(userRef, {
+        'myDiaryId': FieldValue.arrayRemove([diaryId]),
+      });
+
+      await batch.commit();
+
+      // 로컬 상태 초기화(지금 보고 있는 일기를 삭제한 경우)
+      if (diaryModel.diaryId == diaryId) {
+        initialize(); // step=1, diaryModel reset 등
+      }
+
+      developer.log("Diary deleted: $diaryId");
+    } catch (e) {
+      developer.log("Error deleting diary: $e");
+      rethrow;
+    } finally {
+      _deleting = false;
+      notifyListeners();
     }
   }
 }
