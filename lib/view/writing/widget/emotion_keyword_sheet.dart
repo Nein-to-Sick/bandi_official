@@ -5,7 +5,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 
 import '../../../components/bottom_sheet/app_bottom_sheet.dart';
-import '../../../controller/emotion_provider.dart';
+import '../controller/emotion_provider.dart';
 import '../../../controller/home_to_write.dart';
 import '../../../theme/custom_theme_data.dart';
 

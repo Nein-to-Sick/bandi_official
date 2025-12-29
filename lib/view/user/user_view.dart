@@ -1,6 +1,6 @@
 import 'dart:developer';
 
-import 'package:bandi_official/controller/emotion_provider.dart';
+import 'package:bandi_official/view/writing/controller/emotion_provider.dart';
 import 'package:bandi_official/controller/permission_controller.dart';
 import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';

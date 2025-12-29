@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:bandi_official/controller/emotion_provider.dart';
+import 'package:bandi_official/view/writing/controller/emotion_provider.dart';
 import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/model/keyword.dart';
 import 'package:bandi_official/string_extention.dart';
