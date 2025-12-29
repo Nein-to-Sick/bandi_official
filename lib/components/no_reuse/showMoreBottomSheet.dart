@@ -38,7 +38,6 @@ class _EmotionBottomSheetState extends State<EmotionBottomSheet> {
     _scrollController.addListener(_updateUnderline);
   }
 
-
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -48,7 +47,8 @@ class _EmotionBottomSheetState extends State<EmotionBottomSheet> {
         await provider.initialize(context);
 
         _tabKeys.clear();
-        _tabKeys.addAll(List.generate(provider.emotionKeys.length, (_) => GlobalKey()));
+        _tabKeys.addAll(
+            List.generate(provider.emotionKeys.length, (_) => GlobalKey()));
 
         for (String emotion in widget.emotion) {
           if (!provider.selectedEmotions.contains(emotion)) {
@@ -64,11 +64,11 @@ class _EmotionBottomSheetState extends State<EmotionBottomSheet> {
       });
       _isInitialized = true;
     }
-
   }
 
   void _updateUnderline() {
-    final selectedIndex = widget.provider.emotionKeys.indexOf(widget.provider.selectedEmotion);
+    final selectedIndex =
+        widget.provider.emotionKeys.indexOf(widget.provider.selectedEmotion);
     if (selectedIndex < 0 || selectedIndex >= _tabKeys.length) return;
     final key = _tabKeys[selectedIndex];
     final ctx = key.currentContext;
@@ -77,7 +77,8 @@ class _EmotionBottomSheetState extends State<EmotionBottomSheet> {
     final box = ctx.findRenderObject() as RenderBox?;
     if (box == null) return;
 
-    final position = box.localToGlobal(Offset.zero, ancestor: context.findRenderObject());
+    final position =
+        box.localToGlobal(Offset.zero, ancestor: context.findRenderObject());
 
     setState(() {
       _underlineLeft = position.dx;
@@ -92,7 +93,6 @@ class _EmotionBottomSheetState extends State<EmotionBottomSheet> {
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Consumer<EmotionProvider>(
@@ -105,29 +105,91 @@ class _EmotionBottomSheetState extends State<EmotionBottomSheet> {
 
         Widget emotionTabBar = isEnglish
             ? Column(
-          children: [
-            SingleChildScrollView(
-              controller: _scrollController,  // ✅ 여기에 추가
-              scrollDirection: Axis.horizontal,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Row(
-                  children: List.generate(provider.emotionKeys.length, (i) {
-                    final isSelected = provider.selectedEmotion == provider.emotionKeys[i];
-                    return GestureDetector(
-                      key: _tabKeys[i],
-                      onTap: () {
-                        provider.selectEmotion(provider.emotionKeys[i]);
-                        WidgetsBinding.instance.addPostFrameCallback((_) => _updateUnderline());
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                children: [
+                  SingleChildScrollView(
+                    controller: _scrollController, // ✅ 여기에 추가
+                    scrollDirection: Axis.horizontal,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Row(
+                        children:
+                            List.generate(provider.emotionKeys.length, (i) {
+                          final isSelected = provider.selectedEmotion ==
+                              provider.emotionKeys[i];
+                          return GestureDetector(
+                            key: _tabKeys[i],
+                            onTap: () {
+                              provider.selectEmotion(provider.emotionKeys[i]);
+                              WidgetsBinding.instance.addPostFrameCallback(
+                                  (_) => _updateUnderline());
+                            },
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 8),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    provider.emotionKeys[i],
+                                    style: BandiFont.headlineMedium(context)
+                                        ?.copyWith(
+                                      color: isSelected
+                                          ? BandiColor.foundationColor100(
+                                              context)
+                                          : BandiColor.foundationColor20(
+                                              context),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                ],
+                              ),
+                            ),
+                          );
+                        }),
+                      ),
+                    ),
+                  ),
+                  Stack(
+                    children: [
+                      Divider(
+                          height: 1,
+                          color: BandiColor.foundationColor10(context)),
+                      Positioned(
+                        left: _underlineLeft,
+                        bottom: 0,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                          width: _underlineWidth,
+                          height: 2,
+                          color: BandiColor.foundationColor100(context),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 15),
+                ],
+              )
+            : Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: List.generate(provider.emotionKeys.length, (i) {
+                      final isSelected =
+                          provider.selectedEmotion == provider.emotionKeys[i];
+                      return GestureDetector(
+                        key: _tabKeys[i], // 👈 key 추가
+                        onTap: () {
+                          provider.selectEmotion(provider.emotionKeys[i]);
+                          WidgetsBinding.instance
+                              .addPostFrameCallback((_) => _updateUnderline());
+                        },
                         child: Column(
-                          mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
                               provider.emotionKeys[i],
-                              style: BandiFont.headlineMedium(context)?.copyWith(
+                              style:
+                                  BandiFont.headlineMedium(context)?.copyWith(
                                 color: isSelected
                                     ? BandiColor.foundationColor100(context)
                                     : BandiColor.foundationColor20(context),
@@ -136,83 +198,31 @@ class _EmotionBottomSheetState extends State<EmotionBottomSheet> {
                             const SizedBox(height: 8),
                           ],
                         ),
-                      ),
-                    );
-                  }),
-                ),
-              ),
-            ),
-            Stack(
-              children: [
-                Divider(
-                    height: 1,
-                    color: BandiColor.foundationColor10(context)),
-                Positioned(
-                  left: _underlineLeft,
-                  bottom: 0,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                    width: _underlineWidth,
-                    height: 2,
-                    color: BandiColor.foundationColor100(context),
+                      );
+                    }),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 15),
-          ],
-        )
-            : Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: List.generate(provider.emotionKeys.length, (i) {
-                final isSelected = provider.selectedEmotion == provider.emotionKeys[i];
-                return GestureDetector(
-                  key: _tabKeys[i], // 👈 key 추가
-                  onTap: () {
-                    provider.selectEmotion(provider.emotionKeys[i]);
-                    WidgetsBinding.instance.addPostFrameCallback((_) => _updateUnderline());
-                  },
-                  child: Column(
+                  Stack(
                     children: [
-                      Text(
-                        provider.emotionKeys[i],
-                        style: BandiFont.headlineMedium(context)?.copyWith(
-                          color: isSelected
-                              ? BandiColor.foundationColor100(context)
-                              : BandiColor.foundationColor20(context),
+                      Divider(
+                        height: 1,
+                        color: BandiColor.foundationColor10(context),
+                      ),
+                      Positioned(
+                        left: _underlineLeft,
+                        bottom: 0,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                          width: _underlineWidth,
+                          height: 2,
+                          color: BandiColor.foundationColor100(context),
                         ),
                       ),
-                      const SizedBox(height: 8),
                     ],
                   ),
-                );
-              }),
-            ),
-            Stack(
-              children: [
-                Divider(
-                  height: 1,
-                  color: BandiColor.foundationColor10(context),
-                ),
-                Positioned(
-                  left: _underlineLeft,
-                  bottom: 0,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                    width: _underlineWidth,
-                    height: 2,
-                    color: BandiColor.foundationColor100(context),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 15),
-          ],
-        );
+                  const SizedBox(height: 15),
+                ],
+              );
 
         return SafeArea(
           child: Container(
@@ -232,7 +242,8 @@ class _EmotionBottomSheetState extends State<EmotionBottomSheet> {
                 emotionTabBar,
                 Expanded(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 24), // 양쪽 여백 24px
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24), // 양쪽 여백 24px
                     child: Align(
                       alignment: Alignment.topLeft, // 왼쪽 정렬 보장
                       child: Wrap(
@@ -240,16 +251,18 @@ class _EmotionBottomSheetState extends State<EmotionBottomSheet> {
                         spacing: 8, // 가로 간격
                         runSpacing: 8, // 세로 간격
                         children: provider.emotionOptions.map((emotion) {
-                          final isSelected = provider.selectedEmotions.contains(emotion);
+                          final isSelected =
+                              provider.selectedEmotions.contains(emotion);
                           return GestureDetector(
                             onTap: () => provider.toggleEmotion(emotion),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 8),
                               decoration: BoxDecoration(
                                 color: isSelected
                                     ? BandiColor.foundationColor100(context)
                                     : BandiColor.foundationColor10(context),
-                                borderRadius: BandiEffects.radius(),
+                                borderRadius: BandiEffects.radiusSmall,
                               ),
                               child: Text(
                                 "emotion_keyword_$emotion".tr(context),
@@ -266,15 +279,13 @@ class _EmotionBottomSheetState extends State<EmotionBottomSheet> {
                     ),
                   ),
                 ),
-
-
-
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
                   child: CustomPrimaryButton(
                     title: 'confirm'.tr(context),
                     onPrimaryButtonPressed: () {
-                      widget.writeProvider.changeDiaryValue(provider.selectedEmotions);
+                      widget.writeProvider
+                          .changeDiaryValue(provider.selectedEmotions);
                       Navigator.pop(context);
                     },
                     disableButton: false,

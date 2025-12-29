@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:bandi_official/components/appbar/appbar.dart';
 import 'package:bandi_official/components/button/primary_button.dart';
-import 'package:bandi_official/controller/mail_controller.dart';
+import 'package:bandi_official/view/mail/controller/mail_controller.dart';
 import 'package:bandi_official/controller/navigation_toggle_provider.dart';
 import 'package:bandi_official/model/letter.dart';
 import 'package:bandi_official/string_extention.dart';
@@ -51,8 +51,8 @@ class NewLetterPopuView extends StatelessWidget {
           ),
           BackdropFilter(
             filter: ImageFilter.blur(
-              sigmaX: BandiEffects.backgroundBlur(),
-              sigmaY: BandiEffects.backgroundBlur(),
+              sigmaX: BandiEffects.blurSmall,
+              sigmaY: BandiEffects.blurSmall,
             ),
             child: Container(
               color: BandiColor.transparent(context),

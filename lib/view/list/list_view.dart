@@ -55,12 +55,13 @@ class _ListPageState extends State<ListPage> {
           padding: const EdgeInsets.only(left: 18, right: 18, top: 23),
           child: Calendar(
             selectedDate: Provider.of<DateProvider>(context, listen: false)
-                .selectedDate ??
+                    .selectedDate ??
                 DateTime.now(),
             onDateSelected: (date) {
               Provider.of<DateProvider>(context, listen: false)
                   .setSelectedDate(date);
-              Navigator.pop(context); // Close the bottom sheet when a date is selected
+              Navigator.pop(
+                  context); // Close the bottom sheet when a date is selected
             },
           ),
         );

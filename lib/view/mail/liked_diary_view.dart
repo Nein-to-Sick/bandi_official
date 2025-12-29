@@ -1,6 +1,6 @@
 import 'package:bandi_official/analytics/log_other_journal_search.dart';
 import 'package:bandi_official/components/loading/loading_page.dart';
-import 'package:bandi_official/controller/mail_controller.dart';
+import 'package:bandi_official/view/mail/controller/mail_controller.dart';
 import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';

@@ -1,6 +1,6 @@
 import 'package:bandi_official/analytics/log_notification_open.dart';
 import 'package:bandi_official/controller/home_to_write.dart';
-import 'package:bandi_official/controller/mail_controller.dart';
+import 'package:bandi_official/view/mail/controller/mail_controller.dart';
 import 'package:bandi_official/controller/navigation_toggle_provider.dart';
 import 'package:bandi_official/main.dart';
 import 'package:bandi_official/model/alarm.dart';

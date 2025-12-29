@@ -1,8 +1,7 @@
 import 'dart:ui';
 
-import 'package:bandi_official/components/dialogue/dialogue.dart';
-import 'package:bandi_official/controller/diary_ai_chat_controller.dart';
-import 'package:bandi_official/controller/emotion_provider.dart';
+import 'package:bandi_official/view/diary_ai_chat/components/dialogue.dart';
+import 'package:bandi_official/view/diary_ai_chat/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:flutter/material.dart';
@@ -59,9 +58,7 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(
-                height: 8,
-              ),
+              /*
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 26),
                 child: Row(
@@ -79,6 +76,9 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
               const SizedBox(
                 height: 8,
               ),
+              */
+
+              // assistant message
               SizedBox(
                 height: 35,
                 child: ListView.builder(
@@ -121,47 +121,41 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                   },
                 ),
               ),
-              const SizedBox(
-                height: 15,
-              ),
             ],
           ),
 
         // chat message bar and send button
-        ClipRRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(
-              sigmaX: BandiEffects.backgroundBlur(),
-              sigmaY: BandiEffects.backgroundBlur(),
-            ),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 100),
-              curve: Curves.easeOutCirc,
-              height: 78 + bottomHeight,
-              decoration: BoxDecoration(
-                color: BandiColor.foundationColor10(context),
-                border: Border(
-                  top: BorderSide(
-                    width: 1,
-                    color: BandiColor.foundationColor20(context),
-                  ),
-                ),
-              ),
-              child: Padding(
-                padding:
-                    EdgeInsets.only(left: 24, right: 24, bottom: bottomHeight),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Flexible(
-                      child: IgnorePointer(
-                        ignoring: diaryAiChatController.isChatResponsLoading,
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 100),
+          curve: Curves.easeOutCirc,
+          height: 94 + bottomHeight,
+          decoration: BoxDecoration(
+            color: BandiColor.transparent(context),
+          ),
+          child: Padding(
+            padding: EdgeInsets.only(
+                left: 24, right: 24, top: 16, bottom: bottomHeight),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Flexible(
+                  flex: 3,
+                  child: IgnorePointer(
+                    ignoring: diaryAiChatController.isChatResponsLoading,
+                    child: ClipRRect(
+                      borderRadius: BandiEffects.radiusLarge,
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(
+                          sigmaX: BandiEffects.blurLarge,
+                          sigmaY: BandiEffects.blurLarge,
+                        ),
                         child: Container(
-                          height: 45,
+                          height: 46,
                           decoration: BoxDecoration(
-                            color: BandiColor.neutralColor20(context),
-                            borderRadius: BorderRadius.circular(100),
+                            color: BandiColor.neutralColor40(context),
+                            borderRadius: BandiEffects.radiusLarge,
                           ),
                           child: TextField(
                             onChanged: (text) {
@@ -172,30 +166,34 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                             focusNode: diaryAiChatController.chatFocusNode,
                             keyboardType: TextInputType.multiline,
                             maxLines: null,
-                            cursorColor: BandiColor.neutralColor100(context),
-                            style: BandiFont.labelMedium(context)?.copyWith(
-                              color: BandiColor.neutralColor100(context),
+                            cursorColor: BandiColor.foundationColor90(context),
+                            cursorWidth: 1.5,
+                            cursorHeight: 18,
+                            style: BandiFont.bodyLarge(context)?.copyWith(
+                              color: BandiColor.foundationColor90(context),
                             ),
                             decoration: InputDecoration(
-                              hintText:
-                                  (diaryAiChatController.isChatResponsLoading)
-                                      ? 'ai_chat_textbar_message_1'.tr(context)
-                                      : 'ai_chat_textbar_message_2'.tr(context),
-                              hintStyle:
-                                  BandiFont.labelMedium(context)?.copyWith(
-                                color: BandiColor.neutralColor40(context),
+                              hintText: (diaryAiChatController
+                                      .isChatResponsLoading)
+                                  ? '  ${'ai_chat_textbar_message_1'.tr(context)}'
+                                  : '  ${'ai_chat_textbar_message_2'.tr(context)}',
+                              hintStyle: BandiFont.bodyLarge(context)?.copyWith(
+                                color: BandiColor.foundationColor20(context),
                               ),
                               border: InputBorder.none,
-                              contentPadding: const EdgeInsets.only(left: 20),
+                              contentPadding: const EdgeInsets.only(left: 16),
                             ),
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(
-                      width: 10,
-                    ),
-                    GestureDetector(
+                  ),
+                ),
+                Flexible(
+                  flex: 1,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: GestureDetector(
                       onTapDown: (sendButtonCondition())
                           ? null
                           : (_) {
@@ -223,17 +221,17 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                             },
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
-                        width: 45,
-                        height: 45,
+                        height: 46,
                         decoration: BoxDecoration(
                           color: (sendButtonCondition())
-                              ? BandiColor.neutralColor20(context) // Disabled
+                              ? BandiColor.foundationColor10(
+                                  context) // Disabled
                               : (isSendButtonPressed)
-                                  ? BandiColor.neutralColor60(
+                                  ? BandiColor.foundationColor10(
                                       context) // Pressed
-                                  : BandiColor.neutralColor20(
+                                  : BandiColor.foundationColor90(
                                       context), // Default
-                          borderRadius: BandiEffects.radius(),
+                          borderRadius: BandiEffects.radiusLarge,
                         ),
                         child: Center(
                           child: PhosphorIcon(
@@ -241,16 +239,16 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                               PhosphorIconsStyle.fill,
                             ),
                             color: (sendButtonCondition())
-                                ? BandiColor.neutralColor20(context) // Disabled
-                                : BandiColor.neutralColor80(context), // Default
+                                ? BandiColor.neutralColor40(context) // Disabled
+                                : BandiColor.neutralColor90(context), // Default
                             size: 26,
                           ),
                         ),
                       ),
-                    )
-                  ],
-                ),
-              ),
+                    ),
+                  ),
+                )
+              ],
             ),
           ),
         )

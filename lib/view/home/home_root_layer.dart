@@ -1,7 +1,8 @@
-import 'package:bandi_official/controller/alarm_controller.dart';
-import 'package:bandi_official/controller/diary_ai_chat_controller.dart';
+import 'package:bandi_official/string_extention.dart';
+import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
+import 'package:bandi_official/view/diary_ai_chat/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/controller/home_to_write.dart';
-import 'package:bandi_official/controller/mail_controller.dart';
+import 'package:bandi_official/view/mail/controller/mail_controller.dart';
 import 'package:bandi_official/view/alarm/alarm_view.dart';
 import 'package:bandi_official/view/diary_ai_chat/diary_ai_chat_view.dart';
 import 'package:bandi_official/view/home/widgets/home_action_card_button.dart';
@@ -32,7 +33,7 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
     final bgm = context.watch<BgmController>();
 
     final isHomeVisible = !writeProvider.write &&
-        !diaryAiChatController.isChatOpen &&
+        //!diaryAiChatController.isChatOpen &&
         !mailController.isDetailViewShowing &&
         !alarmController.isAlarmOpen;
 
@@ -42,9 +43,12 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
         AnimatedOpacity(
           opacity: writeProvider.write ? 1.0 : 0.0,
           duration: const Duration(milliseconds: 300),
-          child: writeProvider.write ? const WriteDiary() : const SizedBox.shrink(),
+          child: writeProvider.write
+              ? const WriteDiary()
+              : const SizedBox.shrink(),
         ),
 
+        /*
         // AI Chat 화면
         AnimatedOpacity(
           opacity: diaryAiChatController.isChatOpen ? 1.0 : 0.0,
@@ -53,6 +57,7 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
               ? const DiaryAIChatPage()
               : const SizedBox.shrink(),
         ),
+        */
 
         // (메일 디테일 뷰는 기존 로직 유지. 실제 화면 있으면 여기 연결)
         AnimatedOpacity(
@@ -65,7 +70,9 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
         AnimatedOpacity(
           opacity: alarmController.isAlarmOpen ? 1.0 : 0.0,
           duration: const Duration(milliseconds: 300),
-          child: alarmController.isAlarmOpen ? const AlarmView() : const SizedBox.shrink(),
+          child: alarmController.isAlarmOpen
+              ? const AlarmView()
+              : const SizedBox.shrink(),
         ),
 
         // HOME UI
@@ -105,15 +112,23 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
                       children: [
                         Expanded(
                           child: HomeActionCardButton(
-                            icon: PhosphorIcons.chat(PhosphorIconsStyle.light),
-                            label: "반디와 대화하기",
-                            onTap: () => diaryAiChatController.toggleChatOpen(true),
-                          ),
+                              icon:
+                                  PhosphorIcons.chat(PhosphorIconsStyle.light),
+                              label: "ai_chat_title".tr(context),
+                              onTap: () async {
+                                diaryAiChatController.toggleChatOpen(true);
+                                DiaryAIChatSheet().show(context).then((_) {
+                                  if (context.mounted) {
+                                    diaryAiChatController.toggleChatOpen(false);
+                                  }
+                                });
+                              }),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
                           child: HomeActionCardButton(
-                            icon: PhosphorIcons.pencilSimple(PhosphorIconsStyle.light),
+                            icon: PhosphorIcons.pencilSimple(
+                                PhosphorIconsStyle.light),
                             label: "일기 쓰기",
                             onTap: () => writeProvider.toggleWrite(),
                           ),

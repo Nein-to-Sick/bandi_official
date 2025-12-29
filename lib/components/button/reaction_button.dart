@@ -33,7 +33,7 @@ class _CustomReactionButtonState extends State<CustomReactionButton> {
       height: 83,
       decoration: BoxDecoration(
         color: BandiColor.foundationColor80(context),
-        borderRadius: BandiEffects.radius(),
+        borderRadius: BandiEffects.radiusSmall,
       ),
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: langCode == 'en' ? 40 : 61.5),
