@@ -78,6 +78,7 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
         // HOME UI
         if (isHomeVisible)
           SafeArea(
+            bottom: false,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
@@ -106,8 +107,7 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
 
                   // Bottom: 2개의 버튼 (반디와 대화 / 일기 쓰기)
                   Padding(
-                    padding: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).padding.bottom + 48),
+                    padding: const EdgeInsets.only(bottom: 112),
                     child: Row(
                       children: [
                         Expanded(

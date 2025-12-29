@@ -131,50 +131,41 @@ class _NavigationViewState extends State<NavigationView> {
             ),
             child: isOk
                 ? Scaffold(
-                    backgroundColor: BandiColor.transparent(context),
-                    body: Stack(
-                      children: [
-                        const FireFly(),
-                        AppRouter.buildMain(
-                          context: context,
-                          nav: nav,
-                          writeProvider: writeProvider,
-                          diaryAiChatController: diaryAiChatController,
-                          mailController: mailController,
-                          alarmController: alarmController,
-                        ),
-                        if (AppRouter.shouldShowNavBar(
-                          nav: nav,
-                          writeProvider: writeProvider,
-                          diaryAiChatController: diaryAiChatController,
-                          mailController: mailController,
-                          alarmController: alarmController,
-                        ))
-                          Positioned(
-                            left: 0,
-                            right: 0,
-                            bottom: MediaQuery.of(context).padding.bottom,
-                            child: FrostedNavBar(
-                              width: 327,
-                              selectedIndex: nav.selectedIndex,
-                              onTap: (i) => nav.selectIndex(i),
-                              items: [
-                                NavItem(
-                                    icon: PhosphorIcons.house(
-                                        PhosphorIconsStyle.fill)),
-                                NavItem(
-                                    icon: PhosphorIcons.book(
-                                        PhosphorIconsStyle.fill)),
-                                NavItem(
-                                    icon: PhosphorIcons.tray(
-                                        PhosphorIconsStyle.fill)),
-                                NavItem(
-                                    icon: PhosphorIcons.gearSix(
-                                        PhosphorIconsStyle.fill)),
-                              ],
-                            ),
-                          ),
-                      ],
+              backgroundColor: BandiColor.transparent(context),
+              body: Stack(
+                children: [
+                  const FireFly(),
+
+                  AppRouter.buildMain(
+                    context: context,
+                    nav: nav,
+                    writeProvider: writeProvider,
+                    diaryAiChatController: diaryAiChatController,
+                    mailController: mailController,
+                    alarmController: alarmController,
+                  ),
+
+                  if (AppRouter.shouldShowNavBar(
+                    nav: nav,
+                    writeProvider: writeProvider,
+                    diaryAiChatController: diaryAiChatController,
+                    mailController: mailController,
+                    alarmController: alarmController,
+                  ))
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 32,
+                      child: FrostedNavBar(
+                        selectedIndex: nav.selectedIndex,
+                        onTap: (i) => nav.selectIndex(i),
+                        items: [
+                          NavItem(icon: PhosphorIcons.house(PhosphorIconsStyle.fill)),
+                          NavItem(icon: PhosphorIcons.book(PhosphorIconsStyle.fill)),
+                          NavItem(icon: PhosphorIcons.tray(PhosphorIconsStyle.fill)),
+                          NavItem(icon: PhosphorIcons.gearSix(PhosphorIconsStyle.fill)),
+                        ],
+                      ),
                     ),
                   )
                 : Scaffold(

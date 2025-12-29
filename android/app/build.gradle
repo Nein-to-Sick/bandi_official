@@ -28,8 +28,19 @@ if (flutterVersionName == null) {
 
 def keystoreProperties = new Properties()
 def keystorePropertiesFile = rootProject.file('key.properties')
+def storeFilePath = null
+def hasKeystore = false
+
 if (keystorePropertiesFile.exists()) {
-	keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+
+    storeFilePath = keystoreProperties.getProperty('storeFile')
+    if (storeFilePath != null) {
+        storeFilePath = storeFilePath.trim()
+    }
+
+    // key.properties는 있어도 storeFile이 비어있을 수 있음 → 그 경우 false
+    hasKeystore = (storeFilePath != null && !storeFilePath.isEmpty())
 }
 
 android {
@@ -64,20 +75,22 @@ android {
     }
 
     signingConfigs {
-        release {
-            keyAlias keystoreProperties['keyAlias']
-            keyPassword keystoreProperties['keyPassword']
-            storeFile file(keystoreProperties['storeFile'])
-            storePassword keystoreProperties['storePassword']
+        if (hasKeystore) {
+            release {
+                storeFile file(storeFilePath)
+                storePassword keystoreProperties.getProperty('storePassword')
+                keyAlias keystoreProperties.getProperty('keyAlias')
+                keyPassword keystoreProperties.getProperty('keyPassword')
+            }
         }
     }
 
     buildTypes {
+        debug {
+            // debug는 서명 설정 안 함
+        }
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            // signingConfig = signingConfigs.debug
-            signingConfig signingConfigs.release
+            if (hasKeystore) signingConfig signingConfigs.release
         }
     }
 

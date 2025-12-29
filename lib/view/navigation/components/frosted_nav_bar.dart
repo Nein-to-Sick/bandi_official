@@ -8,13 +8,11 @@ class FrostedNavBar extends StatelessWidget {
     required this.selectedIndex,
     required this.onTap,
     required this.items,
-    this.width = 327,
   });
 
   final int selectedIndex;
   final void Function(int index) onTap;
   final List<NavItem> items;
-  final double width;
 
   @override
   Widget build(BuildContext context) {
@@ -23,23 +21,26 @@ class FrostedNavBar extends StatelessWidget {
         borderRadius: BorderRadius.circular(100),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-          child: Container(
-            width: width,
-            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-            decoration: BoxDecoration(
-              color: BandiColor.neutralColor10(context),
-              borderRadius: BorderRadius.circular(100),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: List.generate(items.length, (i) {
-                final active = i == selectedIndex;
-                return _NavButton(
-                  active: active,
-                  icon: items[i].icon,
-                  onTap: () => onTap(i),
-                );
-              }),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Container(
+              width: MediaQuery.of(context).size.width,
+              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+              decoration: BoxDecoration(
+                color: BandiColor.neutralColor10(context),
+                borderRadius: BorderRadius.circular(100),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: List.generate(items.length, (i) {
+                  final active = i == selectedIndex;
+                  return _NavButton(
+                    active: active,
+                    icon: items[i].icon,
+                    onTap: () => onTap(i),
+                  );
+                }),
+              ),
             ),
           ),
         ),
