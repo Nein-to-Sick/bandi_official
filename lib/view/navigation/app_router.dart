@@ -10,9 +10,9 @@ import 'package:bandi_official/components/loading/loading_page.dart';
 
 import '../../controller/home_to_write.dart';
 import '../../controller/navigation_toggle_provider.dart';
-import '../../controller/diary_ai_chat_controller.dart';
-import '../../controller/mail_controller.dart';
-import '../../controller/alarm_controller.dart';
+import '../diary_ai_chat/controller/diary_ai_chat_controller.dart';
+import '../mail/controller/mail_controller.dart';
+import '../alarm/controller/alarm_controller.dart';
 import '../login/onboarding_gate.dart';
 import '../../string_extention.dart';
 

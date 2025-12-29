@@ -1,6 +1,6 @@
 import 'package:bandi_official/components/appbar/appbar.dart';
-import 'package:bandi_official/controller/alarm_controller.dart';
-import 'package:bandi_official/controller/mail_controller.dart';
+import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
+import 'package:bandi_official/view/mail/controller/mail_controller.dart';
 import 'package:bandi_official/model/letter.dart';
 import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';

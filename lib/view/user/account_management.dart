@@ -14,7 +14,7 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import '../../components/button/primary_button.dart';
 import '../../components/button/secondary_button.dart';
 import '../../components/dialogue/reset_dialogue.dart';
-import '../../controller/mail_controller.dart';
+import '../mail/controller/mail_controller.dart';
 import '../../controller/navigation_toggle_provider.dart';
 import '../../controller/securestorage_controller.dart';
 import '../../controller/user_info_controller.dart';

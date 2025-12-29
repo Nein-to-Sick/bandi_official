@@ -1,9 +1,9 @@
 import 'package:bandi_official/components/appbar/appbar.dart';
 import 'package:bandi_official/components/button/primary_button.dart';
 import 'package:bandi_official/components/loading/loading_page.dart';
-import 'package:bandi_official/controller/alarm_controller.dart';
+import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
 import 'package:bandi_official/controller/home_to_write.dart';
-import 'package:bandi_official/controller/mail_controller.dart';
+import 'package:bandi_official/view/mail/controller/mail_controller.dart';
 import 'package:bandi_official/controller/navigation_toggle_provider.dart';
 import 'package:bandi_official/model/alarm.dart';
 import 'package:bandi_official/model/diary.dart';
@@ -50,8 +50,8 @@ class _AlarmViewState extends State<AlarmView> {
     final NavigationToggleProvider navigationToggleProvider =
         context.watch<NavigationToggleProvider>();
 
-    return WillPopScope(
-      onWillPop: () => Future(() => false),
+    return PopScope(
+      canPop: false,
       child: Scaffold(
         resizeToAvoidBottomInset: true,
         backgroundColor: BandiColor.neutralColor80(context),

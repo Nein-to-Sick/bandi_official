@@ -1,5 +1,5 @@
 import 'package:bandi_official/components/button/primary_button.dart';
-import 'package:bandi_official/controller/mail_controller.dart';
+import 'package:bandi_official/view/mail/controller/mail_controller.dart';
 import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/model/letter.dart';
 import 'package:bandi_official/string_extention.dart';
@@ -53,8 +53,9 @@ class DetailView extends StatelessWidget {
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                      color: BandiColor.neutralColor100(context),
-                      borderRadius: BandiEffects.radius()),
+                    color: BandiColor.neutralColor100(context),
+                    borderRadius: BandiEffects.radiusSmall,
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 24.0, vertical: 32),

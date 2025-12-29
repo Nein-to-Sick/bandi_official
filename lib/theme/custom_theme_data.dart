@@ -158,13 +158,17 @@ class BandiFont {
 }
 
 class BandiEffects {
-  static BorderRadius radius() {
-    return BorderRadius.circular(8);
-  }
+  // raw value
+  static const double radiusValueSmall = 24.0;
+  static const double radiusValueLarge = 100.0;
 
-  static double backgroundBlur() {
-    return 8;
-  }
+  static final BorderRadius radiusSmall =
+      BorderRadius.circular(radiusValueSmall);
+  static final BorderRadius radiusLarge =
+      BorderRadius.circular(radiusValueLarge);
+
+  static const double blurSmall = 4.0;
+  static const double blurLarge = 16.0;
 }
 
 class CustomThemeData {

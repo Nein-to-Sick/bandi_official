@@ -2,9 +2,9 @@ import 'dart:developer';
 import 'dart:ui';
 
 import 'package:bandi_official/components/dialogue/reset_dialogue.dart';
-import 'package:bandi_official/controller/alarm_controller.dart';
+import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
 import 'package:bandi_official/controller/home_to_write.dart';
-import 'package:bandi_official/controller/mail_controller.dart';
+import 'package:bandi_official/view/mail/controller/mail_controller.dart';
 import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -81,8 +81,8 @@ class _OtherDiaryState extends State<OtherDiary> {
   Widget _firstPage(context, HomeToWrite writeProvider) {
     return BackdropFilter(
       filter: ImageFilter.blur(
-        sigmaX: BandiEffects.backgroundBlur(),
-        sigmaY: BandiEffects.backgroundBlur(),
+        sigmaX: BandiEffects.blurSmall,
+        sigmaY: BandiEffects.blurSmall,
       ),
       child: Container(
         color: BandiColor.neutralColor10(context),
@@ -154,7 +154,7 @@ class _OtherDiaryState extends State<OtherDiary> {
               child: Container(
                 decoration: BoxDecoration(
                   color: BandiColor.neutralColor90(context),
-                  borderRadius: BandiEffects.radius(),
+                  borderRadius: BandiEffects.radiusSmall,
                 ),
                 child: Stack(
                   children: [
@@ -251,7 +251,8 @@ class _OtherDiaryState extends State<OtherDiary> {
                                           ),
                                           behavior: SnackBarBehavior.floating,
                                           shape: RoundedRectangleBorder(
-                                            borderRadius: BandiEffects.radius(),
+                                            borderRadius:
+                                                BandiEffects.radiusSmall,
                                           ),
                                         ),
                                       );

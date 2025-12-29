@@ -8,10 +8,10 @@ import 'package:provider/provider.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:bandi_official/components/dialogue/reset_dialogue.dart';
-import 'package:bandi_official/controller/alarm_controller.dart';
-import 'package:bandi_official/controller/diary_ai_chat_controller.dart';
+import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
+import 'package:bandi_official/view/diary_ai_chat/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/controller/internet_connection_controller.dart';
-import 'package:bandi_official/controller/mail_controller.dart';
+import 'package:bandi_official/view/mail/controller/mail_controller.dart';
 import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 
@@ -125,7 +125,8 @@ class _NavigationViewState extends State<NavigationView> {
             decoration: const BoxDecoration(
               image: DecorationImage(
                 fit: BoxFit.cover,
-                image: AssetImage('assets/images/backgrounds/background_dark.png'),
+                image:
+                    AssetImage('assets/images/backgrounds/background_dark.png'),
               ),
             ),
             child: isOk
@@ -166,26 +167,25 @@ class _NavigationViewState extends State<NavigationView> {
                         ],
                       ),
                     ),
-                ],
-              ),
-            )
+                  )
                 : Scaffold(
-              backgroundColor: BandiColor.transparent(context),
-              body: Center(
-                child: CustomResetDialogue(
-                  text: 'internet_connection_check'.tr(context),
-                  onYesText: 'internet_connection_refresh'.tr(context),
-                  onNoText: 'internet_connection_exit'.tr(context),
-                  onYesFunction: () {
-                    log('새로고침!');
-                    setState(() {
-                      _networkFuture = internet.checkNetworkConnectivity();
-                    });
-                  },
-                  onNoFunction: () => exit(0),
-                ),
-              ),
-            ),
+                    backgroundColor: BandiColor.transparent(context),
+                    body: Center(
+                      child: CustomResetDialogue(
+                        text: 'internet_connection_check'.tr(context),
+                        onYesText: 'internet_connection_refresh'.tr(context),
+                        onNoText: 'internet_connection_exit'.tr(context),
+                        onYesFunction: () {
+                          log('새로고침!');
+                          setState(() {
+                            _networkFuture =
+                                internet.checkNetworkConnectivity();
+                          });
+                        },
+                        onNoFunction: () => exit(0),
+                      ),
+                    ),
+                  ),
           );
         },
       ),
