@@ -3,26 +3,26 @@ import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:flutter/material.dart';
 
 enum AppBarType {
-  titleFoundation,
-  titleNeutral,
-  dateFoundation,
-  dateNeutral,
+  headLineFoundation,
+  headLineNeutral,
+  subtitleFoundation,
+  subtitleNeutral,
 }
 
 extension AppBarTypeExtension on AppBarType {
   // 타이틀 스타일 결정
   TextStyle? getTitleStyle(BuildContext context) {
     switch (this) {
-      case AppBarType.titleFoundation:
+      case AppBarType.headLineFoundation:
         return BandiFont.headlineMedium(context)
             ?.copyWith(color: BandiColor.foundationColor100(context));
-      case AppBarType.titleNeutral:
+      case AppBarType.headLineNeutral:
         return BandiFont.headlineMedium(context)
             ?.copyWith(color: BandiColor.neutralColor100(context));
-      case AppBarType.dateFoundation:
+      case AppBarType.subtitleFoundation:
         return BandiFont.titleSmall(context)
             ?.copyWith(color: BandiColor.foundationColor100(context));
-      case AppBarType.dateNeutral:
+      case AppBarType.subtitleNeutral:
         return BandiFont.titleSmall(context)
             ?.copyWith(color: BandiColor.neutralColor100(context));
     }
@@ -31,11 +31,11 @@ extension AppBarTypeExtension on AppBarType {
   // 아이콘 색상 결정
   Color getIconColor(BuildContext context) {
     switch (this) {
-      case AppBarType.titleFoundation:
-      case AppBarType.dateFoundation:
+      case AppBarType.headLineFoundation:
+      case AppBarType.subtitleFoundation:
         return BandiColor.foundationColor20(context);
-      case AppBarType.titleNeutral:
-      case AppBarType.dateNeutral:
+      case AppBarType.headLineNeutral:
+      case AppBarType.subtitleNeutral:
       default:
         return BandiColor.neutralColor20(context);
     }

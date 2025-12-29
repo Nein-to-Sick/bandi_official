@@ -21,58 +21,6 @@ class LikedDiaryPage extends StatefulWidget {
 class _LikedDiaryPageState extends State<LikedDiaryPage> {
   late MailController mailController;
 
-  Widget filterChips(MailController mailController) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Wrap(
-        spacing: 10.0,
-        runSpacing: 8.0,
-        children: mailController.chipLabels.map((label) {
-          return IntrinsicWidth(
-            child: GestureDetector(
-              onTap: () {
-                mailController.updateFilter(label);
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  color: (mailController
-                              .chipLabels[mailController.filteredKeywordValue]
-                              .compareTo(label) ==
-                          0)
-                      ? BandiColor.foundationColor40(context)
-                      : BandiColor.neutralColor10(context),
-                  borderRadius: BorderRadius.circular(100),
-                ),
-                constraints: const BoxConstraints(
-                  minHeight: 29,
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 5,
-                  ),
-                  child: Center(
-                    child: Text(
-                      label.tr(context),
-                      style: BandiFont.labelLarge(context)?.copyWith(
-                        color: (mailController.chipLabels[
-                                        mailController.filteredKeywordValue]
-                                    .compareTo(label) ==
-                                0)
-                            ? BandiColor.neutralColor100(context)
-                            : BandiColor.neutralColor60(context),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
@@ -157,9 +105,8 @@ Widget likedDiaryWidget(
           'detail_view_date_form_country'.tr(context))
       .format(parsedDate);
 
-  return (mailController.currentIndex == 0 ||
-          mailController.filteredKeywordValue == 0 ||
-          mailController.filteredKeywordValue == diary.otherUserReaction + 1)
+  return (mailController.filteredchipLabels
+          .contains(diary.otherUserReaction + 1))
       ? Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: GestureDetector(

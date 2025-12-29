@@ -1,5 +1,6 @@
 import 'dart:ui'; // Blur 처리를 위해 필요
 import 'package:bandi_official/components/appbar/new_custom_appbar.dart';
+import 'package:bandi_official/components/bottom_sheet/show_floating_confirm_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/rendering.dart';
@@ -9,14 +10,12 @@ import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/view/diary_ai_chat/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/view/diary_ai_chat/components/dialogue.dart';
 import 'package:bandi_official/view/diary_ai_chat/components/chat_message_bar.dart';
-import 'package:bandi_official/components/dialogue/reset_dialogue.dart'; // 리셋 다이얼로그 import
 
 class DiaryAIChatSheet {
   Future<void> show(BuildContext context) {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      // 드래그로 닫기 가능 여부
       enableDrag: true,
       barrierColor: BandiColor.transparent(context),
       backgroundColor: BandiColor.neutralColor60(context),
@@ -108,35 +107,27 @@ class _DiaryAIChatStatefulState extends State<_DiaryAIChatStateful> {
         resizeToAvoidBottomInset: true,
         backgroundColor: BandiColor.transparent(context),
         appBar: NewCustomAppBar(
-          appBarType: AppBarType.titleFoundation,
+          appBarType: AppBarType.headLineFoundation,
           title: 'ai_chat_title'.tr(context),
           leftActionButtonIcon: PhosphorIcons.signOut(PhosphorIconsStyle.thin),
           rightActionButtonIcon: PhosphorIcons.x(PhosphorIconsStyle.thin),
-          onLeftActionButtonPressed: () {
-            showDialog<bool>(
-              context: context,
-              barrierDismissible: false,
-              builder: (BuildContext context) {
-                return CustomResetDialogue(
-                  text: 'dialogue_message_ai_chat_reset'.tr(context),
-                  onYesText: 'dialogue_yes'.tr(context),
-                  onNoText: 'dialogue_no'.tr(context),
-                  onYesFunction: () {
-                    diaryAiChatController.resetTheChat(context);
-                    Navigator.pop(context);
-                  },
-                  onNoFunction: () {
-                    Navigator.pop(context);
-                  },
-                );
-              },
+          onLeftActionButtonPressed: () async {
+            final ok = await showFloatingConfirmSheet(
+              context,
+              title: '대화창을 정말로 나가시겠어요?',
+              description: '지금까지 나눈 이야기는 모두 사라져요.',
+              cancelText: '취소',
+              confirmText: '나가기',
             );
+
+            if (ok == true) {
+              diaryAiChatController.resetTheChat(context);
+            }
           },
           onRightActionButtonPressed: () {
             Navigator.pop(context);
           },
           disableLefttActionButton: diaryAiChatController.isChatResponsLoading,
-          disableRightActionButton: diaryAiChatController.isChatResponsLoading,
         ),
         body: GestureDetector(
           onTap: () {

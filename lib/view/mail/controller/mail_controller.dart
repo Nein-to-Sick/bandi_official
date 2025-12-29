@@ -109,7 +109,7 @@ class MailController with ChangeNotifier {
     'reaction_relate',
     'reaction_with'
   ];
-  int filteredKeywordValue = 0;
+  List<int> filteredchipLabels = [1, 2, 3];
 
   // while loading
   bool isLoading = false;
@@ -174,9 +174,23 @@ class MailController with ChangeNotifier {
     }
   }
 
+  void initializeFilter() {
+    filteredchipLabels.clear();
+    filteredchipLabels.addAll([1, 2, 3]);
+    notifyListeners();
+  }
+
   // Filter for liked Diary
   void updateFilter(String value) {
-    filteredKeywordValue = chipLabels.indexOf(value);
+    int index = chipLabels.indexOf(value);
+    if (filteredchipLabels.contains(index)) {
+      filteredchipLabels.remove(index);
+    } else {
+      filteredchipLabels.add(index);
+    }
+    if (filteredchipLabels.isEmpty) {
+      filteredchipLabels.addAll([1, 2, 3]);
+    }
     // Scroll to the top of the list
     likedDiaryScrollController.jumpTo(0);
     notifyListeners();
