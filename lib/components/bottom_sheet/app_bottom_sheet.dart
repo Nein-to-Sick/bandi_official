@@ -62,8 +62,8 @@ Future<T?> showAppBottomSheet<T>({
                   onTap: barrierDismissible ? () => Navigator.pop(ctx) : null,
                   child: BackdropFilter(
                     filter: ImageFilter.blur(
-                      sigmaX: BandiEffects.backgroundBlur(),
-                      sigmaY: BandiEffects.backgroundBlur(),
+                      sigmaX: BandiEffects.blurLarge,
+                      sigmaY: BandiEffects.blurLarge,
                     ),
                     child: Container(
                       color: BandiColor.foundationColor10(ctx),
