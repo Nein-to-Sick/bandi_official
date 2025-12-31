@@ -70,6 +70,9 @@ class _MailViewState extends State<MailView>
           leftActionButtonIcon: (mailController.tabController.index == 1)
               ? PhosphorIcons.funnelSimple(PhosphorIconsStyle.thin)
               : null,
+          leftActionButtonColor: (mailController.filteredchipLabels.length != 3)
+              ? BandiColor.accentColorYellow(context)
+              : null,
           rightActionButtonIcon:
               PhosphorIcons.calendarBlank(PhosphorIconsStyle.thin),
           onLeftActionButtonPressed: () async {

@@ -51,6 +51,8 @@ class NewCustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.rightActionButtonIcon,
     this.onLeftActionButtonPressed,
     this.onRightActionButtonPressed,
+    this.leftActionButtonColor,
+    this.rightActionButtonColor,
     this.disableLefttActionButton = false,
     this.disableRightActionButton = false,
   });
@@ -63,6 +65,8 @@ class NewCustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onRightActionButtonPressed;
   final bool disableLefttActionButton;
   final bool disableRightActionButton;
+  final Color? leftActionButtonColor;
+  final Color? rightActionButtonColor;
 
   @override
   Size get preferredSize => const Size.fromHeight(72.0);
@@ -103,14 +107,14 @@ class NewCustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       if (leftActionButtonIcon != null)
         CustomIconButton(
           icon: leftActionButtonIcon!,
-          iconColor: iconColor,
+          iconColor: (leftActionButtonColor) ?? iconColor,
           onIconButtonPressed: onLeftActionButtonPressed ?? () {},
           disableButton: disableLefttActionButton,
         ),
       if (rightActionButtonIcon != null)
         CustomIconButton(
           icon: rightActionButtonIcon!,
-          iconColor: iconColor,
+          iconColor: (rightActionButtonColor) ?? iconColor,
           onIconButtonPressed: onRightActionButtonPressed ?? () {},
           disableButton: disableRightActionButton,
         ),
