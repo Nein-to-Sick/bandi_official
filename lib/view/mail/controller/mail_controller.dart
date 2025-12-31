@@ -878,4 +878,12 @@ class MailController with ChangeNotifier {
         return titleWithoutYear;
     }
   }
+
+  // for calender selection
+  DateTime calenderSelectedDate = DateTime.now();
+
+  void updateCalenderSelectedDate(DateTime value) {
+    calenderSelectedDate = value;
+    notifyListeners();
+  }
 }

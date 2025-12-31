@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:bandi_official/components/appbar/new_custom_appbar.dart';
+import 'package:bandi_official/components/bottom_sheet/calendar_bottom_sheet.dart';
 import 'package:bandi_official/main.dart';
 import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
 import 'package:bandi_official/view/mail/controller/mail_controller.dart';
@@ -83,7 +84,25 @@ class _MailViewState extends State<MailView>
             newLetterPopUpPageTestFunction(context);
             */
           },
-          onRightActionButtonPressed: () {},
+          onRightActionButtonPressed: () {
+            CalendarBottomSheet(
+              initialDate: mailController.calenderSelectedDate,
+              mode: (mailController.tabController.index == 1)
+                  ? CalendarMode.date
+                  : CalendarMode.month,
+              eventDates: [
+                DateTime(2025, 12, 31),
+              ],
+              onDateSelected: (date) {
+                (mailController.tabController.index == 1)
+                    ? dev
+                        .log("선택된 월: ${date.year}년 ${date.month}월 ${date.day}일")
+                    : dev.log("선택된 월: ${date.year}년 ${date.month}월");
+
+                mailController.updateCalenderSelectedDate(date);
+              },
+            ).show(context);
+          },
           disableLefttActionButton: false,
         ),
         body: Padding(
