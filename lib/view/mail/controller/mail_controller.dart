@@ -879,11 +879,11 @@ class MailController with ChangeNotifier {
     }
   }
 
-  // for calender selection
-  DateTime calenderSelectedDate = DateTime.now();
+  // for Calendar selection
+  DateTime CalendarSelectedDate = DateTime.now();
 
-  void updateCalenderSelectedDate(DateTime value) {
-    calenderSelectedDate = value;
+  void updateCalendarSelectedDate(DateTime value) {
+    CalendarSelectedDate = value;
     notifyListeners();
   }
 }

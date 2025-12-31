@@ -89,7 +89,7 @@ class _MailViewState extends State<MailView>
           },
           onRightActionButtonPressed: () {
             CalendarBottomSheet(
-              initialDate: mailController.calenderSelectedDate,
+              initialDate: mailController.CalendarSelectedDate,
               mode: (mailController.tabController.index == 1)
                   ? CalendarMode.date
                   : CalendarMode.month,
@@ -102,7 +102,7 @@ class _MailViewState extends State<MailView>
                         .log("선택된 월: ${date.year}년 ${date.month}월 ${date.day}일")
                     : dev.log("선택된 월: ${date.year}년 ${date.month}월");
 
-                mailController.updateCalenderSelectedDate(date);
+                mailController.updateCalendarSelectedDate(date);
               },
             ).show(context);
           },
