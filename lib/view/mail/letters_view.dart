@@ -112,17 +112,13 @@ Widget lettersWidget(int num, Letter letter, MailController mailController,
       onTap: () {
         logOtherJournalSearch(journalType: 'letters');
         mailController.toggleDetailView(true);
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          barrierColor: BandiColor.transparent(context),
-          builder: (BuildContext context) {
-            return DetailView(
-              item: letter,
-              mailController: mailController,
-            );
-          },
-        );
+        DetailViewSheet(item: letter, mailController: mailController)
+            .show(context)
+            .then((_) {
+          if (context.mounted) {
+            mailController.toggleDetailView(false);
+          }
+        });
       },
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 24),

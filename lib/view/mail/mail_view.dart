@@ -72,8 +72,7 @@ class _MailViewState extends State<MailView>
           rightActionButtonIcon:
               PhosphorIcons.calendarBlank(PhosphorIconsStyle.thin),
           onLeftActionButtonPressed: () async {
-            final action =
-                await showLikedDiaryActionSheet(context, mailController);
+            await showLikedDiaryActionSheet(context, mailController);
 
             // For alarm test
             /*
