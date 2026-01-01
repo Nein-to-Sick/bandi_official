@@ -87,7 +87,7 @@ class _State extends State<FirstStep> {
                   : "sharing_diary_off".tr(context),
               onExit: () async {
                 _focusNode.unfocus();
-
+                print("ddd");
                 final hasText = _textEditingController.text.trim().isNotEmpty;
 
                 if (!hasText) {

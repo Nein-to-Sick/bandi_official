@@ -130,7 +130,7 @@ class _LanguageToggleSwitchState extends State<LanguageToggleSwitch> {
     String toggleText;
     if (widget.initialLanguage == 'KO') {
       // 원본이 한글일 경우
-      toggleText = isKorean ? 'Translate to English' : 'See original';
+      toggleText = isKorean ? 'Translate' : 'See original';
     } else {
       // 원본이 영어일 경우
       toggleText = isKorean ? '원본 보기' : '한글로 번역하기';
@@ -146,7 +146,7 @@ class _LanguageToggleSwitchState extends State<LanguageToggleSwitch> {
           const SizedBox(width: 4),
           Text(
             toggleText,
-            style: BandiFont.labelLarge(context)
+            style: BandiFont.bodySmall(context)
                 ?.copyWith(color: BandiColor.foundationColor80(context)),
           ),
           if (isLoading)

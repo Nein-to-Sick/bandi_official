@@ -26,9 +26,9 @@ class AppRouter {
     required AlarmController alarmController,
   }) {
     // 오버레이 우선
-    if (writeProvider.otherDiaryOpen == true && writeProvider.step == 1) {
-      return OtherDiary(writeProvider: writeProvider);
-    }
+    // if (writeProvider.otherDiaryOpen == true && writeProvider.step == 1) {
+    //   return OtherDiary(writeProvider: writeProvider);
+    // }
 
     // 회원가입/온보딩
     if (nav.selectedIndex == -3) return const OnboardingGate();
@@ -74,8 +74,8 @@ class AppRouter {
     final isOverlayOpen = writeProvider.write ||
         diaryAiChatController.isChatOpen ||
         mailController.isDetailViewShowing ||
-        alarmController.isAlarmOpen ||
-        (writeProvider.otherDiaryOpen == true && writeProvider.step == 1);
+        writeProvider.otherDiaryOpen ||
+        alarmController.isAlarmOpen;
 
     return !isOverlayOpen;
   }

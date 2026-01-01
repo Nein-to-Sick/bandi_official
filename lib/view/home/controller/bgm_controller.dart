@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -8,6 +9,8 @@ class BgmController with WidgetsBindingObserver, ChangeNotifier {
   bool speakerOn = true;
   bool _initialized = false;
 
+  bool _syncing = false; // 동기화 루프 중인지
+
   Future<void> init() async {
     if (_initialized) return;
     _initialized = true;
@@ -17,36 +20,66 @@ class BgmController with WidgetsBindingObserver, ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     speakerOn = prefs.getBool('speakerOn') ?? true;
 
-    try {
-      await _player.stop();
-    } catch (_) {}
+    try { await _player.stop(); } catch (_) {}
 
-    // asset 로드
     await _player.setAsset('assets/bgm/bgm.mp3');
-
-    // 루프
     await _player.setLoopMode(LoopMode.one);
 
-    if (speakerOn) {
-      await _player.play();
-    }
+    // 초기 상태 반영
+    _requestSync();
 
     notifyListeners();
   }
 
   Future<void> setSpeakerOn(bool on) async {
+    // 1) UI 즉시 반영
     speakerOn = on;
+    notifyListeners();
 
+    // 2) prefs 저장
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('speakerOn', on);
 
-    if (speakerOn) {
-      await _player.play();
-    } else {
-      await _player.pause();
-    }
+    // 3) 오디오 동기화 요청
+    _requestSync();
+  }
 
-    notifyListeners();
+  void _requestSync() {
+    if (_syncing) return;
+    _syncing = true;
+    unawaited(_syncLoop());
+  }
+
+  Future<void> _syncLoop() async {
+    try {
+      // speakerOn이 바뀌는 동안 계속 마지막 상태로 맞춤
+      while (true) {
+        final desired = speakerOn;
+
+        // 이미 원하는 상태면 종료
+        if (desired == _player.playing) break;
+
+        if (desired) {
+          // ✅ play()는 await하지 않음 (여기가 핵심)
+          _player.play();
+        } else {
+          // pause는 빨리 끝나므로 await OK
+          await _player.pause();
+        }
+
+        // 방금 처리 중에 또 토글됐으면 루프 한 번 더
+        if (desired == speakerOn) break;
+      }
+    } catch (_) {
+      // 오디오 에러가 나도 UI는 유지
+    } finally {
+      _syncing = false;
+
+      // sync 끝난 직후에 값이 또 바뀌었으면 다시 한 번
+      if (speakerOn != _player.playing) {
+        _requestSync();
+      }
+    }
   }
 
   @override

@@ -136,15 +136,19 @@ class HomeToWrite with ChangeNotifier {
 
       diaryModel.userId = userId!;
       diaryModel.diaryId = newDiaryId;
-      notifyListeners();
 
       // Add the new diary to the allDiary collection
       await firestore.collection('allDiary').doc(newDiaryId).set(diaryData);
 
-      // Update the user's document in the users collection
+      final todayKey = _todayKey();
+
       await firestore.collection('users').doc(userId).update({
         'myDiaryId': FieldValue.arrayUnion([newDiaryId]),
+        'lastDiaryDateKey': todayKey, // ✅ 추가
       });
+
+      _lastDiaryDateKey = todayKey;
+      notifyListeners();
     } catch (e) {
       developer.log("Error saving diary: $e");
     }
@@ -311,6 +315,7 @@ class HomeToWrite with ChangeNotifier {
     diaryId: 'diaryId',
     cheerText: 'cheerText',
   );
+  bool otherDiaryCome = false;
   bool otherDiaryOpen = false;
 
   Future<void> sendOtherDiary(String diaryId) async {
@@ -322,7 +327,7 @@ class HomeToWrite with ChangeNotifier {
     if (documentSnapshot.exists) {
       Diary diary = Diary.fromSnapshot(documentSnapshot);
       otherDiaryModel = diary;
-      otherDiaryOpen = true;
+      otherDiaryCome = true;
       notifyListeners();
     } else {
       dev.log('Diary with ID $diaryId does not exist.');
@@ -330,6 +335,7 @@ class HomeToWrite with ChangeNotifier {
   }
 
   void offDiaryOpen() {
+    otherDiaryCome = false;
     otherDiaryOpen = false;
     otherDiaryModel = Diary(
       userId: 'userId',
@@ -342,6 +348,11 @@ class HomeToWrite with ChangeNotifier {
       diaryId: 'diaryId',
       cheerText: 'cheerText',
     );
+    notifyListeners();
+  }
+
+  void openDiary() {
+    otherDiaryOpen = true;
     notifyListeners();
   }
 
@@ -435,4 +446,30 @@ class HomeToWrite with ChangeNotifier {
       notifyListeners();
     }
   }
+
+
+  String? _lastDiaryDateKey; // "2026-01-01" 같은 형태
+  String? get lastDiaryDateKey => _lastDiaryDateKey;
+
+  String _todayKey() {
+    final now = DateTime.now();
+    return "${now.year.toString().padLeft(4, '0')}"
+        "-${now.month.toString().padLeft(2, '0')}"
+        "-${now.day.toString().padLeft(2, '0')}";
+  }
+
+  bool get wroteDiaryToday => _lastDiaryDateKey == _todayKey();
+
+  Future<void> loadLastDiaryDate() async {
+    final uid = userId;
+    if (uid == null) return;
+
+    final doc = await firestore.collection('users').doc(uid).get();
+    if (!doc.exists) return;
+
+    final data = doc.data() as Map<String, dynamic>;
+    _lastDiaryDateKey = data['lastDiaryDateKey'] as String?;
+    notifyListeners();
+  }
+
 }

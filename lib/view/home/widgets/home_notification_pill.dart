@@ -6,13 +6,11 @@ import '../../../theme/custom_theme_data.dart';
 
 class HomeNotificationPill extends StatelessWidget {
   final String text;
-  final bool showDot;
   final VoidCallback? onTap;
 
   const HomeNotificationPill({
     super.key,
     required this.text,
-    required this.showDot,
     this.onTap,
   });
 
@@ -36,24 +34,20 @@ class HomeNotificationPill extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Flexible(
-                  child: Text(
-                    text,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: BandiFont.titleSmall(context)?.copyWith(color: BandiColor.neutralColor90(context))
-                  ),
+                  child: Text(text,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: BandiFont.titleSmall(context)?.copyWith(
+                          color: BandiColor.neutralColor90(context))),
                 ),
-                if (showDot)
-                  Container(
-                    width: 10,
-                    height: 10,
-                    decoration: BoxDecoration(
-                      color: BandiColor.accentColorYellow(context),
-                      shape: BoxShape.circle,
-                    ),
-                  )
-                else
-                  const SizedBox(width: 10, height: 10),
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: BandiColor.accentColorYellow(context),
+                    shape: BoxShape.circle,
+                  ),
+                )
               ],
             ),
           ),

@@ -167,8 +167,8 @@ class BandiEffects {
   static final BorderRadius radiusLarge =
       BorderRadius.circular(radiusValueLarge);
 
-  static const double blurSmall = 4.0;
-  static const double blurLarge = 16.0;
+  static const double blurSmall = 2.0;
+  static const double blurLarge = 8.0;
 }
 
 class CustomThemeData {
