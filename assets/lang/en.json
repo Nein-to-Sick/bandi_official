@@ -249,5 +249,7 @@
   "onboarding_nickname_button": "Confirm",
   "onboarding_nickname_empty": "no Nickname",
   "sharing_diary_on": "Share journal with others",
-  "sharing_diary_off": "View journal privately"
+  "sharing_diary_off": "View journal privately",
+  "calendar_header_format": "MMMM yyyy",
+  "calendar_year_format": "yyyy"
 }

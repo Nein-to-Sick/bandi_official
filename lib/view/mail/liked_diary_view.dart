@@ -113,17 +113,13 @@ Widget likedDiaryWidget(
             onTap: () {
               logOtherJournalSearch(journalType: 'others');
               mailController.toggleDetailView(true);
-              showDialog(
-                context: context,
-                barrierDismissible: false,
-                barrierColor: BandiColor.transparent(context),
-                builder: (BuildContext context) {
-                  return DetailView(
-                    item: diary,
-                    mailController: mailController,
-                  );
-                },
-              );
+              DetailViewSheet(item: diary, mailController: mailController)
+                  .show(context)
+                  .then((_) {
+                if (context.mounted) {
+                  mailController.toggleDetailView(false);
+                }
+              });
             },
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 24),

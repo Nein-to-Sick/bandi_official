@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:bandi_official/components/appbar/new_custom_appbar.dart';
+import 'package:bandi_official/components/bottom_sheet/calendar_bottom_sheet.dart';
 import 'package:bandi_official/main.dart';
 import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
 import 'package:bandi_official/view/mail/controller/mail_controller.dart';
@@ -69,11 +70,13 @@ class _MailViewState extends State<MailView>
           leftActionButtonIcon: (mailController.tabController.index == 1)
               ? PhosphorIcons.funnelSimple(PhosphorIconsStyle.thin)
               : null,
+          leftActionButtonColor: (mailController.filteredchipLabels.length != 3)
+              ? BandiColor.accentColorYellow(context)
+              : null,
           rightActionButtonIcon:
               PhosphorIcons.calendarBlank(PhosphorIconsStyle.thin),
           onLeftActionButtonPressed: () async {
-            final action =
-                await showLikedDiaryActionSheet(context, mailController);
+            await showLikedDiaryActionSheet(context, mailController);
 
             // For alarm test
             /*
@@ -84,7 +87,25 @@ class _MailViewState extends State<MailView>
             newLetterPopUpPageTestFunction(context);
             */
           },
-          onRightActionButtonPressed: () {},
+          onRightActionButtonPressed: () {
+            CalendarBottomSheet(
+              initialDate: mailController.CalendarSelectedDate,
+              mode: (mailController.tabController.index == 1)
+                  ? CalendarMode.date
+                  : CalendarMode.month,
+              eventDates: [
+                DateTime(2025, 12, 31),
+              ],
+              onDateSelected: (date) {
+                (mailController.tabController.index == 1)
+                    ? dev
+                        .log("선택된 월: ${date.year}년 ${date.month}월 ${date.day}일")
+                    : dev.log("선택된 월: ${date.year}년 ${date.month}월");
+
+                mailController.updateCalendarSelectedDate(date);
+              },
+            ).show(context);
+          },
           disableLefttActionButton: false,
         ),
         body: Padding(

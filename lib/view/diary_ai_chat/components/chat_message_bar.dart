@@ -47,8 +47,6 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
       }
     }
 
-    final bottomHeight = MediaQuery.of(context).padding.bottom;
-
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -125,38 +123,38 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
           ),
 
         // chat message bar and send button
-        AnimatedContainer(
-          duration: const Duration(milliseconds: 100),
-          curve: Curves.easeOutCirc,
-          height: 94 + bottomHeight,
-          decoration: BoxDecoration(
-            color: BandiColor.transparent(context),
-          ),
-          child: Padding(
-            padding: EdgeInsets.only(
-                left: 24, right: 24, top: 16, bottom: bottomHeight),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Flexible(
-                  flex: 3,
-                  child: IgnorePointer(
-                    ignoring: diaryAiChatController.isChatResponsLoading,
-                    child: ClipRRect(
-                      borderRadius: BandiEffects.radiusLarge,
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(
-                          sigmaX: BandiEffects.blurLarge,
-                          sigmaY: BandiEffects.blurLarge,
-                        ),
+        ClipRRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(
+              sigmaX: BandiEffects.blurLarge,
+              sigmaY: BandiEffects.blurLarge,
+            ),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 100),
+              curve: Curves.easeOutCirc,
+              constraints: const BoxConstraints(minHeight: 94, maxHeight: 144),
+              decoration: BoxDecoration(
+                color: BandiColor.neutralColor30(context),
+              ),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Flexible(
+                      flex: 3,
+                      child: IgnorePointer(
+                        ignoring: diaryAiChatController.isChatResponsLoading,
                         child: Container(
+                          clipBehavior: Clip.antiAlias,
                           constraints: const BoxConstraints(
                               minHeight: 48, maxHeight: 96),
                           decoration: BoxDecoration(
-                            color: BandiColor.neutralColor40(context),
-                            borderRadius: BandiEffects.radiusLarge,
+                            color: BandiColor.neutralColor80(context),
+                            borderRadius: BandiEffects.radiusSmall,
                           ),
                           child: TextField(
                             onChanged: (text) {
@@ -189,70 +187,71 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                         ),
                       ),
                     ),
-                  ),
-                ),
-                Flexible(
-                  flex: 1,
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: GestureDetector(
-                      onTapDown: (sendButtonCondition())
-                          ? null
-                          : (_) {
-                              dev.log('Pressed!');
-                              setState(() {
-                                isSendButtonPressed = true;
-                              });
-                            },
-                      onTapUp: (sendButtonCondition())
-                          ? null
-                          : (_) {
-                              dev.log('Run!');
-                              setState(() {
-                                isSendButtonPressed = false;
-                              });
-                              diaryAiChatController.onMessageSubmitted(context);
-                            },
-                      onTapCancel: (sendButtonCondition())
-                          ? null
-                          : () {
-                              dev.log('Cancel!');
-                              setState(() {
-                                isSendButtonPressed = false;
-                              });
-                            },
-                      child: AnimatedContainer(
-                        height: 48,
-                        duration: const Duration(milliseconds: 300),
-                        constraints:
-                            const BoxConstraints(minHeight: 48, maxHeight: 96),
-                        decoration: BoxDecoration(
-                          color: (sendButtonCondition())
-                              ? BandiColor.foundationColor10(
-                                  context) // Disabled
-                              : (isSendButtonPressed)
+                    Flexible(
+                      flex: 1,
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 8),
+                        child: GestureDetector(
+                          onTapDown: (sendButtonCondition())
+                              ? null
+                              : (_) {
+                                  dev.log('Pressed!');
+                                  setState(() {
+                                    isSendButtonPressed = true;
+                                  });
+                                },
+                          onTapUp: (sendButtonCondition())
+                              ? null
+                              : (_) {
+                                  dev.log('Run!');
+                                  setState(() {
+                                    isSendButtonPressed = false;
+                                  });
+                                  diaryAiChatController
+                                      .onMessageSubmitted(context);
+                                },
+                          onTapCancel: (sendButtonCondition())
+                              ? null
+                              : () {
+                                  dev.log('Cancel!');
+                                  setState(() {
+                                    isSendButtonPressed = false;
+                                  });
+                                },
+                          child: AnimatedContainer(
+                            height: 48,
+                            duration: const Duration(milliseconds: 300),
+                            decoration: BoxDecoration(
+                              color: (sendButtonCondition())
                                   ? BandiColor.foundationColor10(
-                                      context) // Pressed
-                                  : BandiColor.foundationColor90(
-                                      context), // Default
-                          borderRadius: BandiEffects.radiusLarge,
-                        ),
-                        child: Center(
-                          child: PhosphorIcon(
-                            PhosphorIcons.paperPlaneRight(
-                              PhosphorIconsStyle.fill,
+                                      context) // Disabled
+                                  : (isSendButtonPressed)
+                                      ? BandiColor.foundationColor10(
+                                          context) // Pressed
+                                      : BandiColor.foundationColor90(
+                                          context), // Default
+                              borderRadius: BandiEffects.radiusSmall,
                             ),
-                            color: (sendButtonCondition())
-                                ? BandiColor.neutralColor40(context) // Disabled
-                                : BandiColor.neutralColor90(context), // Default
-                            size: 16,
+                            child: Center(
+                              child: PhosphorIcon(
+                                PhosphorIcons.paperPlaneRight(
+                                  PhosphorIconsStyle.fill,
+                                ),
+                                color: (sendButtonCondition())
+                                    ? BandiColor.neutralColor40(
+                                        context) // Disabled
+                                    : BandiColor.neutralColor90(
+                                        context), // Default
+                                size: 16,
+                              ),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                )
-              ],
+                    )
+                  ],
+                ),
+              ),
             ),
           ),
         )

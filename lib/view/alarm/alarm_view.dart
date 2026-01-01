@@ -153,19 +153,16 @@ class _AlarmViewState extends State<AlarmView> {
 
                                       WidgetsBinding.instance
                                           .addPostFrameCallback((_) {
-                                        showDialog(
-                                          context:
-                                              alarmController.navigationContext,
-                                          barrierDismissible: false,
-                                          barrierColor:
-                                              BandiColor.transparent(context),
-                                          builder: (BuildContext context) {
-                                            return DetailView(
-                                              item: letter,
-                                              mailController: mailController,
-                                            );
-                                          },
-                                        );
+                                        DetailViewSheet(
+                                                item: letter,
+                                                mailController: mailController)
+                                            .show(context)
+                                            .then((_) {
+                                          if (context.mounted) {
+                                            mailController
+                                                .toggleDetailView(false);
+                                          }
+                                        });
                                       });
                                     }
 
