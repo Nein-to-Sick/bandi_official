@@ -17,6 +17,12 @@ class Tuple<T1, T2> {
   Tuple(this.item1, this.item2);
 }
 
+enum MailDataType {
+  all, // 모두
+  diary, // 일기만
+  letter, // 편지만
+}
+
 class MailController with ChangeNotifier {
   // load data one when navigate to the view at the first time
   bool loadLikedDiaryDataOnce = false;
@@ -304,137 +310,195 @@ class MailController with ChangeNotifier {
   }
 
   Future<void> fetchLikedDiariesAndSaveFromDB() async {
-    if (userId!.isNotEmpty) {
-      dev.log('trying to fetch liked Diary from DB');
-      likedDiaryListDates.clear();
-      likedDiaryList.clear();
+    // 유저 ID 체크
+    if (userId == null || userId!.isEmpty) {
+      dev.log('there is no firebase uid');
+      return;
+    }
 
-      try {
-        loadLikedDiaryDataOnce = true;
-        // Firestore 인스턴스 가져오기
-        final FirebaseFirestore firestore = FirebaseFirestore.instance;
-        final SharedPreferences prefs = await SharedPreferences.getInstance();
+    dev.log('trying to fetch liked Diary from DB with Chunking');
+    likedDiaryListDates.clear();
+    likedDiaryList.clear();
 
-        // 현재 날짜를 키로 사용하기 위해 ISO 형식의 날짜 문자열 생성
-        String todayKey =
-            '${userId}_likedDiaryList_${DateTime.now().toIso8601String().substring(0, 10)}';
+    try {
+      loadLikedDiaryDataOnce = true;
+      final FirebaseFirestore firestore = FirebaseFirestore.instance;
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
 
-        // 특정 사용자의 likedDiaryIds 가져오기
-        DocumentSnapshot userDoc =
-            await firestore.collection('users').doc(userId).get();
+      // 유저 문서에서 likedDiaryId 배열 가져오기
+      DocumentSnapshot userDoc =
+          await firestore.collection('users').doc(userId).get();
 
-        List<String> likedDiaryIds = List<String>.from(userDoc['likedDiaryId']);
+      if (!userDoc.exists || userDoc.data() == null) return;
 
-        // 데이터가 없을 경우 종료
-        if (likedDiaryIds.isEmpty) {
-          dev.log('No liked diaries found for user.');
-          return;
-        }
+      Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+      if (!userData.containsKey('likedDiaryId')) return;
 
-        // 순수 id 값을 추출한 리스트 생성
-        List<String> pureIds = likedDiaryIds.map((entry) {
-          return entry.split('_')[2];
-        }).toList();
+      List<String> likedDiaryIds = List<String>.from(userData['likedDiaryId']);
 
-        // likedDiaryIds에 해당하는 다이어리들 조회
-        QuerySnapshot diarySnapshot = await firestore
+      if (likedDiaryIds.isEmpty) {
+        dev.log('No liked diaries found for user.');
+        notifyListeners();
+        return;
+      }
+
+      // 순수 ID 추출 (1_2025-01-01_diaryId -> diaryId)
+      List<String> pureIds = likedDiaryIds.map((entry) {
+        return entry.split('_')[2];
+      }).toList();
+
+      List<QueryDocumentSnapshot> allFetchedDocs = [];
+      int chunkSize = 10;
+
+      for (int i = 0; i < pureIds.length; i += chunkSize) {
+        // 10개씩 자르기 (마지막 남은 개수 처리 포함)
+        int end =
+            (i + chunkSize < pureIds.length) ? i + chunkSize : pureIds.length;
+        List<String> chunk = pureIds.sublist(i, end);
+
+        // Firestore 조회
+        QuerySnapshot chunkSnapshot = await firestore
             .collection('allDiary')
-            .where(FieldPath.documentId, whereIn: pureIds)
+            .where(FieldPath.documentId, whereIn: chunk)
             .get();
 
-        // Create a map for quick lookups of documents by their 'diaryId'
-        Map<String, QueryDocumentSnapshot> docMap = {
-          for (var doc in diarySnapshot.docs) doc.get('diaryId'): doc
-        };
-
-        // 'idsFromLikedDiaryIds' 리스트의 순서에 맞춰 'diarySnapshot.docs' 리스트를 정렬
-        List<QueryDocumentSnapshot<Object?>?> sortedSnapshot = pureIds
-            .map((id) => docMap[id]) // Look up the document in the map
-            .where((doc) => doc != null) // Filter out null values
-            .toList();
-
-        // 조회된 다이어리들을 likedDiaryList에 추가
-        likedDiaryList = sortedSnapshot.map((doc) {
-          // Extract `diaryId` from the document data
-          final diaryId = likedDiaryIds.firstWhere((id) {
-            if (id.split('_')[2] == doc!['diaryId']) {
-              // dev.log(id);
-              // dev.log(doc['diaryId']);
-            }
-            return id.split('_')[2] == doc['diaryId'];
-          });
-
-          // Extract and convert the first character of `diaryId` to an integer
-          final otherUserReaction = int.tryParse(diaryId.substring(0, 1)) ?? 0;
-          final otherUserLikedAt = diaryId.substring(2, 12);
-
-          return Diary.fromJsonDB(doc?.data() as Map<String, dynamic>,
-              otherUserReaction, otherUserLikedAt);
-        }).toList();
-
-        likedDiaryListDates.add(todayKey);
-
-        // 병합된 리스트를 로컬 저장소에 저장
-        List<String> jsonMessages = likedDiaryList
-            .map((message) => jsonEncode(message.toJson()))
-            .toList();
-        await prefs.setStringList(todayKey, jsonMessages);
-
-        dev.log(
-            'Fetched and saved ${likedDiaryList.length} liked diaries for date ${todayKey.split('_').skip(1).join('_')}.');
-      } catch (e) {
-        dev.log('Error fetching liked diaries: $e');
+        allFetchedDocs.addAll(chunkSnapshot.docs);
       }
-    } else {
-      dev.log('there is no firebase uid');
+
+      // 조회된 문서를 ID 기준으로 빠르게 찾기 위해 맵으로 변환
+      Map<String, QueryDocumentSnapshot> docMap = {
+        for (var doc in allFetchedDocs) doc.get('diaryId'): doc
+      };
+
+      // Diary 객체 생성 (메타데이터 주입)
+      List<Diary> fetchedDiaries = [];
+
+      for (String fullId in likedDiaryIds) {
+        List<String> parts = fullId.split('_');
+        if (parts.length < 3) continue;
+
+        String prefix = parts[0]; // reaction
+        String dateStr = parts[1]; // likedAt date
+        String realId = parts[2]; // diaryId
+
+        var doc = docMap[realId];
+        // 삭제된 일기가 아닐 경우에만 리스트에 추가
+        if (doc != null) {
+          int otherUserReaction = int.tryParse(prefix) ?? 0;
+          String otherUserLikedAt = dateStr; // "2025-01-01"
+
+          // DB 데이터에 파싱한 정보를 주입하여 객체 생성
+          fetchedDiaries.add(Diary.fromJsonDB(
+            doc.data() as Map<String, dynamic>,
+            otherUserReaction,
+            otherUserLikedAt,
+          ));
+        }
+      }
+
+      // 메모리 리스트 업데이트
+      likedDiaryList = fetchedDiaries;
+
+      Map<String, List<Diary>> groupedDiaries = {};
+
+      for (var diary in likedDiaryList) {
+        // ID 문자열에서 파싱해온 실제 날짜(otherUserLikedAt) 사용
+        String dateStr = diary.otherUserLikedAt;
+
+        // 날짜 유효성 방어 코드 (yyyy-MM-dd 형태가 아니면 오늘 날짜로)
+        if (dateStr.length < 10) {
+          dateStr = DateTime.now().toIso8601String().substring(0, 10);
+        } else {
+          dateStr = dateStr.substring(0, 10);
+        }
+
+        if (!groupedDiaries.containsKey(dateStr)) {
+          groupedDiaries[dateStr] = [];
+        }
+        groupedDiaries[dateStr]!.add(diary);
+      }
+
+      // 그룹화된 데이터를 날짜별 키로 저장
+      for (var entry in groupedDiaries.entries) {
+        String dateStr = entry.key;
+        List<Diary> diaries = entry.value;
+
+        // 로컬 키 생성 (userId_likedDiaryList_yyyy-MM-dd)
+        String key = '${userId}_likedDiaryList_$dateStr';
+
+        List<String> jsonMessages =
+            diaries.map((msg) => jsonEncode(msg.toJson())).toList();
+
+        await prefs.setStringList(key, jsonMessages);
+
+        if (!likedDiaryListDates.contains(key)) {
+          likedDiaryListDates.add(key);
+        }
+      }
+
+      // 날짜 최신순 정렬 (화면 표시용)
+      likedDiaryListDates.sort((a, b) => b.compareTo(a));
+
+      dev.log(
+          'Fetched ${likedDiaryList.length} liked diaries using chunking and saved locally.');
+      notifyListeners();
+    } catch (e) {
+      dev.log('Error fetching liked diaries: $e');
     }
   }
 
-  // update liked diary to local storage
+  // 알림 등을 통해 새 공감 일기를 전달받았을 때 처리하는 함수
   void saveLikedDiaryToLocal(Diary likedDiary, int prefixNumber) async {
-    if (userId!.isNotEmpty) {
-      // Firestore 업데이트 로직 추가
-      DocumentReference userDocRef =
-          FirebaseFirestore.instance.collection('users').doc(userId);
+    // 유저 ID가 없으면 로직 수행 불가
+    if (userId == null || userId!.isEmpty) {
+      dev.log('there is no firebase uid');
+      return;
+    }
 
-      // 날짜 형식 생성
+    try {
+      final FirebaseFirestore firestore = FirebaseFirestore.instance;
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+      DocumentReference userDocRef = firestore.collection('users').doc(userId);
+
+      // 날짜 형식 생성 (서버 저장용 ID는 '받은 시점'인 현재 시간 기준)
+      // 이 시점이 곧 'otherUserLikedAt'이 됩니다.
       String dateString =
           "${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}-${DateTime.now().day.toString().padLeft(2, '0')}";
 
-      // id 앞에 번호(prefixNumber)를 붙이고 뒤에 날짜를 추가
+      // ID 생성 (prefix_date_id)
       String formattedId =
           "${prefixNumber}_${dateString}_${likedDiary.diaryId}";
 
-      // Firestore likedDiaryId 배열에 formattedId 추가
+      // Firestore 배열에 추가
       await userDocRef.update({
         'likedDiaryId': FieldValue.arrayUnion([formattedId])
       });
 
       dev.log('Added formatted likedDiary id $formattedId to Firestore');
 
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      String todayKey = '${userId}_likedDiaryList_$dateString}';
+      // 로컬 저장소 키 생성 (문법 오류 수정됨: } 제거)
+      String targetKey = '${userId}_likedDiaryList_$dateString';
 
-      // 로컬 저장소에서 오늘의 메시지들을 불러오기
-      List<String>? storedMessages = prefs.getStringList(todayKey);
-      List<Diary> todayMessages = [];
+      // 해당 날짜의 기존 메시지 불러오기
+      List<String>? storedMessages = prefs.getStringList(targetKey);
+      List<Diary> messages = [];
 
       if (storedMessages != null) {
-        todayMessages = storedMessages.map(
-          (jsonMessage) {
-            // JSON 문자열을 한 번만 디코드하여 Map<String, dynamic> 객체로 변환
-            final decodedJson = jsonDecode(jsonMessage);
+        messages = storedMessages.map((jsonMessage) {
+          final decodedJson = jsonDecode(jsonMessage);
 
-            // 디코드된 객체를 재사용하여 Diary 객체 생성
-            return Diary.fromJsonLocal(
-              decodedJson,
-              decodedJson['otherUserReaction'],
-              formattedId.substring(2, 12),
-            );
-          },
-        ).toList();
+          // [수정 핵심] 기존 데이터 파싱 시, 기존 데이터의 값을 그대로 유지해야 함
+          // formattedId(새 데이터 정보)를 넣으면 안 됨!
+          return Diary.fromJsonLocal(
+            decodedJson,
+            decodedJson['otherUserReaction'] ?? -1,
+            decodedJson['otherUserLikedAt'] ?? '',
+          );
+        }).toList();
       }
 
+      // 저장할 새 Diary 객체 생성 (메타데이터 주입)
       Diary updatedDiary = Diary(
         userId: likedDiary.userId,
         title: likedDiary.title,
@@ -448,17 +512,31 @@ class MailController with ChangeNotifier {
         otherUserLikedAt: dateString,
       );
 
-      // 인수로 받은 likedDiary 추가
-      todayMessages.add(updatedDiary);
+      // 리스트에 추가 (로컬 저장용)
+      messages.add(updatedDiary);
 
+      // 메모리 리스트(화면 표시용)에도 추가 (최신순 유지를 위해 맨 앞 삽입)
+      // 이렇게 하면 loadLikedDiaryDataOnce = false를 할 필요 없이 즉시 반영됨
+      likedDiaryList.insert(0, updatedDiary);
+
+      // 로컬 저장소에 저장
       List<String> jsonMessages =
-          todayMessages.map((message) => jsonEncode(message.toJson())).toList();
-      await prefs.setStringList(todayKey, jsonMessages);
-      dev.log(
-          'save liked Diary to local for date ${todayKey.split('_').skip(1).join('_')}');
-      loadLikedDiaryDataOnce = false;
-    } else {
-      dev.log('there is no firebase uid');
+          messages.map((message) => jsonEncode(message.toJson())).toList();
+      await prefs.setStringList(targetKey, jsonMessages);
+
+      // 날짜 키 리스트 업데이트 (화면 섹션 갱신용)
+      if (!likedDiaryListDates.contains(targetKey)) {
+        likedDiaryListDates.add(targetKey);
+        // 날짜 내림차순 정렬
+        likedDiaryListDates.sort((a, b) => b.compareTo(a));
+      }
+
+      dev.log('Saved liked Diary to local for date $dateString');
+
+      // UI 갱신 알림
+      notifyListeners();
+    } catch (e) {
+      dev.log('Error saving liked diary locally: $e');
     }
   }
 
@@ -570,69 +648,102 @@ class MailController with ChangeNotifier {
   }
 
   Future<void> fetchLettersAndSaveFromDB() async {
-    if (userId!.isNotEmpty) {
-      dev.log('trying to fetch letter from DB');
-      letterListDates.clear();
-      letterList.clear();
-
-      try {
-        loadLetterDataOnce = true;
-        // Firestore 인스턴스 가져오기
-        final FirebaseFirestore firestore = FirebaseFirestore.instance;
-        final SharedPreferences prefs = await SharedPreferences.getInstance();
-
-        // 현재 날짜를 키로 사용하기 위해 ISO 형식의 날짜 문자열 생성
-        String todayKey =
-            '${userId}_letterList_${DateTime.now().toIso8601String().substring(0, 10)}';
-
-        // Firestore에서 특정 사용자의 letters 컬렉션의 문서들을 가져오기
-        QuerySnapshot lettersSnapshot = await firestore
-            .collection('users')
-            .doc(userId)
-            .collection('letters')
-            .orderBy('date', descending: true)
-            .get();
-
-        // 쿼리 결과가 비어 있는 경우 종료
-        if (lettersSnapshot.docs.isEmpty) {
-          dev.log('No letters found for user.');
-          return;
-        }
-
-        // 조회된 다이어리들을 letterList에 추가
-        letterList = lettersSnapshot.docs.map((doc) {
-          return Letter.fromJsonDB(doc.data() as Map<String, dynamic>);
-        }).toList();
-
-        letterListDates.add(todayKey);
-        List<Letter> todayMessages = [];
-
-        // Firestore에서 가져온 letterList와 로컬에 저장된 todayMessages를 병합
-        todayMessages = letterList;
-
-        // 병합된 리스트를 로컬 저장소에 저장
-        List<String> jsonMessages = todayMessages
-            .map((message) => jsonEncode(message.toJson()))
-            .toList();
-        await prefs.setStringList(todayKey, jsonMessages);
-
-        dev.log(
-            'Fetched and saved ${letterList.length} letters for date ${todayKey.split('_').skip(1).join('_')}.');
-      } catch (e) {
-        dev.log('Error fetching letters: $e');
-      }
-    } else {
+    // 유저 ID 체크
+    if (userId == null || userId!.isEmpty) {
       dev.log('there is no firebase uid');
+      return;
+    }
+
+    dev.log('trying to fetch letter from DB');
+
+    // 리스트 초기화
+    letterListDates.clear();
+    letterList.clear();
+
+    try {
+      loadLetterDataOnce = true;
+      final FirebaseFirestore firestore = FirebaseFirestore.instance;
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+      QuerySnapshot lettersSnapshot = await firestore
+          .collection('users')
+          .doc(userId)
+          .collection('letters')
+          .orderBy('date', descending: true)
+          .get();
+
+      // 데이터가 없으면 종료
+      if (lettersSnapshot.docs.isEmpty) {
+        dev.log('No letters found for user.');
+        notifyListeners(); // 빈 리스트라도 화면 갱신 필요
+        return;
+      }
+
+      // Snapshot -> Letter 모델 리스트로 변환
+      letterList = lettersSnapshot.docs.map((doc) {
+        return Letter.fromSnapshot(doc);
+      }).toList();
+
+      Map<String, List<Letter>> groupedLetters = {};
+
+      for (var letter in letterList) {
+        // 편지의 실제 날짜(date)를 가져옴
+        DateTime date = letter.date.toDate();
+
+        // 키 생성용 날짜 문자열 추출 (yyyy-MM-dd)
+        String dateKey = date.toIso8601String().substring(0, 10);
+
+        if (!groupedLetters.containsKey(dateKey)) {
+          groupedLetters[dateKey] = [];
+        }
+        groupedLetters[dateKey]!.add(letter);
+      }
+
+      // 그룹화된 데이터를 날짜별 키(Key)로 로컬에 저장
+      for (var entry in groupedLetters.entries) {
+        String dateStr = entry.key; // 예: "2025-05-05"
+        List<Letter> lettersOfDay = entry.value;
+
+        // 로컬 저장소 키 생성 (예: userId_letterList_2025-05-05)
+        String key = '${userId}_letterList_$dateStr';
+
+        // List<Letter> -> List<String(JSON)> 변환
+        List<String> jsonMessages =
+            lettersOfDay.map((msg) => jsonEncode(msg.toJson())).toList();
+
+        // SharedPreferences에 저장
+        await prefs.setStringList(key, jsonMessages);
+
+        // 화면 표시용 날짜 키 리스트에도 추가
+        if (!letterListDates.contains(key)) {
+          letterListDates.add(key);
+        }
+      }
+
+      // 날짜 내림차순 정렬 (최신 날짜가 위로 오도록)
+      letterListDates.sort((a, b) => b.compareTo(a));
+
+      dev.log('Fetched and grouped ${letterList.length} letters.');
+
+      // UI 갱신 알림
+      notifyListeners();
+    } catch (e) {
+      dev.log('Error fetching letters: $e');
     }
   }
 
-  // update liked diary to local storage
   Future<Tuple> checkForNewLetterNewNotificationsAndSaveLetterToLocal() async {
     bool newLetterAvailable = false;
-    if (userId!.isNotEmpty) {
+    // 유저 ID 체크
+    if (userId == null || userId!.isEmpty) {
+      dev.log('there is no firebase uid');
+      return Tuple(newLetterAvailable, null);
+    }
+
+    try {
       loadNewLetterAndNotificationsDataOnce = true;
 
-      // 사용자의 문서를 가져옴
+      // 사용자의 문서를 가져와 플래그 확인
       final userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(userId)
@@ -640,18 +751,20 @@ class MailController with ChangeNotifier {
 
       dev.log('check for new letter and new notifications are arrived');
 
-      // 새로운 편지와 알림이 도착했는지 확인
-      if (userDoc.exists) {
-        newLetterAvailable = userDoc.data()!['newLetterAvailable'];
-        isNewNotifications = userDoc.data()!['newNotificationsAvailable'];
+      if (userDoc.exists && userDoc.data() != null) {
+        newLetterAvailable = userDoc.data()!['newLetterAvailable'] ?? false;
+        isNewNotifications =
+            userDoc.data()!['newNotificationsAvailable'] ?? false;
         notifyListeners();
       }
 
+      // 새 편지가 없으면 종료
       if (!newLetterAvailable) {
         dev.log('there is no new letter');
         return Tuple(newLetterAvailable, null);
       }
 
+      // 가장 최신 편지 1개 가져오기
       QuerySnapshot querySnapshot = await FirebaseFirestore.instance
           .collection('users')
           .doc(userId)
@@ -661,46 +774,68 @@ class MailController with ChangeNotifier {
           .get();
 
       if (querySnapshot.docs.isEmpty) {
-        dev.log('there is new letter but cannot find new letter querySnapshot');
+        dev.log(
+            'there is new letter available flag but cannot find actual document');
+        // 플래그는 true인데 데이터가 없는 예외 상황 처리
         return Tuple(!newLetterAvailable, null);
       }
 
+      // 4. 편지 객체 생성
       newLetter = Letter.fromSnapshot(querySnapshot.docs.first);
 
       final SharedPreferences prefs = await SharedPreferences.getInstance();
-      String todayKey =
-          '${userId}_letterList_${DateTime.now().toIso8601String().substring(0, 10)}';
 
-      // 로컬 저장소에서 오늘의 메시지들을 불러오기
-      List<String>? storedMessages = prefs.getStringList(todayKey);
-      List<Letter> todayMessages = [];
+      DateTime letterDate = newLetter.date.toDate().toLocal();
+      String dateKey = letterDate.toIso8601String().substring(0, 10);
+
+      // 로컬 저장소 키 생성 (예: userId_letterList_2025-07-12)
+      String targetKey = '${userId}_letterList_$dateKey';
+
+      // 해당 날짜의 기존 로컬 메시지 불러오기
+      List<String>? storedMessages = prefs.getStringList(targetKey);
+      List<Letter> targetMessages = [];
 
       if (storedMessages != null) {
-        todayMessages = storedMessages
+        targetMessages = storedMessages
             .map((jsonMessage) => Letter.fromJsonLocal(jsonDecode(jsonMessage)))
             .toList();
       }
 
-      // 인수로 받은 letter 추가
-      todayMessages.add(newLetter);
-      letterList.add(newLetter);
+      // 중복 방지 및 데이터 추가
+      // (이미 저장된 편지인지 확인)
+      bool isDuplicate =
+          targetMessages.any((l) => l.letterId == newLetter.letterId);
 
-      List<String> jsonMessages =
-          todayMessages.map((message) => jsonEncode(message.toJson())).toList();
-      await prefs.setStringList(todayKey, jsonMessages);
+      if (!isDuplicate) {
+        // 로컬 리스트에 추가
+        targetMessages.add(newLetter);
 
-      dev.log(
-          'save letter to local for date ${todayKey.split('_').skip(1).join('_')}');
+        // 메모리 리스트(UI 표시용) 최상단에 추가
+        letterList.insert(0, newLetter);
 
-      // 유저의 새 편지 변수 초기화
+        // 로컬 저장소에 저장
+        List<String> jsonMessages = targetMessages
+            .map((message) => jsonEncode(message.toJson()))
+            .toList();
+        await prefs.setStringList(targetKey, jsonMessages);
+
+        if (!letterListDates.contains(targetKey)) {
+          letterListDates.add(targetKey);
+          // 날짜 내림차순 정렬
+          letterListDates.sort((a, b) => b.compareTo(a));
+        }
+
+        dev.log('save letter to local for date $dateKey');
+      }
+
+      // 7. Firestore 플래그 초기화 (newLetterAvailable -> false)
       await FirebaseFirestore.instance.collection('users').doc(userId).update({
         'newLetterAvailable': false,
       });
 
       dev.log('update "newLetterAvailable" field from user document');
-    } else {
-      dev.log('there is no firebase uid');
-      return Tuple(newLetterAvailable, null);
+    } catch (e) {
+      dev.log('Error checking for new letter: $e');
     }
 
     notifyListeners();
@@ -886,5 +1021,69 @@ class MailController with ChangeNotifier {
   void updateCalendarSelectedDate(DateTime value) {
     CalendarSelectedDate = value;
     notifyListeners();
+  }
+
+  /// 로컬 저장소의 데이터를 파싱하여 캘린더 점 표시를 위한 날짜 리스트를 반환
+  /// [type] : all(전체), diary(일기만), letter(편지만)
+  Future<List<DateTime>> getAllEventDatesFromLocal(
+      {MailDataType type = MailDataType.all}) async {
+    if (userId == null || userId!.isEmpty) return [];
+
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final Set<String> keys = prefs.getKeys();
+
+    // 중복 날짜 제거를 위해 Set 사용 (yyyy-MM-dd 문자열로 관리)
+    final Set<String> uniqueDateStrings = {};
+
+    final String diaryPrefix = '${userId}_likedDiaryList_';
+    final String letterPrefix = '${userId}_letterList_';
+
+    for (String key in keys) {
+      // 1. 타입에 따른 키 필터링
+      bool isDiaryKey = key.startsWith(diaryPrefix);
+      bool isLetterKey = key.startsWith(letterPrefix);
+
+      if (type == MailDataType.diary && !isDiaryKey) continue;
+      if (type == MailDataType.letter && !isLetterKey) continue;
+      if (type == MailDataType.all && (!isDiaryKey && !isLetterKey)) continue;
+
+      // 2. 데이터 파싱
+      List<String>? jsonList = prefs.getStringList(key);
+      if (jsonList == null) continue;
+
+      for (String jsonStr in jsonList) {
+        try {
+          final Map<String, dynamic> data = jsonDecode(jsonStr);
+          DateTime? extractedDate;
+
+          // [Letter 파싱]
+          if (isLetterKey) {
+            // letter.dart의 toJson: 'date'는 int (milliseconds)
+            var dateVal = data['date'];
+            if (dateVal is int) {
+              extractedDate = DateTime.fromMillisecondsSinceEpoch(dateVal);
+            }
+          }
+          // [Diary 파싱]
+          else if (isDiaryKey) {
+            // diary.dart의 toJson: 'otherUserLikedAt' (String)
+            String? likedAt = data['otherUserLikedAt'];
+            if (likedAt != null && likedAt.length >= 10) {
+              extractedDate = DateTime.tryParse(likedAt.substring(0, 10));
+            }
+          }
+
+          if (extractedDate != null) {
+            // 시간 정보 제거하고 날짜만 저장 (yyyy-MM-dd)
+            String yyyyMMdd = extractedDate.toIso8601String().substring(0, 10);
+            uniqueDateStrings.add(yyyyMMdd);
+          }
+        } catch (e) {
+          // 개별 파싱 에러는 무시
+        }
+      }
+    }
+
+    return uniqueDateStrings.map((d) => DateTime.parse(d)).toList();
   }
 }
