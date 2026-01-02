@@ -879,6 +879,7 @@ class MailController with ChangeNotifier {
     }
   }
 
+  // TODO: letter, diary 일자 선택 변수 구분하기
   // for Calendar selection
   DateTime CalendarSelectedDate = DateTime.now();
 

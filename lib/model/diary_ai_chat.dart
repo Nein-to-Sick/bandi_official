@@ -135,11 +135,16 @@ class ChatMessage {
     return formattedTime;
   }
 
-  // Function to calculate the difference in days between two timestamps
   static int calculateDateDifference(
       Timestamp timestamp1, Timestamp timestamp2) {
-    DateTime date1 = timestamp1.toDate();
-    DateTime date2 = timestamp2.toDate();
-    return (date1.difference(date2).inDays.abs());
+    // 로컬 시간대로 변환
+    DateTime d1 = timestamp1.toDate().toLocal();
+    DateTime d2 = timestamp2.toDate().toLocal();
+
+    // 시간, 분, 초를 제거하고 '연, 월, 일'만 남긴 객체 생성 (자정으로 초기화)
+    DateTime dateOnly1 = DateTime(d1.year, d1.month, d1.day);
+    DateTime dateOnly2 = DateTime(d2.year, d2.month, d2.day);
+
+    return dateOnly1.difference(dateOnly2).inDays.abs();
   }
 }
