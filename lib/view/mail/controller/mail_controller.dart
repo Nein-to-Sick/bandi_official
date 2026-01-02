@@ -1014,12 +1014,21 @@ class MailController with ChangeNotifier {
     }
   }
 
-  // TODO: letter, diary 일자 선택 변수 구분하기
   // for Calendar selection
-  DateTime CalendarSelectedDate = DateTime.now();
+  DateTime? _likedDiaryFilteredDate;
+  DateTime? _letterFilteredDate;
 
-  void updateCalendarSelectedDate(DateTime value) {
-    CalendarSelectedDate = value;
+  // Getter
+  DateTime? get likfedDiaryFilteredDate => _likedDiaryFilteredDate;
+  DateTime? get letterFilteredDate => _letterFilteredDate;
+
+  void updateLikedDiaryCalendarSelectedDate(DateTime? date) {
+    _likedDiaryFilteredDate = date;
+    notifyListeners();
+  }
+
+  void updateLetterCalendarSelectedDate(DateTime? date) {
+    _letterFilteredDate = date;
     notifyListeners();
   }
 

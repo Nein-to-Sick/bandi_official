@@ -76,6 +76,12 @@ class _MailViewState extends State<MailView>
               : null,
           rightActionButtonIcon:
               PhosphorIcons.calendarBlank(PhosphorIconsStyle.thin),
+          rightActionButtonColor: ((isLikedDiaryView &&
+                      mailController.likfedDiaryFilteredDate != null) ||
+                  (!isLikedDiaryView &&
+                      mailController.letterFilteredDate != null))
+              ? BandiColor.accentColorYellow(context)
+              : null,
           onLeftActionButtonPressed: () async {
             await showLikedDiaryActionSheet(context, mailController);
 
@@ -98,11 +104,17 @@ class _MailViewState extends State<MailView>
             if (!mounted) return;
 
             CalendarBottomSheet(
-              initialDate: mailController.CalendarSelectedDate,
+              initialDate: isLikedDiaryView
+                  ? mailController.likfedDiaryFilteredDate
+                  : mailController.letterFilteredDate,
               mode: isLikedDiaryView ? CalendarMode.date : CalendarMode.month,
               eventDates: events,
               onDateSelected: (date) {
-                mailController.updateCalendarSelectedDate(date);
+                if (isLikedDiaryView) {
+                  mailController.updateLikedDiaryCalendarSelectedDate(date);
+                } else {
+                  mailController.updateLetterCalendarSelectedDate(date);
+                }
               },
             ).show(context);
           },
