@@ -245,35 +245,32 @@ class DiaryAiChatController with ChangeNotifier {
       sendFirstMessage = true;
     }
 
-    countChatAnalysis();
-
-    // dev.log(chatlog.last.messageTime.toString());
-
-    // when submitted message's date is different with latest message's date
     if (ChatMessage.calculateDateDifference(
             (chatlog.last.messageTime), Timestamp.now()) >=
         1) {
       updateSystemChat(context);
     }
 
-    // add user message
     updateUserChat();
+    chatTextController.clear();
     scrollChatScreenToBottom();
-
-    // call chatGPT response
+    countChatAnalysis();
     getAIResponse(context).then((value) {
       scrollChatScreenToBottom();
-      // save the chat log to the local storage
       saveChatLogToLocal();
     });
-
-    chatTextController.clear();
-
     notifyListeners();
   }
 
   // when assistant message has submitted
   void onAssistantMessageSubmitted(
+      String submittedMessage, BuildContext context) {
+    chatTextController.text = submittedMessage;
+    onMessageSubmitted(context);
+  }
+
+  // when diary message has submitted
+  void onMyDiarytMessageSubmitted(
       String submittedMessage, BuildContext context) {
     chatTextController.text = submittedMessage;
     onMessageSubmitted(context);
@@ -307,17 +304,11 @@ class DiaryAiChatController with ChangeNotifier {
           await OpenAI.instance.chat.create(
         model: "gpt-4o-mini",
         messages: chatMemory,
-        // 답변할 종류의 수
         n: 1,
-        // 답변에 사용할 최대 토큰의 크기
-        maxTokens: 256,
-        // 같은 답변 반복 (0.1~1.0일 수록 감소)
+        maxTokens: 350,
         frequencyPenalty: 0.3,
-        // 새로운 주제 제시 (>0 수록 새로운 주제 확률 상승)
-        presencePenalty: -0.2,
-        // 답변의 일관성 (낮을 수록 집중됨)
-        temperature: 1.0,
-        // An alternative to sampling with temperature
+        presencePenalty: 0.0,
+        temperature: 0.7,
         topP: 1.0,
       );
 
@@ -337,30 +328,38 @@ class DiaryAiChatController with ChangeNotifier {
     notifyListeners();
   }
 
-  // put past chat log into the chatMemory
+  // AI에게 보낼 대화 내역(Context) 준비
   void updateChatMemory(BuildContext context) {
     chatMemorySystemInitialization(context);
 
-    for (int i = (chatlog.length > rememberableChatlogLimit)
-            ? chatlog.length - rememberableChatlogLimit
-            : 0;
-        i < chatlog.length;
-        i++) {
-      if (chatlog[i].messenger == Messenger.ai ||
-          chatlog[i].messenger == Messenger.user) {
-        chatMemory.add(
-          OpenAIChatCompletionChoiceMessageModel(
-            content: [
-              OpenAIChatCompletionChoiceMessageContentItemModel.text(
-                  chatlog[i].message),
-            ],
-            role: (chatlog[i].messenger == Messenger.user)
-                ? OpenAIChatMessageRole.user
-                : OpenAIChatMessageRole.assistant,
-          ),
-        );
-      }
+    // 2. [필터링] AI와 관련된 유효한 대화(User, AI)만 골라내기
+    final validMessages = chatlog
+        .where((msg) =>
+            msg.messenger == Messenger.ai || msg.messenger == Messenger.user)
+        .toList();
+
+    // 3. [개수 제한] 설정한 한계(limit)만큼 '최근' 대화만 자르기
+    final messagesToSend = (validMessages.length > rememberableChatlogLimit)
+        ? validMessages.sublist(validMessages.length - rememberableChatlogLimit)
+        : validMessages;
+
+    // 4. [변환 및 주입] OpenAI 포맷으로 변환하여 메모리에 추가
+    for (var msg in messagesToSend) {
+      chatMemory.add(
+        OpenAIChatCompletionChoiceMessageModel(
+          content: [
+            OpenAIChatCompletionChoiceMessageContentItemModel.text(
+              msg.message,
+            ),
+          ],
+          role: (msg.messenger == Messenger.user)
+              ? OpenAIChatMessageRole.user
+              : OpenAIChatMessageRole.assistant,
+        ),
+      );
     }
+
+    // dev.log('Updated chat memory with ${messagesToSend.length} messages.');
   }
 
   // 로컬 저장소에서 최신 채팅 로그 불러오기 (초기 로딩용)
@@ -615,8 +614,6 @@ class DiaryAiChatController with ChangeNotifier {
         .add(message.toMap());
   }
   
-
-
   // read chat log form firebase
   Stream<List<ChatMessage>> getMessagesFromFirebase() {
     dev.log('처음으로 읽기!!!');

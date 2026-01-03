@@ -3,7 +3,6 @@ import 'package:bandi_official/components/appbar/new_custom_appbar.dart';
 import 'package:bandi_official/components/bottom_sheet/show_floating_confirm_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter/rendering.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/string_extention.dart';
@@ -65,7 +64,6 @@ class _DiaryAIChatStatefulState extends State<_DiaryAIChatStateful> {
   }
 
   void _scrollListener() async {
-    // [Guard 1] 더 불러올 데이터가 없거나, 이미 로딩 중이면 즉시 종료
     if (!diaryAiChatController.loadMoreData ||
         diaryAiChatController.isLoadingOlderChat) {
       return;
@@ -73,20 +71,14 @@ class _DiaryAIChatStatefulState extends State<_DiaryAIChatStateful> {
 
     final position = diaryAiChatController.chatScrollController.position;
 
-    // [Guard 2] 스크롤 위치 체크
-    // "전체 길이 - 현재 위치 <= 200" : 끝에서 200픽셀 남았을 때 미리 로딩
     if (position.maxScrollExtent - position.pixels <= 200) {
-      // 데이터 로딩 요청
       bool hasMore = await diaryAiChatController.loadOlderChatLogs();
-
-      // 로딩 결과에 따라 '더 불러올 데이터 있음/없음' 플래그 업데이트
       diaryAiChatController.toggleLoadMoreData(hasMore);
     }
   }
 
   @override
   void dispose() {
-    // 리스너 제거 로직
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (diaryAiChatController.isListenerAdded) {
         diaryAiChatController.chatScrollController

@@ -1,6 +1,8 @@
 import 'dart:ui';
 import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
+import 'package:bandi_official/view/diary_ai_chat/controller/diary_ai_chat_controller.dart';
+import 'package:bandi_official/view/diary_ai_chat/diary_ai_chat_view.dart';
 import 'package:bandi_official/view/writing/widget/diary_action_sheet.dart';
 import 'package:bandi_official/view/writing/widget/emotion_keyword_sheet.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +22,7 @@ class SecondStep extends StatelessWidget {
     final writeProvider = Provider.of<HomeToWrite>(context);
     final navigationToggleProvider =
         Provider.of<NavigationToggleProvider>(context);
+    final diaryAiChatController = context.watch<DiaryAiChatController>();
 
     final title = writeProvider.diaryModel.cheerText == ''
         ? 'write_title_generating'.tr(context)
@@ -127,7 +130,8 @@ class SecondStep extends StatelessWidget {
                   ),
                   const SizedBox(width: 14),
                   _MetaIcon(
-                    icon: PhosphorIcons.personArmsSpread(PhosphorIconsStyle.fill),
+                    icon:
+                        PhosphorIcons.personArmsSpread(PhosphorIconsStyle.fill),
                     value: peopleCount.toString(),
                   ),
                   const Spacer(),
@@ -151,8 +155,15 @@ class SecondStep extends StatelessWidget {
                   writeProvider: writeProvider,
                 );
               },
-              onTapMiddle: () {
-                // 댓글/코멘트
+              onTapMiddle: () async {
+                diaryAiChatController.toggleChatOpen(true);
+                diaryAiChatController.onMyDiarytMessageSubmitted(
+                    writeProvider.diaryModel.content, context);
+                DiaryAIChatSheet().show(context).then((_) {
+                  if (context.mounted) {
+                    diaryAiChatController.toggleChatOpen(false);
+                  }
+                });
               },
               onTapHome: () {
                 navigationToggleProvider.selectIndex(0);

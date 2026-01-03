@@ -23,7 +23,7 @@ const MAX_DIARY_COUNT = 5;
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 require("dotenv").config();
-const {OpenAI} = require("openai");
+const { OpenAI } = require("openai");
 const moment = require("moment-timezone"); // moment-timezone을 사용해야 합니다.
 const timeZone = "Asia/Seoul"; // 한국 시간대 설정
 
@@ -155,7 +155,7 @@ exports.monthlyDiaryReview = functions.region("asia-northeast3").pubsub.schedule
                     max_tokens: 512,
                     frequency_penalty: 0,
                     presence_penalty: 0,
-                    temperature: 1.0,
+                    temperature: 0.7,
                     top_p: 1.0,
                 });
 
@@ -267,7 +267,7 @@ exports.monthlyDiaryReview = functions.region("asia-northeast3").pubsub.schedule
 
 // 공감 일기의 알림 전송 함수
 exports.sendLikedDiaryNotification = functions.https.onCall(async (data, context) => {
-    const {likedDiaryId, fcmToken, userId} = data;
+    const { likedDiaryId, fcmToken, userId } = data;
 
     const userDoc = await db.collection("users").doc(userId).get();
     const langCode = userDoc.exists && userDoc.data().language ? userDoc.data().language : "ko"; // 기본값 'ko'
@@ -462,10 +462,10 @@ exports.deleteUserDataAndDoc = functions.https.onCall(async (data, context) => {
         await userRef.delete();
 
         console.log(`User document and sub-collections for ${userId} deleted.`);
-        return {success: true};
+        return { success: true };
     } catch (error) {
         console.error(`Error deleting user data: ${userId}`, error);
-        return {success: false, error: error.message};
+        return { success: false, error: error.message };
     }
 });
 
@@ -477,9 +477,9 @@ exports.deleteAuthUser = functions.https.onCall(async (data, context) => {
     try {
         await admin.auth().deleteUser(userId);
         console.log(`Successfully deleted user: ${userId}`);
-        return {success: true};
+        return { success: true };
     } catch (error) {
         console.error(`Error deleting user: ${userId}`, error);
-        return {success: false, error: error.message};
+        return { success: false, error: error.message };
     }
 });

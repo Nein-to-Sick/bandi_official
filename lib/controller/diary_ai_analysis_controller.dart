@@ -59,7 +59,7 @@ class DiaryAIAnalysisController with ChangeNotifier {
         // 새로운 주제 제시 (>0 수록 새로운 주제 확률 상승)
         presencePenalty: -0.5,
         // 답변의 일관성 (낮을 수록 집중됨)
-        temperature: 0.8,
+        temperature: 0.7,
       );
 
       dev.log(keywordCompletion.choices.first.message.content!.first.text!);
@@ -122,7 +122,7 @@ class DiaryAIAnalysisController with ChangeNotifier {
         // 새로운 주제 제시 (>0 수록 새로운 주제 확률 상승)
         presencePenalty: -0.5,
         // 답변의 일관성 (낮을 수록 집중됨)
-        temperature: 0.8,
+        temperature: 0.7,
       );
 
       dev.log(titleCompletion.choices.first.message.content!.first.text!);
