@@ -99,6 +99,7 @@ class DetailView extends StatelessWidget {
               ),
             ),
             Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
                   padding:
@@ -115,10 +116,15 @@ class DetailView extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: SingleChildScrollView(
-                      child: Text(
-                        '\n$content\n\n$date\n\n',
-                        style: BandiFont.bodyLarge(context)?.copyWith(
-                          color: BandiColor.foundationColor100(context),
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: Text(
+                          '\n$content\n\n$date\n\n',
+                          textAlign: TextAlign.start,
+                          style: BandiFont.bodyLarge(context)?.copyWith(
+                            color: BandiColor.foundationColor100(context),
+                          ),
                         ),
                       ),
                     ),

@@ -251,5 +251,6 @@
   "sharing_diary_on": "함께 나누기",
   "sharing_diary_off": "혼자 보기",
   "calendar_header_format": "yyyy년 M월",
-  "calendar_year_format": "yyyy년"
+  "calendar_year_format": "yyyy년",
+  "calendar_selection_reset": "초기화"
 }

@@ -251,5 +251,6 @@
   "sharing_diary_on": "Share journal with others",
   "sharing_diary_off": "View journal privately",
   "calendar_header_format": "MMMM yyyy",
-  "calendar_year_format": "yyyy"
+  "calendar_year_format": "yyyy",
+  "calendar_selection_reset": "Reset"
 }

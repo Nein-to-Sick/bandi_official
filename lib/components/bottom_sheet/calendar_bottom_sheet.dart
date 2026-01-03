@@ -14,13 +14,13 @@ enum CalendarMode {
 }
 
 class CalendarBottomSheet {
-  final DateTime initialDate;
-  final ValueChanged<DateTime> onDateSelected;
+  final DateTime? initialDate;
+  final ValueChanged<DateTime?> onDateSelected;
   final List<DateTime>? eventDates;
   final CalendarMode mode;
 
   CalendarBottomSheet({
-    required this.initialDate,
+    this.initialDate,
     required this.onDateSelected,
     this.eventDates,
     this.mode = CalendarMode.date,
@@ -35,7 +35,7 @@ class CalendarBottomSheet {
         return BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
           child: Container(
-            height: 410,
+            height: 420,
             decoration: BoxDecoration(
               color: BandiColor.neutralColor80(context),
               borderRadius: const BorderRadius.vertical(
@@ -55,8 +55,8 @@ class CalendarBottomSheet {
 }
 
 class _CalendarContent extends StatefulWidget {
-  final DateTime initialDate;
-  final ValueChanged<DateTime> onDateSelected;
+  final DateTime? initialDate;
+  final ValueChanged<DateTime?> onDateSelected;
   final List<DateTime> eventDates;
   final CalendarMode mode;
 
@@ -73,7 +73,7 @@ class _CalendarContent extends StatefulWidget {
 
 class _CalendarContentState extends State<_CalendarContent> {
   late DateTime _focusedDate; // 현재 보고 있는 달력의 기준 (항상 1일)
-  late DateTime _selectedDate; // 유저가 선택한 날짜
+  DateTime? _selectedDate; // 유저가 선택한 날짜
   late bool _isMonthSelectorVisible; // 월 선택 그리드 활성화 여부
 
   // [설정] 날짜 제한 범위
@@ -84,8 +84,8 @@ class _CalendarContentState extends State<_CalendarContent> {
   void initState() {
     super.initState();
     _selectedDate = widget.initialDate;
-    _focusedDate =
-        DateTime(widget.initialDate.year, widget.initialDate.month, 1);
+    final initialFocus = widget.initialDate ?? DateTime.now();
+    _focusedDate = DateTime(initialFocus.year, initialFocus.month, 1);
 
     // 최대 날짜는 현재 시간(오늘)으로 설정
     _maxDate = DateTime.now();
@@ -117,9 +117,56 @@ class _CalendarContentState extends State<_CalendarContent> {
                         : _buildCalendarBody(),
                   ),
           ),
+
+          Align(alignment: Alignment.bottomRight, child: _buildResetButton())
         ],
       ),
     );
+  }
+
+  // --- reset button ---
+
+  Widget _buildResetButton() {
+    if (_selectedDate != null) {
+      return GestureDetector(
+        onTap: () {
+          setState(() {
+            _selectedDate = null;
+            _focusedDate =
+                DateTime(DateTime.now().year, DateTime.now().month, 1);
+          });
+          // null 전달 -> 필터 초기화
+          widget.onDateSelected(null);
+          // Navigator.pop(context);
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            color: BandiColor.foundationColor90(context),
+            borderRadius: BandiEffects.radiusLarge,
+            border: Border.all(
+              color: BandiColor.foundationColor10(context),
+            ),
+          ),
+          constraints: const BoxConstraints(
+            minHeight: 28,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 6,
+            ),
+            child: Text(
+              'calendar_selection_reset'.tr(context),
+              style: BandiFont.labelMedium(context)?.copyWith(
+                color: BandiColor.neutralColor90(context),
+              ),
+            ),
+          ),
+        ),
+      );
+    } else {
+      return const SizedBox.shrink();
+    }
   }
 
   // --- Header Section ---
@@ -193,7 +240,6 @@ class _CalendarContentState extends State<_CalendarContent> {
           ),
         ),
 
-        // [다음] 버튼
         _buildNavIcon(
           PhosphorIcons.caretRight(),
           onTap: () {
@@ -289,7 +335,8 @@ class _CalendarContentState extends State<_CalendarContent> {
   }
 
   Widget _buildDayItem(DateTime date) {
-    final bool isSelected = isSameDay(date, _selectedDate);
+    final bool isSelected =
+        _selectedDate != null && isSameDay(date, _selectedDate!);
     final bool isToday = isSameDay(date, DateTime.now());
 
     // [제한] 2023년 이전이거나 현재보다 미래인 경우 선택 불가
@@ -373,8 +420,9 @@ class _CalendarContentState extends State<_CalendarContent> {
         final month = index + 1;
         final currentMonthDate = DateTime(_focusedDate.year, month, 1);
 
-        final isSelected = month == _selectedDate.month &&
-            _focusedDate.year == _selectedDate.year;
+        final isSelected = _selectedDate != null &&
+            month == _selectedDate!.month &&
+            _focusedDate.year == _selectedDate!.year;
         final isCurrentMonth = month == DateTime.now().month &&
             _focusedDate.year == DateTime.now().year;
 

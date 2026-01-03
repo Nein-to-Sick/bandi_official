@@ -60,6 +60,7 @@ class _MailViewState extends State<MailView>
   Widget build(BuildContext context) {
     MailController mailController = context.watch<MailController>();
     // AlarmController alarmController = context.watch<AlarmController>();
+    bool isLikedDiaryView = (mailController.tabController.index == 1);
 
     return SafeArea(
       child: Scaffold(
@@ -67,7 +68,7 @@ class _MailViewState extends State<MailView>
         appBar: NewCustomAppBar(
           appBarType: AppBarType.subtitleNeutral,
           title: 'inbox_title'.tr(context),
-          leftActionButtonIcon: (mailController.tabController.index == 1)
+          leftActionButtonIcon: isLikedDiaryView
               ? PhosphorIcons.funnelSimple(PhosphorIconsStyle.thin)
               : null,
           leftActionButtonColor: (mailController.filteredchipLabels.length != 3)
@@ -75,6 +76,12 @@ class _MailViewState extends State<MailView>
               : null,
           rightActionButtonIcon:
               PhosphorIcons.calendarBlank(PhosphorIconsStyle.thin),
+          rightActionButtonColor: ((isLikedDiaryView &&
+                      mailController.likfedDiaryFilteredDate != null) ||
+                  (!isLikedDiaryView &&
+                      mailController.letterFilteredDate != null))
+              ? BandiColor.accentColorYellow(context)
+              : null,
           onLeftActionButtonPressed: () async {
             await showLikedDiaryActionSheet(context, mailController);
 
@@ -87,22 +94,27 @@ class _MailViewState extends State<MailView>
             newLetterPopUpPageTestFunction(context);
             */
           },
-          onRightActionButtonPressed: () {
-            CalendarBottomSheet(
-              initialDate: mailController.CalendarSelectedDate,
-              mode: (mailController.tabController.index == 1)
-                  ? CalendarMode.date
-                  : CalendarMode.month,
-              eventDates: [
-                DateTime(2025, 12, 31),
-              ],
-              onDateSelected: (date) {
-                (mailController.tabController.index == 1)
-                    ? dev
-                        .log("선택된 월: ${date.year}년 ${date.month}월 ${date.day}일")
-                    : dev.log("선택된 월: ${date.year}년 ${date.month}월");
+          onRightActionButtonPressed: () async {
+            List<DateTime> events =
+                await mailController.getAllEventDatesFromLocal(
+                    type: isLikedDiaryView
+                        ? MailDataType.diary
+                        : MailDataType.letter);
 
-                mailController.updateCalendarSelectedDate(date);
+            if (!mounted) return;
+
+            CalendarBottomSheet(
+              initialDate: isLikedDiaryView
+                  ? mailController.likfedDiaryFilteredDate
+                  : mailController.letterFilteredDate,
+              mode: isLikedDiaryView ? CalendarMode.date : CalendarMode.month,
+              eventDates: events,
+              onDateSelected: (date) {
+                if (isLikedDiaryView) {
+                  mailController.updateLikedDiaryCalendarSelectedDate(date);
+                } else {
+                  mailController.updateLetterCalendarSelectedDate(date);
+                }
               },
             ).show(context);
           },
