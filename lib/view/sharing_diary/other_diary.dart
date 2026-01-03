@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 
+import '../../components/bottom_sheet/show_floating_confirm_sheet.dart';
 import '../../components/bottom_sheet/show_floating_toast_sheet.dart';
 import '../../components/bottom_sheet/app_bottom_sheet.dart';
 import 'controller/deepl_service.dart';
@@ -619,67 +620,60 @@ class _OtherDiaryState extends State<OtherDiary> {
   // =====================
   // Report Dialog
   // =====================
-  void _showReportDialog(BuildContext context, HomeToWrite writeProvider) {
-    showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext ctx) {
-        return CustomResetDialogue(
-          text: 'dialogue_report_message'.tr(ctx),
-          onYesText: 'dialogue_report_on_yes'.tr(ctx),
-          onNoText: 'dialogue_report_on_no'.tr(ctx),
-          onYesFunction: () async {
-            Navigator.pop(ctx, true);
-
-            try {
-              final userId = FirebaseAuth.instance.currentUser!.uid;
-
-              await FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(userId)
-                  .update({
-                'blockedUsersList': FieldValue.arrayUnion(
-                    [writeProvider.otherDiaryModel.userId]),
-              });
-
-              await FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(writeProvider.otherDiaryModel.userId)
-                  .update({'reported_count': FieldValue.increment(1)});
-            } on FirebaseException catch (e) {
-              develop.log('Firestore error: ${e.message}');
-            } catch (e) {
-              develop.log('unknown error: $e');
-            }
-
-            writeProvider.offDiaryOpen();
-
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  elevation: 3,
-                  content: Text(
-                    "dialogue_report_snackBar_message".tr(context),
-                    style: BandiFont.headlineMedium(context)?.copyWith(
-                      color: BandiColor.neutralColor90(context),
-                    ),
-                  ),
-                  margin: EdgeInsets.only(
-                    left: 25.0,
-                    right: 25.0,
-                    bottom: MediaQuery.of(context).size.height * 0.1,
-                  ),
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BandiEffects.radiusSmall,
-                  ),
-                ),
-              );
-            }
-          },
-          onNoFunction: () => Navigator.pop(ctx, false),
-        );
-      },
+  Future<void> _showReportDialog(BuildContext context, HomeToWrite writeProvider) async {
+    final ok = await showFloatingConfirmSheet(
+      context,
+      title: '부적절한 일기로 신고할까요?',
+      description: '신고 시 동일한 내용의 일기는 더 이상 공유되지 않아요.',
+      cancelText: '취소',
+      confirmText: '신고하기',
     );
+    if (ok == true) {
+      try {
+        final userId = FirebaseAuth.instance.currentUser!.uid;
+
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .update({
+          'blockedUsersList': FieldValue.arrayUnion(
+              [writeProvider.otherDiaryModel.userId]),
+        });
+
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(writeProvider.otherDiaryModel.userId)
+            .update({'reported_count': FieldValue.increment(1)});
+      } on FirebaseException catch (e) {
+        develop.log('Firestore error: ${e.message}');
+      } catch (e) {
+        develop.log('unknown error: $e');
+      }
+
+      writeProvider.offDiaryOpen();
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            elevation: 3,
+            content: Text(
+              "dialogue_report_snackBar_message".tr(context),
+              style: BandiFont.headlineMedium(context)?.copyWith(
+                color: BandiColor.neutralColor90(context),
+              ),
+            ),
+            margin: EdgeInsets.only(
+              left: 25.0,
+              right: 25.0,
+              bottom: MediaQuery.of(context).size.height * 0.1,
+            ),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BandiEffects.radiusSmall,
+            ),
+          ),
+        );
+      }
+    }
   }
 }
