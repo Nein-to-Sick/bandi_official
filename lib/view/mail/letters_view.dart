@@ -43,15 +43,15 @@ class _MyLettersPageState extends State<MyLettersPage> {
   }
 
   void _scrollListener() async {
+    if (!mailController.loadMoreLetterData || mailController.isLoadingLetter) {
+      return;
+    }
+
     final position = mailController.letterScrollController.position;
-    if (mailController.loadMoreLetterData &&
-        position.atEdge &&
-        position.pixels != 0) {
-      if (position.userScrollDirection == ScrollDirection.reverse &&
-          position.maxScrollExtent - position.pixels <= 300) {
-        mailController
-            .toggleLoadMoreLetterData(await mailController.loadMoreLetter());
-      }
+
+    if (position.maxScrollExtent - position.pixels <= 300) {
+      bool hasMore = await mailController.loadMoreLetter();
+      mailController.toggleLoadMoreLetterData(hasMore);
     }
   }
 

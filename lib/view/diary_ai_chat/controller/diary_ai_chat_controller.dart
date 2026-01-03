@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:bandi_official/analytics/log_ai_chat_send.dart';
-import 'package:bandi_official/model/diary_ai_chat.dart';
+import 'package:bandi_official/view/diary_ai_chat/model/diary_ai_chat.dart';
 import 'package:bandi_official/string_extention.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -416,8 +416,6 @@ class DiaryAiChatController with ChangeNotifier {
               .toList();
 
           chatlog.addAll(messages);
-
-          // [기존 로직 유지] 첫 메시지 여부 플래그 (필요한 경우)
           sendFirstMessage = true;
 
           dev.log(

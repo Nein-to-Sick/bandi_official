@@ -65,15 +65,22 @@ class _DiaryAIChatStatefulState extends State<_DiaryAIChatStateful> {
   }
 
   void _scrollListener() async {
+    // [Guard 1] 더 불러올 데이터가 없거나, 이미 로딩 중이면 즉시 종료
+    if (!diaryAiChatController.loadMoreData ||
+        diaryAiChatController.isLoadingOlderChat) {
+      return;
+    }
+
     final position = diaryAiChatController.chatScrollController.position;
-    if (diaryAiChatController.loadMoreData &&
-        position.atEdge &&
-        position.pixels != 0) {
-      if (position.userScrollDirection == ScrollDirection.reverse &&
-          position.maxScrollExtent - position.pixels <= 200) {
-        diaryAiChatController.toggleLoadMoreData(
-            await diaryAiChatController.loadOlderChatLogs());
-      }
+
+    // [Guard 2] 스크롤 위치 체크
+    // "전체 길이 - 현재 위치 <= 200" : 끝에서 200픽셀 남았을 때 미리 로딩
+    if (position.maxScrollExtent - position.pixels <= 200) {
+      // 데이터 로딩 요청
+      bool hasMore = await diaryAiChatController.loadOlderChatLogs();
+
+      // 로딩 결과에 따라 '더 불러올 데이터 있음/없음' 플래그 업데이트
+      diaryAiChatController.toggleLoadMoreData(hasMore);
     }
   }
 

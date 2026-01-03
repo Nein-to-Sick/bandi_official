@@ -29,6 +29,12 @@ class MailController with ChangeNotifier {
   bool loadLetterDataOnce = false;
   bool loadNewLetterAndNotificationsDataOnce = false;
 
+  // prevent duplication loading
+  bool _isLoadingLikedDiary = false;
+  bool get isLoadingLikedDiary => _isLoadingLikedDiary;
+  bool _isLoadingLetter = false;
+  bool get isLoadingLetter => _isLoadingLetter;
+
   // whether the new notifications are available
   bool isNewNotifications = false;
   // number of nre notifications
@@ -542,55 +548,74 @@ class MailController with ChangeNotifier {
 
   // load more liked diary from past
   Future<bool> loadMoreLikedDiary() async {
-    if (userId!.isNotEmpty) {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      List<String> keys = prefs
-          .getKeys()
-          .where((key) => key.startsWith('${userId}_likedDiaryList_'))
-          .toList();
+    if (_isLoadingLikedDiary) {
+      dev.log('LikedDiary 로딩 중입니다. 중복 요청을 무시합니다.');
+      return false;
+    }
 
-      if (keys.isNotEmpty) {
-        keys.sort();
-        // load older messages
-        for (String key in keys.reversed) {
-          if (!likedDiaryListDates.contains(key)) {
-            List<String>? jsonMessages = prefs.getStringList(key);
-            if (jsonMessages != null) {
-              List<Diary> additionalMessages = jsonMessages.map((jsonMessage) {
-                final jsonMap = jsonDecode(jsonMessage);
-                // Create and return the Diary instance
-                return Diary.fromJsonLocal(jsonMap,
-                    jsonMap['otherUserReaction'], jsonMap['otherUserLikedAt']);
-              }).toList();
+    _isLoadingLikedDiary = true;
 
-              likedDiaryList.insertAll(0, additionalMessages);
-              likedDiaryListDates.add(key);
-              notifyListeners();
-              dev.log(
-                  'read older liked Diary from local for date ${key.split('_').skip(1).join('_')}');
+    try {
+      if (userId!.isNotEmpty) {
+        final SharedPreferences prefs = await SharedPreferences.getInstance();
+        List<String> keys = prefs
+            .getKeys()
+            .where((key) => key.startsWith('${userId}_likedDiaryList_'))
+            .toList();
 
+        if (keys.isNotEmpty) {
+          keys.sort();
+          // load older messages
+          for (String key in keys.reversed) {
+            if (!likedDiaryListDates.contains(key)) {
+              List<String>? jsonMessages = prefs.getStringList(key);
+              if (jsonMessages != null) {
+                List<Diary> additionalMessages =
+                    jsonMessages.map((jsonMessage) {
+                  final jsonMap = jsonDecode(jsonMessage);
+                  // Create and return the Diary instance
+                  return Diary.fromJsonLocal(
+                      jsonMap,
+                      jsonMap['otherUserReaction'],
+                      jsonMap['otherUserLikedAt']);
+                }).toList();
+
+                likedDiaryList.insertAll(0, additionalMessages);
+                likedDiaryListDates.add(key);
+
+                notifyListeners();
+
+                dev.log(
+                    'read older liked Diary from local for date ${key.split('_').skip(1).join('_')}');
+
+                if (keys.indexOf(key) == 0) {
+                  dev.log('[2] there is no more older liked Diary data');
+                  return false;
+                }
+                break;
+              }
+            } else {
               if (keys.indexOf(key) == 0) {
-                dev.log('[2] there is no more older liked Diary data');
+                dev.log('[1] there is no more older liked Diary data');
                 return false;
               }
-              break;
-            }
-          } else {
-            if (keys.indexOf(key) == 0) {
-              dev.log('[1] there is no more older liked Diary data');
-              return false;
             }
           }
+        } else {
+          dev.log('there is no ${userId}_likedDiaryList_');
+          return false;
         }
       } else {
-        dev.log('there is no ${userId}_likedDiaryList_');
-        return false;
+        dev.log('there is no firebase uid');
       }
-    } else {
-      dev.log('there is no firebase uid');
+      return true;
+    } catch (e) {
+      dev.log('Error loading more liked diaries: $e');
+      return false;
+    } finally {
+      _isLoadingLikedDiary = false;
+      notifyListeners();
     }
-    notifyListeners();
-    return true;
   }
 
   // read letter from local storage at the first stage
@@ -842,55 +867,72 @@ class MailController with ChangeNotifier {
     return Tuple(newLetterAvailable, newLetter);
   }
 
-  // load more liked diary from past
+  // load more letter from past
   Future<bool> loadMoreLetter() async {
-    if (userId!.isNotEmpty) {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      List<String> keys = prefs
-          .getKeys()
-          .where((key) => key.startsWith('${userId}_letterList_'))
-          .toList();
-
-      if (keys.isNotEmpty) {
-        keys.sort();
-        // load older messages
-        for (String key in keys.reversed) {
-          if (!letterListDates.contains(key)) {
-            List<String>? jsonMessages = prefs.getStringList(key);
-            if (jsonMessages != null) {
-              List<Letter> additionalMessages = jsonMessages
-                  .map((jsonMessage) =>
-                      Letter.fromJsonLocal(jsonDecode(jsonMessage)))
-                  .toList();
-              letterList.insertAll(0, additionalMessages);
-              letterListDates.add(key);
-              notifyListeners();
-              dev.log(
-                  'read older letter from local for date ${key.split('_').skip(1).join('_')}');
-
-              if (keys.indexOf(key) == 0) {
-                dev.log('[2] there is no more older letter data');
-                return false;
-              }
-              break;
-            }
-          } else {
-            if (keys.indexOf(key) == 0) {
-              dev.log('[1] there is no more older letter data');
-              return false;
-            }
-          }
-        }
-      } else {
-        dev.log('there is no ${userId}_letterList_');
-        return false;
-      }
-    } else {
-      dev.log('there is no firebase uid');
+    if (_isLoadingLetter) {
+      dev.log('Letter 로딩 중입니다. 중복 요청을 무시합니다.');
+      return false;
     }
 
-    notifyListeners();
-    return true;
+    _isLoadingLetter = true;
+
+    try {
+      if (userId!.isNotEmpty) {
+        final SharedPreferences prefs = await SharedPreferences.getInstance();
+        List<String> keys = prefs
+            .getKeys()
+            .where((key) => key.startsWith('${userId}_letterList_'))
+            .toList();
+
+        if (keys.isNotEmpty) {
+          keys.sort();
+          for (String key in keys.reversed) {
+            if (!letterListDates.contains(key)) {
+              List<String>? jsonMessages = prefs.getStringList(key);
+              if (jsonMessages != null) {
+                List<Letter> additionalMessages = jsonMessages
+                    .map((jsonMessage) =>
+                        Letter.fromJsonLocal(jsonDecode(jsonMessage)))
+                    .toList();
+
+                // 메모리 리스트 병합
+                letterList.insertAll(0, additionalMessages);
+                letterListDates.add(key);
+
+                notifyListeners();
+                dev.log(
+                    'read older letter from local for date ${key.split('_').skip(1).join('_')}');
+
+                // 더 이상 불러올 과거 데이터가 없는 경우 (첫 번째 키인 경우)
+                if (keys.indexOf(key) == 0) {
+                  dev.log('[2] there is no more older letter data');
+                  return false;
+                }
+                break;
+              }
+            } else {
+              if (keys.indexOf(key) == 0) {
+                dev.log('[1] there is no more older letter data');
+                return false;
+              }
+            }
+          }
+        } else {
+          dev.log('there is no ${userId}_letterList_');
+          return false;
+        }
+      } else {
+        dev.log('there is no firebase uid');
+      }
+
+      return true;
+    } catch (e) {
+      dev.log('Error loading more letters: $e');
+      return false;
+    } finally {
+      _isLoadingLetter = false;
+      notifyListeners();
+    }
   }
 
   // delete all data from local storage

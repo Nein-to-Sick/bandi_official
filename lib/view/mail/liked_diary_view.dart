@@ -44,15 +44,16 @@ class _LikedDiaryPageState extends State<LikedDiaryPage> {
   }
 
   void _scrollListener() async {
+    if (!mailController.loadMoreLikedDiaryData ||
+        mailController.isLoadingLikedDiary) {
+      return;
+    }
+
     final position = mailController.likedDiaryScrollController.position;
-    if (mailController.loadMoreLikedDiaryData &&
-        position.atEdge &&
-        position.pixels != 0) {
-      if (position.userScrollDirection == ScrollDirection.reverse &&
-          position.maxScrollExtent - position.pixels <= 300) {
-        mailController.toggleLoadMoreLikedDiaryData(
-            await mailController.loadMoreLikedDiary());
-      }
+
+    if (position.maxScrollExtent - position.pixels <= 200) {
+      bool hasMore = await mailController.loadMoreLikedDiary();
+      mailController.toggleLoadMoreLikedDiaryData(hasMore);
     }
   }
 
