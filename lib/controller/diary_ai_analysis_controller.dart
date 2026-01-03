@@ -151,7 +151,7 @@ class DiaryAIAnalysisController with ChangeNotifier {
         content: [
           OpenAIChatCompletionChoiceMessageContentItemModel.text(
             (langCode == 'ko')
-                ? "일기 내용에 기반하여 하나의 한국어 문장으로 응원을 작성해줘."
+                ? "일기 내용에 기반하여 하나의 한국어 문장으로 격려를 작성해줘."
                 : "Please limit your response to a simple single sentence and provide encouragement in English based on the content of the diary entry.",
           ),
         ],

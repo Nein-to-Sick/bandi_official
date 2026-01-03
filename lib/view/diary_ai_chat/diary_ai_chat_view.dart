@@ -70,9 +70,9 @@ class _DiaryAIChatStatefulState extends State<_DiaryAIChatStateful> {
         position.atEdge &&
         position.pixels != 0) {
       if (position.userScrollDirection == ScrollDirection.reverse &&
-          position.maxScrollExtent - position.pixels <= 500) {
-        diaryAiChatController
-            .toggleLoadMoreData(await diaryAiChatController.loadMoreChatLogs());
+          position.maxScrollExtent - position.pixels <= 200) {
+        diaryAiChatController.toggleLoadMoreData(
+            await diaryAiChatController.loadOlderChatLogs());
       }
     }
   }

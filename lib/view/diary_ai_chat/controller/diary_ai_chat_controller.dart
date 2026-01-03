@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:bandi_official/analytics/log_ai_chat_send.dart';
 import 'package:bandi_official/model/diary_ai_chat.dart';
 import 'package:bandi_official/string_extention.dart';
-import 'package:bandi_official/utils/time_utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -38,6 +37,10 @@ class DiaryAiChatController with ChangeNotifier {
   bool loadMoreData = true;
   // Flag variable to track whether the scroll listener has already been added
   bool isListenerAdded = false;
+  // prevent duplication loading
+  bool _isLoadingOlderChat = false;
+  // View에서 상태를 확인하기 위한 Getter
+  bool get isLoadingOlderChat => _isLoadingOlderChat;
   // manage the chat page scroll
   final chatScrollController = ScrollController();
   // for chat system message (today's date)
@@ -115,28 +118,21 @@ class DiaryAiChatController with ChangeNotifier {
   // toggle the message send button while the gpt respoonse loading
   void toggleChatResponseLodaing(bool state) {
     isChatResponsLoading = state;
+
     if (isChatResponsLoading) {
-      // 기존 로딩 텍스트
-      // chatlog.add(
-      //   chatModel = ChatMessage(
-      //     message: '. . .',
-      //     messenger: Messenger.ai,
-      //     messageType: MessageType.chat,
-      //     messageTime: timestampToLocal(Timestamp.now()),
-      //   ),
-      // );
-      // 애니메이션 적용을 위한 텍스트
+      // 로딩 메시지 추가
       chatlog.add(
         chatModel = ChatMessage(
           message: '!&[loading]&!',
           messenger: Messenger.special,
           messageType: MessageType.chat,
-          messageTime: timestampToLocal(Timestamp.now()),
+          messageTime: Timestamp.now(),
         ),
       );
     } else {
-      chatlog.removeLast();
+      chatlog.removeWhere((msg) => msg.message == '!&[loading]&!');
     }
+
     notifyListeners();
   }
 
@@ -168,20 +164,20 @@ class DiaryAiChatController with ChangeNotifier {
         message: 'ai_chat_assistant_message_1'.tr(context),
         messenger: Messenger.assistant,
         messageType: MessageType.chat,
-        messageTime: timestampToLocal(Timestamp.now()),
+        messageTime: (Timestamp.now()),
       ),
       ChatMessage(
         message: 'ai_chat_assistant_message_2'.tr(context),
         messenger: Messenger.assistant,
         messageType: MessageType.chat,
-        messageTime: timestampToLocal(Timestamp.now()),
+        messageTime: (Timestamp.now()),
       ),
       // TODO: 추후 업데이트 예정
       // ChatMessage(
       //   message: 'ai_chat_assistant_message_3'.tr(context),
       //   messenger: Messenger.assistant,
       //   messageType: MessageType.chat,
-      //   messageTime: timestampToLocal(Timestamp.now()),
+      //   messageTime: (Timestamp.now()),
       // ),
     ];
   }
@@ -193,7 +189,21 @@ class DiaryAiChatController with ChangeNotifier {
   List<String> chatlogDates = [];
 
   void chatLogInitialization(BuildContext context) {
+    chatlogDates.clear();
     chatlog = ChatMessage.defaultChatLog(context);
+  }
+
+  void chatMemorySystemInitialization(BuildContext context) {
+    chatMemory.clear();
+    chatMemory = [
+      OpenAIChatCompletionChoiceMessageModel(
+        content: [
+          OpenAIChatCompletionChoiceMessageContentItemModel.text(
+              getChatGPTSystemPrompt(context)),
+        ],
+        role: OpenAIChatMessageRole.system,
+      ),
+    ];
   }
 
   // update user chatting
@@ -202,8 +212,9 @@ class DiaryAiChatController with ChangeNotifier {
       message: chatTextController.text.trim(),
       messenger: Messenger.user,
       messageType: MessageType.chat,
-      messageTime: timestampToLocal(Timestamp.now()),
+      messageTime: (Timestamp.now()),
     );
+    chatlog.add(chatModel);
   }
 
   // update ai chatting
@@ -212,19 +223,20 @@ class DiaryAiChatController with ChangeNotifier {
       message: message,
       messenger: Messenger.ai,
       messageType: MessageType.chat,
-      messageTime: timestampToLocal(Timestamp.now()),
+      messageTime: (Timestamp.now()),
     );
+    chatlog.add(chatModel);
   }
 
   // update system chatting
   void updateSystemChat(BuildContext context) {
     chatModel = ChatMessage(
-      message: ChatMessage.formatTimestamp(
-          timestampToLocal(Timestamp.now()), context),
+      message: ChatMessage.formatTimestamp((Timestamp.now()), context),
       messenger: Messenger.system,
       messageType: MessageType.chat,
-      messageTime: timestampToLocal(Timestamp.now()),
+      messageTime: (Timestamp.now()),
     );
+    chatlog.add(chatModel);
   }
 
   // when user message has submitted
@@ -239,20 +251,17 @@ class DiaryAiChatController with ChangeNotifier {
 
     // when submitted message's date is different with latest message's date
     if (ChatMessage.calculateDateDifference(
-            timestampToLocal(chatlog.last.messageTime),
-            timestampToLocal(Timestamp.now())) >=
+            (chatlog.last.messageTime), (Timestamp.now())) >=
         1) {
       updateSystemChat(context);
-      chatlog.add(chatModel);
     }
 
     // add user message
     updateUserChat();
-    chatlog.add(chatModel);
     scrollChatScreenToBottom();
 
     // call chatGPT response
-    getResponse(context).then((value) {
+    getAIResponse(context).then((value) {
       scrollChatScreenToBottom();
       // save the chat log to the local storage
       saveChatLogToLocal();
@@ -274,42 +283,18 @@ class DiaryAiChatController with ChangeNotifier {
     if (sendFirstMessage && !isChatResponsLoading) {
       sendFirstMessage = false;
       countMessageResetForAnalysisAnalysis();
-
-      // reset the chatlog (visible chat)
-      chatlog = ChatMessage.defaultChatLog(context);
-      chatlogDates.clear();
-
-      // reset the chat memory (for gpt prompt)
-      chatMemory.clear();
-      chatMemory = [
-        OpenAIChatCompletionChoiceMessageModel(
-          content: [
-            OpenAIChatCompletionChoiceMessageContentItemModel.text(
-              getChatGPTSystemPrompt(context),
-            ),
-          ],
-          role: OpenAIChatMessageRole.system,
-        ),
-      ];
-
+      chatLogInitialization(context);
+      chatMemorySystemInitialization(context);
       deleteChatLogFromLocal();
-
-      // for (int i = 0; i < chatMemory.length; i++) {
-      //   dev.log(chatMemory[i].content!.first.text.toString());
-      // }
-      // for (int i = 0; i < chatlog.length; i++) {
-      //   dev.log(chatlog[i].message);
-      // }
     }
     notifyListeners();
   }
 
-  // make modle albe to remember the past chat log
+  // make modle able to remember the past chat log
   List<OpenAIChatCompletionChoiceMessageModel> chatMemory = [];
 
   // send and get response from chatGPT (chatting model)
-  // 추후 stream으로 답변 받아오기로 변경 고려
-  Future<void> getResponse(BuildContext context) async {
+  Future<void> getAIResponse(BuildContext context) async {
     toggleChatResponseLodaing(true);
     updateChatMemory(context);
 
@@ -335,38 +320,26 @@ class DiaryAiChatController with ChangeNotifier {
         // An alternative to sampling with temperature
         topP: 1.0,
       );
-      toggleChatResponseLodaing(false);
+
       updateAIChat(chatCompletion.choices.first.message.content!.first.text!);
     } on SocketException catch (e) {
       dev.log(e.toString());
-      toggleChatResponseLodaing(false);
       updateAIChat("ai_chat_error_message_1".tr(context));
     } on RequestFailedException catch (e) {
       dev.log(e.toString());
-      toggleChatResponseLodaing(false);
       updateAIChat("ai_chat_error_message_2".tr(context));
     } catch (e) {
       dev.log(e.toString());
-      toggleChatResponseLodaing(false);
       updateAIChat("ai_chat_error_message_3".tr(context));
+    } finally {
+      toggleChatResponseLodaing(false);
     }
-
-    chatlog.add(chatModel);
     notifyListeners();
   }
 
   // put past chat log into the chatMemory
   void updateChatMemory(BuildContext context) {
-    chatMemory.clear();
-    chatMemory = [
-      OpenAIChatCompletionChoiceMessageModel(
-        content: [
-          OpenAIChatCompletionChoiceMessageContentItemModel.text(
-              getChatGPTSystemPrompt(context)),
-        ],
-        role: OpenAIChatMessageRole.system,
-      ),
-    ];
+    chatMemorySystemInitialization(context);
 
     for (int i = (chatlog.length > rememberableChatlogLimit)
             ? chatlog.length - rememberableChatlogLimit
@@ -390,164 +363,249 @@ class DiaryAiChatController with ChangeNotifier {
     }
   }
 
-  // read chat log from local storage at the first stage
-  void getChatLogFromLocal() async {
-    if (userId!.isNotEmpty) {
+  // 로컬 저장소에서 최신 채팅 로그 불러오기 (초기 로딩용)
+  Future<void> getChatLogFromLocal() async {
+    // 1. 유저 ID 체크
+    if (userId == null || userId!.isEmpty) {
+      dev.log('there is no firebase uid');
+      return;
+    }
+
+    try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
-      List<String> keys = prefs
-          .getKeys()
-          .where((key) => key.startsWith('${userId}_chatLog_'))
-          .toList();
 
-      if (keys.isNotEmpty) {
-        // sorting by time
-        keys.sort();
-        // latest 3 message List's keys
-        List<String> latestKeys = keys
-            .skip((keys.length - maxChatlogDatesToLoad) > 0
-                ? keys.length - maxChatlogDatesToLoad
-                : 0)
-            .toList()
-            .toList();
-        chatlogDates.clear();
-        chatlog.clear();
+      // 2. 실제 파일 기반으로 날짜 키 리스트 재구축 (Self-healing)
+      // 저장소에 있는 모든 채팅 로그 키를 스캔하여 가져옵니다.
+      Set<String> allKeys = prefs.getKeys();
+      String prefix = '${userId}_chatLog_';
 
-        for (String key in latestKeys) {
-          if (!chatlogDates.contains(key)) {
-            List<String>? jsonMessages = prefs.getStringList(key);
+      // 필터링 및 날짜순 정렬 (과거 -> 최신)
+      List<String> validKeys =
+          allKeys.where((key) => key.startsWith(prefix)).toList();
+      validKeys.sort();
 
-            if (jsonMessages != null) {
-              dev.log(
-                  'read chat log from local for date ${key.split('_').skip(1).join('_')}');
-              sendFirstMessage = true;
-              chatlogDates.add(key);
-              chatlog.addAll(
-                jsonMessages
-                    .map((jsonMessage) =>
-                        ChatMessage.fromJsonLocal(jsonDecode(jsonMessage)))
-                    .toList(),
-              );
+      // 전역 변수 chatlogDates를 실제 데이터와 동기화
+      chatlogDates = List.from(validKeys);
 
-              // for (int i = 0; i < chatlog.length; i++) {
-              //   dev.log(
-              //       "${ChatMessage.formatTimestamp(timestampToLocal(chatlog[i].messageTime))}: ${chatlog[i].message}");
-              // }
-            } else {
-              dev.log(
-                  'there is no chat data for date ${key.split('_').skip(1).join('_')}');
-            }
-          } else {
-            if (keys.indexOf(key) == 0) {
-              dev.log('there is no more older chat data');
-            }
-          }
-        }
-      } else {
+      if (chatlogDates.isEmpty) {
         dev.log('there is no chat data');
-      }
-    } else {
-      dev.log('there is no firebase uid');
-    }
-
-    notifyListeners();
-  }
-
-  // update chat log to local storage
-  void saveChatLogToLocal() async {
-    if (userId!.isNotEmpty) {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      String todayKey =
-          '${userId}_chatLog_${DateTime.now().toIso8601String().substring(0, 10)}';
-      // for test
-      // String todayKey = '${userId}_chatLog_2024-09-09';
-
-      if (!chatlogDates.contains(todayKey)) {
-        chatlogDates.add(todayKey);
+        notifyListeners();
+        return;
       }
 
-      // only save messages within same day
-      List<ChatMessage> todayMessages = chatlog.where((message) {
-        return ChatMessage.calculateDateDifference(
-                timestampToLocal(message.messageTime),
-                timestampToLocal(Timestamp.now())) ==
-            0;
-      }).toList();
-
-      List<String> jsonMessages =
-          todayMessages.map((message) => jsonEncode(message.toJson())).toList();
-      await prefs.setStringList(todayKey, jsonMessages);
-      dev.log(
-          'save chat log to local for date ${todayKey.split('_').skip(1).join('_')}');
-    } else {
-      dev.log('there is no firebase uid');
-    }
-  }
-
-  // delete chat log from local storage
-  void deleteChatLogFromLocal() async {
-    if (userId!.isNotEmpty) {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      List<String> keys = prefs
-          .getKeys()
-          .where((key) => key.startsWith('${userId}_chatLog_'))
-          .toList();
-      for (String key in keys) {
-        await prefs.remove(key);
+      // 3. 로딩할 최신 데이터 범위 계산
+      // 전체 날짜 중 가장 최근 n일치(maxChatlogDatesToLoad)만 가져옵니다.
+      int totalDates = chatlogDates.length;
+      int startIndex = 0;
+      if (totalDates > maxChatlogDatesToLoad) {
+        startIndex = totalDates - maxChatlogDatesToLoad;
       }
-      dev.log('delete chat log from local');
-    } else {
-      dev.log('there is no firebase uid');
-    }
-  }
 
-  // load more chat logs from past
-  Future<bool> loadMoreChatLogs() async {
-    if (userId!.isNotEmpty) {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      List<String> keys = prefs
-          .getKeys()
-          .where((key) => key.startsWith('${userId}_chatLog_'))
-          .toList();
-      if (keys.isNotEmpty) {
-        keys.sort();
-        // load older messages
-        for (String key in keys.reversed) {
-          if (!chatlogDates.contains(key)) {
-            List<String>? jsonMessages = prefs.getStringList(key);
-            if (jsonMessages != null) {
-              List<ChatMessage> additionalMessages = jsonMessages
-                  .map((jsonMessage) =>
-                      ChatMessage.fromJsonLocal(jsonDecode(jsonMessage)))
-                  .toList();
-              chatlog.insertAll(0, additionalMessages);
-              chatlogDates.add(key);
-              notifyListeners();
-              dev.log(
-                  'read older chat log from local for date ${key.split('_').skip(1).join('_')}');
+      // 이번에 로딩할 키 리스트 (최신 데이터들)
+      List<String> keysToLoad = chatlogDates.sublist(startIndex);
 
-              if (keys.indexOf(key) == 0) {
-                dev.log('there is no more older chat data');
-                return false;
-              }
-              break;
-            }
-          } else {
-            if (keys.indexOf(key) == 0) {
-              dev.log('there is no more older chat data');
-              return false;
-            }
-          }
+      // 4. 데이터 파싱 및 메모리 로드
+      chatlog.clear(); // 기존 메모리 초기화
+
+      for (String key in keysToLoad) {
+        List<String>? jsonList = prefs.getStringList(key);
+
+        if (jsonList != null) {
+          List<ChatMessage> messages = jsonList
+              .map((j) => ChatMessage.fromJsonLocal(jsonDecode(j)))
+              .toList();
+
+          chatlog.addAll(messages);
+
+          // [기존 로직 유지] 첫 메시지 여부 플래그 (필요한 경우)
+          sendFirstMessage = true;
+
+          dev.log(
+              'read chat log from local for date ${key.split('_').skip(1).join('_')}');
         }
-      } else {
-        dev.log('there is no ${userId}_chatLog_');
+      }
+
+      dev.log(
+          'Initial chat logs loaded: ${chatlog.length} messages from ${keysToLoad.length} days.');
+    } catch (e) {
+      dev.log('Error loading initial chat logs: $e');
+    } finally {
+      notifyListeners();
+    }
+  }
+
+// 과거 채팅 로그 더 불러오기 (Pagination)
+  Future<bool> loadOlderChatLogs() async {
+    // 1. 유저 ID 체크
+    if (userId == null || userId!.isEmpty) {
+      dev.log('there is no firebase uid');
+      return false;
+    }
+
+    // [Guard 1] 이미 로딩 중이라면 요청 무시 (중복 호출 방지)
+    if (_isLoadingOlderChat) {
+      dev.log('이미 로딩 중입니다. 요청을 무시합니다.');
+      return false;
+    }
+
+    // [Guard 2] 불러올 전체 날짜 리스트가 비어있거나, 현재 로딩된 채팅이 없으면 종료
+    if (chatlogDates.isEmpty || chatlog.isEmpty) {
+      dev.log('더 이상 불러올 과거 채팅 기록이 없습니다 (데이터 없음).');
+      return false;
+    }
+
+    // [Lock] 로딩 시작 -> 잠금 걸기
+    _isLoadingOlderChat = true;
+    notifyListeners();
+
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      // chatlog는 시간순(과거->최신) 정렬이므로 0번 인덱스가 가장 오래된 메시지입니다.
+      DateTime oldestMsgDate = chatlog.first.messageTime.toDate().toLocal();
+      String dateKey = oldestMsgDate.toIso8601String().substring(0, 10);
+      String currentKey = '${userId}_chatLog_$dateKey';
+
+      // 전체 날짜 리스트(chatlogDates)에서 현재 키의 위치(Index)를 찾음
+      // chatlogDates는 오름차순(과거 -> 최신)으로 정렬되어 있다고 가정 (getChatLogFromLocal에서 정렬함)
+      int currentIndex = chatlogDates.indexOf(currentKey);
+
+      // 만약 currentIndex를 못 찾았다면(예: 오늘 작성한 채팅이라 파일 저장이 안 된 경우),
+      // chatlogDates의 가장 마지막(최신)부터 탐색하도록 설정
+      if (currentIndex == -1) {
+        currentIndex = chatlogDates.length;
+      }
+
+      // currentIndex가 0이면 이미 가장 과거 데이터(리스트의 처음)까지 다 본 상태
+      if (currentIndex <= 0) {
+        dev.log('Reached the beginning of chat logs (No more history).');
         return false;
       }
-    } else {
+
+      // 한 번에 maxChatlogDatesToLoad(예: 3일치)만큼 불러옴
+      int endIndex = currentIndex;
+      int startIndex = (endIndex - maxChatlogDatesToLoad) > 0
+          ? (endIndex - maxChatlogDatesToLoad)
+          : 0;
+
+      // 불러올 키 리스트 추출 (startIndex 부터 endIndex 직전까지)
+      List<String> keysToLoad = chatlogDates.sublist(startIndex, endIndex);
+      List<ChatMessage> olderMessages = [];
+
+      for (String key in keysToLoad) {
+        List<String>? jsonList = prefs.getStringList(key);
+        if (jsonList != null) {
+          List<ChatMessage> dailyMessages = jsonList
+              .map((j) => ChatMessage.fromJsonLocal(jsonDecode(j)))
+              .toList();
+
+          // olderMessages에 순서대로 쌓음
+          // keysToLoad가 [1일, 2일, 3일] 순서이므로 메시지도 [1일치, 2일치, 3일치] 순으로 쌓임
+          olderMessages.addAll(dailyMessages);
+
+          dev.log('Read older chat log: ${key.split('_').skip(1).join('_')}');
+        }
+      }
+
+      if (olderMessages.isNotEmpty) {
+        // 기존 채팅 로그의 맨 앞(과거)에 통째로 삽입
+        chatlog.insertAll(0, olderMessages);
+
+        dev.log(
+            'Loaded ${olderMessages.length} older messages from ${keysToLoad.length} days.');
+        return true;
+      }
+
+      return false;
+    } catch (e) {
+      dev.log('Error loading older chat logs: $e');
+      return false;
+    } finally {
+      // [Unlock] 잠금 해제
+      _isLoadingOlderChat = false;
+      notifyListeners();
+    }
+  }
+
+  // 채팅 로그를 날짜별로 그룹화하여 로컬에 저장
+  void saveChatLogToLocal() async {
+    if (userId == null || userId!.isEmpty) {
       dev.log('there is no firebase uid');
+      return;
     }
 
-    notifyListeners();
-    return true;
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+      // 1. 메모리에 있는 전체 채팅 로그를 '날짜별(yyyy-MM-dd)'로 그룹화
+      // Map<날짜키, List<메시지>>
+      Map<String, List<ChatMessage>> groupedMessages = {};
+
+      for (var message in chatlog) {
+        // 메시지의 실제 시간(Local)을 기준으로 날짜 키 생성
+        // 예: 2024-09-09
+        DateTime date = message.messageTime.toDate().toLocal();
+        String dateKey = date.toIso8601String().substring(0, 10);
+        String fullKey = '${userId}_chatLog_$dateKey';
+
+        if (!groupedMessages.containsKey(fullKey)) {
+          groupedMessages[fullKey] = [];
+        }
+        groupedMessages[fullKey]!.add(message);
+      }
+
+      // 2. 그룹화된 데이터를 각각 저장
+      for (var entry in groupedMessages.entries) {
+        String key = entry.key;
+        List<ChatMessage> messagesOfDay = entry.value;
+
+        // JSON 직렬화
+        List<String> jsonMessages = messagesOfDay
+            .map((message) => jsonEncode(message.toJson()))
+            .toList();
+
+        await prefs.setStringList(key, jsonMessages);
+
+        // 3. 날짜 리스트(chatlogDates) 관리
+        // 새로운 날짜가 생겼다면 리스트에 추가하고 정렬
+        if (!chatlogDates.contains(key)) {
+          chatlogDates.add(key);
+          // 날짜순 정렬 (최신 날짜가 뒤로 오거나 앞으로 오도록 정책에 맞게 정렬)
+          chatlogDates.sort();
+        }
+      }
+
+      dev.log('Saved chat logs grouped by dates.');
+    } catch (e) {
+      dev.log('Error saving chat log: $e');
+    }
+  }
+
+  // 로컬 저장소 및 메모리에서 채팅 로그 삭제
+  void deleteChatLogFromLocal() async {
+    if (userId == null || userId!.isEmpty) {
+      dev.log('there is no firebase uid');
+      return;
+    }
+
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+      // 해당 유저의 채팅 로그 키 찾기
+      Set<String> keys = prefs.getKeys();
+      String prefix = '${userId}_chatLog_';
+
+      List<String> targetKeys =
+          keys.where((key) => key.startsWith(prefix)).toList();
+
+      // 로컬 파일 삭제
+      for (String key in targetKeys) {
+        await prefs.remove(key);
+      }
+
+      dev.log('Deleted all chat logs from local and memory.');
+    } catch (e) {
+      dev.log('Error deleting chat log: $e');
+    }
   }
 
   // DB 저장은 향후 유료 기능 등으로 고려하기, 현재로는 로컬에 대화 기록 저장
