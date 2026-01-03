@@ -1,5 +1,5 @@
+// other_diary.dart
 import 'dart:developer' as develop;
-import 'dart:ui';
 
 import 'package:bandi_official/components/button/primary_button.dart';
 import 'package:bandi_official/components/dialogue/reset_dialogue.dart';
@@ -15,9 +15,9 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 
 import '../../components/bottom_sheet/show_floating_toast_sheet.dart';
-import '../../components/toggle/language_toggle_switch.dart';
-import '../../controller/other_diary_controller.dart';
 import '../../components/bottom_sheet/app_bottom_sheet.dart';
+import 'controller/deepl_service.dart';
+import 'controller/other_diary_controller.dart';
 
 // =====================
 // Reaction enum & helpers
@@ -56,39 +56,250 @@ class OtherDiary extends StatefulWidget {
 }
 
 class _OtherDiaryState extends State<OtherDiary> {
+  // =====================
+  // UI / state
+  // =====================
   bool showFirstPage = true;
 
-  bool isKorean = true;
-  bool isLoading = false;
-  String originalLang = 'KO';
-  String translatedContent = '';
-  String translatedTitle = '';
-
-  // ✅ 선택된 리액션 상태
   DiaryReaction? selectedReaction;
+
+  // =====================
+  // Language / translation state
+  // =====================
+  late final DeepLService _deepLService;
+
+  String originalLang = 'KO'; // 'KO' or 'EN' (원문 언어)
+  String currentLang = 'KO'; // 현재 화면 표시 언어
+
+  String translatedTitle = '';
+  String translatedContent = '';
+
+  bool _initTranslated = false;
+  bool _isTranslating = false;
+
+  // ✅ 로컬 캐시 (DeepL 재호출 방지)
+  String? _cachedKoTitle;
+  String? _cachedKoContent;
+  String? _cachedEnTitle;
+  String? _cachedEnContent;
 
   late OtherDiaryController _controller;
 
+  // =====================
+  // utils
+  // =====================
   bool containsKorean(String text) {
     final koreanRegex = RegExp(r'[가-힣]');
     return koreanRegex.hasMatch(text);
   }
 
+  String get _otherLang => (originalLang == 'KO') ? 'EN' : 'KO';
+
+  String _moreToggleButtonText() {
+    // 현재 원문을 보고 있으면 -> 반대 언어로 보기
+    if (currentLang == originalLang) {
+      return (originalLang == 'KO') ? "영어로 보기" : "한국어로 보기";
+    }
+    // 현재 번역본(반대 언어)을 보고 있으면 -> 원본으로 보기
+    return "원본으로 보기";
+  }
+
+  // =====================
+  // lifecycle
+  // =====================
   @override
   void initState() {
     super.initState();
+
+    _deepLService = DeepLService();
+    _controller = OtherDiaryController();
+
     final originalContent = widget.writeProvider.otherDiaryModel.content;
     final originalTitle = widget.writeProvider.otherDiaryModel.title;
 
     originalLang = containsKorean(originalContent) ? 'KO' : 'EN';
 
+    // ✅ 시작은 원문
     translatedContent = originalContent;
     translatedTitle = originalTitle;
-    isKorean = originalLang == 'KO';
-
-    _controller = OtherDiaryController();
+    currentLang = originalLang;
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // ✅ locale은 여기서 안전하게 접근 가능
+    if (!_initTranslated) {
+      _initTranslated = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _initAutoTranslateByLocale();
+      });
+    }
+  }
+
+  // =====================
+  // translation logic
+  // =====================
+  Future<void> _initAutoTranslateByLocale() async {
+    final localeLang =
+    Localizations.localeOf(context).languageCode.toLowerCase();
+    final targetLang = (localeLang == 'ko') ? 'KO' : 'EN';
+
+    // 원문 언어와 목표 언어가 같으면 번역 필요 없음
+    if (targetLang == originalLang) {
+      if (!mounted) return;
+      setState(() {
+        currentLang = originalLang;
+        translatedTitle = widget.writeProvider.otherDiaryModel.title;
+        translatedContent = widget.writeProvider.otherDiaryModel.content;
+      });
+      return;
+    }
+
+    // 캐시에 이미 있으면 재사용
+    if (targetLang == 'KO' &&
+        _cachedKoTitle != null &&
+        _cachedKoContent != null) {
+      if (!mounted) return;
+      setState(() {
+        translatedTitle = _cachedKoTitle!;
+        translatedContent = _cachedKoContent!;
+        currentLang = 'KO';
+      });
+      return;
+    }
+    if (targetLang == 'EN' &&
+        _cachedEnTitle != null &&
+        _cachedEnContent != null) {
+      if (!mounted) return;
+      setState(() {
+        translatedTitle = _cachedEnTitle!;
+        translatedContent = _cachedEnContent!;
+        currentLang = 'EN';
+      });
+      return;
+    }
+
+    // 캐시 없으면 번역
+    if (!mounted) return;
+    setState(() => _isTranslating = true);
+
+    try {
+      final originalTitle = widget.writeProvider.otherDiaryModel.title;
+      final originalContent = widget.writeProvider.otherDiaryModel.content;
+
+      final tTitle = await _deepLService.translate(originalTitle, targetLang);
+      final tContent = await _deepLService.translate(originalContent, targetLang);
+
+      if (!mounted) return;
+      setState(() {
+        translatedTitle = tTitle;
+        translatedContent = tContent;
+        currentLang = targetLang;
+
+        // ✅ 자동 번역 결과도 캐시에 저장
+        if (targetLang == 'KO') {
+          _cachedKoTitle = tTitle;
+          _cachedKoContent = tContent;
+        } else {
+          _cachedEnTitle = tTitle;
+          _cachedEnContent = tContent;
+        }
+      });
+    } catch (e) {
+      develop.log('auto translate failed: $e');
+      if (!mounted) return;
+      setState(() {
+        translatedTitle = widget.writeProvider.otherDiaryModel.title;
+        translatedContent = widget.writeProvider.otherDiaryModel.content;
+        currentLang = originalLang;
+      });
+    } finally {
+      if (!mounted) return;
+      setState(() => _isTranslating = false);
+    }
+  }
+
+  /// ✅ MoreSheet 버튼 토글:
+  /// - 번역본 보고 있으면 -> 원문으로
+  /// - 원문 보고 있으면 -> 반대 언어(캐시 있으면 사용 / 없으면 번역)
+  Future<void> _toggleMoreLanguage() async {
+    final originalTitle = widget.writeProvider.otherDiaryModel.title;
+    final originalContent = widget.writeProvider.otherDiaryModel.content;
+
+    // 1) 현재 번역본 -> 원문으로 복귀 (즉시)
+    if (currentLang != originalLang) {
+      if (!mounted) return;
+      setState(() {
+        translatedTitle = originalTitle;
+        translatedContent = originalContent;
+        currentLang = originalLang;
+      });
+      return;
+    }
+
+    // 2) 현재 원문 -> 반대 언어로 전환
+    final targetLang = _otherLang;
+
+    // 캐시 히트
+    if (targetLang == 'KO' &&
+        _cachedKoTitle != null &&
+        _cachedKoContent != null) {
+      if (!mounted) return;
+      setState(() {
+        translatedTitle = _cachedKoTitle!;
+        translatedContent = _cachedKoContent!;
+        currentLang = 'KO';
+      });
+      return;
+    }
+    if (targetLang == 'EN' &&
+        _cachedEnTitle != null &&
+        _cachedEnContent != null) {
+      if (!mounted) return;
+      setState(() {
+        translatedTitle = _cachedEnTitle!;
+        translatedContent = _cachedEnContent!;
+        currentLang = 'EN';
+      });
+      return;
+    }
+
+    // 캐시 미스 -> 번역
+    if (!mounted) return;
+    setState(() => _isTranslating = true);
+
+    try {
+      final tTitle = await _deepLService.translate(originalTitle, targetLang);
+      final tContent = await _deepLService.translate(originalContent, targetLang);
+
+      if (!mounted) return;
+      setState(() {
+        translatedTitle = tTitle;
+        translatedContent = tContent;
+        currentLang = targetLang;
+
+        if (targetLang == 'KO') {
+          _cachedKoTitle = tTitle;
+          _cachedKoContent = tContent;
+        } else {
+          _cachedEnTitle = tTitle;
+          _cachedEnContent = tContent;
+        }
+      });
+    } catch (e) {
+      develop.log("moreSheet translate failed: $e");
+    } finally {
+      if (!mounted) return;
+      setState(() => _isTranslating = false);
+    }
+  }
+
+  // =====================
+  // build
+  // =====================
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -112,11 +323,11 @@ class _OtherDiaryState extends State<OtherDiary> {
                         children: [
                           Expanded(
                             child: Text(
-                              translatedTitle,
+                              _isTranslating ? "번역 중..." : translatedTitle,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style:
-                                  BandiFont.headlineMedium(context)?.copyWith(
+                              BandiFont.headlineMedium(context)?.copyWith(
                                 color: BandiColor.foundationColor100(context),
                               ),
                             ),
@@ -148,7 +359,7 @@ class _OtherDiaryState extends State<OtherDiary> {
                                 reaction3: r3,
                                 mailController: context.read<MailController>(),
                                 alarmController:
-                                    context.read<AlarmController>(),
+                                context.read<AlarmController>(),
                                 onDone: () =>
                                     widget.writeProvider.offDiaryOpen(),
                               );
@@ -162,9 +373,7 @@ class _OtherDiaryState extends State<OtherDiary> {
                         ],
                       ),
                     ),
-                    const SizedBox(
-                      height: 13,
-                    ),
+                    const SizedBox(height: 13),
                     Divider(
                       color: BandiColor.foundationColor04(context),
                       thickness: 1,
@@ -172,22 +381,23 @@ class _OtherDiaryState extends State<OtherDiary> {
                     ),
 
                     // ===== Content =====
+                    const SizedBox(height: 16),
                     Expanded(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Body
                             Expanded(
                               child: SingleChildScrollView(
                                 child: SizedBox(
                                   width: double.infinity,
                                   child: Text(
-                                    translatedContent,
-                                    style: BandiFont.bodyLarge(context)?.copyWith(
+                                    _isTranslating ? "번역 중..." : translatedContent,
+                                    style: BandiFont.bodyLarge(context)
+                                        ?.copyWith(
                                       color:
-                                          BandiColor.foundationColor90(context),
+                                      BandiColor.foundationColor90(context),
                                     ),
                                   ),
                                 ),
@@ -197,36 +407,11 @@ class _OtherDiaryState extends State<OtherDiary> {
                         ),
                       ),
                     ),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    // ===== Language Toggle =====
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 30.0, right: 24),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          LanguageToggleSwitch(
-                            originalContent:
-                                widget.writeProvider.otherDiaryModel.content,
-                            originalTitle:
-                                widget.writeProvider.otherDiaryModel.title,
-                            initialLanguage: originalLang,
-                            onToggleCompleted:
-                                (newContent, newTitle, currentLanguage) {
-                              setState(() {
-                                translatedContent = newContent;
-                                translatedTitle = newTitle;
-                                isKorean = currentLanguage == 'KO';
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
+                    const SizedBox(height: 10),
                   ],
                 ),
               ),
+
               // ===== Bottom "chat-like" bar (reaction + send) =====
               _bottomChatBar(context, widget.writeProvider),
             ],
@@ -323,11 +508,11 @@ class _OtherDiaryState extends State<OtherDiary> {
             },
             child: Container(
               decoration: BoxDecoration(
-                  color: BandiColor.foundationColor90(context),
-                  borderRadius: BandiEffects.radiusLarge),
+                color: BandiColor.foundationColor90(context),
+                borderRadius: BandiEffects.radiusLarge,
+              ),
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 child: PhosphorIcon(
                   PhosphorIcons.paperPlaneRight(PhosphorIconsStyle.fill),
                   size: 16,
@@ -351,37 +536,46 @@ class _OtherDiaryState extends State<OtherDiary> {
         mainAxisSize: MainAxisSize.min,
         children: [
           CustomPrimaryButton(
-              icon: reactionIcon(DiaryReaction.cheer),
-              title: "reaction_support".tr(context),
-              onPrimaryButtonPressed: () {
-                setState(() => selectedReaction = DiaryReaction.cheer);
-                Navigator.pop(context);
-              },
-              size: "small",
-              disableButton: false),
+            icon: reactionIcon(DiaryReaction.cheer),
+            title: "reaction_support".tr(context),
+            onPrimaryButtonPressed: () {
+              setState(() => selectedReaction = DiaryReaction.cheer);
+              Navigator.pop(context);
+            },
+            size: "small",
+            disableButton: false,
+          ),
           const SizedBox(height: 8),
           CustomPrimaryButton(
-              icon: reactionIcon(DiaryReaction.empathize),
-              title: "reaction_relate".tr(context),
-              onPrimaryButtonPressed: () {
-                setState(() => selectedReaction = DiaryReaction.empathize);
-                Navigator.pop(context);
-              },
-              size: "small",
-              disableButton: false),
+            icon: reactionIcon(DiaryReaction.empathize),
+            title: "reaction_relate".tr(context),
+            onPrimaryButtonPressed: () {
+              setState(() => selectedReaction = DiaryReaction.empathize);
+              Navigator.pop(context);
+            },
+            size: "small",
+            disableButton: false,
+          ),
           const SizedBox(height: 8),
           CustomPrimaryButton(
-              icon: reactionIcon(DiaryReaction.together),
-              title: "reaction_with".tr(context),
-              onPrimaryButtonPressed: () {
-                setState(() => selectedReaction = DiaryReaction.together);
-                Navigator.pop(context);
-              },
-              size: "small",
-              disableButton: false)
+            icon: reactionIcon(DiaryReaction.together),
+            title: "reaction_with".tr(context),
+            onPrimaryButtonPressed: () {
+              setState(() => selectedReaction = DiaryReaction.together);
+              Navigator.pop(context);
+            },
+            size: "small",
+            disableButton: false,
+          ),
         ],
       ),
     );
+  }
+
+  bool get _shouldShowTranslateControls {
+    final localeLang = Localizations.localeOf(context).languageCode.toLowerCase();
+    final userLang = (localeLang == 'ko') ? 'KO' : 'EN';
+    return userLang != originalLang;
   }
 
   // =====================
@@ -390,19 +584,40 @@ class _OtherDiaryState extends State<OtherDiary> {
   void _openMoreSheet(BuildContext context, HomeToWrite writeProvider) {
     showAppBottomSheet(
       context: context,
-      child:           CustomPrimaryButton(
-          title: "dialogue_report_on_yes".tr(context),
-          onPrimaryButtonPressed: () {
-            Navigator.pop(context);
-            _showReportDialog(context, writeProvider);
-          },
-          size: "small",
-          disableButton: false),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // ✅ 번역이 필요한 경우에만 노출
+          if (_shouldShowTranslateControls) ...[
+            CustomPrimaryButton(
+              title: _moreToggleButtonText(),
+              onPrimaryButtonPressed: () async {
+                Navigator.pop(context);
+                await _toggleMoreLanguage();
+              },
+              size: "small",
+              disableButton: _isTranslating,
+            ),
+            const SizedBox(height: 8),
+          ],
+
+          // 신고 버튼 (항상)
+          CustomPrimaryButton(
+            title: "dialogue_report_on_yes".tr(context),
+            onPrimaryButtonPressed: () {
+              Navigator.pop(context);
+              _showReportDialog(context, writeProvider);
+            },
+            size: "small",
+            disableButton: false,
+          ),
+        ],
+      ),
     );
   }
 
   // =====================
-  // Report Dialog (reuse your existing flow)
+  // Report Dialog
   // =====================
   void _showReportDialog(BuildContext context, HomeToWrite writeProvider) {
     showDialog<bool>(
@@ -419,7 +634,6 @@ class _OtherDiaryState extends State<OtherDiary> {
             try {
               final userId = FirebaseAuth.instance.currentUser!.uid;
 
-              // block list update
               await FirebaseFirestore.instance
                   .collection('users')
                   .doc(userId)
@@ -428,7 +642,6 @@ class _OtherDiaryState extends State<OtherDiary> {
                     [writeProvider.otherDiaryModel.userId]),
               });
 
-              // reported count
               await FirebaseFirestore.instance
                   .collection('users')
                   .doc(writeProvider.otherDiaryModel.userId)
@@ -439,7 +652,6 @@ class _OtherDiaryState extends State<OtherDiary> {
               develop.log('unknown error: $e');
             }
 
-            // close page
             writeProvider.offDiaryOpen();
 
             if (context.mounted) {
@@ -465,9 +677,7 @@ class _OtherDiaryState extends State<OtherDiary> {
               );
             }
           },
-          onNoFunction: () {
-            Navigator.pop(ctx, false);
-          },
+          onNoFunction: () => Navigator.pop(ctx, false),
         );
       },
     );

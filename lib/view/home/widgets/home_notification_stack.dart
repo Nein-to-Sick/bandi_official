@@ -159,25 +159,24 @@ class _HomeNotificationStackState extends State<HomeNotificationStack>
   void _removeEntry({bool immediate = false}) async {
     if (_entry == null) return;
 
-    widget.onDropdownOpenChanged?.call(false);
+    if (!immediate) {
+      widget.onDropdownOpenChanged?.call(false);
+    }
 
     if (immediate) {
       _entry?.remove();
       _entry = null;
-      if (mounted) setState(() => _isOpen = false);
+      _isOpen = false; // dispose 중 setState 하지 말고 값만
       return;
     }
 
-    // ✅ reverse 중 dispose될 수도 있으니 mounted 체크
-    try {
-      await _c.reverse();
-    } catch (_) {}
-
+    try { await _c.reverse(); } catch (_) {}
     _entry?.remove();
     _entry = null;
 
     if (mounted) setState(() => _isOpen = false);
   }
+
 
   @override
   Widget build(BuildContext context) {

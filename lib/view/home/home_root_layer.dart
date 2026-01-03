@@ -15,7 +15,7 @@ import 'package:provider/provider.dart';
 import '../../controller/user_info_controller.dart';
 import '../mail/controller/mail_controller.dart';
 import '../mail/new_letter_popup.dart';
-import '../sharing_diary/otherDiary.dart';
+import '../sharing_diary/other_diary.dart';
 import '../writing/write_diary.dart';
 import 'controller/bgm_controller.dart';
 import 'package:bandi_official/model/letter.dart';
@@ -233,7 +233,7 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Expanded(
-                              child: wroteToday
+                              child: homeNotis.isEmpty
                                   ? Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [

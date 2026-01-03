@@ -28,6 +28,8 @@ class _CustomPrimaryButtonState extends State<CustomPrimaryButton> {
 
   @override
   Widget build(BuildContext context) {
+    bool reverse = widget.title == "원본으로 보기" ? true : false;
+
     return GestureDetector(
       onTapDown: widget.disableButton
           ? null
@@ -51,15 +53,20 @@ class _CustomPrimaryButtonState extends State<CustomPrimaryButton> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 100),
         width: double.infinity,
-        decoration: BoxDecoration(
-          color: widget.disableButton
-              ? BandiColor.foundationColor40(context)
-              : isPressed
-                  ? BandiColor.foundationColor40(context)
-                  : BandiColor.foundationColor90(context),
-          borderRadius: BorderRadius.circular(100),
-        ),
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: widget.size == "small" ? 13 : 14),
+        decoration: reverse
+            ? BoxDecoration(
+                color: BandiColor.foundationColor10(context),
+                borderRadius: BandiEffects.radiusLarge)
+            : BoxDecoration(
+                color: widget.disableButton
+                    ? BandiColor.foundationColor40(context)
+                    : isPressed
+                        ? BandiColor.foundationColor40(context)
+                        : BandiColor.foundationColor90(context),
+                borderRadius: BandiEffects.radiusLarge,
+              ),
+        padding: EdgeInsets.symmetric(
+            horizontal: 16, vertical: widget.size == "small" ? 13 : 14),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
@@ -78,9 +85,11 @@ class _CustomPrimaryButtonState extends State<CustomPrimaryButton> {
               widget.title,
               style: widget.size == "small"
                   ? BandiFont.labelMedium(context)?.copyWith(
-                      color: widget.disableButton
-                          ? BandiColor.neutralColor20(context)
-                          : BandiColor.neutralColor90(context),
+                      color: reverse
+                          ? BandiColor.foundationColor80(context)
+                          : widget.disableButton
+                              ? BandiColor.neutralColor20(context)
+                              : BandiColor.neutralColor90(context),
                     )
                   : BandiFont.labelLarge(context)?.copyWith(
                       color: widget.disableButton
