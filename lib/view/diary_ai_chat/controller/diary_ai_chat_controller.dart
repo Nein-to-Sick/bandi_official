@@ -45,12 +45,6 @@ class DiaryAiChatController with ChangeNotifier {
   final chatScrollController = ScrollController();
   // for chat system message (today's date)
   late String todayDate = '';
-  // default chatGPT system prompt
-  // String chatGPTSystemPrompt =
-  //     "You are a friendly chatbot offering emotional support for personal concerns. Respond warmly in Korean, focusing on empathy. Offer practical suggestions only if explicitly requested. Maintain a casual, friendly tone, like a close friend, and limit responses to 3 sentences.";
-
-  // String chatGPTSystemPrompt =
-  //     "Your name is 반디. You offer warm, empathetic support in Korean, responding as a respectful friend. Keep responses friendly and brief (max 3 sentences). Provide practical suggestions only when directly asked.";
 
   String getChatGPTSystemPrompt(BuildContext context) {
     return "ai_chat_system_prompt".tr(context);
@@ -207,12 +201,14 @@ class DiaryAiChatController with ChangeNotifier {
   }
 
   // update user chatting
-  void updateUserChat() {
+  void updateUserChat(bool? isDiaryEntry) {
+    bool shouldBeVisible = !(isDiaryEntry ?? false);
     chatModel = ChatMessage(
       message: chatTextController.text.trim(),
       messenger: Messenger.user,
       messageType: MessageType.chat,
       messageTime: Timestamp.now(),
+      isVisible: shouldBeVisible,
     );
     chatlog.add(chatModel);
   }
@@ -240,18 +236,32 @@ class DiaryAiChatController with ChangeNotifier {
   }
 
   // when user message has submitted
-  void onMessageSubmitted(BuildContext context) {
+  void onMessageSubmitted(BuildContext context, {bool isDiaryEntry = false}) {
     if (!sendFirstMessage) {
       sendFirstMessage = true;
     }
 
-    if (ChatMessage.calculateDateDifference(
+    // 1. 날짜 업데이트가 필요한지 먼저 판단
+    bool needsDateUpdate = false;
+    if (chatlog.isEmpty) {
+      needsDateUpdate = true;
+    } else if (ChatMessage.calculateDateDifference(
             (chatlog.last.messageTime), Timestamp.now()) >=
         1) {
+      needsDateUpdate = true;
+    }
+
+    // 2. 날짜 업데이트 실행 로직
+    if (needsDateUpdate) {
+      if (chatlog.isNotEmpty && chatlog.last.messenger == Messenger.system) {
+        chatlog.removeLast();
+      }
+
+      // 그 후 오늘 날짜 시스템 메시지 추가
       updateSystemChat(context);
     }
 
-    updateUserChat();
+    updateUserChat(isDiaryEntry);
     chatTextController.clear();
     scrollChatScreenToBottom();
     countChatAnalysis();
@@ -273,7 +283,10 @@ class DiaryAiChatController with ChangeNotifier {
   void onMyDiarytMessageSubmitted(
       String submittedMessage, BuildContext context) {
     chatTextController.text = submittedMessage;
-    onMessageSubmitted(context);
+    if (chatlogDates.isEmpty) {
+      chatlog.clear();
+    }
+    onMessageSubmitted(context, isDiaryEntry: true);
   }
 
   void resetTheChat(BuildContext context) {

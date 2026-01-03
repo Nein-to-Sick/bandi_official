@@ -149,16 +149,19 @@ class _DiaryAIChatStatefulState extends State<_DiaryAIChatStateful> {
                         diaryAiChatController.chatlog.length - index - 1];
                     return Column(
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.only(top: 10, bottom: 10),
-                          child: IgnorePointer(
-                            ignoring: true,
-                            child: CustomDialogue(
-                              chatMessage: chatMsg,
-                              onDialoguePressed: () {},
-                            ),
-                          ),
-                        ),
+                        (chatMsg.isVisible)
+                            ? Padding(
+                                padding:
+                                    const EdgeInsets.only(top: 10, bottom: 10),
+                                child: IgnorePointer(
+                                  ignoring: true,
+                                  child: CustomDialogue(
+                                    chatMessage: chatMsg,
+                                    onDialoguePressed: () {},
+                                  ),
+                                ),
+                              )
+                            : const SizedBox.shrink(),
                         if (index == 0)
                           SizedBox(
                             height: MediaQuery.of(context).padding.bottom + 94,

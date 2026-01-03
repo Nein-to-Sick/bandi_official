@@ -19,6 +19,7 @@ enum Messenger {
 enum MessageType {
   chat,
   image,
+  link,
 }
 
 class ChatMessage {
@@ -26,12 +27,14 @@ class ChatMessage {
   late Messenger messenger;
   late MessageType messageType;
   late Timestamp messageTime;
+  bool isVisible;
 
   ChatMessage({
     required this.message,
     required this.messenger,
     required this.messageType,
     required this.messageTime,
+    this.isVisible = true,
   });
 
   static List<ChatMessage> defaultChatLog(BuildContext context) {
@@ -41,12 +44,14 @@ class ChatMessage {
         messenger: Messenger.system,
         messageType: MessageType.chat,
         messageTime: Timestamp.now(),
+        isVisible: true,
       ),
       ChatMessage(
         message: 'ai_chat_greeting'.tr(context),
         messenger: Messenger.ai,
         messageType: MessageType.chat,
         messageTime: Timestamp.now(),
+        isVisible: true,
       ),
     ];
   }
@@ -59,6 +64,7 @@ class ChatMessage {
       messenger: Messenger.values[data['messenger']],
       messageType: MessageType.values[data['messageType']],
       messageTime: data['messageTime'] ?? Timestamp.now(),
+      isVisible: data['isVisible'] ?? true,
     );
   }
 
@@ -69,6 +75,7 @@ class ChatMessage {
       messenger: Messenger.values[map['messenger']],
       messageType: MessageType.values[map['messageType']],
       messageTime: map['messageTime'],
+      isVisible: map['isVisible'] ?? true,
     );
   }
 
@@ -78,6 +85,7 @@ class ChatMessage {
         'messenger': messenger.index.toInt(),
         'messageType': messageType.index,
         'messageTime': timestampToMilliseconds(messageTime),
+        'isVisible': isVisible,
       };
 
   // JSON to ChatMessage model from local
@@ -89,6 +97,7 @@ class ChatMessage {
       messageTime: Timestamp.fromDate(
         DateTime.fromMillisecondsSinceEpoch(json['messageTime'], isUtc: true),
       ),
+      isVisible: json['isVisible'] ?? true,
     );
   }
 
@@ -99,6 +108,7 @@ class ChatMessage {
       messenger: Messenger.values[json['messenger']],
       messageType: MessageType.values[json['messageType']],
       messageTime: json['messageTime'],
+      isVisible: json['isVisible'] ?? true,
     );
   }
 
@@ -109,6 +119,7 @@ class ChatMessage {
       'messenger': messenger.index,
       'messageType': messageType.index,
       'messageTime': timestampToMilliseconds(messageTime),
+      'isVisible': isVisible,
     };
   }
 

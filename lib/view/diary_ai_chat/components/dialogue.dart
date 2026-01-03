@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:bandi_official/view/diary_ai_chat/model/diary_ai_chat.dart';
 import 'package:bandi_official/string_extention.dart';
@@ -8,8 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class CustomDialogue extends StatefulWidget {
-  const CustomDialogue(
-      {super.key, required this.chatMessage, required this.onDialoguePressed});
+  const CustomDialogue({
+    super.key,
+    required this.chatMessage,
+    required this.onDialoguePressed,
+  });
+
   final ChatMessage chatMessage;
   final Function onDialoguePressed;
 
