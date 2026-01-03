@@ -139,7 +139,7 @@ class MailController with ChangeNotifier {
   // late Letter newLetter = Letter(
   //   title: 'yyyy년 m월 편지',
   //   content: 'test' * 100,
-  //   date: timestampToLocal(Timestamp.now()),
+  //   date: timestampToLocalTimestamp.now(),
   //   letterId: 'letterId',
   // );
 

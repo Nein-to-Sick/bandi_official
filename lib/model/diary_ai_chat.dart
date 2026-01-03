@@ -1,5 +1,4 @@
 import 'package:bandi_official/string_extention.dart';
-import 'package:bandi_official/utils/time_utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -38,16 +37,16 @@ class ChatMessage {
   static List<ChatMessage> defaultChatLog(BuildContext context) {
     return [
       ChatMessage(
-        message: formatTimestamp(timestampToLocal(Timestamp.now()), context),
+        message: formatTimestamp(Timestamp.now(), context),
         messenger: Messenger.system,
         messageType: MessageType.chat,
-        messageTime: timestampToLocal(Timestamp.now()),
+        messageTime: Timestamp.now(),
       ),
       ChatMessage(
         message: 'ai_chat_greeting'.tr(context),
         messenger: Messenger.ai,
         messageType: MessageType.chat,
-        messageTime: timestampToLocal(Timestamp.now()),
+        messageTime: Timestamp.now(),
       ),
     ];
   }
@@ -59,7 +58,7 @@ class ChatMessage {
       message: data['message'] ?? '',
       messenger: Messenger.values[data['messenger']],
       messageType: MessageType.values[data['messageType']],
-      messageTime: data['messageTime'] ?? timestampToLocal(Timestamp.now()),
+      messageTime: data['messageTime'] ?? Timestamp.now(),
     );
   }
 

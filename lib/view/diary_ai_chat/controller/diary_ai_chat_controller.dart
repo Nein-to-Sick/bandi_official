@@ -164,20 +164,20 @@ class DiaryAiChatController with ChangeNotifier {
         message: 'ai_chat_assistant_message_1'.tr(context),
         messenger: Messenger.assistant,
         messageType: MessageType.chat,
-        messageTime: (Timestamp.now()),
+        messageTime: Timestamp.now(),
       ),
       ChatMessage(
         message: 'ai_chat_assistant_message_2'.tr(context),
         messenger: Messenger.assistant,
         messageType: MessageType.chat,
-        messageTime: (Timestamp.now()),
+        messageTime: Timestamp.now(),
       ),
       // TODO: 추후 업데이트 예정
       // ChatMessage(
       //   message: 'ai_chat_assistant_message_3'.tr(context),
       //   messenger: Messenger.assistant,
       //   messageType: MessageType.chat,
-      //   messageTime: (Timestamp.now()),
+      //   messageTime: Timestamp.now(),
       // ),
     ];
   }
@@ -212,7 +212,7 @@ class DiaryAiChatController with ChangeNotifier {
       message: chatTextController.text.trim(),
       messenger: Messenger.user,
       messageType: MessageType.chat,
-      messageTime: (Timestamp.now()),
+      messageTime: Timestamp.now(),
     );
     chatlog.add(chatModel);
   }
@@ -223,7 +223,7 @@ class DiaryAiChatController with ChangeNotifier {
       message: message,
       messenger: Messenger.ai,
       messageType: MessageType.chat,
-      messageTime: (Timestamp.now()),
+      messageTime: Timestamp.now(),
     );
     chatlog.add(chatModel);
   }
@@ -231,10 +231,10 @@ class DiaryAiChatController with ChangeNotifier {
   // update system chatting
   void updateSystemChat(BuildContext context) {
     chatModel = ChatMessage(
-      message: ChatMessage.formatTimestamp((Timestamp.now()), context),
+      message: ChatMessage.formatTimestamp(Timestamp.now(), context),
       messenger: Messenger.system,
       messageType: MessageType.chat,
-      messageTime: (Timestamp.now()),
+      messageTime: Timestamp.now(),
     );
     chatlog.add(chatModel);
   }
@@ -251,7 +251,7 @@ class DiaryAiChatController with ChangeNotifier {
 
     // when submitted message's date is different with latest message's date
     if (ChatMessage.calculateDateDifference(
-            (chatlog.last.messageTime), (Timestamp.now())) >=
+            (chatlog.last.messageTime), Timestamp.now()) >=
         1) {
       updateSystemChat(context);
     }
