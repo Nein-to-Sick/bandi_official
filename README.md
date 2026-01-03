@@ -153,34 +153,83 @@ const admin = require("firebase-admin");
 admin.initializeApp();
 
 // 좋아요 발생 시 작성자에게 알림 전송
-exports.sendLikedDiaryNotification = functions.firestore
-  .document("likes/{likeId}")
-  .onCreate(async (snapshot, context) => {
-    const likeData = snapshot.data();
-    const { diaryId, senderId, receiverId } = likeData;
+exports.sendLikedDiaryNotification = functions.region("asia-northeast3").https.onCall(async (data, context) => {
+    // [보안 1] 인증 확인: 로그인한 사용자만 호출 가능
+    if (!context.auth) {
+        throw new functions.https.HttpsError("unauthenticated", "로그인이 필요한 서비스입니다.");
+    }
 
-    // 수신자 FCM 토큰 조회
-    const userDoc = await admin.firestore().collection("users").doc(receiverId).get();
-    const fcmToken = userDoc.data()?.fcmToken;
-    if (!fcmToken) return null;
+    // data.fcmToken은 보안상 신뢰할 수 없으므로 제거하고, DB에서 직접 조회합니다.
+    const { likedDiaryId, userId } = data; // userId는 알림을 받을 대상(일기 작성자)
 
-    // 다이어리 정보 조회
-    const diaryDoc = await admin.firestore().collection("diaries").doc(diaryId).get();
-    const diary = diaryDoc.data();
+    // [보안 2] 필수 데이터 검증
+    if (!likedDiaryId || !userId) {
+        throw new functions.https.HttpsError("invalid-argument", "필요한 정보(likedDiaryId, userId)가 누락되었습니다.");
+    }
 
-    // 알림 메시지 생성
-    const message = {
-      token: fcmToken,
-      notification: {
-        title: "새로운 반응이 도착했어요!",
-        body: `${senderId}님이 "${diary.title}"에 공감했어요.`,
-      },
-      data: { type: "like", diaryId },
-    };
+    try {
+        // [성능/보안] 알림 받을 유저 정보를 DB에서 한 번만 조회 (언어 설정 + FCM 토큰)
+        const userDocRef = db.collection("users").doc(userId);
+        const userDoc = await userDocRef.get();
 
-    // 알림 발송
-    await admin.messaging().send(message);
-  });
+        if (!userDoc.exists) {
+            console.log(`[Error] Target user ${userId} not found.`);
+            return { success: false, reason: "user_not_found" };
+        }
+
+        const userData = userDoc.data();
+        const langCode = userData.language || "ko";
+
+        // [보안 3] 클라이언트가 준 토큰이 아니라, DB에 저장된 신뢰할 수 있는 토큰 사용
+        const targetFcmToken = userData.fcmToken;
+
+        let notificationTitle = "";
+        let notificationBody = "";
+        const notificationType = "likedDiary";
+
+        if (langCode === "ko") {
+            notificationTitle = `누군가 나의 기록에 공감했어요!`;
+            notificationBody = `나의 기록을 확인해보세요.`;
+        } else {
+            notificationTitle = `Someone reacted to your journal.`;
+            notificationBody = `Take a look at your journal.`;
+        }
+
+        // 1. FCM 푸시 알림 전송
+        if (targetFcmToken) {
+            const message = {
+                notification: {
+                    title: notificationTitle,
+                    body: notificationBody,
+                },
+                data: {
+                    screen: "liked_diary_detail",
+                    likedDiaryId: likedDiaryId,
+                },
+                token: targetFcmToken,
+            };
+
+            try {
+                await admin.messaging().send(message);
+                console.log(`[Success] Notification sent to user ${userId}`);
+            } catch (fcmError) {
+                // 토큰이 만료되었거나 삭제된 경우 등 에러 처리
+                console.error(`[Warning] Failed to send FCM to user ${userId}: ${fcmError.message}`);
+                // FCM 전송 실패가 DB 저장을 막으면 안 되므로 에러를 throw 하지 않음
+            }
+        } else {
+            console.log(`[Info] User ${userId} has no FCM token. Skipping push notification.`);
+        }
+
+        // 2. 알림 내역 DB 저장 (이전에 개선한 함수 호출)
+        await addNotification(userId, notificationTitle, notificationType, likedDiaryId);
+
+        return { success: true };
+    } catch (error) {
+        console.error(`[Error] sendLikedDiaryNotification failed:`, error);
+        throw new functions.https.HttpsError("internal", "알림 전송 중 오류가 발생했습니다.");
+    }
+});
 ```
 
 ---
