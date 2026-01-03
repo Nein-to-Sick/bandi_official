@@ -19,22 +19,27 @@ class NewLetterPopuView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final navigationToggleProvider =
-        Provider.of<NavigationToggleProvider>(context);
-    MailController mailController = context.watch<MailController>();
+    context.watch<NavigationToggleProvider>();
+    final mailController = context.watch<MailController>();
+
+    final Letter? letter = newLetter ?? mailController.newLetter;
+
+    if (letter == null) {
+      return Scaffold(
+        backgroundColor: BandiColor.transparent(context),
+        body: Center(
+          child: Text(
+            'letter_popup_message_default'.tr(context),
+            style: BandiFont.bodyMedium(context)
+                ?.copyWith(color: BandiColor.neutralColor100(context)),
+          ),
+        ),
+      );
+    }
+
     // 정규 표현식을 사용하여 'n월 편지' 부분을 추출
     final RegExp regex = RegExp(r'(\d+)(?=월 편지$)');
-    RegExpMatch? match;
-    Letter? letter;
-
-    if (newLetter == null) {
-      // mailController.newLetter가 초기화된 경우
-      letter = mailController.newLetter;
-      match = regex.firstMatch(letter.title);
-    } else {
-      // mailController.newLetter가 초기화되지 않은 경우
-      letter = newLetter;
-      match = regex.firstMatch(letter!.title);
-    }
+    final RegExpMatch? match = regex.firstMatch(letter.title);
 
     return Scaffold(
       backgroundColor: BandiColor.transparent(context),

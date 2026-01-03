@@ -472,4 +472,11 @@ class HomeToWrite with ChangeNotifier {
     notifyListeners();
   }
 
+
+  bool hideChrome = false;
+  void setHideChrome(bool v) {
+    hideChrome = v;
+    notifyListeners();
+  }
+  void toggleChrome() => setHideChrome(!hideChrome);
 }

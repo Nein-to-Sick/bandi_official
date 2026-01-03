@@ -75,7 +75,8 @@ class AppRouter {
         diaryAiChatController.isChatOpen ||
         mailController.isDetailViewShowing ||
         writeProvider.otherDiaryOpen ||
-        alarmController.isAlarmOpen;
+        alarmController.isAlarmOpen ||
+        writeProvider.hideChrome;
 
     return !isOverlayOpen;
   }
