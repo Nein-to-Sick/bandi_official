@@ -227,15 +227,12 @@ Widget _buildCustomToggle(BuildContext context, MailController controller) {
 }
 
 void messageTestFunction(AlarmController alarmController) {
-  // receiver fcm token
-  String fcmToken = '';
   // receiver user Id
   String userId = '';
   // sender user Id
   String testLikedDiaryId = '21jPhIHrf7iBwVAh92ZW1';
 
-  alarmController.sendLikedDiaryNotification(
-      testLikedDiaryId, fcmToken, userId);
+  alarmController.sendLikedDiaryNotification(testLikedDiaryId, userId);
 }
 
 void newLetterPopUpPageTestFunction(BuildContext context) {
