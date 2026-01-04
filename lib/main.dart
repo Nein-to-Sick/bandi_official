@@ -1,8 +1,6 @@
-import 'dart:developer';
-
 import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
 import 'package:bandi_official/controller/date_provider.dart';
-import 'package:bandi_official/controller/diary_ai_analysis_controller.dart';
+import 'package:bandi_official/view/writing/controller/diary_ai_analysis_controller.dart';
 import 'package:bandi_official/view/diary_ai_chat/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/controller/internet_connection_controller.dart';
 import 'package:bandi_official/view/mail/controller/mail_controller.dart';

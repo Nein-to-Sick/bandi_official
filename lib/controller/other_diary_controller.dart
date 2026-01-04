@@ -89,7 +89,6 @@ class OtherDiaryController {
         _isAlarmSendOnce = true;
         alarmController.sendLikedDiaryNotification(
           diaryId,
-          fcmToken,
           userId,
         );
       } else {
