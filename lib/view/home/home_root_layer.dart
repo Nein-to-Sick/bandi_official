@@ -14,7 +14,7 @@ import 'package:provider/provider.dart';
 
 import '../../controller/user_info_controller.dart';
 import '../mail/controller/mail_controller.dart';
-import '../mail/new_letter_popup.dart';
+import '../mail/detail_view.dart';
 import '../sharing_diary/other_diary.dart';
 import '../writing/write_diary.dart';
 import 'controller/bgm_controller.dart';
@@ -68,48 +68,83 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
     final List<HomeNotiItem> homeNotis = [];
     final hideTopControls = (!wroteToday && _notiDropdownOpen);
 
-    // ✅ 디자인 확인용 더미 알림(디버그에서만)
-    assert(() {
-      final now = DateTime.now();
-      homeNotis.insertAll(0, [
-        HomeNotiItem(
-          id: "dbg_1",
-          text: "${userInfo.nickname}님과 비슷한 친구가 있어요!",
-          type: HomeNotiType.otherDiary,
-          createdAt: now.subtract(const Duration(minutes: 3)),
-          onTap: () => debugPrint("DBG tap: otherDiary"),
-        ),
-        HomeNotiItem(
-          id: "dbg_2",
-          text: "누군가 나의 기록에 공감했어요!",
-          type: HomeNotiType.likedDiary,
-          createdAt: now.subtract(const Duration(minutes: 2)),
-          onTap: () => debugPrint("DBG tap: likedDiary"),
-        ),
-        HomeNotiItem(
-          id: "dbg_3",
-          text: "2026년 1월 편지가 도착했습니다.",
-          type: HomeNotiType.letter,
-          createdAt: now.subtract(const Duration(minutes: 1)),
-          onTap: () => debugPrint("DBG tap: letter"),
-        ),
-        HomeNotiItem(
-          id: "dbg_3",
-          text: "2026년 1월 편지가 도착했습니다.",
-          type: HomeNotiType.letter,
-          createdAt: now.subtract(const Duration(minutes: 1)),
-          onTap: () => debugPrint("DBG tap: letter"),
-        ),
-        HomeNotiItem(
-          id: "dbg_3",
-          text: "2026년 1월 편지가 도착했습니다.",
-          type: HomeNotiType.letter,
-          createdAt: now.subtract(const Duration(minutes: 1)),
-          onTap: () => debugPrint("DBG tap: letter"),
-        ),
-      ]);
-      return true;
-    }());
+    /// 확인용 더미 알림(디버그에서만)
+//     assert(() {
+//       final now = DateTime.now();
+//       final Timestamp date = Timestamp.fromDate(
+//         DateTime(2024, 8, 30, 17, 46, 9),
+//       );
+//
+//       final Letter? newLetter = Letter(
+//         title: "2024년 8월 편지",
+//         content: """
+// 당신입니다. 멈춤에 아무런 시식하는 것이 힘들다는 점은 잘 알고 있습니다.
+// 하지만 그 속에서도 작은 기쁨을 찾으시고, 긍정적으로 바라보려는 노력을 하신 모습이 정말 인상적입니다.
+// 카페에서 맛있는 커피 한 잔이 부정적인 감정을 날려버리고,
+// 사소함 속에서도 기쁨을 느끼는 힘을 주었다는 것, 정말 멋진 일이에요.
+//
+// 이런 작은 순간들이 모여 우리의 하루를 변화시킬 수 있죠.
+// 당신이 일상 속에서 소중한 순간을 잊지 않고 느끼고자 하는 노력은 진정 아름답습니다.
+// 때때로 걱정이 밀려올 때도 있겠지만,
+// 그 속에서도 긍정적인 순간들을 발견하는 당신의 태도는 더 큰 힘이 될 것이라고 믿습니다.
+//
+// 오늘 누린 작은 기쁨들이 내일의 큰 힘이 됩니다.
+// 힘든 순간이 올 때마다, 당신이 이미 보여준 의지를 기억하며 계속 나아가세요.
+// 당신의 하루가 언제나 기쁨으로 가득 차기를 바랍니다.
+//
+// 필요한 경우 언제든지 이야기해 주세요.
+// 당신은 혼자가 아니니까요.
+// 늘 응원합니다.
+//
+// 따뜻한 마음으로,
+// [당신의 이름]
+// """,
+//         date: date,
+//         letterId: "7kKQWHN2b6T2wllGTIAr",
+//       );
+//
+//       homeNotis.insertAll(0, [
+//         HomeNotiItem(
+//           id: "dbg_1",
+//           text: "${userInfo.nickname}님과 비슷한 친구가 있어요!",
+//           type: HomeNotiType.otherDiary,
+//           createdAt: now.subtract(const Duration(minutes: 3)),
+//           onTap: () => debugPrint("DBG tap: otherDiary"),
+//         ),
+//         HomeNotiItem(
+//           id: "dbg_2",
+//           text: "누군가 나의 기록에 공감했어요!",
+//           type: HomeNotiType.likedDiary,
+//           createdAt: now.subtract(const Duration(minutes: 2)),
+//           onTap: () => alarmController.toggleAlarmOpen(true),
+//         ),
+//
+//         HomeNotiItem(
+//           id: "letter_${newLetter!.title.hashCode}",
+//           text: _letterNotiTextFromLetter(newLetter),
+//           type: HomeNotiType.letter,
+//           createdAt: now,
+//           onTap: () {
+//             Navigator.of(context).push(
+//               PageRouteBuilder(
+//                 opaque: false,
+//                 barrierColor: Colors.transparent,
+//                 pageBuilder: (_, __, ___) =>
+//                     DetailView(
+//                       item: newLetter!,
+//                       mailController: mailController,
+//                     ),
+//                 transitionsBuilder: (_, anim, __, child) {
+//                   return FadeTransition(opacity: anim, child: child);
+//                 },
+//                 transitionDuration: const Duration(milliseconds: 220),
+//               ),
+//             );
+//           },
+//         ),
+//       ]);
+//       return true;
+//     }());
 
     final now = DateTime.now();
 
@@ -120,13 +155,14 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
           id: "otherDiary",
           text: "${userInfo.nickname}님과 비슷한 친구가 있어요!",
           type: HomeNotiType.otherDiary,
-          createdAt: now,
+          createdAt: writeProvider.otherDiaryComeTime,
           onTap: () => writeProvider.openDiary(),
         ),
       );
     }
 
-    // 2) 공감(누군가 내 기록에 공감) - 예시로 newNotificationCount 사용
+    // 2) 공감(누군가 내 기록에 공감)
+    /// 공감 구분 후 적용
     final bool hasLikeNoti = (mailController.newNotificationCount > 0);
     if (hasLikeNoti) {
       homeNotis.add(
@@ -141,6 +177,7 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
     }
 
     // 3) 편지
+    /// 편지 알림 들어가면 없어지는 지 확인
     final Letter? newLetter = mailController.newLetter;
     final bool hasLetterNoti = newLetter != null;
     if (hasLetterNoti) {
@@ -149,14 +186,17 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
           id: "letter_${newLetter!.title.hashCode}",
           text: _letterNotiTextFromLetter(newLetter),
           type: HomeNotiType.letter,
-          createdAt: now,
+          createdAt: newLetter.date.toDate(),
           onTap: () {
             Navigator.of(context).push(
               PageRouteBuilder(
                 opaque: false,
                 barrierColor: Colors.transparent,
                 pageBuilder: (_, __, ___) =>
-                    NewLetterPopuView(newLetter: newLetter),
+                    DetailView(
+                      item: newLetter!,
+                      mailController: mailController,
+                    ),
                 transitionsBuilder: (_, anim, __, child) {
                   return FadeTransition(opacity: anim, child: child);
                 },
@@ -169,15 +209,17 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
     }
 
     // 4) 기본 리마인더
-    homeNotis.add(
-      HomeNotiItem(
-        id: "daily",
-        text: "오늘 하루는 어떠셨나요?",
-        type: HomeNotiType.dailyReminder,
-        createdAt: now,
-        onTap: () => writeProvider.toggleWrite(),
-      ),
-    );
+    if (!wroteToday) {
+      homeNotis.add(
+        HomeNotiItem(
+          id: "daily",
+          text: "오늘 하루는 어떠셨나요?",
+          type: HomeNotiType.dailyReminder,
+          createdAt: now,
+          onTap: () => writeProvider.toggleWrite(),
+        ),
+      );
+    }
 
     return Stack(
       children: [
@@ -185,7 +227,9 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
         AnimatedOpacity(
           opacity: writeProvider.write ? 1.0 : 0.0,
           duration: const Duration(milliseconds: 300),
-          child: writeProvider.write ? const WriteDiary() : const SizedBox.shrink(),
+          child: writeProvider.write
+              ? const WriteDiary()
+              : const SizedBox.shrink(),
         ),
 
         // 공유 일기 화면
@@ -201,7 +245,9 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
         AnimatedOpacity(
           opacity: alarmController.isAlarmOpen ? 1.0 : 0.0,
           duration: const Duration(milliseconds: 300),
-          child: alarmController.isAlarmOpen ? const AlarmView() : const SizedBox.shrink(),
+          child: alarmController.isAlarmOpen
+              ? const AlarmView()
+              : const SizedBox.shrink(),
         ),
 
         if (canToggleChrome && !_hideChrome)
@@ -235,28 +281,35 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
                             Expanded(
                               child: homeNotis.isEmpty
                                   ? Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "${userInfo.nickname}님,",
-                                    style: BandiFont.titleSmall(context)!.copyWith(
-                                      color: BandiColor.neutralColor60(context),
-                                    ),
-                                  ),
-                                  Text(
-                                    "오늘도 수고 많았어요.",
-                                    style: BandiFont.headlineMedium(context)!.copyWith(
-                                      color: BandiColor.neutralColor100(context),
-                                    ),
-                                  ),
-                                ],
-                              )
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "${userInfo.nickname}님,",
+                                          style: BandiFont.titleSmall(context)!
+                                              .copyWith(
+                                            color: BandiColor.neutralColor60(
+                                                context),
+                                          ),
+                                        ),
+                                        Text(
+                                          "오늘도 수고 많았어요.",
+                                          style:
+                                              BandiFont.headlineMedium(context)!
+                                                  .copyWith(
+                                            color: BandiColor.neutralColor100(
+                                                context),
+                                          ),
+                                        ),
+                                      ],
+                                    )
                                   : HomeNotificationStack(
-                                items: homeNotis,
-                                onDropdownOpenChanged: (open) {
-                                  setState(() => _notiDropdownOpen = open);
-                                },
-                              ),
+                                      items: homeNotis,
+                                      onDropdownOpenChanged: (open) {
+                                        setState(
+                                            () => _notiDropdownOpen = open);
+                                      },
+                                    ),
                             ),
                             const SizedBox(width: 12),
                             AnimatedOpacity(
@@ -265,7 +318,8 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
                               child: IgnorePointer(
                                 ignoring: hideTopControls,
                                 child: SpeakerButton(
-                                  speakerOn: context.watch<BgmController>().speakerOn,
+                                  speakerOn:
+                                      context.watch<BgmController>().speakerOn,
                                   onPressed: () {
                                     final bgm = context.read<BgmController>();
                                     bgm.setSpeakerOn(!bgm.speakerOn);
@@ -284,13 +338,15 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
                           children: [
                             Expanded(
                               child: HomeActionCardButton(
-                                icon: PhosphorIcons.chat(PhosphorIconsStyle.light),
+                                icon: PhosphorIcons.chat(
+                                    PhosphorIconsStyle.light),
                                 label: "ai_chat_title".tr(context),
                                 onTap: () async {
                                   diaryAiChatController.toggleChatOpen(true);
                                   DiaryAIChatSheet().show(context).then((_) {
                                     if (context.mounted) {
-                                      diaryAiChatController.toggleChatOpen(false);
+                                      diaryAiChatController
+                                          .toggleChatOpen(false);
                                     }
                                   });
                                 },
@@ -299,7 +355,8 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
                             const SizedBox(width: 16),
                             Expanded(
                               child: HomeActionCardButton(
-                                icon: PhosphorIcons.pencilSimple(PhosphorIconsStyle.light),
+                                icon: PhosphorIcons.pencilSimple(
+                                    PhosphorIconsStyle.light),
                                 label: "일기 쓰기",
                                 onTap: () => writeProvider.toggleWrite(),
                               ),
@@ -313,7 +370,6 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
               ),
             ),
           ),
-
 
         if (canToggleChrome && _hideChrome)
           Positioned.fill(
@@ -336,7 +392,8 @@ String _extractMonthFromLetterTitle(String title) {
 }
 
 String _letterNotiTextFromLetter(Letter letter) {
+  final year = letter.title.substring(0, 4);
   final month = _extractMonthFromLetterTitle(letter.title);
   if (month.isEmpty) return "편지가 도착했습니다.";
-  return "2026년 ${month}월 편지가 도착했습니다.";
+  return "$year년 $month월 편지가 도착했습니다.";
 }

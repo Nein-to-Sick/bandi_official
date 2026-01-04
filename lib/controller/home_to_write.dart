@@ -304,6 +304,8 @@ class HomeToWrite with ChangeNotifier {
     }
   }
 
+  //========================= 일기 공유 ============================
+
   Diary otherDiaryModel = Diary(
     userId: 'userId',
     title: '행복한 날입니다.',
@@ -317,6 +319,7 @@ class HomeToWrite with ChangeNotifier {
   );
   bool otherDiaryCome = false;
   bool otherDiaryOpen = false;
+  late DateTime otherDiaryComeTime;
 
   Future<void> sendOtherDiary(String diaryId) async {
     DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
@@ -328,6 +331,7 @@ class HomeToWrite with ChangeNotifier {
       Diary diary = Diary.fromSnapshot(documentSnapshot);
       otherDiaryModel = diary;
       otherDiaryCome = true;
+      otherDiaryComeTime = DateTime.now();
       notifyListeners();
     } else {
       dev.log('Diary with ID $diaryId does not exist.');

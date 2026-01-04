@@ -651,29 +651,6 @@ class _OtherDiaryState extends State<OtherDiary> {
       }
 
       writeProvider.offDiaryOpen();
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            elevation: 3,
-            content: Text(
-              "dialogue_report_snackBar_message".tr(context),
-              style: BandiFont.headlineMedium(context)?.copyWith(
-                color: BandiColor.neutralColor90(context),
-              ),
-            ),
-            margin: EdgeInsets.only(
-              left: 25.0,
-              right: 25.0,
-              bottom: MediaQuery.of(context).size.height * 0.1,
-            ),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BandiEffects.radiusSmall,
-            ),
-          ),
-        );
-      }
     }
   }
 }

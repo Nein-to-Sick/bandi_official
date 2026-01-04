@@ -14,12 +14,17 @@ class HomeNotiItem {
   final DateTime createdAt;
   final VoidCallback onTap;
 
+  final String? refId;
+  final dynamic payload;
+
   HomeNotiItem({
     required this.id,
     required this.text,
     required this.type,
     required this.createdAt,
     required this.onTap,
+    this.refId,
+    this.payload,
   });
 }
 
