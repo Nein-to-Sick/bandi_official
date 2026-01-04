@@ -1,4 +1,3 @@
-import 'package:bandi_official/utils/time_utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Diary {
@@ -74,8 +73,8 @@ class Diary {
     title = '';
     content = '';
     emotion = [];
-    createdAt = timestampToLocal(Timestamp.now());
-    updatedAt = timestampToLocal(Timestamp.now());
+    createdAt = Timestamp.now();
+    updatedAt = Timestamp.now();
     reaction = [0, 0, 0];
     diaryId = '';
     cheerText = '';
@@ -88,8 +87,8 @@ class Diary {
       //     title: '',
       //     content: '',
       //     emotion: [],
-      //     createdAt: timestampToLocal(Timestamp.now()),
-      //     updatedAt: timestampToLocal(Timestamp.now()),
+      //     createdAt: Timestamp.now(),
+      //     updatedAt: Timestamp.now(),
       //     reaction: [],
       //     diaryId: ''),
     ];

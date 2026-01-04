@@ -44,15 +44,16 @@ class _LikedDiaryPageState extends State<LikedDiaryPage> {
   }
 
   void _scrollListener() async {
+    if (!mailController.loadMoreLikedDiaryData ||
+        mailController.isLoadingLikedDiary) {
+      return;
+    }
+
     final position = mailController.likedDiaryScrollController.position;
-    if (mailController.loadMoreLikedDiaryData &&
-        position.atEdge &&
-        position.pixels != 0) {
-      if (position.userScrollDirection == ScrollDirection.reverse &&
-          position.maxScrollExtent - position.pixels <= 300) {
-        mailController.toggleLoadMoreLikedDiaryData(
-            await mailController.loadMoreLikedDiary());
-      }
+
+    if (position.maxScrollExtent - position.pixels <= 200) {
+      bool hasMore = await mailController.loadMoreLikedDiary();
+      mailController.toggleLoadMoreLikedDiaryData(hasMore);
     }
   }
 
@@ -69,32 +70,65 @@ class _LikedDiaryPageState extends State<LikedDiaryPage> {
   Widget build(BuildContext context) {
     MailController mailController = context.watch<MailController>();
 
+    final allDiaries = mailController.likedDiaryList;
+    final DateTime? filterDate = mailController.likfedDiaryFilteredDate;
+
+    // 선택된 날짜가 있으면 해당 날짜만, 없으면 전체 리스트
+    final displayList = filterDate == null
+        ? allDiaries
+        : allDiaries.where((diary) {
+            // diary.otherUserLikedAt 형식: "2024-07-25"
+            String targetDateString =
+                filterDate.toIso8601String().substring(0, 10);
+            return diary.otherUserLikedAt.startsWith(targetDateString);
+          }).toList();
+
     return (mailController.isLoading)
         ? MyFireFlyProgressbar(
             loadingText: 'loading'.tr(context),
           )
-        : (mailController.likedDiaryList.isEmpty)
-            ? Center(
-                child: Text(
-                  'inbox_no_reacted_diaries'.tr(context),
-                  style: BandiFont.headlineMedium(context)?.copyWith(
-                    color: BandiColor.neutralColor80(context),
-                  ),
-                ),
-              )
+        : (displayList.isEmpty)
+            ? _buildEmptyState(filterDate != null, mailController, context)
             : Padding(
                 padding: const EdgeInsets.only(top: 16),
                 child: ListView.builder(
                   controller: mailController.likedDiaryScrollController,
-                  itemCount: mailController.likedDiaryList.length,
+                  itemCount: displayList.length,
                   itemBuilder: (context, index) {
-                    Diary diary = mailController.likedDiaryList[
-                        mailController.likedDiaryList.length - index - 1];
-                    return likedDiaryWidget(diary, mailController, context);
+                    return likedDiaryWidget(
+                        displayList[index], mailController, context);
                   },
                 ),
               );
   }
+}
+
+// 데이터가 없을 때 표시할 위젯
+Widget _buildEmptyState(
+    bool isFiltered, MailController mailController, BuildContext context) {
+  return Center(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          'inbox_no_reacted_diaries'.tr(context),
+          style: BandiFont.headlineMedium(context)?.copyWith(
+            color: BandiColor.neutralColor80(context),
+          ),
+        ),
+        // const SizedBox(height: 24),
+        // if (isFiltered)
+        //   TextButton(
+        //     onPressed: () => mailController.updateCalendarSelectedDate(null),
+        //     child: Text(
+        //       'calendar_selection_reset'.tr(context),
+        //       style: BandiFont.labelMedium(context)
+        //           ?.copyWith(color: BandiColor.neutralColor80(context)),
+        //     ),
+        //   ),
+      ],
+    ),
+  );
 }
 
 Widget likedDiaryWidget(
@@ -133,13 +167,15 @@ Widget likedDiaryWidget(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(diary.title,
-                      style: BandiFont.titleSmall(context)?.copyWith(
-                          color: BandiColor.neutralColor90(context))),
                   Text(
-                    date,
+                    diary.title,
+                    style: BandiFont.titleSmall(context)
+                        ?.copyWith(color: BandiColor.neutralColor90(context)),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    date,
                     style: BandiFont.labelSmall(context)
                         ?.copyWith(color: BandiColor.neutralColor60(context)),
                   ),

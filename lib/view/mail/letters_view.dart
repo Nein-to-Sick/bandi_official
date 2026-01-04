@@ -43,15 +43,15 @@ class _MyLettersPageState extends State<MyLettersPage> {
   }
 
   void _scrollListener() async {
+    if (!mailController.loadMoreLetterData || mailController.isLoadingLetter) {
+      return;
+    }
+
     final position = mailController.letterScrollController.position;
-    if (mailController.loadMoreLetterData &&
-        position.atEdge &&
-        position.pixels != 0) {
-      if (position.userScrollDirection == ScrollDirection.reverse &&
-          position.maxScrollExtent - position.pixels <= 300) {
-        mailController
-            .toggleLoadMoreLetterData(await mailController.loadMoreLetter());
-      }
+
+    if (position.maxScrollExtent - position.pixels <= 300) {
+      bool hasMore = await mailController.loadMoreLetter();
+      mailController.toggleLoadMoreLetterData(hasMore);
     }
   }
 
@@ -68,33 +68,64 @@ class _MyLettersPageState extends State<MyLettersPage> {
   Widget build(BuildContext context) {
     MailController mailController = context.watch<MailController>();
 
+    final allLetters = mailController.letterList;
+    final DateTime? filterDate = mailController.letterFilteredDate;
+
+    final displayList = filterDate == null
+        ? allLetters
+        : allLetters.where((letter) {
+            DateTime letterDate = letter.date.toDate();
+            // 연도와 월이 모두 일치하는지 확인
+            return letterDate.year == filterDate.year &&
+                letterDate.month == filterDate.month;
+          }).toList();
+
     return (mailController.isLoading)
         ? MyFireFlyProgressbar(
             loadingText: 'loading'.tr(context),
           )
-        : (mailController.letterList.isEmpty)
-            ? Center(
-                child: Text(
-                  'inbox_no_letters'.tr(context),
-                  style: BandiFont.headlineMedium(context)?.copyWith(
-                    color: BandiColor.neutralColor80(context),
-                  ),
-                ),
-              )
+        : (displayList.isEmpty)
+            ? _buildEmptyState(filterDate != null, mailController, context)
             : Padding(
                 padding: const EdgeInsets.only(top: 16),
                 child: ListView.builder(
                   controller: mailController.letterScrollController,
-                  itemCount: mailController.letterList.length,
+                  itemCount: displayList.length,
                   itemBuilder: (context, index) {
-                    Letter letter = mailController.letterList[
-                        mailController.letterList.length - index - 1];
                     return lettersWidget(
-                        index, letter, mailController, context);
+                        index, displayList[index], mailController, context);
                   },
                 ),
               );
   }
+}
+
+// 데이터가 없을 때 표시할 위젯
+Widget _buildEmptyState(
+    bool isFiltered, MailController mailController, BuildContext context) {
+  return Center(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          "inbox_no_letters".tr(context),
+          style: BandiFont.headlineMedium(context)?.copyWith(
+            color: BandiColor.neutralColor80(context),
+          ),
+        ),
+        // const SizedBox(height: 24),
+        // if (isFiltered)
+        //   TextButton(
+        //     onPressed: () => mailController.updateCalendarSelectedDate(null),
+        //     child: Text(
+        //       'calendar_selection_reset'.tr(context),
+        //       style: BandiFont.labelMedium(context)
+        //           ?.copyWith(color: BandiColor.neutralColor80(context)),
+        //     ),
+        //   ),
+      ],
+    ),
+  );
 }
 
 Widget lettersWidget(int num, Letter letter, MailController mailController,
@@ -132,13 +163,15 @@ Widget lettersWidget(int num, Letter letter, MailController mailController,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('$numbering. $title',
-                style: BandiFont.titleSmall(context)
-                    ?.copyWith(color: BandiColor.neutralColor90(context))),
             Text(
-              date,
+              '$numbering. $title',
+              style: BandiFont.titleSmall(context)
+                  ?.copyWith(color: BandiColor.neutralColor90(context)),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
+            ),
+            Text(
+              date,
               style: BandiFont.labelSmall(context)
                   ?.copyWith(color: BandiColor.neutralColor60(context)),
             ),

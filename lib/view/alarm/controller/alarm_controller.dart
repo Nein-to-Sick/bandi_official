@@ -275,15 +275,15 @@ class AlarmController with ChangeNotifier {
   }
 
   // send liked Diary notification
-  void sendLikedDiaryNotification(
-      String likedDiaryId, String fcmToken, String userId) async {
+  void sendLikedDiaryNotification(String likedDiaryId, String userId) async {
+    // 리전(Region)을 'asia-northeast3'로 명시
     final HttpsCallable callable =
-        FirebaseFunctions.instance.httpsCallable('sendLikedDiaryNotification');
+        FirebaseFunctions.instanceFor(region: 'asia-northeast3')
+            .httpsCallable('sendLikedDiaryNotification');
 
     try {
       final response = await callable.call(<String, dynamic>{
         'likedDiaryId': likedDiaryId,
-        'fcmToken': fcmToken,
         'userId': userId,
       });
 

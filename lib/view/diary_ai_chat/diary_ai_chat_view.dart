@@ -3,7 +3,6 @@ import 'package:bandi_official/components/appbar/new_custom_appbar.dart';
 import 'package:bandi_official/components/bottom_sheet/show_floating_confirm_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter/rendering.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/string_extention.dart';
@@ -65,21 +64,21 @@ class _DiaryAIChatStatefulState extends State<_DiaryAIChatStateful> {
   }
 
   void _scrollListener() async {
+    if (!diaryAiChatController.loadMoreData ||
+        diaryAiChatController.isLoadingOlderChat) {
+      return;
+    }
+
     final position = diaryAiChatController.chatScrollController.position;
-    if (diaryAiChatController.loadMoreData &&
-        position.atEdge &&
-        position.pixels != 0) {
-      if (position.userScrollDirection == ScrollDirection.reverse &&
-          position.maxScrollExtent - position.pixels <= 500) {
-        diaryAiChatController
-            .toggleLoadMoreData(await diaryAiChatController.loadMoreChatLogs());
-      }
+
+    if (position.maxScrollExtent - position.pixels <= 200) {
+      bool hasMore = await diaryAiChatController.loadOlderChatLogs();
+      diaryAiChatController.toggleLoadMoreData(hasMore);
     }
   }
 
   @override
   void dispose() {
-    // 리스너 제거 로직
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (diaryAiChatController.isListenerAdded) {
         diaryAiChatController.chatScrollController
@@ -150,16 +149,19 @@ class _DiaryAIChatStatefulState extends State<_DiaryAIChatStateful> {
                         diaryAiChatController.chatlog.length - index - 1];
                     return Column(
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.only(top: 10, bottom: 10),
-                          child: IgnorePointer(
-                            ignoring: true,
-                            child: CustomDialogue(
-                              chatMessage: chatMsg,
-                              onDialoguePressed: () {},
-                            ),
-                          ),
-                        ),
+                        (chatMsg.isVisible)
+                            ? Padding(
+                                padding:
+                                    const EdgeInsets.only(top: 10, bottom: 10),
+                                child: IgnorePointer(
+                                  ignoring: true,
+                                  child: CustomDialogue(
+                                    chatMessage: chatMsg,
+                                    onDialoguePressed: () {},
+                                  ),
+                                ),
+                              )
+                            : const SizedBox.shrink(),
                         if (index == 0)
                           SizedBox(
                             height: MediaQuery.of(context).padding.bottom + 94,
