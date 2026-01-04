@@ -5,7 +5,6 @@ import 'dart:math';
 import 'package:bandi_official/analytics/log_other_diary_received.dart';
 import 'package:bandi_official/controller/diary_ai_analysis_controller.dart';
 import 'package:bandi_official/model/diary.dart';
-import 'package:bandi_official/utils/time_utils.dart';
 import 'package:bandi_official/model/keyword.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -20,8 +19,8 @@ class HomeToWrite with ChangeNotifier {
     title: 'title',
     content: '',
     emotion: ['emotion'],
-    createdAt: timestampToLocal(Timestamp.now()),
-    updatedAt: timestampToLocal(Timestamp.now()),
+    createdAt: Timestamp.now(),
+    updatedAt: Timestamp.now(),
     reaction: [0, 0, 0],
     diaryId: 'diaryId',
   );
@@ -35,7 +34,6 @@ class HomeToWrite with ChangeNotifier {
   int step = 1;
 
   bool get write => _write;
-
 
   void toggleWrite() {
     _write = !_write;
@@ -54,7 +52,6 @@ class HomeToWrite with ChangeNotifier {
     _isPublic = value;
     notifyListeners();
   }
-
 
   //--------------step 2--------------------------------------------------------
 
@@ -259,7 +256,7 @@ class HomeToWrite with ChangeNotifier {
                 String id = data[idFieldKey];
                 // 업데이트할 데이터
                 Map<String, dynamic> updates = {
-                  timeFieldKey: timestampToLocal(Timestamp.now()),
+                  timeFieldKey: Timestamp.now(),
                   idFieldKey: diaryId,
                 };
 
@@ -305,8 +302,8 @@ class HomeToWrite with ChangeNotifier {
     title: '행복한 날입니다.',
     content: '죄송해요 저는 여기까지입니다.',
     emotion: ['emotion'],
-    createdAt: timestampToLocal(Timestamp.now()),
-    updatedAt: timestampToLocal(Timestamp.now()),
+    createdAt: Timestamp.now(),
+    updatedAt: Timestamp.now(),
     reaction: [0, 0, 0],
     diaryId: 'diaryId',
     cheerText: 'cheerText',
@@ -336,8 +333,8 @@ class HomeToWrite with ChangeNotifier {
       title: 'title',
       content: 'content',
       emotion: ['emotion'],
-      createdAt: timestampToLocal(Timestamp.now()),
-      updatedAt: timestampToLocal(Timestamp.now()),
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
       reaction: [0, 0, 0],
       diaryId: 'diaryId',
       cheerText: 'cheerText',
@@ -370,9 +367,7 @@ class HomeToWrite with ChangeNotifier {
   Future<void> modifyDatabaseDiaryValue(
       String titleText, String contentText, String diaryId) async {
     diaryModel.update(
-        title: titleText,
-        content: contentText,
-        updatedAt: timestampToLocal(Timestamp.now()));
+        title: titleText, content: contentText, updatedAt: Timestamp.now());
     try {
       final diaryData = {
         'title': diaryModel.title,
@@ -385,7 +380,6 @@ class HomeToWrite with ChangeNotifier {
       developer.log("Error modifying diary: $e");
     }
   }
-
 
   bool _deleting = false;
   bool get deleting => _deleting;

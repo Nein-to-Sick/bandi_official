@@ -59,7 +59,7 @@ class DiaryAIAnalysisController with ChangeNotifier {
         // 새로운 주제 제시 (>0 수록 새로운 주제 확률 상승)
         presencePenalty: -0.5,
         // 답변의 일관성 (낮을 수록 집중됨)
-        temperature: 0.8,
+        temperature: 0.7,
       );
 
       dev.log(keywordCompletion.choices.first.message.content!.first.text!);
@@ -122,7 +122,7 @@ class DiaryAIAnalysisController with ChangeNotifier {
         // 새로운 주제 제시 (>0 수록 새로운 주제 확률 상승)
         presencePenalty: -0.5,
         // 답변의 일관성 (낮을 수록 집중됨)
-        temperature: 0.8,
+        temperature: 0.7,
       );
 
       dev.log(titleCompletion.choices.first.message.content!.first.text!);
@@ -151,7 +151,7 @@ class DiaryAIAnalysisController with ChangeNotifier {
         content: [
           OpenAIChatCompletionChoiceMessageContentItemModel.text(
             (langCode == 'ko')
-                ? "일기 내용에 기반하여 하나의 한국어 문장으로 응원을 작성해줘."
+                ? "일기 내용에 기반하여 하나의 한국어 문장으로 격려를 작성해줘."
                 : "Please limit your response to a simple single sentence and provide encouragement in English based on the content of the diary entry.",
           ),
         ],
