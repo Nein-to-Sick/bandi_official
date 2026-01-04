@@ -154,6 +154,7 @@ You are an empathetic diary title creator. Read the diary entry and create a tit
 2. 말투는 부드럽고 다정한 '해요체'(~해요, ~네요)를 사용할 것.
 3. 50자 이내의 짧은 한 문장으로 작성할 것.
 4. 따옴표(" ")나 '격려:', '반디:' 같은 불필요한 수식어를 붙이지 말 것.
+5. 한국어로 작성할 것.
 """
         : """
 You are 'Bandi', a warm and empathetic psychological counselor. Read the diary entry and offer words of encouragement based on the following constraints.
@@ -163,6 +164,7 @@ You are 'Bandi', a warm and empathetic psychological counselor. Read the diary e
 2. Maintain a warm, supportive, and gentle tone.
 3. Write exactly one concise sentence (under 20 words).
 4. Do NOT use quotation marks (" ") or prefixes.
+5. Write in English.
 """;
 
     final responseText = await _performOpenAIRequest(
