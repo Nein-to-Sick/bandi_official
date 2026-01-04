@@ -3,7 +3,7 @@ import 'dart:developer' as developer;
 import 'dart:math';
 
 import 'package:bandi_official/analytics/log_other_diary_received.dart';
-import 'package:bandi_official/controller/diary_ai_analysis_controller.dart';
+import 'package:bandi_official/view/writing/controller/diary_ai_analysis_controller.dart';
 import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/model/keyword.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -85,14 +85,7 @@ class HomeToWrite with ChangeNotifier {
   Future<void> aiDiary(BuildContext context, String langCode) async {
     DiaryAIAnalysisController diaryAIAnalysisController =
         context.read<DiaryAIAnalysisController>();
-
-    // 각 analysis 함수에서 diary 모델의 변수를 초기화 하고 notifyListeners()를 호출합니다.
-    // 화면에 보여지는 변수를 model의 변수로 변경하면 됩니다.
-    await diaryAIAnalysisController.analyzeDiaryKeyword(diaryModel);
-    await diaryAIAnalysisController.analyzeDiaryTitle(diaryModel, langCode);
-    await diaryAIAnalysisController.analyzeDiaryEncouragement(
-        diaryModel, langCode);
-
+    await diaryAIAnalysisController.analyzeAll(diaryModel, langCode);
     notifyListeners();
   }
 
