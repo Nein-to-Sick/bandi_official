@@ -94,8 +94,16 @@ class _LikedDiaryPageState extends State<LikedDiaryPage> {
                   controller: mailController.likedDiaryScrollController,
                   itemCount: displayList.length,
                   itemBuilder: (context, index) {
-                    return likedDiaryWidget(
-                        displayList[index], mailController, context);
+                    return Column(
+                      children: [
+                        likedDiaryWidget(
+                            displayList[index], mailController, context),
+                        if (index == displayList.length - 1)
+                          SizedBox(
+                            height: MediaQuery.of(context).padding.bottom + 188,
+                          )
+                      ],
+                    );
                   },
                 ),
               );

@@ -91,8 +91,16 @@ class _MyLettersPageState extends State<MyLettersPage> {
                   controller: mailController.letterScrollController,
                   itemCount: displayList.length,
                   itemBuilder: (context, index) {
-                    return lettersWidget(
-                        index, displayList[index], mailController, context);
+                    return Column(
+                      children: [
+                        lettersWidget(
+                            index, displayList[0], mailController, context),
+                        if (index == displayList.length - 1)
+                          SizedBox(
+                            height: MediaQuery.of(context).padding.bottom + 188,
+                          )
+                      ],
+                    );
                   },
                 ),
               );

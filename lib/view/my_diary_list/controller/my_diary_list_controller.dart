@@ -433,7 +433,7 @@ class MyDiaryListController with ChangeNotifier {
 
                 // 5. 더 가져올 데이터가 있는지 확인 (가장 오래된 키인지 체크)
                 if (keys.indexOf(key) == 0) {
-                  dev.log('[2] There is no more older MY Diary data');
+                  dev.log('[2] There is no more older My Diary data');
                   return false;
                 }
 
@@ -443,7 +443,7 @@ class MyDiaryListController with ChangeNotifier {
             } else {
               // 이미 로드된 키라면, 가장 오래된 키인지 확인
               if (keys.indexOf(key) == 0) {
-                dev.log('[1] There is no more older MY Diary data');
+                dev.log('[1] There is no more older My Diary data');
                 return false;
               }
             }
@@ -464,6 +464,120 @@ class MyDiaryListController with ChangeNotifier {
     } finally {
       _isLoadingMyDiary = false;
       notifyListeners();
+    }
+  }
+
+  // 일기 수정 시 로컬 데이터도 함께 갱신하는 함수
+  Future<void> updateMyDiaryLocal(Diary updatedDiary) async {
+    if (userId == null || userId!.isEmpty) return;
+
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+      // 1. 키 생성 (작성일 기준)
+      // 내 일기는 작성일(createdAt)을 기준으로 키가 생성되어 있음
+      DateTime createdDate = updatedDiary.createdAt.toDate();
+      String dateString = createdDate.toIso8601String().substring(0, 10);
+      String key = '${userId}_myDiaryList_$dateString';
+
+      // 2. 해당 날짜의 리스트 불러오기
+      List<String>? storedMessages = prefs.getStringList(key);
+
+      if (storedMessages != null) {
+        // 3. 리스트에서 수정할 일기 찾아서 교체
+        List<Diary> messages = storedMessages.map((jsonMessage) {
+          final decodedJson = jsonDecode(jsonMessage);
+          return Diary.fromJsonLocal(
+            decodedJson,
+            decodedJson['otherUserReaction'] ?? -1,
+            decodedJson['otherUserLikedAt'] ?? '',
+          );
+        }).toList();
+
+        // diaryId가 일치하는 항목 찾기
+        int index =
+            messages.indexWhere((d) => d.diaryId == updatedDiary.diaryId);
+
+        if (index != -1) {
+          // 데이터 교체
+          messages[index] = updatedDiary;
+
+          // 4. 로컬 저장소에 다시 저장
+          List<String> jsonMessages =
+              messages.map((m) => jsonEncode(m.toJson())).toList();
+          await prefs.setStringList(key, jsonMessages);
+
+          dev.log('Updated local diary for ID: ${updatedDiary.diaryId}');
+        }
+      }
+
+      // 5. 메모리 리스트(화면 표시용) 갱신
+      // 현재 보고 있는 리스트에서도 값을 바꿔줘야 화면이 즉시 갱신됨
+      int memoryIndex =
+          myDiaryList.indexWhere((d) => d.diaryId == updatedDiary.diaryId);
+      if (memoryIndex != -1) {
+        myDiaryList[memoryIndex] = updatedDiary;
+      }
+
+      notifyListeners();
+    } catch (e) {
+      dev.log('Error updating local diary: $e');
+    }
+  }
+
+  // 일기 삭제 시 로컬 데이터도 함께 삭제하는 함수
+  Future<void> deleteMyDiaryLocal(String diaryId, DateTime createdAt) async {
+    if (userId == null || userId!.isEmpty) return;
+
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+      // 전달받은 createdAt을 Local Time으로 변환 후 문자열 생성
+      DateTime localDate = createdAt.toLocal();
+      String dateString =
+          localDate.toIso8601String().substring(0, 10); // yyyy-MM-dd
+
+      String key = '${userId}_myDiaryList_$dateString';
+
+      // 2. 해당 날짜의 리스트 불러오기
+      List<String>? storedMessages = prefs.getStringList(key);
+
+      if (storedMessages != null) {
+        List<Diary> messages = storedMessages.map((jsonMessage) {
+          final decodedJson = jsonDecode(jsonMessage);
+          return Diary.fromJsonLocal(
+            decodedJson,
+            decodedJson['otherUserReaction'] ?? -1,
+            decodedJson['otherUserLikedAt'] ?? '',
+          );
+        }).toList();
+
+        // 3. 삭제할 일기 찾아서 제거
+        int initialLength = messages.length;
+        messages.removeWhere((d) => d.diaryId == diaryId);
+
+        if (messages.length != initialLength) {
+          // 4. 로컬 저장소 업데이트
+          if (messages.isEmpty) {
+            // 해당 날짜에 일기가 하나도 안 남았으면 키 자체를 삭제
+            await prefs.remove(key);
+            myDiaryListDates.remove(key); // 날짜 리스트에서도 제거
+          } else {
+            // 아직 다른 일기가 남아있으면 리스트 업데이트
+            List<String> jsonMessages =
+                messages.map((m) => jsonEncode(m.toJson())).toList();
+            await prefs.setStringList(key, jsonMessages);
+          }
+          dev.log('Deleted local diary for ID: $diaryId');
+        }
+      }
+
+      // 5. 메모리 리스트(화면 표시용) 갱신
+      myDiaryList.removeWhere((d) => d.diaryId == diaryId);
+
+      notifyListeners();
+    } catch (e) {
+      dev.log('Error deleting local diary: $e');
     }
   }
 

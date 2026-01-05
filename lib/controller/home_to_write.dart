@@ -358,9 +358,9 @@ class HomeToWrite with ChangeNotifier {
 
   bool gotoDirectListPage = false;
 
-  Future<void> readMyDiary(Diary dairy) async {
+  Future<void> readMyDiary(Diary diary) async {
     step = 2;
-    diaryModel = dairy;
+    diaryModel = diary;
     gotoDirectListPage = true;
     notifyListeners();
   }

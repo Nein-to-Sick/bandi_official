@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
+import 'dart:developer' as dev;
 
 class MyDiaryListView extends StatefulWidget {
   const MyDiaryListView({super.key});
@@ -85,10 +86,7 @@ class _MyDiaryListViewState extends State<MyDiaryListView>
     final displayList = filterDate == null
         ? allDiaries
         : allDiaries.where((diary) {
-            // 1. [수정] Timestamp를 DateTime으로 변환
             DateTime diaryDate = diary.createdAt.toDate();
-
-            // 2. 년, 월, 일이 모두 같은지 확인
             return diaryDate.year == filterDate.year &&
                 diaryDate.month == filterDate.month &&
                 diaryDate.day == filterDate.day;
@@ -100,6 +98,11 @@ class _MyDiaryListViewState extends State<MyDiaryListView>
         appBar: NewCustomAppBar(
           appBarType: AppBarType.subtitleNeutral,
           title: 'journal_title'.tr(context),
+          leftActionButtonIcon:
+              PhosphorIcons.calendarBlank(PhosphorIconsStyle.thin),
+          onLeftActionButtonPressed: () {
+            myDiaryListController.deleteEveryMyDiaryDataFromLocal();
+          },
           rightActionButtonIcon:
               PhosphorIcons.calendarBlank(PhosphorIconsStyle.thin),
           rightActionButtonColor:
@@ -139,8 +142,18 @@ class _MyDiaryListViewState extends State<MyDiaryListView>
                             myDiaryListController.myDiaryScrollController,
                         itemCount: displayList.length,
                         itemBuilder: (context, index) {
-                          return myDiaryWidget(displayList[index],
-                              myDiaryListController, context);
+                          return Column(
+                            children: [
+                              myDiaryWidget(displayList[index],
+                                  myDiaryListController, context),
+                              if (index == displayList.length - 1)
+                                SizedBox(
+                                  height:
+                                      MediaQuery.of(context).padding.bottom +
+                                          94,
+                                )
+                            ],
+                          );
                         },
                       ),
                     ),
@@ -193,10 +206,22 @@ Widget myDiaryWidget(
     padding: const EdgeInsets.symmetric(vertical: 8),
     child: GestureDetector(
       onTap: () {
-        logMyPastDiaryTracking();
-        writeProvider.readMyDiary(diary);
+        Diary diaryCopy = Diary(
+          userId: diary.userId,
+          title: diary.title,
+          content: diary.content,
+          emotion: diary.emotion,
+          createdAt: diary.createdAt,
+          updatedAt: diary.updatedAt,
+          reaction: diary.reaction,
+          diaryId: diary.diaryId,
+          cheerText: diary.cheerText,
+        );
+
+        writeProvider.readMyDiary(diaryCopy);
         navigationToggleProvider.selectIndex(0);
         writeProvider.toggleWrite();
+        logMyPastDiaryTracking();
       },
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 24),

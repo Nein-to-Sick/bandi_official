@@ -3,6 +3,7 @@ import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/diary_ai_chat/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/view/diary_ai_chat/diary_ai_chat_view.dart';
+import 'package:bandi_official/view/my_diary_list/controller/my_diary_list_controller.dart';
 import 'package:bandi_official/view/writing/widget/diary_action_sheet.dart';
 import 'package:bandi_official/view/writing/widget/emotion_keyword_sheet.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +14,7 @@ import 'package:provider/provider.dart';
 import '../../../controller/home_to_write.dart';
 import '../../../controller/navigation_toggle_provider.dart';
 import '../../components/bottom_sheet/show_floating_confirm_sheet.dart';
+import 'dart:developer' as dev;
 
 class SecondStep extends StatelessWidget {
   const SecondStep({super.key});
@@ -23,6 +25,8 @@ class SecondStep extends StatelessWidget {
     final navigationToggleProvider =
         Provider.of<NavigationToggleProvider>(context);
     final diaryAiChatController = context.watch<DiaryAiChatController>();
+    MyDiaryListController myDiaryListController =
+        context.watch<MyDiaryListController>();
 
     final title = writeProvider.diaryModel.cheerText == ''
         ? 'write_title_generating'.tr(context)
@@ -76,6 +80,13 @@ class SecondStep extends StatelessWidget {
                         );
 
                         if (confirmed == true) {
+                          // 로컬 저장소 삭제
+                          await myDiaryListController.deleteMyDiaryLocal(
+                            writeProvider.diaryModel.diaryId,
+                            writeProvider.diaryModel.createdAt.toDate(),
+                          );
+
+                          // DB 삭제
                           await writeProvider.deleteDiaryById(
                             writeProvider.diaryModel.diaryId,
                           );
