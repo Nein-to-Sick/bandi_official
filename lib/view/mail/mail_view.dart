@@ -2,18 +2,13 @@ import 'dart:ui';
 
 import 'package:bandi_official/components/appbar/new_custom_appbar.dart';
 import 'package:bandi_official/components/bottom_sheet/calendar_bottom_sheet.dart';
-import 'package:bandi_official/main.dart';
 import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
 import 'package:bandi_official/view/mail/controller/mail_controller.dart';
-import 'package:bandi_official/model/letter.dart';
 import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
-// import 'package:bandi_official/view/mail/every_mail_view.dart';
 import 'package:bandi_official/view/mail/letters_view.dart';
 import 'package:bandi_official/view/mail/liked_diary_view.dart';
-import 'package:bandi_official/view/mail/new_letter_popup.dart';
 import 'package:bandi_official/view/mail/widget/liked_diary_action_sheet.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
@@ -235,25 +230,3 @@ void messageTestFunction(AlarmController alarmController) {
   alarmController.sendLikedDiaryNotification(testLikedDiaryId, userId);
 }
 
-void newLetterPopUpPageTestFunction(BuildContext context) {
-  Letter letter = Letter(
-    title: 'title',
-    content: 'content',
-    date: Timestamp.now(),
-    letterId: 'letterId',
-  );
-  Navigator.push(
-    context,
-    PageRouteBuilder(
-      pageBuilder: (context, animation, secondaryAnimation) =>
-          NewLetterPopuView(newLetter: letter),
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        return FadeTransition(
-          opacity: animation,
-          child: child,
-        );
-      },
-      transitionDuration: const Duration(milliseconds: 400),
-    ),
-  );
-}

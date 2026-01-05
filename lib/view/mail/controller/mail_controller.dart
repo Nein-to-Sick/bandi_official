@@ -275,8 +275,8 @@ class MailController with ChangeNotifier {
         // latest maxDataToLoad message List's keys
         List<String> latestKeys = keys
             .skip((keys.length - maxDataToLoad) > 0
-                ? keys.length - maxDataToLoad
-                : 0)
+            ? keys.length - maxDataToLoad
+            : 0)
             .toList()
             .toList();
         likedDiaryListDates.clear();
@@ -333,7 +333,7 @@ class MailController with ChangeNotifier {
 
       // 유저 문서에서 likedDiaryId 배열 가져오기
       DocumentSnapshot userDoc =
-          await firestore.collection('users').doc(userId).get();
+      await firestore.collection('users').doc(userId).get();
 
       if (!userDoc.exists || userDoc.data() == null) return;
 
@@ -359,7 +359,7 @@ class MailController with ChangeNotifier {
       for (int i = 0; i < pureIds.length; i += chunkSize) {
         // 10개씩 자르기 (마지막 남은 개수 처리 포함)
         int end =
-            (i + chunkSize < pureIds.length) ? i + chunkSize : pureIds.length;
+        (i + chunkSize < pureIds.length) ? i + chunkSize : pureIds.length;
         List<String> chunk = pureIds.sublist(i, end);
 
         // Firestore 조회
@@ -433,7 +433,7 @@ class MailController with ChangeNotifier {
         String key = '${userId}_likedDiaryList_$dateStr';
 
         List<String> jsonMessages =
-            diaries.map((msg) => jsonEncode(msg.toJson())).toList();
+        diaries.map((msg) => jsonEncode(msg.toJson())).toList();
 
         await prefs.setStringList(key, jsonMessages);
 
@@ -527,7 +527,7 @@ class MailController with ChangeNotifier {
 
       // 로컬 저장소에 저장
       List<String> jsonMessages =
-          messages.map((message) => jsonEncode(message.toJson())).toList();
+      messages.map((message) => jsonEncode(message.toJson())).toList();
       await prefs.setStringList(targetKey, jsonMessages);
 
       // 날짜 키 리스트 업데이트 (화면 섹션 갱신용)
@@ -571,7 +571,7 @@ class MailController with ChangeNotifier {
               List<String>? jsonMessages = prefs.getStringList(key);
               if (jsonMessages != null) {
                 List<Diary> additionalMessages =
-                    jsonMessages.map((jsonMessage) {
+                jsonMessages.map((jsonMessage) {
                   final jsonMap = jsonDecode(jsonMessage);
                   // Create and return the Diary instance
                   return Diary.fromJsonLocal(
@@ -633,8 +633,8 @@ class MailController with ChangeNotifier {
         // latest maxDataToLoad message List's keys
         List<String> latestKeys = keys
             .skip((keys.length - maxDataToLoad) > 0
-                ? keys.length - maxDataToLoad
-                : 0)
+            ? keys.length - maxDataToLoad
+            : 0)
             .toList()
             .toList();
 
@@ -652,7 +652,7 @@ class MailController with ChangeNotifier {
             letterList.addAll(
               jsonMessages
                   .map((jsonMessage) =>
-                      Letter.fromJsonLocal(jsonDecode(jsonMessage)))
+                  Letter.fromJsonLocal(jsonDecode(jsonMessage)))
                   .toList(),
             );
           } else {
@@ -734,7 +734,7 @@ class MailController with ChangeNotifier {
 
         // List<Letter> -> List<String(JSON)> 변환
         List<String> jsonMessages =
-            lettersOfDay.map((msg) => jsonEncode(msg.toJson())).toList();
+        lettersOfDay.map((msg) => jsonEncode(msg.toJson())).toList();
 
         // SharedPreferences에 저장
         await prefs.setStringList(key, jsonMessages);
@@ -829,7 +829,7 @@ class MailController with ChangeNotifier {
       // 중복 방지 및 데이터 추가
       // (이미 저장된 편지인지 확인)
       bool isDuplicate =
-          targetMessages.any((l) => l.letterId == newLetter.letterId);
+      targetMessages.any((l) => l.letterId == newLetter.letterId);
 
       if (!isDuplicate) {
         // 로컬 리스트에 추가
@@ -892,7 +892,7 @@ class MailController with ChangeNotifier {
               if (jsonMessages != null) {
                 List<Letter> additionalMessages = jsonMessages
                     .map((jsonMessage) =>
-                        Letter.fromJsonLocal(jsonDecode(jsonMessage)))
+                    Letter.fromJsonLocal(jsonDecode(jsonMessage)))
                     .toList();
 
                 // 메모리 리스트 병합
@@ -1026,12 +1026,12 @@ class MailController with ChangeNotifier {
     // 3. 지역 코드에 따른 결과 생성
     switch (localeCode) {
       case 'ko':
-        // "7월 편지" -> "7월의 편지"
+      // "7월 편지" -> "7월의 편지"
         return titleWithoutYear.replaceFirst('월', '월의');
 
       case 'enUs':
       case 'en':
-        // 월 숫자를 영문 월 이름으로 변환
+      // 월 숫자를 영문 월 이름으로 변환
         const englishMonths = [
           'January',
           'February',

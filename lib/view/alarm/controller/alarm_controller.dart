@@ -7,7 +7,6 @@ import 'package:bandi_official/model/alarm.dart';
 import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/model/letter.dart';
 import 'package:bandi_official/string_extention.dart';
-import 'package:bandi_official/view/mail/new_letter_popup.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -16,6 +15,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:provider/provider.dart';
 import 'dart:developer' as dev;
+
+import '../../mail/detail_view.dart';
 
 class AlarmController with ChangeNotifier {
   // determine whether to display the alarm view
@@ -177,7 +178,10 @@ class AlarmController with ChangeNotifier {
           navigatorKey.currentState?.push(
             PageRouteBuilder(
               pageBuilder: (context, animation, secondaryAnimation) =>
-                  NewLetterPopuView(newLetter: result.item2),
+                  DetailView(
+                    item: result.item2,
+                    mailController: mailController,
+                  ),
               transitionsBuilder:
                   (context, animation, secondaryAnimation, child) {
                 return FadeTransition(
