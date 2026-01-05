@@ -72,7 +72,7 @@ class _MailViewState extends State<MailView>
           rightActionButtonIcon:
               PhosphorIcons.calendarBlank(PhosphorIconsStyle.thin),
           rightActionButtonColor: ((isLikedDiaryView &&
-                      mailController.likfedDiaryFilteredDate != null) ||
+                      mailController.likedDiaryFilteredDate != null) ||
                   (!isLikedDiaryView &&
                       mailController.letterFilteredDate != null))
               ? BandiColor.accentColorYellow(context)
@@ -100,7 +100,7 @@ class _MailViewState extends State<MailView>
 
             CalendarBottomSheet(
               initialDate: isLikedDiaryView
-                  ? mailController.likfedDiaryFilteredDate
+                  ? mailController.likedDiaryFilteredDate
                   : mailController.letterFilteredDate,
               mode: isLikedDiaryView ? CalendarMode.date : CalendarMode.month,
               eventDates: events,
@@ -116,7 +116,7 @@ class _MailViewState extends State<MailView>
           disableLefttActionButton: false,
         ),
         body: Padding(
-          padding: const EdgeInsets.only(bottom: 0, left: 24, right: 24),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Stack(
             children: [
               TabBarView(
@@ -229,4 +229,3 @@ void messageTestFunction(AlarmController alarmController) {
 
   alarmController.sendLikedDiaryNotification(testLikedDiaryId, userId);
 }
-

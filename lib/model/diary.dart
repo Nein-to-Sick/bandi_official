@@ -94,6 +94,20 @@ class Diary {
     ];
   }
 
+  static List<Diary> defaultMyDiaryList() {
+    return [
+      // Diary(
+      //     userId: '',
+      //     title: '',
+      //     content: '',
+      //     emotion: [],
+      //     createdAt: Timestamp.now(),
+      //     updatedAt: Timestamp.now(),
+      //     reaction: [],
+      //     diaryId: ''),
+    ];
+  }
+
   Map<String, dynamic> toJson() => {
         'userId': userId,
         'title': title,

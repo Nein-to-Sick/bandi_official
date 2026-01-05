@@ -374,7 +374,7 @@ Widget noDiary(context, DateTime date) {
               ],
             ),
       Center(
-          child: Text('journal_nodiary'.tr(context),
+          child: Text('journal_no_diary'.tr(context),
               style: BandiFont.headlineMedium(context)?.copyWith(
                 color: BandiColor.neutralColor60(context),
               ))),

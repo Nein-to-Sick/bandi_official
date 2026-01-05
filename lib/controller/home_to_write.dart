@@ -3,6 +3,7 @@ import 'dart:developer' as developer;
 import 'dart:math';
 
 import 'package:bandi_official/analytics/log_other_diary_received.dart';
+import 'package:bandi_official/view/my_diary_list/controller/my_diary_list_controller.dart';
 import 'package:bandi_official/view/writing/controller/diary_ai_analysis_controller.dart';
 import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/model/keyword.dart';
@@ -65,8 +66,11 @@ class HomeToWrite with ChangeNotifier {
 
   Future<void> aiAndSaveDiary(BuildContext context) async {
     String langCode = Localizations.localeOf(context).languageCode;
+    MyDiaryListController myDiaryListController =
+        context.watch<MyDiaryListController>();
     await aiDiary(context, langCode);
     await saveDiary();
+    myDiaryListController.saveMyDiaryToLocal(diaryModel);
     if (diaryModel.emotion.length >= 2) {
       Emotion emotion = classifyEmotion(diaryModel.emotion);
       if (emotion != Emotion.unknown) {
@@ -438,7 +442,6 @@ class HomeToWrite with ChangeNotifier {
     }
   }
 
-
   String? _lastDiaryDateKey; // "2026-01-01" 같은 형태
   String? get lastDiaryDateKey => _lastDiaryDateKey;
 
@@ -463,11 +466,11 @@ class HomeToWrite with ChangeNotifier {
     notifyListeners();
   }
 
-
   bool hideChrome = false;
   void setHideChrome(bool v) {
     hideChrome = v;
     notifyListeners();
   }
+
   void toggleChrome() => setHideChrome(!hideChrome);
 }
