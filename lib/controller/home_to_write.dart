@@ -3,6 +3,7 @@ import 'dart:developer' as developer;
 import 'dart:math';
 
 import 'package:bandi_official/analytics/log_other_diary_received.dart';
+import 'package:bandi_official/controller/user_info_controller.dart';
 import 'package:bandi_official/view/writing/controller/diary_ai_analysis_controller.dart';
 import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/model/keyword.dart';
@@ -12,6 +13,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 import 'dart:developer' as dev;
+
+import '../view/alarm/controller/alarm_controller.dart';
 
 class HomeToWrite with ChangeNotifier {
   Diary diaryModel = Diary(
@@ -75,7 +78,16 @@ class HomeToWrite with ChangeNotifier {
         String returnDiaryId = await scanAndCompareEmotionTimestamps(
             emotionString, diaryModel.diaryId);
         if (_isPublic) {
-          sendOtherDiary(returnDiaryId);
+          final alarmController = context.read<AlarmController>();
+          final userInfo = context.read<UserInfoValueModel>();
+          final myNickname = userInfo.nickname;
+
+          await sendOtherDiary(
+            diaryId: returnDiaryId,
+            alarmController: alarmController,
+            username: myNickname,
+          );
+
           await logOtherDiaryReceived();
         }
       }
@@ -134,7 +146,7 @@ class HomeToWrite with ChangeNotifier {
 
       await firestore.collection('users').doc(userId).update({
         'myDiaryId': FieldValue.arrayUnion([newDiaryId]),
-        'lastDiaryDateKey': todayKey, // ✅ 추가
+        'lastDiaryDateKey': todayKey,
       });
 
       _lastDiaryDateKey = todayKey;
@@ -307,29 +319,66 @@ class HomeToWrite with ChangeNotifier {
     diaryId: 'diaryId',
     cheerText: 'cheerText',
   );
-  bool otherDiaryCome = false;
   bool otherDiaryOpen = false;
-  late DateTime otherDiaryComeTime;
 
-  Future<void> sendOtherDiary(String diaryId) async {
-    DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
+  void setOtherDiary(Diary diary) {
+    otherDiaryModel = diary;
+    otherDiaryOpen = true;
+    notifyListeners();
+  }
+
+  Future<void> _saveOtherDiaryNotificationToDB({
+    required String diaryId,
+    String? title,
+  }) async {
+    final uid = userId;
+    if (uid == null || uid.isEmpty) return;
+
+    final docRef = firestore
+        .collection('users')
+        .doc(uid)
+        .collection('notifications')
+        .doc(); // auto id
+
+    await docRef.set({
+      'notificationId': docRef.id,
+      'type': 'otherDiary',
+      'title': title ?? '새로운 공유 일기가 도착했어요',
+      'dataId': diaryId,
+      'date': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Future<void> sendOtherDiary({
+    required String diaryId,
+    required AlarmController alarmController,
+    required String username,
+  }) async {
+    final documentSnapshot = await FirebaseFirestore.instance
         .collection('allDiary')
         .doc(diaryId)
         .get();
 
-    if (documentSnapshot.exists) {
-      Diary diary = Diary.fromSnapshot(documentSnapshot);
-      otherDiaryModel = diary;
-      otherDiaryCome = true;
-      otherDiaryComeTime = DateTime.now();
-      notifyListeners();
-    } else {
-      dev.log('Diary with ID $diaryId does not exist.');
-    }
+    if (!documentSnapshot.exists) return;
+
+    final diary = Diary.fromSnapshot(documentSnapshot);
+
+    await _saveOtherDiaryNotificationToDB(
+      diaryId: diaryId,
+      title: '$username님과 비슷한 친구가 있어요.',
+    );
+
+    await alarmController.showLocalOtherDiaryNotification(
+      title: '$username님과 비슷한 친구가 있어요.',
+      diaryId: diaryId,
+    );
+
+    otherDiaryModel = diary;
+
+    notifyListeners();
   }
 
   void offDiaryOpen() {
-    otherDiaryCome = false;
     otherDiaryOpen = false;
     otherDiaryModel = Diary(
       userId: 'userId',
@@ -342,11 +391,6 @@ class HomeToWrite with ChangeNotifier {
       diaryId: 'diaryId',
       cheerText: 'cheerText',
     );
-    notifyListeners();
-  }
-
-  void openDiary() {
-    otherDiaryOpen = true;
     notifyListeners();
   }
 

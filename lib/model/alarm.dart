@@ -4,6 +4,7 @@ enum AlarmType {
   likedDiary,
   letter,
   dailyReminder,
+  otherDiary
 }
 
 class Alarm {
