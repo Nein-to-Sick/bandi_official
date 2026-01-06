@@ -4,7 +4,6 @@ import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/view/my_diary_list/controller/my_diary_list_controller.dart';
 import 'package:bandi_official/view/writing/widget/bottom_bar.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -113,6 +112,7 @@ class _ThirdStepState extends State<ThirdStep> {
                 ? "sharing_diary_on".tr(context)
                 : "sharing_diary_off".tr(context),
             onExit: () async {
+              navigationToggleProvider.selectIndex(1);
               writeProvider.toggleWrite();
               writeProvider.initialize();
             },
