@@ -400,7 +400,6 @@ class AlarmController with ChangeNotifier {
 
   // AlarmController 안에 추가
   Future<void> showLocalOtherDiaryNotification({
-    required String title,
     required String diaryId,
   }) async {
     const details = NotificationDetails(
@@ -426,8 +425,8 @@ class AlarmController with ChangeNotifier {
 
     await _local.show(
       notifId,
-      "반디",
-      title,
+      "나와 비슷한 친구를 찾았어요!",
+      "탭하여 확인해보세요.",
       details,
       payload: payload,
     );

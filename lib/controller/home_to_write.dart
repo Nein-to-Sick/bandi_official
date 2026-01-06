@@ -369,7 +369,6 @@ class HomeToWrite with ChangeNotifier {
     );
 
     await alarmController.showLocalOtherDiaryNotification(
-      title: '$username님과 비슷한 친구가 있어요.',
       diaryId: diaryId,
     );
 
