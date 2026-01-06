@@ -405,94 +405,53 @@ async function addNotification(userId, notificationTitle, notificationType, noti
 }
 
 /**
- * 매일 정해진 시간에 알림을 보내는 Cloud Function
- * 개선점: Batch Processing 도입, 메모리 최적화, 타임아웃 연장
+ * 매일 정해진 시간에 알림을 보내는 Cloud Function (Topic 방식 개선)
+ * - DB 조회/저장 없음 (비용 $0)
+ * - Topic을 사용하여 수백만 명에게도 즉시 전송 가능
  */
 exports.sendDailyReminder = functions
     .region("asia-northeast3")
     .runWith({
-        timeoutSeconds: 540, // 최대 9분 실행 허용 (대량 유저 처리 대비)
-        memory: "1GB", // 메모리 부족 방지
+        timeoutSeconds: 60, // 로직이 단순해져서 60초면 충분함
+        memory: "256MB",    // 메모리도 최소 사양이면 됨
     })
     .pubsub.schedule("0 21 * * *") // 매일 오후 9시 (한국 시간)
     .timeZone("Asia/Seoul")
     .onRun(async (context) => {
-        console.log("[Proceed] Daily Reminder Task Started");
+        console.log("[Proceed] Daily Reminder Task Started (Topic Mode)");
 
-        // 1. 메모리 최적화: 필요한 필드(fcmToken, language)만 조회
-        // 유저가 많아지면 stream()을 써야 하지만, 수천 명 단위까지는 select()로 충분
-        const usersSnapshot = await db.collection("users")
-            .select("fcmToken", "language")
-            .get();
+        try {
+            // 1. 한국어 사용자 전체 발송
+            const messageKo = {
+                notification: {
+                    title: "오늘 하루는 어떠셨나요?",
+                    body: "오늘의 기록을 남겨보세요 ✍️",
+                },
+                data: { screen: "diary_entry" },
+                topic: "daily_reminder_ko", // 한국어 구독자 토픽
+            };
 
-        if (usersSnapshot.empty) {
-            console.log("[Info] No users found.");
-            return null;
+            // 2. 영어 사용자 전체 발송
+            const messageEn = {
+                notification: {
+                    title: "How was your day?",
+                    body: "Write down your thoughts for today ✍️",
+                },
+                data: { screen: "diary_entry" },
+                topic: "daily_reminder_en", // 영어 구독자 토픽
+            };
+
+            // 두 메시지를 병렬로 전송 (총 2번의 API 호출만 발생)
+            await Promise.all([
+                admin.messaging().send(messageKo),
+                admin.messaging().send(messageEn),
+            ]);
+
+            console.log("[Success] Daily Reminder sent to topics (ko/en).");
+        } catch (error) {
+            console.error("[Error] Failed to send daily reminder:", error);
         }
 
-        const allDocs = usersSnapshot.docs;
-        console.log(`[Info] Found ${allDocs.length} users. Starting batch processing...`);
-
-        // 2. 배치 처리: 50명씩 끊어서 처리 (동시성 제어)
-        const BATCH_SIZE = 50;
-        const chunks = [];
-        for (let i = 0; i < allDocs.length; i += BATCH_SIZE) {
-            chunks.push(allDocs.slice(i, i + BATCH_SIZE));
-        }
-
-        let successCount = 0;
-        let failCount = 0;
-
-        // 청크 단위 루프
-        for (const chunk of chunks) {
-            const promises = chunk.map(async (userDoc) => {
-                const userId = userDoc.id;
-                const userData = userDoc.data();
-                const fcmToken = userData.fcmToken;
-
-                // 토큰 없으면 스킵
-                if (!fcmToken) return;
-
-                const langCode = userData.language || "ko";
-                let notificationTitle; let notificationBody;
-
-                if (langCode === "ko") {
-                    notificationTitle = "오늘 하루는 어떠셨나요?";
-                    notificationBody = "오늘의 기록을 남겨보세요 ✍️";
-                } else {
-                    notificationTitle = "How was your day?";
-                    notificationBody = "Write down your thoughts for today ✍️";
-                }
-
-                const notificationType = "dailyReminder";
-
-                // 병렬 처리: FCM 전송과 DB 저장을 동시에 시작
-                const sendFcmPromise = admin.messaging().send({
-                    notification: { title: notificationTitle, body: notificationBody },
-                    data: { screen: "diary_entry" },
-                    token: fcmToken,
-                }).catch((e) => {
-                    console.error(`[FCM Error] User ${userId}:`, e.message);
-                    // FCM 실패가 DB 저장을 막아야 하는지 결정 필요. 여기선 막지 않음.
-                });
-
-                // *비용 주의*: 매일 모든 유저에게 DB 쓰기가 발생합니다. 추후 FCM Topic 방식 도입 및 DB에 저장하지 않는 방식 고려
-                const saveDbPromise = addNotification(userId, notificationTitle, notificationType, null)
-                    .catch((e) => console.error(`[DB Error] User ${userId}:`, e.message));
-
-                try {
-                    await Promise.all([sendFcmPromise, saveDbPromise]);
-                    successCount++;
-                } catch (error) {
-                    failCount++;
-                }
-            });
-
-            // 50명 동시 실행 후 대기
-            await Promise.all(promises);
-        }
-
-        console.log(`[Exit] Daily Reminder Finished. Success: ${successCount}, Fail/Skip: ${failCount}`);
         return null;
     });
 

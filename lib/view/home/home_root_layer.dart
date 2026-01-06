@@ -176,6 +176,7 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
       );
     }
 
+    /*
     // 3) 편지
     /// 편지 알림 들어가면 없어지는 지 확인
     final Letter? newLetter = mailController.newLetter;
@@ -207,6 +208,7 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
         ),
       );
     }
+    */
 
     // 4) 기본 리마인더
     if (!wroteToday) {

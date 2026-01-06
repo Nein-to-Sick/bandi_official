@@ -179,9 +179,9 @@ class AlarmController with ChangeNotifier {
             PageRouteBuilder(
               pageBuilder: (context, animation, secondaryAnimation) =>
                   DetailView(
-                    item: result.item2,
-                    mailController: mailController,
-                  ),
+                item: result.item2,
+                mailController: mailController,
+              ),
               transitionsBuilder:
                   (context, animation, secondaryAnimation, child) {
                 return FadeTransition(
@@ -348,5 +348,21 @@ class AlarmController with ChangeNotifier {
         .doc(likedDiaryId)
         .get();
     return Diary.fromSnapshot(documentSnapshot);
+  }
+
+  Future<void> subscribeToDailyReminder(String langCode) async {
+    // langCode: 'ko' 또는 'en'
+
+    // 1. 기존 구독 취소 (언어 변경 시 이전 언어 구독 해제)
+    // (필요하다면 로직 추가: ko -> en 변경 시 daily_reminder_ko는 unsubscribe)
+    await FirebaseMessaging.instance.unsubscribeFromTopic('daily_reminder_ko');
+    await FirebaseMessaging.instance.unsubscribeFromTopic('daily_reminder_en');
+
+    // 2. 현재 언어에 맞는 토픽 구독
+    String topic =
+        (langCode == 'ko') ? 'daily_reminder_ko' : 'daily_reminder_en';
+    await FirebaseMessaging.instance.subscribeToTopic(topic);
+
+    dev.log("Subscribed to topic: $topic");
   }
 }
