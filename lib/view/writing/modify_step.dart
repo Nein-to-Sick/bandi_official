@@ -118,8 +118,8 @@ class _ThirdStepState extends State<ThirdStep> {
             },
             onDone: () async {
               // 저장
-              writeProvider.modifyDatabaseDiaryValue(
-                  titleText, contentText, writeProvider.diaryModel.diaryId);
+              writeProvider.modifyDatabaseDiaryStringValue(
+                  titleText, contentText);
 
               Diary modifiedDiary = Diary(
                 userId: writeProvider.diaryModel.userId,
@@ -127,7 +127,7 @@ class _ThirdStepState extends State<ThirdStep> {
                 content: contentText,
                 emotion: writeProvider.diaryModel.emotion,
                 createdAt: writeProvider.diaryModel.createdAt,
-                updatedAt: Timestamp.now(),
+                updatedAt: writeProvider.diaryModel.updatedAt,
                 reaction: writeProvider.diaryModel.reaction,
                 diaryId: writeProvider.diaryModel.diaryId,
                 cheerText: writeProvider.diaryModel.cheerText,

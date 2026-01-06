@@ -98,11 +98,11 @@ class _MyDiaryListViewState extends State<MyDiaryListView>
         appBar: NewCustomAppBar(
           appBarType: AppBarType.subtitleNeutral,
           title: 'journal_title'.tr(context),
-          leftActionButtonIcon:
-              PhosphorIcons.calendarBlank(PhosphorIconsStyle.thin),
-          onLeftActionButtonPressed: () {
-            myDiaryListController.deleteEveryMyDiaryDataFromLocal();
-          },
+          // leftActionButtonIcon:
+          //     PhosphorIcons.calendarBlank(PhosphorIconsStyle.thin),
+          // onLeftActionButtonPressed: () {
+          //   myDiaryListController.deleteEveryMyDiaryDataFromLocal();
+          // },
           rightActionButtonIcon:
               PhosphorIcons.calendarBlank(PhosphorIconsStyle.thin),
           rightActionButtonColor:

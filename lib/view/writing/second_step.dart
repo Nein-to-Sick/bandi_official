@@ -28,9 +28,7 @@ class SecondStep extends StatelessWidget {
     MyDiaryListController myDiaryListController =
         context.watch<MyDiaryListController>();
 
-    final title = writeProvider.diaryModel.cheerText == ''
-        ? 'write_title_generating'.tr(context)
-        : writeProvider.diaryModel.title;
+    final title = writeProvider.diaryModel.title;
 
     final dateText = DateFormat('yyyy년 M월 d일')
         .format(writeProvider.diaryModel.createdAt.toDate());
@@ -40,6 +38,12 @@ class SecondStep extends StatelessWidget {
     final praiseCount = (reaction.isNotEmpty) ? reaction[0] : 0;
     final likeCount = (reaction.length > 1) ? reaction[1] : 0;
     final peopleCount = (reaction.length > 2) ? reaction[2] : 0;
+
+    void onPagePop() {
+      navigationToggleProvider.selectIndex(1);
+      writeProvider.initialize();
+      writeProvider.toggleWrite();
+    }
 
     return SafeArea(
       bottom: false,
@@ -177,9 +181,7 @@ class SecondStep extends StatelessWidget {
                 });
               },
               onTapHome: () {
-                navigationToggleProvider.selectIndex(0);
-                writeProvider.initialize();
-                writeProvider.toggleWrite();
+                onPagePop();
               },
             ),
           ],

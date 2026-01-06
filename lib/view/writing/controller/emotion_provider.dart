@@ -105,8 +105,16 @@ class EmotionProvider with ChangeNotifier {
   }
 
   /// ✅ 새로고침 버튼: 전체 초기화
-  void resetSelected() {
+  void resetSelected(BuildContext context) {
     _selectedEmotions.clear();
+    _selectedEmotions.add('emotion_keyword_없음'.tr(context));
     notifyListeners();
+  }
+
+  // 감정 키워드 수정 여부 확인
+  bool listEquals(List list1, List list2) {
+    if (list1.length != list2.length) return false;
+    return Set.from(list1).containsAll(list2) &&
+        Set.from(list2).containsAll(list1);
   }
 }

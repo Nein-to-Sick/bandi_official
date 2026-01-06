@@ -1,5 +1,7 @@
 import 'package:bandi_official/components/button/primary_button.dart';
+import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/string_extention.dart';
+import 'package:bandi_official/view/my_diary_list/controller/my_diary_list_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
@@ -65,6 +67,8 @@ class _EmotionKeywordSheetState extends State<EmotionKeywordSheet> {
 
   @override
   Widget build(BuildContext context) {
+    MyDiaryListController myDiaryListController =
+        Provider.of<MyDiaryListController>(context);
     return Consumer<EmotionProvider>(
       builder: (context, provider, _) {
         if (!provider.isInitialized) {
@@ -91,7 +95,7 @@ class _EmotionKeywordSheetState extends State<EmotionKeywordSheet> {
                         ),
                       ),
                       GestureDetector(
-                          onTap: provider.resetSelected,
+                          onTap: () => provider.resetSelected(context),
                           child: PhosphorIcon(
                             size: 24,
                             PhosphorIcons.arrowClockwise(
@@ -111,7 +115,8 @@ class _EmotionKeywordSheetState extends State<EmotionKeywordSheet> {
                     ],
                   ),
                 ),
-                Divider(height: 1, color: BandiColor.foundationColor04(context)),
+                Divider(
+                    height: 1, color: BandiColor.foundationColor04(context)),
 
                 // ===== Body (scroll) =====
                 Expanded(
@@ -145,8 +150,6 @@ class _EmotionKeywordSheetState extends State<EmotionKeywordSheet> {
                     ),
                   ),
                 ),
-
-
               ],
             ),
             // ===== Bottom fixed button =====
@@ -155,14 +158,35 @@ class _EmotionKeywordSheetState extends State<EmotionKeywordSheet> {
               right: 24,
               bottom: 32,
               child: CustomPrimaryButton(
-                title: "완료",
-                onPrimaryButtonPressed: () {
-                  widget.writeProvider
-                      .changeDiaryValue(provider.selectedEmotions);
-                  Navigator.pop(context);
-                },
-                disableButton: false,
-              ),
+                  title: "완료",
+                  onPrimaryButtonPressed: () async {
+                    await widget.writeProvider
+                        .changeDiaryValue(provider.selectedEmotions);
+
+                    Diary modifiedDiary = Diary(
+                      userId: widget.writeProvider.diaryModel.userId,
+                      title: widget.writeProvider.diaryModel.title,
+                      content: widget.writeProvider.diaryModel.content,
+                      emotion: provider.selectedEmotions,
+                      createdAt: widget.writeProvider.diaryModel.createdAt,
+                      updatedAt: widget.writeProvider.diaryModel.updatedAt,
+                      reaction: widget.writeProvider.diaryModel.reaction,
+                      diaryId: widget.writeProvider.diaryModel.diaryId,
+                      cheerText: widget.writeProvider.diaryModel.cheerText,
+                      otherUserReaction: -1,
+                      otherUserLikedAt: '',
+                    );
+
+                    await myDiaryListController
+                        .updateMyDiaryLocal(modifiedDiary);
+
+                    if (mounted) {
+                      Navigator.pop(context);
+                    }
+                  },
+                  disableButton: provider.listEquals(
+                      widget.writeProvider.diaryModel.emotion,
+                      provider.selectedEmotions)),
             ),
           ],
         );
@@ -211,9 +235,8 @@ class _KeywordChip extends StatelessWidget {
         ? BandiColor.neutralColor90(context)
         : BandiColor.foundationColor40(context);
 
-    final borderColor = selected
-        ? Colors.transparent
-        : BandiColor.foundationColor10(context);
+    final borderColor =
+        selected ? Colors.transparent : BandiColor.foundationColor10(context);
 
     return GestureDetector(
       onTap: onTap,

@@ -369,25 +369,46 @@ class HomeToWrite with ChangeNotifier {
   // diaryModel 값 변경
   int flag = 0;
 
-  void changeDiaryValue(List<String> newEmotions) {
+  Future<void> changeDiaryValue(List<String> newEmotions) async {
     diaryModel.emotion = newEmotions;
     flag = 1;
+    await modifyDatabaseDiaryEmotionValue();
     notifyListeners();
   }
 
-  // DB 변경
-  Future<void> modifyDatabaseDiaryValue(
-      String titleText, String contentText, String diaryId) async {
+  // DB title, content 변경
+  Future<void> modifyDatabaseDiaryStringValue(
+      String titleText, String contentText) async {
     diaryModel.update(
         title: titleText, content: contentText, updatedAt: Timestamp.now());
     try {
       final diaryData = {
         'title': diaryModel.title,
         'content': diaryModel.content,
+        'updatedAt': diaryModel.updatedAt,
+      };
+      await firestore
+          .collection('allDiary')
+          .doc(diaryModel.diaryId)
+          .update(diaryData);
+    } catch (e) {
+      developer.log("Error modifying diary: $e");
+    }
+  }
+
+  // DB emotion 변경
+  Future<void> modifyDatabaseDiaryEmotionValue() async {
+    diaryModel.update(updatedAt: Timestamp.now());
+
+    try {
+      final diaryData = {
         'emotion': diaryModel.emotion,
         'updatedAt': diaryModel.updatedAt,
       };
-      await firestore.collection('allDiary').doc(diaryId).update(diaryData);
+      await firestore
+          .collection('allDiary')
+          .doc(diaryModel.diaryId)
+          .update(diaryData);
     } catch (e) {
       developer.log("Error modifying diary: $e");
     }

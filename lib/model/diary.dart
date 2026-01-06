@@ -58,13 +58,13 @@ class Diary {
 
   // Method to update a Diary instance
   void update({
-    required String title,
-    required String content,
-    required Timestamp updatedAt,
+    String? title,
+    String? content,
+    Timestamp? updatedAt,
   }) {
-    this.title = title;
-    this.content = content;
-    this.updatedAt = updatedAt;
+    this.title = title ?? this.title;
+    this.content = content ?? this.content;
+    this.updatedAt = updatedAt ?? this.updatedAt;
   }
 
   // Initialize field values

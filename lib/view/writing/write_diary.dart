@@ -17,8 +17,7 @@ class WriteDiary extends StatelessWidget {
     return writeProvider.step == 1
         ? BackdropFilter(
             filter: ImageFilter.blur(
-                sigmaX: BandiEffects.blurLarge,
-                sigmaY: BandiEffects.blurLarge),
+                sigmaX: BandiEffects.blurLarge, sigmaY: BandiEffects.blurLarge),
             child: Container(
                 color: BandiColor.neutralColor10(context),
                 child: const FirstStep()))
