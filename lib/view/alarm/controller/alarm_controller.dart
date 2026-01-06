@@ -52,18 +52,31 @@ class AlarmController with ChangeNotifier {
         .update({'language': langCode});
   }
 
-  // This callback is fired at each app startup and whenever a new token is generated.
   void firebaseOnTokenRefresh() {
     FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) async {
-      dev.log('fcm token database update');
-      String userId = FirebaseAuth.instance.currentUser!.uid;
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .update({'fcmToken': fcmToken});
+      dev.log('FCM Token Refreshed: $fcmToken');
+
+      // 1. 로그인 상태 확인 (안전장치)
+      User? user = FirebaseAuth.instance.currentUser;
+
+      if (user != null) {
+        try {
+          // 2. DB 업데이트
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .set({'fcmToken': fcmToken}, SetOptions(merge: true));
+
+          dev.log('FCM Token updated in Firestore for user: ${user.uid}');
+        } catch (e) {
+          dev.log('Failed to update FCM token in Firestore: $e');
+          // 필요 시 Crashlytics 기록: FirebaseCrashlytics.instance.recordError(e, stack);
+        }
+      } else {
+        dev.log('User is not logged in. Token refresh ignored.');
+      }
     }).onError((err) {
-      // Error getting token.
-      dev.log(err);
+      dev.log('Error getting refresh token: $err');
     });
   }
 
