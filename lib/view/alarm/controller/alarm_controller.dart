@@ -431,4 +431,16 @@ class AlarmController with ChangeNotifier {
       payload: payload,
     );
   }
+
+  Future<void> dismissAlarm(String notificationId) async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('notifications') // 너희 구조에 맞게 컬렉션 경로 확인!
+        .doc(notificationId)
+        .delete();
+  }
 }

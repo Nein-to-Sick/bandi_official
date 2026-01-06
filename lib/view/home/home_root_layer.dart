@@ -49,6 +49,7 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
     required HomeToWrite writeProvider,
     required NavigationToggleProvider navigationToggleProvider,
   }) async {
+    await alarmController.dismissAlarm(alarm.notificationId);
 
     /// 공감 받은 일기 열람 (TODO:공감 구분 필요)
     if (alarm.type == AlarmType.likedDiary) {
