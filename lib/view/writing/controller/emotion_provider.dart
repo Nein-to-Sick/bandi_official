@@ -94,12 +94,27 @@ class EmotionProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  /// ✅ 선택 토글
-  void toggleEmotion(String keyword) {
+  /// ✅ 선택 토글 (수정됨)
+  void toggleEmotion(String keyword, BuildContext context) {
+    final String noneKeyword = 'emotion_keyword_없음'.tr(context);
+    final String unknownKeyword = 'emotion_keyword_모름'.tr(context);
+
     if (_selectedEmotions.contains(keyword)) {
       _selectedEmotions.remove(keyword);
     } else {
-      _selectedEmotions.add(keyword);
+      if (keyword == noneKeyword || keyword == unknownKeyword) {
+        _selectedEmotions.clear();
+        _selectedEmotions.add(keyword);
+      } else {
+        if (_selectedEmotions.contains(noneKeyword)) {
+          _selectedEmotions.remove(noneKeyword);
+        }
+        if (_selectedEmotions.contains(unknownKeyword)) {
+          _selectedEmotions.remove(unknownKeyword);
+        }
+
+        _selectedEmotions.add(keyword);
+      }
     }
     notifyListeners();
   }

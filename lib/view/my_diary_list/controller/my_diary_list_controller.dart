@@ -614,6 +614,92 @@ class MyDiaryListController with ChangeNotifier {
     }
   }
 
+  // 특정 내 일기의 Reaction 정보를 DB에서 최신화하는 함수
+  Future<List<dynamic>> fetchMyDiariesReactionAndSaveFromDB(
+      String myDiaryId) async {
+    List<dynamic> currentReaction = [0, 0, 0];
+
+    if (userId == null || userId!.isEmpty) return currentReaction;
+
+    try {
+      final FirebaseFirestore firestore = FirebaseFirestore.instance;
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+      // 1. DB에서 해당 일기 문서 가져오기
+      DocumentSnapshot diaryDoc =
+          await firestore.collection('allDiary').doc(myDiaryId).get();
+
+      if (!diaryDoc.exists || diaryDoc.data() == null) {
+        dev.log('Diary document not found: $myDiaryId');
+        return currentReaction;
+      }
+
+      Map<String, dynamic> data = diaryDoc.data() as Map<String, dynamic>;
+
+      // DB의 최신 Reaction 값
+      List<dynamic> serverReaction = data['reaction'] ?? [0, 0, 0];
+      currentReaction = serverReaction; // 반환값 업데이트
+
+      // 2. 로컬 데이터와 비교 및 갱신을 위해 로컬 데이터 로드
+      // 내 일기는 작성일(createdAt) 기준으로 키가 생성되므로, DB 데이터에서 날짜 추출 필요
+      Timestamp createdAtTimestamp = data['createdAt'];
+      DateTime createdDate = createdAtTimestamp.toDate().toLocal(); // 타임존 고려
+      String dateString =
+          createdDate.toIso8601String().substring(0, 10); // yyyy-MM-dd
+
+      String targetKey = '${userId}_myDiaryList_$dateString';
+
+      List<String>? storedMessages = prefs.getStringList(targetKey);
+
+      if (storedMessages != null) {
+        bool needUpdate = false;
+
+        List<Diary> messages = storedMessages.map((jsonMessage) {
+          final decodedJson = jsonDecode(jsonMessage);
+
+          // 해당 일기 찾기
+          if (decodedJson['diaryId'] == myDiaryId) {
+            List<dynamic> localReaction = decodedJson['reaction'] ?? [0, 0, 0];
+
+            // 3. 값 비교 (다르면 업데이트)
+            if (localReaction.toString() != serverReaction.toString()) {
+              dev.log(
+                  'Reaction updated for diary $myDiaryId: $localReaction -> $serverReaction');
+              decodedJson['reaction'] = serverReaction; // JSON 값 갱신
+              needUpdate = true;
+
+              // (선택사항) 메모리 리스트(myDiaryList)도 갱신
+              int memoryIndex =
+                  myDiaryList.indexWhere((d) => d.diaryId == myDiaryId);
+              if (memoryIndex != -1) {
+                myDiaryList[memoryIndex].reaction = serverReaction;
+              }
+            }
+          }
+
+          // 다시 Diary 객체로 변환 (갱신된 JSON 반영)
+          return Diary.fromJsonLocal(
+            decodedJson,
+            decodedJson['otherUserReaction'] ?? -1,
+            decodedJson['otherUserLikedAt'] ?? '',
+          );
+        }).toList();
+
+        // 4. 변경사항이 있으면 로컬 저장소에 덮어쓰기
+        if (needUpdate) {
+          List<String> updatedJsonMessages =
+              messages.map((m) => jsonEncode(m.toJson())).toList();
+          await prefs.setStringList(targetKey, updatedJsonMessages);
+          notifyListeners(); // UI 갱신
+        }
+      }
+    } catch (e) {
+      dev.log('Error fetching reaction for diary $myDiaryId: $e');
+    }
+
+    return currentReaction;
+  }
+
   // for Calendar selection
   DateTime? _myDiaryFilteredDate;
 

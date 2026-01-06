@@ -1,5 +1,4 @@
 import 'dart:ui';
-import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/diary_ai_chat/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/view/diary_ai_chat/diary_ai_chat_view.dart';
@@ -32,12 +31,6 @@ class SecondStep extends StatelessWidget {
 
     final dateText = DateFormat('yyyy년 M월 d일')
         .format(writeProvider.diaryModel.createdAt.toDate());
-
-    final reaction = writeProvider.diaryModel.reaction;
-
-    final praiseCount = (reaction.isNotEmpty) ? reaction[0] : 0;
-    final likeCount = (reaction.length > 1) ? reaction[1] : 0;
-    final peopleCount = (reaction.length > 2) ? reaction[2] : 0;
 
     void onPagePop() {
       navigationToggleProvider.selectIndex(1);
@@ -136,18 +129,18 @@ class SecondStep extends StatelessWidget {
                 children: [
                   _MetaIcon(
                     icon: PhosphorIcons.handsPraying(),
-                    value: praiseCount.toString(),
+                    index: 0,
                   ),
                   const SizedBox(width: 14),
                   _MetaIcon(
                     icon: PhosphorIcons.heart(PhosphorIconsStyle.fill),
-                    value: likeCount.toString(),
+                    index: 1,
                   ),
                   const SizedBox(width: 14),
                   _MetaIcon(
                     icon:
                         PhosphorIcons.personArmsSpread(PhosphorIconsStyle.fill),
-                    value: peopleCount.toString(),
+                    index: 2,
                   ),
                   const Spacer(),
                   Text(
@@ -191,30 +184,64 @@ class SecondStep extends StatelessWidget {
   }
 }
 
-class _MetaIcon extends StatelessWidget {
+class _MetaIcon extends StatefulWidget {
   final IconData icon;
-  final String value;
+  final int index;
 
   const _MetaIcon({
     required this.icon,
-    required this.value,
+    required this.index,
   });
 
   @override
+  State<_MetaIcon> createState() => _MetaIconState();
+}
+
+class _MetaIconState extends State<_MetaIcon> {
+  late Future<List<dynamic>> _reactionFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    final writeProvider = Provider.of<HomeToWrite>(context, listen: false);
+    final myDiaryListController =
+        Provider.of<MyDiaryListController>(context, listen: false);
+
+    _reactionFuture = myDiaryListController
+        .fetchMyDiariesReactionAndSaveFromDB(writeProvider.diaryModel.diaryId);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final writeProvider = Provider.of<HomeToWrite>(context);
+
     return Row(
       children: [
         PhosphorIcon(
-          icon,
+          widget.icon,
           size: 12,
           color: BandiColor.neutralColor60(context),
         ),
         const SizedBox(width: 6),
-        Text(
-          value,
-          style: BandiFont.labelSmall(context)?.copyWith(
-            color: BandiColor.neutralColor60(context),
-          ),
+        FutureBuilder<List<dynamic>>(
+          future: _reactionFuture,
+          builder: (context, snapshot) {
+            String displayValue =
+                writeProvider.diaryModel.reaction[widget.index].toString();
+
+            if (snapshot.hasData && snapshot.data != null) {
+              if (snapshot.data!.length > widget.index) {
+                displayValue = snapshot.data![widget.index].toString();
+              }
+            }
+
+            return Text(
+              displayValue,
+              style: BandiFont.labelSmall(context)?.copyWith(
+                color: BandiColor.neutralColor60(context),
+              ),
+            );
+          },
         ),
       ],
     );

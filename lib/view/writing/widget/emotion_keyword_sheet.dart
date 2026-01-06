@@ -138,7 +138,8 @@ class _EmotionKeywordSheetState extends State<EmotionKeywordSheet> {
                               return _KeywordChip(
                                 text: "emotion_keyword_$keyword".tr(context),
                                 selected: selected,
-                                onTap: () => provider.toggleEmotion(keyword),
+                                onTap: () =>
+                                    provider.toggleEmotion(keyword, context),
                               );
                             }).toList(),
                           ),
