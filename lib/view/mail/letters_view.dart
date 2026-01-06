@@ -6,7 +6,6 @@ import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/mail/detail_view.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'dart:developer' as dev;
@@ -92,8 +91,16 @@ class _MyLettersPageState extends State<MyLettersPage> {
                   controller: mailController.letterScrollController,
                   itemCount: displayList.length,
                   itemBuilder: (context, index) {
-                    return lettersWidget(
-                        index, displayList[index], mailController, context);
+                    return Column(
+                      children: [
+                        lettersWidget(
+                            index, displayList[0], mailController, context),
+                        if (index == displayList.length - 1)
+                          SizedBox(
+                            height: MediaQuery.of(context).padding.bottom + 188,
+                          )
+                      ],
+                    );
                   },
                 ),
               );

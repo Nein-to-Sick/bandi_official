@@ -31,7 +31,7 @@
   "journal_calendar_header_2": "yyyy년 M월 d일",
   "journal_end": "끝",
   "journal_loading": "로딩중...",
-  "journal_nodiary": "일기가 없습니다",
+  "journal_no_diary": "일기가 없습니다",
   "write_title_generating": "제목 생성 중...",
   "write_emotion_title": "반디가 분석한 감정",
   "write_emotion_loading": "감정 파악 중...",

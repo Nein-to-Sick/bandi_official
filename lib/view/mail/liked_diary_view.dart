@@ -6,7 +6,6 @@ import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/mail/detail_view.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'dart:developer' as dev;
@@ -71,7 +70,7 @@ class _LikedDiaryPageState extends State<LikedDiaryPage> {
     MailController mailController = context.watch<MailController>();
 
     final allDiaries = mailController.likedDiaryList;
-    final DateTime? filterDate = mailController.likfedDiaryFilteredDate;
+    final DateTime? filterDate = mailController.likedDiaryFilteredDate;
 
     // 선택된 날짜가 있으면 해당 날짜만, 없으면 전체 리스트
     final displayList = filterDate == null
@@ -95,8 +94,16 @@ class _LikedDiaryPageState extends State<LikedDiaryPage> {
                   controller: mailController.likedDiaryScrollController,
                   itemCount: displayList.length,
                   itemBuilder: (context, index) {
-                    return likedDiaryWidget(
-                        displayList[index], mailController, context);
+                    return Column(
+                      children: [
+                        likedDiaryWidget(
+                            displayList[index], mailController, context),
+                        if (index == displayList.length - 1)
+                          SizedBox(
+                            height: MediaQuery.of(context).padding.bottom + 188,
+                          )
+                      ],
+                    );
                   },
                 ),
               );

@@ -99,6 +99,24 @@ class _NavigationViewState extends State<NavigationView> {
           return;
         }
 
+        if (writeProvider.write) {
+          // 일기 작성시
+          if (writeProvider.step == 1) {
+            nav.selectIndex(0);
+          }
+          // 일기 열람시
+          else if (writeProvider.step == 2) {
+            nav.selectIndex(1);
+          }
+          // 일기 수정시
+          else {
+            return;
+          }
+          writeProvider.initialize();
+          writeProvider.toggleWrite();
+          return;
+        }
+
         final shouldExit = await showDialog<bool>(
           context: context,
           barrierDismissible: false,
