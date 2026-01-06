@@ -21,17 +21,23 @@ import '../../mail/detail_view.dart';
 class AlarmController with ChangeNotifier {
   // determine whether to display the alarm view
   bool isAlarmOpen = false;
+
   // Get current user from FirebaseAuth
   String? get userId => FirebaseAuth.instance.currentUser!.uid;
+
   // Firebase messaging setting
   final fcmToken = FirebaseMessaging.instance.getToken();
+
   // local notification setting
   final FlutterLocalNotificationsPlugin _local =
       FlutterLocalNotificationsPlugin();
+
   // manage the page scroll
   final alarmScrollController = ScrollController();
+
   // List of Alarm model
   List<Alarm> alarmList = Alarm.defaultAlarm();
+
   // update navigation BuildContext;
   late BuildContext navigationContext;
 
@@ -179,9 +185,9 @@ class AlarmController with ChangeNotifier {
             PageRouteBuilder(
               pageBuilder: (context, animation, secondaryAnimation) =>
                   DetailView(
-                    item: result.item2,
-                    mailController: mailController,
-                  ),
+                item: result.item2,
+                mailController: mailController,
+              ),
               transitionsBuilder:
                   (context, animation, secondaryAnimation, child) {
                 return FadeTransition(
@@ -219,6 +225,36 @@ class AlarmController with ChangeNotifier {
           navigationToggleProvider.selectIndex(0);
           writeProvider.toggleWrite();
         }
+      });
+    }
+    // other_diary 추가
+    else if (message.data['screen'] == 'other_diary_detail') {
+      dev.log('read other_diary_detail message');
+
+      final String diaryId = message.data['likedDiaryId'] ?? '';
+      if (diaryId.isEmpty) return;
+
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        final nav = Provider.of<NavigationToggleProvider>(
+          navigatorKey.currentState!.context,
+          listen: false,
+        );
+        final writeProvider = Provider.of<HomeToWrite>(
+          navigatorKey.currentState!.context,
+          listen: false,
+        );
+
+        final snap = await FirebaseFirestore.instance
+            .collection('allDiary')
+            .doc(diaryId)
+            .get();
+
+        if (!snap.exists) return;
+
+        final diary = Diary.fromSnapshot(snap);
+
+        writeProvider.setOtherDiary(diary);
+        nav.selectIndex(0);
       });
     } else {
       dev.log('message received but there is no related message');
@@ -348,5 +384,63 @@ class AlarmController with ChangeNotifier {
         .doc(likedDiaryId)
         .get();
     return Diary.fromSnapshot(documentSnapshot);
+  }
+
+  Future<Diary> readOtherDiaryDataFromDB(String diaryId) async {
+    final documentSnapshot = await FirebaseFirestore.instance
+        .collection('allDiary')
+        .doc(diaryId)
+        .get();
+
+    if (!documentSnapshot.exists) {
+      throw Exception('Other diary not found: $diaryId');
+    }
+    return Diary.fromSnapshot(documentSnapshot);
+  }
+
+  // AlarmController 안에 추가
+  Future<void> showLocalOtherDiaryNotification({
+    required String diaryId,
+  }) async {
+    const details = NotificationDetails(
+      iOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
+      android: AndroidNotificationDetails(
+        "1",
+        "local notification",
+        importance: Importance.max,
+        priority: Priority.high,
+        channelShowBadge: true,
+      ),
+    );
+
+    const campaignId = "notification_other_diary_v1";
+    final payload = "other_diary_detail//${diaryId}/$campaignId";
+
+    final int notifId =
+        DateTime.now().millisecondsSinceEpoch.remainder(1 << 31);
+
+    await _local.show(
+      notifId,
+      "나와 비슷한 친구를 찾았어요!",
+      "탭하여 확인해보세요.",
+      details,
+      payload: payload,
+    );
+  }
+
+  Future<void> dismissAlarm(String notificationId) async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('notifications') // 너희 구조에 맞게 컬렉션 경로 확인!
+        .doc(notificationId)
+        .delete();
   }
 }

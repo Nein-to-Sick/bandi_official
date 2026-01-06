@@ -32,6 +32,8 @@ class HomeNotificationStack extends StatefulWidget {
   final List<HomeNotiItem> items;
   final ValueChanged<bool>? onDropdownOpenChanged;
 
+  final bool showNewDot;
+
   static const double pillHeight = 44;
   static const double peek = 2;
 
@@ -39,6 +41,7 @@ class HomeNotificationStack extends StatefulWidget {
     super.key,
     required this.items,
     this.onDropdownOpenChanged,
+    required this.showNewDot,
   });
 
   @override
@@ -52,7 +55,6 @@ class _HomeNotificationStackState extends State<HomeNotificationStack>
 
   bool _isOpen = false;
 
-  // ✅ 필드 초기화 금지: initState에서 생성
   late final AnimationController _c;
   late final Animation<double> _fade;
   late final Animation<double> _expand;
@@ -88,8 +90,22 @@ class _HomeNotificationStackState extends State<HomeNotificationStack>
   }
 
   List<HomeNotiItem> _sortedByTime(List<HomeNotiItem> items) {
-    final sorted = [...items]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    final sorted = [...items]
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return sorted;
+  }
+
+  IconData _iconFor(HomeNotiType t) {
+    switch (t) {
+      case HomeNotiType.letter:
+        return PhosphorIcons.envelope();
+      case HomeNotiType.likedDiary:
+        return PhosphorIcons.envelope(); /// 공감마다 변경 필요
+      case HomeNotiType.otherDiary:
+        return PhosphorIcons.envelope();
+      case HomeNotiType.dailyReminder:
+        return PhosphorIcons.envelope();
+    }
   }
 
   void _openDropdown() {
@@ -138,8 +154,7 @@ class _HomeNotificationStackState extends State<HomeNotificationStack>
                     child: _AnchoredDropdownSheet(
                       expand: _expand,
                       items: items,
-                      iconFor: (_) =>
-                          PhosphorIcons.envelope(PhosphorIconsStyle.light),
+                      iconFor: _iconFor,
                       onItemTap: (item) {
                         _closeDropdown();
                         item.onTap();
@@ -171,17 +186,18 @@ class _HomeNotificationStackState extends State<HomeNotificationStack>
     if (immediate) {
       _entry?.remove();
       _entry = null;
-      _isOpen = false; // dispose 중 setState 하지 말고 값만
+      _isOpen = false;
       return;
     }
 
-    try { await _c.reverse(); } catch (_) {}
+    try {
+      await _c.reverse();
+    } catch (_) {}
     _entry?.remove();
     _entry = null;
 
     if (mounted) setState(() => _isOpen = false);
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -196,6 +212,18 @@ class _HomeNotificationStackState extends State<HomeNotificationStack>
 
     final height =
         HomeNotificationStack.pillHeight + backCount * HomeNotificationStack.peek;
+
+    final showNewDot = widget.showNewDot;
+
+    final Widget? singleIcon = (!showNewDot && items.length == 1)
+        ? PhosphorIcon(
+      _iconFor(top.type),
+      size: 20,
+      color: BandiColor.neutralColor100(context),
+    )
+        : null;
+
+    final int badgeCount = (!showNewDot && items.length >= 2) ? items.length : 0;
 
     return SizedBox(
       height: height,
@@ -231,14 +259,16 @@ class _HomeNotificationStackState extends State<HomeNotificationStack>
                       height: HomeNotificationStack.pillHeight,
                       child: HomeNotificationPill(
                         text: top.text,
-                        notificationCount: items.length,
+                        showNewDot: showNewDot,
+                        badgeCount: badgeCount,
+                        trailingWidget: singleIcon,
                         onTap: () {
                           if (items.length == 1) {
                             top.onTap();
                           } else {
                             _openDropdown();
                           }
-                        },
+                        }, backgroundColor: BandiColor.neutralColor04(context),
                       ),
                     ),
                   ],
@@ -252,7 +282,6 @@ class _HomeNotificationStackState extends State<HomeNotificationStack>
   }
 }
 
-/// 뒤에 깔리는 pill 껍데기
 class _PillBackLayer extends StatelessWidget {
   const _PillBackLayer();
 
@@ -278,7 +307,6 @@ class _PillBackLayer extends StatelessWidget {
   }
 }
 
-/// pill 아래로 “내려오는” 드롭다운 시트
 class _AnchoredDropdownSheet extends StatelessWidget {
   final Animation<double> expand;
   final List<HomeNotiItem> items;
@@ -324,8 +352,7 @@ class _AnchoredDropdownSheet extends StatelessWidget {
                       children: [
                         ConstrainedBox(
                           constraints: const BoxConstraints(
-                            maxHeight:
-                            (HomeNotificationStack.pillHeight + 12) * 6,
+                            maxHeight: (HomeNotificationStack.pillHeight + 12) * 6,
                           ),
                           child: SingleChildScrollView(
                             physics: const BouncingScrollPhysics(),
@@ -335,16 +362,17 @@ class _AnchoredDropdownSheet extends StatelessWidget {
                                 for (final item in items) ...[
                                   HomeNotificationPill(
                                     text: item.text,
+                                    showNewDot: false,
+                                    badgeCount: 0,
                                     trailingWidget: PhosphorIcon(
                                       iconFor(item.type),
                                       size: 20,
                                       color: BandiColor.neutralColor90(context),
                                     ),
-                                    onTap: () => onItemTap(item),
-                                    notificationCount: 1,
+                                    onTap: () => onItemTap(item), backgroundColor: BandiColor.neutralColor10(context),
+                                    
                                   ),
-                                  if (item != items.last)
-                                    const SizedBox(height: 8),
+                                  if (item != items.last) const SizedBox(height: 8),
                                 ],
                               ],
                             ),
@@ -359,7 +387,7 @@ class _AnchoredDropdownSheet extends StatelessWidget {
                             child: PhosphorIcon(
                               PhosphorIcons.caretUp(PhosphorIconsStyle.light),
                               size: 20,
-                              color: BandiColor.neutralColor60(context),
+                              color: BandiColor.neutralColor40(context),
                             ),
                           ),
                         ),

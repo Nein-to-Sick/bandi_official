@@ -3,6 +3,7 @@ import 'dart:developer' as developer;
 import 'dart:math';
 
 import 'package:bandi_official/analytics/log_other_diary_received.dart';
+import 'package:bandi_official/controller/user_info_controller.dart';
 import 'package:bandi_official/view/my_diary_list/controller/my_diary_list_controller.dart';
 import 'package:bandi_official/view/writing/controller/diary_ai_analysis_controller.dart';
 import 'package:bandi_official/model/diary.dart';
@@ -12,7 +13,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:developer' as dev;
+
+import '../view/alarm/controller/alarm_controller.dart';
 
 class HomeToWrite with ChangeNotifier {
   Diary diaryModel = Diary(
@@ -79,7 +83,16 @@ class HomeToWrite with ChangeNotifier {
         String returnDiaryId = await scanAndCompareEmotionTimestamps(
             emotionString, diaryModel.diaryId);
         if (_isPublic) {
-          sendOtherDiary(returnDiaryId);
+          final alarmController = context.read<AlarmController>();
+          final userInfo = context.read<UserInfoValueModel>();
+          final myNickname = userInfo.nickname;
+
+          await sendOtherDiary(
+            diaryId: returnDiaryId,
+            alarmController: alarmController,
+            username: myNickname,
+          );
+
           await logOtherDiaryReceived();
         }
       }
@@ -138,7 +151,7 @@ class HomeToWrite with ChangeNotifier {
 
       await firestore.collection('users').doc(userId).update({
         'myDiaryId': FieldValue.arrayUnion([newDiaryId]),
-        'lastDiaryDateKey': todayKey, // ✅ 추가
+        'lastDiaryDateKey': todayKey,
       });
 
       _lastDiaryDateKey = todayKey;
@@ -311,29 +324,65 @@ class HomeToWrite with ChangeNotifier {
     diaryId: 'diaryId',
     cheerText: 'cheerText',
   );
-  bool otherDiaryCome = false;
   bool otherDiaryOpen = false;
-  late DateTime otherDiaryComeTime;
 
-  Future<void> sendOtherDiary(String diaryId) async {
-    DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
+  void setOtherDiary(Diary diary) {
+    otherDiaryModel = diary;
+    otherDiaryOpen = true;
+    notifyListeners();
+  }
+
+  Future<void> _saveOtherDiaryNotificationToDB({
+    required String diaryId,
+    String? title,
+  }) async {
+    final uid = userId;
+    if (uid == null || uid.isEmpty) return;
+
+    final docRef = firestore
+        .collection('users')
+        .doc(uid)
+        .collection('notifications')
+        .doc(); // auto id
+
+    await docRef.set({
+      'notificationId': docRef.id,
+      'type': 'otherDiary',
+      'title': title ?? '새로운 공유 일기가 도착했어요',
+      'dataId': diaryId,
+      'date': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Future<void> sendOtherDiary({
+    required String diaryId,
+    required AlarmController alarmController,
+    required String username,
+  }) async {
+    final documentSnapshot = await FirebaseFirestore.instance
         .collection('allDiary')
         .doc(diaryId)
         .get();
 
-    if (documentSnapshot.exists) {
-      Diary diary = Diary.fromSnapshot(documentSnapshot);
-      otherDiaryModel = diary;
-      otherDiaryCome = true;
-      otherDiaryComeTime = DateTime.now();
-      notifyListeners();
-    } else {
-      dev.log('Diary with ID $diaryId does not exist.');
-    }
+    if (!documentSnapshot.exists) return;
+
+    final diary = Diary.fromSnapshot(documentSnapshot);
+
+    await _saveOtherDiaryNotificationToDB(
+      diaryId: diaryId,
+      title: '$username님과 비슷한 친구가 있어요.',
+    );
+
+    await alarmController.showLocalOtherDiaryNotification(
+      diaryId: diaryId,
+    );
+
+    otherDiaryModel = diary;
+
+    notifyListeners();
   }
 
   void offDiaryOpen() {
-    otherDiaryCome = false;
     otherDiaryOpen = false;
     otherDiaryModel = Diary(
       userId: 'userId',
@@ -346,11 +395,6 @@ class HomeToWrite with ChangeNotifier {
       diaryId: 'diaryId',
       cheerText: 'cheerText',
     );
-    notifyListeners();
-  }
-
-  void openDiary() {
-    otherDiaryOpen = true;
     notifyListeners();
   }
 
@@ -487,6 +531,8 @@ class HomeToWrite with ChangeNotifier {
     notifyListeners();
   }
 
+  //========================화면 보호기==============================
+
   bool hideChrome = false;
   void setHideChrome(bool v) {
     hideChrome = v;
@@ -494,4 +540,35 @@ class HomeToWrite with ChangeNotifier {
   }
 
   void toggleChrome() => setHideChrome(!hideChrome);
+
+  //========================알림 확인(노란색 점)==============================
+  DateTime? _homeNotiLastSeenAt; // 마지막으로 "앱 종료/백그라운드 시점"에 확인 처리된 시각
+  DateTime? get homeNotiLastSeenAt => _homeNotiLastSeenAt;
+
+  Future<void> loadHomeNotiLastSeen() async {
+    final uid = userId;
+    if (uid == null) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final ms = prefs.getInt('${uid}_homeNotiLastSeenAt');
+    _homeNotiLastSeenAt =
+    (ms == null) ? null : DateTime.fromMillisecondsSinceEpoch(ms);
+    notifyListeners();
+  }
+
+  Future<void> setHomeNotiLastSeenAt(DateTime t) async {
+    final uid = userId;
+    if (uid == null) return;
+
+    // 더 최신값만 반영
+    if (_homeNotiLastSeenAt != null && !_homeNotiLastSeenAt!.isBefore(t)) {
+      return;
+    }
+
+    _homeNotiLastSeenAt = t;
+    notifyListeners();
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('${uid}_homeNotiLastSeenAt', t.millisecondsSinceEpoch);
+  }
 }
