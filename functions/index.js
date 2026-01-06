@@ -166,7 +166,7 @@ async function processUserLetter(userDoc, currentMonth, today) {
 
             // [핵심 수정] 알림 저장 함수를 트랜잭션 안에서 호출
             // 마지막 인자로 transaction 객체를 넘겨주어, 위 작업들과 한 몸처럼 동작하게 함
-            await addNotification(userId, notificationTitle, "letter", letterId, transaction);
+            await addNotification(userId, notificationTitle, "letter", letterId, transaction, -1);
         });
 
         // 5. FCM 푸시 알림 전송 (DB 트랜잭션 성공 후 실행 - 외부 서비스이므로 트랜잭션 제외)
@@ -259,11 +259,12 @@ exports.sendLikedDiaryNotification = functions.region("asia-northeast3").https.o
     }
 
     // data.fcmToken은 보안상 신뢰할 수 없으므로 제거하고, DB에서 직접 조회합니다.
-    const { likedDiaryId, userId } = data; // userId는 알림을 받을 대상(일기 작성자)
+    const { likedDiaryId, userId, reactionValue } = data; // userId는 알림을 받을 대상(일기 작성자)
 
     // [보안 2] 필수 데이터 검증
-    if (!likedDiaryId || !userId) {
-        throw new functions.https.HttpsError("invalid-argument", "필요한 정보(likedDiaryId, userId)가 누락되었습니다.");
+    // reactionValue가 undefined이거나 null인 경우만 체크 (0은 통과)
+    if (!likedDiaryId || !userId || reactionValue === undefined || reactionValue === null) {
+        throw new functions.https.HttpsError("invalid-argument", "필요한 정보(likedDiaryId, userId, reactionValue)가 누락되었습니다.");
     }
 
     try {
@@ -287,10 +288,32 @@ exports.sendLikedDiaryNotification = functions.region("asia-northeast3").https.o
         const notificationType = "likedDiary";
 
         if (langCode === "ko") {
-            notificationTitle = `누군가 나의 기록에 공감했어요!`;
+            if (reactionValue == -1) {
+                notificationTitle = `누군가 나의 기록에 공감했어요!`;
+            }
+            else if (reactionValue == 0) {
+                notificationTitle = `누군가 당신을 응원해요.`;
+            }
+            else if (reactionValue == 1) {
+                notificationTitle = `누군가 당신을 공감해요.`;
+            }
+            else if (reactionValue == 2) {
+                notificationTitle = `누군가 당신을 함께해요.`;
+            }
             notificationBody = `나의 기록을 확인해보세요.`;
         } else {
-            notificationTitle = `Someone reacted to your journal.`;
+            if (reactionValue == -1) {
+                notificationTitle = `Someone reacted to your journal.`;
+            }
+            else if (reactionValue == 0) {
+                notificationTitle = `Someone supports you.`;
+            }
+            else if (reactionValue == 1) {
+                notificationTitle = `Someone relates to you.`;
+            }
+            else if (reactionValue == 2) {
+                notificationTitle = `Someone is with you.`;
+            }
             notificationBody = `Take a look at your journal.`;
         }
 
@@ -322,7 +345,7 @@ exports.sendLikedDiaryNotification = functions.region("asia-northeast3").https.o
 
         // 2. 알림 내역 DB 저장 (이전에 개선한 함수 호출)
         // 여기서는 단일 작업이므로 트랜잭션을 굳이 넘기지 않아도 됩니다(자동으로 내부 트랜잭션 생성)
-        await addNotification(userId, notificationTitle, notificationType, likedDiaryId);
+        await addNotification(userId, notificationTitle, notificationType, likedDiaryId, null, reactionValue);
 
         return { success: true };
     } catch (error) {
@@ -338,9 +361,10 @@ exports.sendLikedDiaryNotification = functions.region("asia-northeast3").https.o
  * @param {string} notificationType - 알림의 타입
  * @param {string} notificationDataId - 알림과 관련된 일기 id
  * @param {object} [transaction] - (선택) 외부에서 전달받은 Firestore Transaction 객체. 존재할 경우 해당 트랜잭션에 포함됨.
+ * @param {int} reactionValue - 공감 일기에 대한 정보 (0: 응원, 1: 공감, 2: 함께)
  * @return {Promise<void>}
  */
-async function addNotification(userId, notificationTitle, notificationType, notificationDataId, transaction = null) {
+async function addNotification(userId, notificationTitle, notificationType, notificationDataId, transaction = null, reactionValue = -1) {
     try {
         console.log(`[Proceed] Adding notification for user ${userId} (Type: ${notificationType})`);
 
@@ -364,6 +388,7 @@ async function addNotification(userId, notificationTitle, notificationType, noti
                 title: notificationTitle,
                 dataId: notificationDataId,
                 date: admin.firestore.FieldValue.serverTimestamp(),
+                reaction: reactionValue,
             });
 
             // [WRITE] 2. 유저 플래그 업데이트

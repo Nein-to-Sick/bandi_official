@@ -324,7 +324,8 @@ class AlarmController with ChangeNotifier {
   }
 
   // send liked Diary notification
-  void sendLikedDiaryNotification(String likedDiaryId, String userId) async {
+  void sendLikedDiaryNotification(
+      String likedDiaryId, String userId, int reactionValue) async {
     // 리전(Region)을 'asia-northeast3'로 명시
     final HttpsCallable callable =
         FirebaseFunctions.instanceFor(region: 'asia-northeast3')
@@ -334,6 +335,7 @@ class AlarmController with ChangeNotifier {
       final response = await callable.call(<String, dynamic>{
         'likedDiaryId': likedDiaryId,
         'userId': userId,
+        'reactionValue': reactionValue,
       });
 
       dev.log('Notification sent: ${response.data}');
@@ -468,7 +470,7 @@ class AlarmController with ChangeNotifier {
     await FirebaseFirestore.instance
         .collection('users')
         .doc(uid)
-        .collection('notifications') // 너희 구조에 맞게 컬렉션 경로 확인!
+        .collection('notifications')
         .doc(notificationId)
         .delete();
   }

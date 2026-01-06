@@ -82,11 +82,9 @@ class _MailViewState extends State<MailView>
 
             // For alarm test
             /*
-            messageTestFunction(alarmController);
+            messageTestFunction(context);
             For test delete finction
             mailController.deleteEveryMailDataFromLocal();
-            For new Letter pop page test
-            newLetterPopUpPageTestFunction(context);
             */
           },
           onRightActionButtonPressed: () async {
@@ -221,11 +219,15 @@ Widget _buildCustomToggle(BuildContext context, MailController controller) {
   );
 }
 
-void messageTestFunction(AlarmController alarmController) {
+void messageTestFunction(BuildContext context) {
+  AlarmController alarmController =
+      Provider.of<AlarmController>(context, listen: false);
   // receiver user Id
-  String userId = '';
+  String userId = 'rKtDVzplJhRfN4icJQBDbMABXeb2';
   // sender user Id
   String testLikedDiaryId = '21jPhIHrf7iBwVAh92ZW1';
 
-  alarmController.sendLikedDiaryNotification(testLikedDiaryId, userId);
+  alarmController.sendLikedDiaryNotification(testLikedDiaryId, userId, 0);
+  alarmController.sendLikedDiaryNotification(testLikedDiaryId, userId, 1);
+  alarmController.sendLikedDiaryNotification(testLikedDiaryId, userId, 2);
 }

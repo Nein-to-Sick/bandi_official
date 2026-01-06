@@ -1,11 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-enum AlarmType {
-  likedDiary,
-  letter,
-  dailyReminder,
-  otherDiary
-}
+enum AlarmType { likedDiary, letter, dailyReminder, otherDiary }
 
 class Alarm {
   late String dataId;
@@ -13,6 +8,7 @@ class Alarm {
   late String title;
   late AlarmType type;
   late Timestamp alarmTime;
+  late int reaction;
 
   Alarm({
     required this.dataId,
@@ -20,6 +16,7 @@ class Alarm {
     required this.title,
     required this.type,
     required this.alarmTime,
+    this.reaction = -1,
   });
 
   static List<Alarm> defaultAlarm() {
@@ -36,6 +33,7 @@ class Alarm {
           (e) => e.toString() == 'AlarmType.${data['type']}',
           orElse: () => AlarmType.letter),
       alarmTime: data['date'] ?? Timestamp.now(),
+      reaction: data['reaction'] ?? -1,
     );
   }
 }

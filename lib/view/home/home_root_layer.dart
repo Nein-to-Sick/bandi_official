@@ -112,30 +112,40 @@ class _HomeRootLayerState extends State<HomeRootLayer>
       return;
     }
 
-    if (alarm.type == AlarmType.dailyReminder) {
-      writeProvider.toggleWrite();
-      return;
-    }
-
     if (alarm.type == AlarmType.letter) {
       final Letter letter =
           await alarmController.readLetterDataFromDB(alarm.dataId);
 
-      if (!mounted) return;
-      Navigator.of(context).push(
-        PageRouteBuilder(
-          opaque: false,
-          barrierColor: Colors.transparent,
-          pageBuilder: (_, __, ___) => DetailView(
-            item: letter,
-            mailController: mailController,
-          ),
-          transitionsBuilder: (_, anim, __, child) {
-            return FadeTransition(opacity: anim, child: child);
-          },
-          transitionDuration: const Duration(milliseconds: 220),
-        ),
-      );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        DetailViewSheet(item: letter, mailController: mailController)
+            .show(context)
+            .then((_) {
+          if (context.mounted) {
+            mailController.toggleDetailView(false);
+          }
+        });
+      });
+
+      // if (!mounted) return;
+      // Navigator.of(context).push(
+      //   PageRouteBuilder(
+      //     opaque: false,
+      //     barrierColor: Colors.transparent,
+      //     pageBuilder: (_, __, ___) => DetailView(
+      //       item: letter,
+      //       mailController: mailController,
+      //     ),
+      //     transitionsBuilder: (_, anim, __, child) {
+      //       return FadeTransition(opacity: anim, child: child);
+      //     },
+      //     transitionDuration: const Duration(milliseconds: 220),
+      //   ),
+      // );
+      return;
+    }
+
+    if (alarm.type == AlarmType.dailyReminder) {
+      writeProvider.toggleWrite();
       return;
     }
 
@@ -169,6 +179,7 @@ class _HomeRootLayerState extends State<HomeRootLayer>
             navigationToggleProvider: navigationToggleProvider,
           );
         },
+        reactionPayload: alarm.reaction,
       );
     }).toList();
   }
