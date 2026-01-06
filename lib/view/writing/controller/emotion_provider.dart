@@ -33,6 +33,9 @@ class EmotionProvider with ChangeNotifier {
   /// ✅ (새 UI용) 섹션별 키워드 Map 제공
   Map<String, List<String>> get optionsByEmotion => _emotionChipOptions;
 
+  /// 키워드 갱신 여부 변수
+  bool isLoading = false;
+
   /// ✅ 초기화
   Future<void> initialize(BuildContext context) async {
     // 실제 비동기 작업이 없더라도 Future로 감싸 줌
@@ -48,6 +51,12 @@ class EmotionProvider with ChangeNotifier {
     _emotionOptions = _emotionChipOptions[_selectedEmotion] ?? [];
 
     _initialized = true;
+    notifyListeners();
+  }
+
+  /// isLaoding toggle
+  void toggleIsLoading(value) {
+    isLoading = value;
     notifyListeners();
   }
 
