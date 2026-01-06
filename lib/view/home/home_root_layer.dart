@@ -5,8 +5,6 @@ import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
 import 'package:bandi_official/view/diary_ai_chat/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/controller/home_to_write.dart';
-import 'package:bandi_official/view/alarm/alarm_view.dart';
-import 'package:bandi_official/view/diary_ai_chat/diary_ai_chat_view.dart';
 import 'package:bandi_official/view/home/widgets/home_action_card_button.dart';
 import 'package:bandi_official/view/home/widgets/home_notification_stack.dart';
 import 'package:bandi_official/view/home/widgets/speaker_button.dart';
@@ -20,6 +18,7 @@ import 'package:bandi_official/model/alarm.dart';
 import '../../controller/user_info_controller.dart';
 import '../../controller/navigation_toggle_provider.dart';
 import '../../model/diary.dart';
+import '../diary_ai_chat/diary_ai_chat_view.dart';
 import '../mail/controller/mail_controller.dart';
 import '../mail/detail_view.dart';
 import '../sharing_diary/other_diary.dart';
@@ -34,19 +33,45 @@ class HomeRootLayer extends StatefulWidget {
   State<HomeRootLayer> createState() => _HomeRootLayerState();
 }
 
-class _HomeRootLayerState extends State<HomeRootLayer> {
+class _HomeRootLayerState extends State<HomeRootLayer>
+    with WidgetsBindingObserver {
   bool _notiDropdownOpen = false;
   bool _hideChrome = false;
   Timer? _midnightTimer;
 
+  DateTime? _latestRealAlarmAt;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      context.read<HomeToWrite>().loadLastDiaryDate();
+      final write = context.read<HomeToWrite>();
+      write.loadLastDiaryDate();
+      write.loadHomeNotiLastSeen();
       _scheduleMidnightRefresh();
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _midnightTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      final t = _latestRealAlarmAt;
+      if (t != null) {
+        // ignore: unawaited_futures
+        context.read<HomeToWrite>().setHomeNotiLastSeenAt(t);
+      }
+    }
   }
 
   void _scheduleMidnightRefresh() {
@@ -77,7 +102,6 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
   }) async {
     await alarmController.dismissAlarm(alarm.notificationId);
 
-    /// 공감 받은 일기 열람 (TODO:공감 구분 필요)
     if (alarm.type == AlarmType.likedDiary) {
       final Diary diary =
       await alarmController.readLikedDiaryDataFromDB(alarm.dataId);
@@ -88,13 +112,11 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
       return;
     }
 
-    // 일기 쓰기 이동
     if (alarm.type == AlarmType.dailyReminder) {
       writeProvider.toggleWrite();
       return;
     }
 
-    // 편지 열기
     if (alarm.type == AlarmType.letter) {
       final Letter letter =
       await alarmController.readLetterDataFromDB(alarm.dataId);
@@ -117,10 +139,9 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
       return;
     }
 
-    // 다른 유저의 일기 도착
     if (alarm.type == AlarmType.otherDiary) {
       final Diary otherDiary =
-          await alarmController.readOtherDiaryDataFromDB(alarm.dataId);
+      await alarmController.readOtherDiaryDataFromDB(alarm.dataId);
       writeProvider.setOtherDiary(otherDiary);
       return;
     }
@@ -167,10 +188,17 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
     }
   }
 
-  @override
-  void dispose() {
-    _midnightTimer?.cancel();
-    super.dispose();
+  DateTime _dailyReminderCreatedAt() {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, now.day, 9, 0, 0);
+  }
+
+  String _dailyReminderId() {
+    final now = DateTime.now();
+    final y = now.year.toString().padLeft(4, '0');
+    final m = now.month.toString().padLeft(2, '0');
+    final d = now.day.toString().padLeft(2, '0');
+    return "daily_reminder_$y-$m-$d";
   }
 
   @override
@@ -178,8 +206,7 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
     final writeProvider = context.watch<HomeToWrite>();
     final diaryAiChatController = context.watch<DiaryAiChatController>();
     final alarmController = context.watch<AlarmController>();
-    final navigationToggleProvider =
-    context.watch<NavigationToggleProvider>();
+    final navigationToggleProvider = context.watch<NavigationToggleProvider>();
     final userInfo = Provider.of<UserInfoValueModel>(context);
     final mailController = context.watch<MailController>();
 
@@ -191,16 +218,12 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
 
     return Stack(
       children: [
-        // 일기 작성 화면
         AnimatedOpacity(
           opacity: writeProvider.write ? 1.0 : 0.0,
           duration: const Duration(milliseconds: 300),
-          child: writeProvider.write
-              ? const WriteDiary()
-              : const SizedBox.shrink(),
+          child: writeProvider.write ? const WriteDiary() : const SizedBox.shrink(),
         ),
 
-        // 공유 일기 화면
         AnimatedOpacity(
           opacity: writeProvider.otherDiaryOpen ? 1.0 : 0.0,
           duration: const Duration(milliseconds: 300),
@@ -209,7 +232,6 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
               : const SizedBox.shrink(),
         ),
 
-        // 컴포넌트 숨기기, 빈화면
         if (canToggleChrome && !_hideChrome)
           Positioned.fill(
             child: GestureDetector(
@@ -218,7 +240,6 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
             ),
           ),
 
-        // HOME UI
         if (isHomeVisible)
           IgnorePointer(
             ignoring: _hideChrome,
@@ -237,13 +258,15 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
                         builder: (context, snapshot) {
                           List<HomeNotiItem> items = [];
 
+                          // DB 알림
+                          List<Alarm> dbAlarms = [];
                           if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
-                            final alarms = snapshot.data!.docs
+                            dbAlarms = snapshot.data!.docs
                                 .map((doc) => Alarm.fromFirestore(doc))
                                 .toList();
 
                             items = _mapAlarmsToHomeNotiItems(
-                              alarms: alarms,
+                              alarms: dbAlarms,
                               alarmController: alarmController,
                               mailController: mailController,
                               writeProvider: writeProvider,
@@ -251,65 +274,72 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
                             );
                           }
 
+                          // DB 알림 기준 최신 시간 (NEW dot 계산용)
+                          DateTime? latestRealAlarmAt;
+                          for (final a in dbAlarms) {
+                            final t = a.alarmTime.toDate();
+                            if (latestRealAlarmAt == null ||
+                                t.isAfter(latestRealAlarmAt)) {
+                              latestRealAlarmAt = t;
+                            }
+                          }
+                          _latestRealAlarmAt = latestRealAlarmAt;
+
+                          // dailyReminder(상태 기반, DB에 쌓이지 않음)
                           if (!writeProvider.wroteDiaryToday) {
-                            final createdAt = _dailyReminderCreatedAt();
                             items.add(
                               HomeNotiItem(
                                 id: _dailyReminderId(),
                                 text: "오늘 하루는 어떠셨나요?",
                                 type: HomeNotiType.dailyReminder,
-                                createdAt: createdAt,
+                                createdAt: _dailyReminderCreatedAt(),
                                 onTap: () => writeProvider.toggleWrite(),
                               ),
                             );
                           }
 
+                          // 정렬
                           items.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-                          final hideTopControls =
-                              items.isNotEmpty && _notiDropdownOpen;
+
+                          // ✅ NEW dot 여부: DB 알림만 기준(리마인더 제외)
+                          final lastSeen = writeProvider.homeNotiLastSeenAt;
+                          final showNewDot = (latestRealAlarmAt != null) &&
+                              (lastSeen == null || latestRealAlarmAt.isAfter(lastSeen));
+
+                          final hideTopControls = items.isNotEmpty && _notiDropdownOpen;
 
                           return Padding(
                             padding: const EdgeInsets.only(top: 17.0),
                             child: Row(
-                              mainAxisAlignment:
-                              MainAxisAlignment.spaceBetween,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Expanded(
                                   child: items.isEmpty
                                       ? Column(
-                                    crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         "${userInfo.nickname}님,",
-                                        style: BandiFont.titleSmall(
-                                            context)!
-                                            .copyWith(
-                                          color: BandiColor
-                                              .neutralColor60(context),
+                                        style: BandiFont.titleSmall(context)!.copyWith(
+                                          color: BandiColor.neutralColor60(context),
                                         ),
                                       ),
                                       Text(
                                         "오늘도 수고 많았어요.",
-                                        style: BandiFont
-                                            .headlineMedium(context)!
-                                            .copyWith(
-                                          color: BandiColor
-                                              .neutralColor100(context),
+                                        style: BandiFont.headlineMedium(context)!.copyWith(
+                                          color: BandiColor.neutralColor100(context),
                                         ),
                                       ),
                                     ],
                                   )
                                       : HomeNotificationStack(
-                                    key: const ValueKey(
-                                        "home_notification_stack"),
+                                    key: const ValueKey("home_notification_stack"),
                                     items: items,
+                                    showNewDot: showNewDot,
                                     onDropdownOpenChanged: (open) {
-                                      WidgetsBinding.instance
-                                          .addPostFrameCallback((_) {
+                                      WidgetsBinding.instance.addPostFrameCallback((_) {
                                         if (!mounted) return;
-                                        setState(() =>
-                                        _notiDropdownOpen = open);
+                                        setState(() => _notiDropdownOpen = open);
                                       });
                                     },
                                   ),
@@ -321,12 +351,9 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
                                   child: IgnorePointer(
                                     ignoring: hideTopControls,
                                     child: SpeakerButton(
-                                      speakerOn: context
-                                          .watch<BgmController>()
-                                          .speakerOn,
+                                      speakerOn: context.watch<BgmController>().speakerOn,
                                       onPressed: () {
-                                        final bgm =
-                                        context.read<BgmController>();
+                                        final bgm = context.read<BgmController>();
                                         bgm.setSpeakerOn(!bgm.speakerOn);
                                       },
                                     ),
@@ -338,22 +365,19 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
                         },
                       ),
 
-                      // 하단 버튼
                       Padding(
                         padding: const EdgeInsets.only(bottom: 112),
                         child: Row(
                           children: [
                             Expanded(
                               child: HomeActionCardButton(
-                                icon: PhosphorIcons.chat(
-                                    PhosphorIconsStyle.light),
+                                icon: PhosphorIcons.chat(PhosphorIconsStyle.light),
                                 label: "ai_chat_title".tr(context),
                                 onTap: () async {
                                   diaryAiChatController.toggleChatOpen(true);
                                   DiaryAIChatSheet().show(context).then((_) {
                                     if (context.mounted) {
-                                      diaryAiChatController
-                                          .toggleChatOpen(false);
+                                      diaryAiChatController.toggleChatOpen(false);
                                     }
                                   });
                                 },
@@ -362,8 +386,7 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
                             const SizedBox(width: 16),
                             Expanded(
                               child: HomeActionCardButton(
-                                icon: PhosphorIcons.pencilSimple(
-                                    PhosphorIconsStyle.light),
+                                icon: PhosphorIcons.pencilSimple(PhosphorIconsStyle.light),
                                 label: "일기 쓰기",
                                 onTap: () => writeProvider.toggleWrite(),
                               ),
@@ -388,18 +411,4 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
       ],
     );
   }
-}
-
-DateTime _dailyReminderCreatedAt() {
-  final now = DateTime.now();
-  // 매일 09:00에 뜬 것처럼 정렬 기준 부여
-  return DateTime(now.year, now.month, now.day, 9, 0, 0);
-}
-
-String _dailyReminderId() {
-  final now = DateTime.now();
-  final y = now.year.toString().padLeft(4, '0');
-  final m = now.month.toString().padLeft(2, '0');
-  final d = now.day.toString().padLeft(2, '0');
-  return "daily_reminder_$y-$m-$d";
 }

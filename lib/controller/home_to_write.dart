@@ -12,6 +12,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:developer' as dev;
 
 import '../view/alarm/controller/alarm_controller.dart';
@@ -506,11 +507,42 @@ class HomeToWrite with ChangeNotifier {
     notifyListeners();
   }
 
-
+  //========================화면 보호기==============================
   bool hideChrome = false;
   void setHideChrome(bool v) {
     hideChrome = v;
     notifyListeners();
   }
   void toggleChrome() => setHideChrome(!hideChrome);
+
+  //========================알림 확인(노란색 점)==============================
+  DateTime? _homeNotiLastSeenAt; // 마지막으로 "앱 종료/백그라운드 시점"에 확인 처리된 시각
+  DateTime? get homeNotiLastSeenAt => _homeNotiLastSeenAt;
+
+  Future<void> loadHomeNotiLastSeen() async {
+    final uid = userId;
+    if (uid == null) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final ms = prefs.getInt('${uid}_homeNotiLastSeenAt');
+    _homeNotiLastSeenAt =
+    (ms == null) ? null : DateTime.fromMillisecondsSinceEpoch(ms);
+    notifyListeners();
+  }
+
+  Future<void> setHomeNotiLastSeenAt(DateTime t) async {
+    final uid = userId;
+    if (uid == null) return;
+
+    // 더 최신값만 반영
+    if (_homeNotiLastSeenAt != null && !_homeNotiLastSeenAt!.isBefore(t)) {
+      return;
+    }
+
+    _homeNotiLastSeenAt = t;
+    notifyListeners();
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('${uid}_homeNotiLastSeenAt', t.millisecondsSinceEpoch);
+  }
 }

@@ -16,7 +16,7 @@ Future<void> logNotificationOpen({
   required String destination,
 }) async {
   await analytics.logEvent(
-    name: 'notification_open',
+    name: 'app_notification_open',
     parameters: {
       'campaign_id': campaignId,
       'destination': destination, // e.g. 'letter_detail', 'liked_diary_detail'
