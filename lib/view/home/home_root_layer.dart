@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
@@ -35,6 +37,30 @@ class HomeRootLayer extends StatefulWidget {
 class _HomeRootLayerState extends State<HomeRootLayer> {
   bool _notiDropdownOpen = false;
   bool _hideChrome = false;
+  Timer? _midnightTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<HomeToWrite>().loadLastDiaryDate();
+      _scheduleMidnightRefresh();
+    });
+  }
+
+  void _scheduleMidnightRefresh() {
+    _midnightTimer?.cancel();
+    final now = DateTime.now();
+    final nextMidnight = DateTime(now.year, now.month, now.day + 1);
+    final dur = nextMidnight.difference(now);
+
+    _midnightTimer = Timer(dur, () {
+      if (!mounted) return;
+      setState(() {});
+      _scheduleMidnightRefresh();
+    });
+  }
 
   void _toggleChrome() {
     final writeProvider = context.read<HomeToWrite>();
@@ -142,6 +168,12 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
   }
 
   @override
+  void dispose() {
+    _midnightTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final writeProvider = context.watch<HomeToWrite>();
     final diaryAiChatController = context.watch<DiaryAiChatController>();
@@ -204,8 +236,8 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
                         stream: alarmController.alarmStreamQuery(),
                         builder: (context, snapshot) {
                           List<HomeNotiItem> items = [];
-                          if (snapshot.hasData &&
-                              snapshot.data!.docs.isNotEmpty) {
+
+                          if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
                             final alarms = snapshot.data!.docs
                                 .map((doc) => Alarm.fromFirestore(doc))
                                 .toList();
@@ -215,11 +247,24 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
                               alarmController: alarmController,
                               mailController: mailController,
                               writeProvider: writeProvider,
-                              navigationToggleProvider:
-                              navigationToggleProvider,
+                              navigationToggleProvider: navigationToggleProvider,
                             );
                           }
 
+                          if (!writeProvider.wroteDiaryToday) {
+                            final createdAt = _dailyReminderCreatedAt();
+                            items.add(
+                              HomeNotiItem(
+                                id: _dailyReminderId(),
+                                text: "오늘 하루는 어떠셨나요?",
+                                type: HomeNotiType.dailyReminder,
+                                createdAt: createdAt,
+                                onTap: () => writeProvider.toggleWrite(),
+                              ),
+                            );
+                          }
+
+                          items.sort((a, b) => b.createdAt.compareTo(a.createdAt));
                           final hideTopControls =
                               items.isNotEmpty && _notiDropdownOpen;
 
@@ -343,4 +388,18 @@ class _HomeRootLayerState extends State<HomeRootLayer> {
       ],
     );
   }
+}
+
+DateTime _dailyReminderCreatedAt() {
+  final now = DateTime.now();
+  // 매일 09:00에 뜬 것처럼 정렬 기준 부여
+  return DateTime(now.year, now.month, now.day, 9, 0, 0);
+}
+
+String _dailyReminderId() {
+  final now = DateTime.now();
+  final y = now.year.toString().padLeft(4, '0');
+  final m = now.month.toString().padLeft(2, '0');
+  final d = now.day.toString().padLeft(2, '0');
+  return "daily_reminder_$y-$m-$d";
 }
