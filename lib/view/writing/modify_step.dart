@@ -1,6 +1,8 @@
 import 'dart:math';
 
+import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/string_extention.dart';
+import 'package:bandi_official/view/my_diary_list/controller/my_diary_list_controller.dart';
 import 'package:bandi_official/view/writing/widget/bottom_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -55,6 +57,9 @@ class _ThirdStepState extends State<ThirdStep> {
     final writeProvider = Provider.of<HomeToWrite>(context);
     final navigationToggleProvider =
         Provider.of<NavigationToggleProvider>(context);
+    MyDiaryListController myDiaryListController =
+        context.watch<MyDiaryListController>();
+
     return SafeArea(
       child: Column(
         children: [
@@ -71,7 +76,10 @@ class _ThirdStepState extends State<ThirdStep> {
               },
             ),
           ),
-          Divider(color: BandiColor.neutralColor04(context), thickness: 1,),
+          Divider(
+            color: BandiColor.neutralColor04(context),
+            thickness: 1,
+          ),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(24, 0, 24, 0),
@@ -97,7 +105,6 @@ class _ThirdStepState extends State<ThirdStep> {
               ),
             ),
           ),
-
           BottomBar(
             isPublic: writeProvider.isPublic,
             onTogglePublic: writeProvider.setIsPublic,
@@ -105,20 +112,36 @@ class _ThirdStepState extends State<ThirdStep> {
                 ? "sharing_diary_on".tr(context)
                 : "sharing_diary_off".tr(context),
             onExit: () async {
+              navigationToggleProvider.selectIndex(1);
               writeProvider.toggleWrite();
               writeProvider.initialize();
             },
             onDone: () async {
               // 저장
-              writeProvider.modifyDatabaseDiaryValue(titleText,
-                  contentText, writeProvider.diaryModel.diaryId);
+              writeProvider.modifyDatabaseDiaryStringValue(
+                  titleText, contentText);
+
+              Diary modifiedDiary = Diary(
+                userId: writeProvider.diaryModel.userId,
+                title: titleText,
+                content: contentText,
+                emotion: writeProvider.diaryModel.emotion,
+                createdAt: writeProvider.diaryModel.createdAt,
+                updatedAt: writeProvider.diaryModel.updatedAt,
+                reaction: writeProvider.diaryModel.reaction,
+                diaryId: writeProvider.diaryModel.diaryId,
+                cheerText: writeProvider.diaryModel.cheerText,
+                otherUserReaction: -1,
+                otherUserLikedAt: '',
+              );
+
+              myDiaryListController.updateMyDiaryLocal(modifiedDiary);
               if (writeProvider.gotoDirectListPage) {
                 navigationToggleProvider.selectIndex(1);
               }
               writeProvider.toggleWrite();
               writeProvider.initialize();
             },
-
             doneEnabled: writeProvider.diaryModel.content.isNotEmpty,
           )
         ],

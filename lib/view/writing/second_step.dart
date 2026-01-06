@@ -1,8 +1,8 @@
 import 'dart:ui';
-import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/diary_ai_chat/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/view/diary_ai_chat/diary_ai_chat_view.dart';
+import 'package:bandi_official/view/my_diary_list/controller/my_diary_list_controller.dart';
 import 'package:bandi_official/view/writing/widget/diary_action_sheet.dart';
 import 'package:bandi_official/view/writing/widget/emotion_keyword_sheet.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +13,7 @@ import 'package:provider/provider.dart';
 import '../../../controller/home_to_write.dart';
 import '../../../controller/navigation_toggle_provider.dart';
 import '../../components/bottom_sheet/show_floating_confirm_sheet.dart';
+import 'dart:developer' as dev;
 
 class SecondStep extends StatelessWidget {
   const SecondStep({super.key});
@@ -23,19 +24,19 @@ class SecondStep extends StatelessWidget {
     final navigationToggleProvider =
         Provider.of<NavigationToggleProvider>(context);
     final diaryAiChatController = context.watch<DiaryAiChatController>();
+    MyDiaryListController myDiaryListController =
+        context.watch<MyDiaryListController>();
 
-    final title = writeProvider.diaryModel.cheerText == ''
-        ? 'write_title_generating'.tr(context)
-        : writeProvider.diaryModel.title;
+    final title = writeProvider.diaryModel.title;
 
     final dateText = DateFormat('yyyy년 M월 d일')
         .format(writeProvider.diaryModel.createdAt.toDate());
 
-    final reaction = writeProvider.diaryModel.reaction;
-
-    final praiseCount = (reaction.isNotEmpty) ? reaction[0] : 0;
-    final likeCount = (reaction.length > 1) ? reaction[1] : 0;
-    final peopleCount = (reaction.length > 2) ? reaction[2] : 0;
+    void onPagePop() {
+      navigationToggleProvider.selectIndex(1);
+      writeProvider.initialize();
+      writeProvider.toggleWrite();
+    }
 
     return SafeArea(
       bottom: false,
@@ -76,6 +77,13 @@ class SecondStep extends StatelessWidget {
                         );
 
                         if (confirmed == true) {
+                          // 로컬 저장소 삭제
+                          await myDiaryListController.deleteMyDiaryLocal(
+                            writeProvider.diaryModel.diaryId,
+                            writeProvider.diaryModel.createdAt.toDate(),
+                          );
+
+                          // DB 삭제
                           await writeProvider.deleteDiaryById(
                             writeProvider.diaryModel.diaryId,
                           );
@@ -121,18 +129,18 @@ class SecondStep extends StatelessWidget {
                 children: [
                   _MetaIcon(
                     icon: PhosphorIcons.handsPraying(),
-                    value: praiseCount.toString(),
+                    index: 0,
                   ),
                   const SizedBox(width: 14),
                   _MetaIcon(
                     icon: PhosphorIcons.heart(PhosphorIconsStyle.fill),
-                    value: likeCount.toString(),
+                    index: 1,
                   ),
                   const SizedBox(width: 14),
                   _MetaIcon(
                     icon:
                         PhosphorIcons.personArmsSpread(PhosphorIconsStyle.fill),
-                    value: peopleCount.toString(),
+                    index: 2,
                   ),
                   const Spacer(),
                   Text(
@@ -166,9 +174,7 @@ class SecondStep extends StatelessWidget {
                 });
               },
               onTapHome: () {
-                navigationToggleProvider.selectIndex(0);
-                writeProvider.initialize();
-                writeProvider.toggleWrite();
+                onPagePop();
               },
             ),
           ],
@@ -178,30 +184,64 @@ class SecondStep extends StatelessWidget {
   }
 }
 
-class _MetaIcon extends StatelessWidget {
+class _MetaIcon extends StatefulWidget {
   final IconData icon;
-  final String value;
+  final int index;
 
   const _MetaIcon({
     required this.icon,
-    required this.value,
+    required this.index,
   });
 
   @override
+  State<_MetaIcon> createState() => _MetaIconState();
+}
+
+class _MetaIconState extends State<_MetaIcon> {
+  late Future<List<dynamic>> _reactionFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    final writeProvider = Provider.of<HomeToWrite>(context, listen: false);
+    final myDiaryListController =
+        Provider.of<MyDiaryListController>(context, listen: false);
+
+    _reactionFuture = myDiaryListController
+        .fetchMyDiariesReactionAndSaveFromDB(writeProvider.diaryModel.diaryId);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final writeProvider = Provider.of<HomeToWrite>(context);
+
     return Row(
       children: [
         PhosphorIcon(
-          icon,
+          widget.icon,
           size: 12,
           color: BandiColor.neutralColor60(context),
         ),
         const SizedBox(width: 6),
-        Text(
-          value,
-          style: BandiFont.labelSmall(context)?.copyWith(
-            color: BandiColor.neutralColor60(context),
-          ),
+        FutureBuilder<List<dynamic>>(
+          future: _reactionFuture,
+          builder: (context, snapshot) {
+            String displayValue =
+                writeProvider.diaryModel.reaction[widget.index].toString();
+
+            if (snapshot.hasData && snapshot.data != null) {
+              if (snapshot.data!.length > widget.index) {
+                displayValue = snapshot.data![widget.index].toString();
+              }
+            }
+
+            return Text(
+              displayValue,
+              style: BandiFont.labelSmall(context)?.copyWith(
+                color: BandiColor.neutralColor60(context),
+              ),
+            );
+          },
         ),
       ],
     );

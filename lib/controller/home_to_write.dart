@@ -3,6 +3,7 @@ import 'dart:developer' as developer;
 import 'dart:math';
 
 import 'package:bandi_official/analytics/log_other_diary_received.dart';
+import 'package:bandi_official/view/my_diary_list/controller/my_diary_list_controller.dart';
 import 'package:bandi_official/view/writing/controller/diary_ai_analysis_controller.dart';
 import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/model/keyword.dart';
@@ -65,8 +66,11 @@ class HomeToWrite with ChangeNotifier {
 
   Future<void> aiAndSaveDiary(BuildContext context) async {
     String langCode = Localizations.localeOf(context).languageCode;
+    MyDiaryListController myDiaryListController =
+        context.watch<MyDiaryListController>();
     await aiDiary(context, langCode);
     await saveDiary();
+    myDiaryListController.saveMyDiaryToLocal(diaryModel);
     if (diaryModel.emotion.length >= 2) {
       Emotion emotion = classifyEmotion(diaryModel.emotion);
       if (emotion != Emotion.unknown) {
@@ -354,9 +358,9 @@ class HomeToWrite with ChangeNotifier {
 
   bool gotoDirectListPage = false;
 
-  Future<void> readMyDiary(Diary dairy) async {
+  Future<void> readMyDiary(Diary diary) async {
     step = 2;
-    diaryModel = dairy;
+    diaryModel = diary;
     gotoDirectListPage = true;
     notifyListeners();
   }
@@ -365,25 +369,46 @@ class HomeToWrite with ChangeNotifier {
   // diaryModel 값 변경
   int flag = 0;
 
-  void changeDiaryValue(List<String> newEmotions) {
+  Future<void> changeDiaryValue(List<String> newEmotions) async {
     diaryModel.emotion = newEmotions;
     flag = 1;
+    await modifyDatabaseDiaryEmotionValue();
     notifyListeners();
   }
 
-  // DB 변경
-  Future<void> modifyDatabaseDiaryValue(
-      String titleText, String contentText, String diaryId) async {
+  // DB title, content 변경
+  Future<void> modifyDatabaseDiaryStringValue(
+      String titleText, String contentText) async {
     diaryModel.update(
         title: titleText, content: contentText, updatedAt: Timestamp.now());
     try {
       final diaryData = {
         'title': diaryModel.title,
         'content': diaryModel.content,
+        'updatedAt': diaryModel.updatedAt,
+      };
+      await firestore
+          .collection('allDiary')
+          .doc(diaryModel.diaryId)
+          .update(diaryData);
+    } catch (e) {
+      developer.log("Error modifying diary: $e");
+    }
+  }
+
+  // DB emotion 변경
+  Future<void> modifyDatabaseDiaryEmotionValue() async {
+    diaryModel.update(updatedAt: Timestamp.now());
+
+    try {
+      final diaryData = {
         'emotion': diaryModel.emotion,
         'updatedAt': diaryModel.updatedAt,
       };
-      await firestore.collection('allDiary').doc(diaryId).update(diaryData);
+      await firestore
+          .collection('allDiary')
+          .doc(diaryModel.diaryId)
+          .update(diaryData);
     } catch (e) {
       developer.log("Error modifying diary: $e");
     }
@@ -438,7 +463,6 @@ class HomeToWrite with ChangeNotifier {
     }
   }
 
-
   String? _lastDiaryDateKey; // "2026-01-01" 같은 형태
   String? get lastDiaryDateKey => _lastDiaryDateKey;
 
@@ -463,11 +487,11 @@ class HomeToWrite with ChangeNotifier {
     notifyListeners();
   }
 
-
   bool hideChrome = false;
   void setHideChrome(bool v) {
     hideChrome = v;
     notifyListeners();
   }
+
   void toggleChrome() => setHideChrome(!hideChrome);
 }
