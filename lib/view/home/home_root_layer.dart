@@ -104,11 +104,43 @@ class _HomeRootLayerState extends State<HomeRootLayer>
 
     if (alarm.type == AlarmType.likedDiary) {
       final Diary diary =
-      await alarmController.readLikedDiaryDataFromDB(alarm.dataId);
+          await alarmController.readDiaryDataFromDB(alarm.dataId);
 
       writeProvider.readMyDiary(diary);
       navigationToggleProvider.selectIndex(0);
       writeProvider.toggleWrite();
+      return;
+    }
+
+    if (alarm.type == AlarmType.letter) {
+      final Letter letter =
+          await alarmController.readLetterDataFromDB(alarm.dataId);
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        DetailViewSheet(item: letter, mailController: mailController)
+            .show(context)
+            .then((_) {
+          if (context.mounted) {
+            mailController.toggleDetailView(false);
+          }
+        });
+      });
+
+      // if (!mounted) return;
+      // Navigator.of(context).push(
+      //   PageRouteBuilder(
+      //     opaque: false,
+      //     barrierColor: Colors.transparent,
+      //     pageBuilder: (_, __, ___) => DetailView(
+      //       item: letter,
+      //       mailController: mailController,
+      //     ),
+      //     transitionsBuilder: (_, anim, __, child) {
+      //       return FadeTransition(opacity: anim, child: child);
+      //     },
+      //     transitionDuration: const Duration(milliseconds: 220),
+      //   ),
+      // );
       return;
     }
 
@@ -117,31 +149,9 @@ class _HomeRootLayerState extends State<HomeRootLayer>
       return;
     }
 
-    if (alarm.type == AlarmType.letter) {
-      final Letter letter =
-      await alarmController.readLetterDataFromDB(alarm.dataId);
-
-      if (!mounted) return;
-      Navigator.of(context).push(
-        PageRouteBuilder(
-          opaque: false,
-          barrierColor: Colors.transparent,
-          pageBuilder: (_, __, ___) => DetailView(
-            item: letter,
-            mailController: mailController,
-          ),
-          transitionsBuilder: (_, anim, __, child) {
-            return FadeTransition(opacity: anim, child: child);
-          },
-          transitionDuration: const Duration(milliseconds: 220),
-        ),
-      );
-      return;
-    }
-
     if (alarm.type == AlarmType.otherDiary) {
       final Diary otherDiary =
-      await alarmController.readOtherDiaryDataFromDB(alarm.dataId);
+          await alarmController.readDiaryDataFromDB(alarm.dataId);
       writeProvider.setOtherDiary(otherDiary);
       return;
     }
@@ -169,6 +179,7 @@ class _HomeRootLayerState extends State<HomeRootLayer>
             navigationToggleProvider: navigationToggleProvider,
           );
         },
+        reactionPayload: alarm.reaction,
       );
     }).toList();
   }
@@ -221,9 +232,10 @@ class _HomeRootLayerState extends State<HomeRootLayer>
         AnimatedOpacity(
           opacity: writeProvider.write ? 1.0 : 0.0,
           duration: const Duration(milliseconds: 300),
-          child: writeProvider.write ? const WriteDiary() : const SizedBox.shrink(),
+          child: writeProvider.write
+              ? const WriteDiary()
+              : const SizedBox.shrink(),
         ),
-
         AnimatedOpacity(
           opacity: writeProvider.otherDiaryOpen ? 1.0 : 0.0,
           duration: const Duration(milliseconds: 300),
@@ -231,7 +243,6 @@ class _HomeRootLayerState extends State<HomeRootLayer>
               ? OtherDiary(writeProvider: writeProvider)
               : const SizedBox.shrink(),
         ),
-
         if (canToggleChrome && !_hideChrome)
           Positioned.fill(
             child: GestureDetector(
@@ -239,7 +250,6 @@ class _HomeRootLayerState extends State<HomeRootLayer>
               onTap: _toggleChrome,
             ),
           ),
-
         if (isHomeVisible)
           IgnorePointer(
             ignoring: _hideChrome,
@@ -260,7 +270,8 @@ class _HomeRootLayerState extends State<HomeRootLayer>
 
                           // DB 알림
                           List<Alarm> dbAlarms = [];
-                          if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
+                          if (snapshot.hasData &&
+                              snapshot.data!.docs.isNotEmpty) {
                             dbAlarms = snapshot.data!.docs
                                 .map((doc) => Alarm.fromFirestore(doc))
                                 .toList();
@@ -270,7 +281,8 @@ class _HomeRootLayerState extends State<HomeRootLayer>
                               alarmController: alarmController,
                               mailController: mailController,
                               writeProvider: writeProvider,
-                              navigationToggleProvider: navigationToggleProvider,
+                              navigationToggleProvider:
+                                  navigationToggleProvider,
                             );
                           }
 
@@ -299,14 +311,17 @@ class _HomeRootLayerState extends State<HomeRootLayer>
                           }
 
                           // 정렬
-                          items.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+                          items.sort(
+                              (a, b) => b.createdAt.compareTo(a.createdAt));
 
                           // ✅ NEW dot 여부: DB 알림만 기준(리마인더 제외)
                           final lastSeen = writeProvider.homeNotiLastSeenAt;
                           final showNewDot = (latestRealAlarmAt != null) &&
-                              (lastSeen == null || latestRealAlarmAt.isAfter(lastSeen));
+                              (lastSeen == null ||
+                                  latestRealAlarmAt.isAfter(lastSeen));
 
-                          final hideTopControls = items.isNotEmpty && _notiDropdownOpen;
+                          final hideTopControls =
+                              items.isNotEmpty && _notiDropdownOpen;
 
                           return Padding(
                             padding: const EdgeInsets.only(top: 17.0),
@@ -316,33 +331,45 @@ class _HomeRootLayerState extends State<HomeRootLayer>
                                 Expanded(
                                   child: items.isEmpty
                                       ? Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "${userInfo.nickname}님,",
-                                        style: BandiFont.titleSmall(context)!.copyWith(
-                                          color: BandiColor.neutralColor60(context),
-                                        ),
-                                      ),
-                                      Text(
-                                        "오늘도 수고 많았어요.",
-                                        style: BandiFont.headlineMedium(context)!.copyWith(
-                                          color: BandiColor.neutralColor100(context),
-                                        ),
-                                      ),
-                                    ],
-                                  )
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              "${userInfo.nickname}님,",
+                                              style:
+                                                  BandiFont.titleSmall(context)!
+                                                      .copyWith(
+                                                color:
+                                                    BandiColor.neutralColor60(
+                                                        context),
+                                              ),
+                                            ),
+                                            Text(
+                                              "오늘도 수고 많았어요.",
+                                              style: BandiFont.headlineMedium(
+                                                      context)!
+                                                  .copyWith(
+                                                color:
+                                                    BandiColor.neutralColor100(
+                                                        context),
+                                              ),
+                                            ),
+                                          ],
+                                        )
                                       : HomeNotificationStack(
-                                    key: const ValueKey("home_notification_stack"),
-                                    items: items,
-                                    showNewDot: showNewDot,
-                                    onDropdownOpenChanged: (open) {
-                                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                                        if (!mounted) return;
-                                        setState(() => _notiDropdownOpen = open);
-                                      });
-                                    },
-                                  ),
+                                          key: const ValueKey(
+                                              "home_notification_stack"),
+                                          items: items,
+                                          showNewDot: showNewDot,
+                                          onDropdownOpenChanged: (open) {
+                                            WidgetsBinding.instance
+                                                .addPostFrameCallback((_) {
+                                              if (!mounted) return;
+                                              setState(() =>
+                                                  _notiDropdownOpen = open);
+                                            });
+                                          },
+                                        ),
                                 ),
                                 const SizedBox(width: 12),
                                 AnimatedOpacity(
@@ -351,9 +378,12 @@ class _HomeRootLayerState extends State<HomeRootLayer>
                                   child: IgnorePointer(
                                     ignoring: hideTopControls,
                                     child: SpeakerButton(
-                                      speakerOn: context.watch<BgmController>().speakerOn,
+                                      speakerOn: context
+                                          .watch<BgmController>()
+                                          .speakerOn,
                                       onPressed: () {
-                                        final bgm = context.read<BgmController>();
+                                        final bgm =
+                                            context.read<BgmController>();
                                         bgm.setSpeakerOn(!bgm.speakerOn);
                                       },
                                     ),
@@ -364,20 +394,21 @@ class _HomeRootLayerState extends State<HomeRootLayer>
                           );
                         },
                       ),
-
                       Padding(
                         padding: const EdgeInsets.only(bottom: 112),
                         child: Row(
                           children: [
                             Expanded(
                               child: HomeActionCardButton(
-                                icon: PhosphorIcons.chat(PhosphorIconsStyle.light),
+                                icon: PhosphorIcons.chat(
+                                    PhosphorIconsStyle.light),
                                 label: "ai_chat_title".tr(context),
                                 onTap: () async {
                                   diaryAiChatController.toggleChatOpen(true);
                                   DiaryAIChatSheet().show(context).then((_) {
                                     if (context.mounted) {
-                                      diaryAiChatController.toggleChatOpen(false);
+                                      diaryAiChatController
+                                          .toggleChatOpen(false);
                                     }
                                   });
                                 },
@@ -386,7 +417,8 @@ class _HomeRootLayerState extends State<HomeRootLayer>
                             const SizedBox(width: 16),
                             Expanded(
                               child: HomeActionCardButton(
-                                icon: PhosphorIcons.pencilSimple(PhosphorIconsStyle.light),
+                                icon: PhosphorIcons.pencilSimple(
+                                    PhosphorIconsStyle.light),
                                 label: "일기 쓰기",
                                 onTap: () => writeProvider.toggleWrite(),
                               ),
@@ -400,7 +432,6 @@ class _HomeRootLayerState extends State<HomeRootLayer>
               ),
             ),
           ),
-
         if (canToggleChrome && _hideChrome)
           Positioned.fill(
             child: GestureDetector(

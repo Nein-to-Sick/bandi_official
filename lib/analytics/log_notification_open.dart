@@ -5,7 +5,7 @@ final analytics = FirebaseAnalytics.instance;
 // 알람 수신 시 (미사용)
 Future<void> logNotificationReceive({required String campaignId}) async {
   await analytics.logEvent(
-    name: 'notification_receive',
+    name: 'custom_notification_received',
     parameters: {'campaign_id': campaignId},
   );
 }
@@ -16,7 +16,7 @@ Future<void> logNotificationOpen({
   required String destination,
 }) async {
   await analytics.logEvent(
-    name: 'app_notification_open',
+    name: 'custom_notification_opened',
     parameters: {
       'campaign_id': campaignId,
       'destination': destination, // e.g. 'letter_detail', 'liked_diary_detail'
@@ -24,13 +24,13 @@ Future<void> logNotificationOpen({
   );
 }
 
-// 딥링크 진입 시 (미사용, destination의 경우 알람 클릭시 이동 페이지까지 파악 가능)
+// 딥링크 진입 시 (미사용)
 Future<void> logPushDeeplinkOpen({
   required String campaignId,
   required String destination,
 }) async {
   await analytics.logEvent(
-    name: 'push_deeplink_open',
+    name: 'custom_push_deeplink_opened',
     parameters: {
       'campaign_id': campaignId,
       'destination': destination // e.g. 'letter_detail', 'liked_diary_detail'

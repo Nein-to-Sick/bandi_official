@@ -56,12 +56,7 @@ Future<void> main() async {
 
   // firebase notification setting
   AlarmController alarmController = AlarmController();
-  alarmController.firebaseOnMessageListen();
-  alarmController.firebaseOnMessageOpenedApp();
-  alarmController.firebaseGetInitialListen();
-
-  // local notification setting
-  alarmController.localNotificationInitialization();
+  await alarmController.initializeAlarmSystem();
 
   // remove message badge
   FlutterAppBadgeControl.removeBadge();

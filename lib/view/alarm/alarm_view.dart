@@ -1,3 +1,4 @@
+/*
 import 'package:bandi_official/components/appbar/appbar.dart';
 import 'package:bandi_official/components/button/primary_button.dart';
 import 'package:bandi_official/components/loading/loading_page.dart';
@@ -133,7 +134,7 @@ class _AlarmViewState extends State<AlarmView> {
                                     if (notifications[index].type ==
                                         AlarmType.likedDiary) {
                                       Diary diary = await alarmController
-                                          .readLikedDiaryDataFromDB(
+                                          .readDiaryDataFromDB(
                                               notifications[index].dataId);
                                       writeProvider.readMyDiary(diary);
                                       navigationToggleProvider.selectIndex(0);
@@ -284,3 +285,4 @@ class _AlarmViewState extends State<AlarmView> {
     );
   }
 }
+*/

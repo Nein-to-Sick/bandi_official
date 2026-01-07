@@ -71,7 +71,7 @@ class HomeToWrite with ChangeNotifier {
   Future<void> aiAndSaveDiary(BuildContext context) async {
     String langCode = Localizations.localeOf(context).languageCode;
     MyDiaryListController myDiaryListController =
-        context.watch<MyDiaryListController>();
+        Provider.of<MyDiaryListController>(context, listen: false);
     await aiDiary(context, langCode);
     await saveDiary();
     myDiaryListController.saveMyDiaryToLocal(diaryModel);
@@ -552,7 +552,7 @@ class HomeToWrite with ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     final ms = prefs.getInt('${uid}_homeNotiLastSeenAt');
     _homeNotiLastSeenAt =
-    (ms == null) ? null : DateTime.fromMillisecondsSinceEpoch(ms);
+        (ms == null) ? null : DateTime.fromMillisecondsSinceEpoch(ms);
     notifyListeners();
   }
 

@@ -15,7 +15,7 @@ class HomeNotiItem {
   final VoidCallback onTap;
 
   final String? refId;
-  final dynamic payload;
+  final dynamic reactionPayload;
 
   HomeNotiItem({
     required this.id,
@@ -24,7 +24,7 @@ class HomeNotiItem {
     required this.createdAt,
     required this.onTap,
     this.refId,
-    this.payload,
+    this.reactionPayload = -1,
   });
 }
 
@@ -95,12 +95,26 @@ class _HomeNotificationStackState extends State<HomeNotificationStack>
     return sorted;
   }
 
-  IconData _iconFor(HomeNotiType t) {
+  IconData _iconFor(HomeNotiType t, int reactionValue) {
     switch (t) {
       case HomeNotiType.letter:
         return PhosphorIcons.envelope();
       case HomeNotiType.likedDiary:
-        return PhosphorIcons.envelope(); /// 공감마다 변경 필요
+        // 응원
+        if (reactionValue == 0) {
+          return PhosphorIcons.handsPraying();
+        }
+        // 공감
+        else if (reactionValue == 1) {
+          return PhosphorIcons.heart();
+        }
+        // 함께
+        else if (reactionValue == 2) {
+          return PhosphorIcons.personArmsSpread();
+        }
+        return PhosphorIcons.envelope();
+
+      /// 공감마다 변경 필요
       case HomeNotiType.otherDiary:
         return PhosphorIcons.envelope();
       case HomeNotiType.dailyReminder:
@@ -210,20 +224,21 @@ class _HomeNotificationStackState extends State<HomeNotificationStack>
     final stackItems = items.take(4).toList();
     final backCount = stackItems.length - 1;
 
-    final height =
-        HomeNotificationStack.pillHeight + backCount * HomeNotificationStack.peek;
+    final height = HomeNotificationStack.pillHeight +
+        backCount * HomeNotificationStack.peek;
 
     final showNewDot = widget.showNewDot;
 
     final Widget? singleIcon = (!showNewDot && items.length == 1)
         ? PhosphorIcon(
-      _iconFor(top.type),
-      size: 20,
-      color: BandiColor.neutralColor100(context),
-    )
+            _iconFor(top.type, -1),
+            size: 20,
+            color: BandiColor.neutralColor100(context),
+          )
         : null;
 
-    final int badgeCount = (!showNewDot && items.length >= 2) ? items.length : 0;
+    final int badgeCount =
+        (!showNewDot && items.length >= 2) ? items.length : 0;
 
     return SizedBox(
       height: height,
@@ -268,7 +283,8 @@ class _HomeNotificationStackState extends State<HomeNotificationStack>
                           } else {
                             _openDropdown();
                           }
-                        }, backgroundColor: BandiColor.neutralColor04(context),
+                        },
+                        backgroundColor: BandiColor.neutralColor04(context),
                       ),
                     ),
                   ],
@@ -310,7 +326,7 @@ class _PillBackLayer extends StatelessWidget {
 class _AnchoredDropdownSheet extends StatelessWidget {
   final Animation<double> expand;
   final List<HomeNotiItem> items;
-  final IconData Function(HomeNotiType) iconFor;
+  final IconData Function(HomeNotiType, int) iconFor;
   final void Function(HomeNotiItem) onItemTap;
   final VoidCallback onClose;
 
@@ -352,7 +368,8 @@ class _AnchoredDropdownSheet extends StatelessWidget {
                       children: [
                         ConstrainedBox(
                           constraints: const BoxConstraints(
-                            maxHeight: (HomeNotificationStack.pillHeight + 12) * 6,
+                            maxHeight:
+                                (HomeNotificationStack.pillHeight + 12) * 6,
                           ),
                           child: SingleChildScrollView(
                             physics: const BouncingScrollPhysics(),
@@ -365,14 +382,16 @@ class _AnchoredDropdownSheet extends StatelessWidget {
                                     showNewDot: false,
                                     badgeCount: 0,
                                     trailingWidget: PhosphorIcon(
-                                      iconFor(item.type),
+                                      iconFor(item.type, item.reactionPayload),
                                       size: 20,
                                       color: BandiColor.neutralColor90(context),
                                     ),
-                                    onTap: () => onItemTap(item), backgroundColor: BandiColor.neutralColor10(context),
-                                    
+                                    onTap: () => onItemTap(item),
+                                    backgroundColor:
+                                        BandiColor.neutralColor10(context),
                                   ),
-                                  if (item != items.last) const SizedBox(height: 8),
+                                  if (item != items.last)
+                                    const SizedBox(height: 8),
                                 ],
                               ],
                             ),

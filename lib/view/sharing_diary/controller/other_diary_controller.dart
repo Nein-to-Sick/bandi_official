@@ -90,6 +90,7 @@ class OtherDiaryController {
         alarmController.sendLikedDiaryNotification(
           diaryId,
           userId,
+          reactionValue,
         );
       } else {
         log("Invalid or missing FCM token for user: $userId");

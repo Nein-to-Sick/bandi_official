@@ -10,13 +10,6 @@ import 'dart:developer' as dev;
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-class Tuple<T1, T2> {
-  final T1 item1;
-  final T2 item2;
-
-  Tuple(this.item1, this.item2);
-}
-
 enum MailDataType {
   all, // 모두
   diary, // 일기만
@@ -757,12 +750,13 @@ class MailController with ChangeNotifier {
     }
   }
 
-  Future<Tuple> checkForNewLetterNewNotificationsAndSaveLetterToLocal() async {
+  Future<(bool, dynamic)>
+      checkForNewLetterNewNotificationsAndSaveLetterToLocal() async {
     bool newLetterAvailable = false;
     // 유저 ID 체크
     if (userId == null || userId!.isEmpty) {
       dev.log('there is no firebase uid');
-      return Tuple(newLetterAvailable, null);
+      return (newLetterAvailable, null);
     }
 
     try {
@@ -786,7 +780,7 @@ class MailController with ChangeNotifier {
       // 새 편지가 없으면 종료
       if (!newLetterAvailable) {
         dev.log('there is no new letter');
-        return Tuple(newLetterAvailable, null);
+        return (newLetterAvailable, null);
       }
 
       // 가장 최신 편지 1개 가져오기
@@ -802,7 +796,7 @@ class MailController with ChangeNotifier {
         dev.log(
             'there is new letter available flag but cannot find actual document');
         // 플래그는 true인데 데이터가 없는 예외 상황 처리
-        return Tuple(!newLetterAvailable, null);
+        return (!newLetterAvailable, null);
       }
 
       // 4. 편지 객체 생성
@@ -864,7 +858,7 @@ class MailController with ChangeNotifier {
     }
 
     notifyListeners();
-    return Tuple(newLetterAvailable, newLetter);
+    return (newLetterAvailable, newLetter);
   }
 
   // load more letter from past

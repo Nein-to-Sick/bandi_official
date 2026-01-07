@@ -166,7 +166,7 @@ async function processUserLetter(userDoc, currentMonth, today) {
 
             // [핵심 수정] 알림 저장 함수를 트랜잭션 안에서 호출
             // 마지막 인자로 transaction 객체를 넘겨주어, 위 작업들과 한 몸처럼 동작하게 함
-            await addNotification(userId, notificationTitle, "letter", letterId, transaction);
+            await addNotification(userId, notificationTitle, "letter", letterId, transaction, -1);
         });
 
         // 5. FCM 푸시 알림 전송 (DB 트랜잭션 성공 후 실행 - 외부 서비스이므로 트랜잭션 제외)
@@ -259,11 +259,12 @@ exports.sendLikedDiaryNotification = functions.region("asia-northeast3").https.o
     }
 
     // data.fcmToken은 보안상 신뢰할 수 없으므로 제거하고, DB에서 직접 조회합니다.
-    const { likedDiaryId, userId } = data; // userId는 알림을 받을 대상(일기 작성자)
+    const { likedDiaryId, userId, reactionValue } = data; // userId는 알림을 받을 대상(일기 작성자)
 
     // [보안 2] 필수 데이터 검증
-    if (!likedDiaryId || !userId) {
-        throw new functions.https.HttpsError("invalid-argument", "필요한 정보(likedDiaryId, userId)가 누락되었습니다.");
+    // reactionValue가 undefined이거나 null인 경우만 체크 (0은 통과)
+    if (!likedDiaryId || !userId || reactionValue === undefined || reactionValue === null) {
+        throw new functions.https.HttpsError("invalid-argument", "필요한 정보(likedDiaryId, userId, reactionValue)가 누락되었습니다.");
     }
 
     try {
@@ -287,10 +288,32 @@ exports.sendLikedDiaryNotification = functions.region("asia-northeast3").https.o
         const notificationType = "likedDiary";
 
         if (langCode === "ko") {
-            notificationTitle = `누군가 나의 기록에 공감했어요!`;
+            if (reactionValue == -1) {
+                notificationTitle = `누군가 나의 기록에 공감했어요!`;
+            }
+            else if (reactionValue == 0) {
+                notificationTitle = `누군가 당신을 응원해요.`;
+            }
+            else if (reactionValue == 1) {
+                notificationTitle = `누군가 당신을 공감해요.`;
+            }
+            else if (reactionValue == 2) {
+                notificationTitle = `누군가 당신을 함께해요.`;
+            }
             notificationBody = `나의 기록을 확인해보세요.`;
         } else {
-            notificationTitle = `Someone reacted to your journal.`;
+            if (reactionValue == -1) {
+                notificationTitle = `Someone reacted to your journal.`;
+            }
+            else if (reactionValue == 0) {
+                notificationTitle = `Someone supports you.`;
+            }
+            else if (reactionValue == 1) {
+                notificationTitle = `Someone relates to you.`;
+            }
+            else if (reactionValue == 2) {
+                notificationTitle = `Someone is with you.`;
+            }
             notificationBody = `Take a look at your journal.`;
         }
 
@@ -322,7 +345,7 @@ exports.sendLikedDiaryNotification = functions.region("asia-northeast3").https.o
 
         // 2. 알림 내역 DB 저장 (이전에 개선한 함수 호출)
         // 여기서는 단일 작업이므로 트랜잭션을 굳이 넘기지 않아도 됩니다(자동으로 내부 트랜잭션 생성)
-        await addNotification(userId, notificationTitle, notificationType, likedDiaryId);
+        await addNotification(userId, notificationTitle, notificationType, likedDiaryId, null, reactionValue);
 
         return { success: true };
     } catch (error) {
@@ -338,20 +361,21 @@ exports.sendLikedDiaryNotification = functions.region("asia-northeast3").https.o
  * @param {string} notificationType - 알림의 타입
  * @param {string} notificationDataId - 알림과 관련된 일기 id
  * @param {object} [transaction] - (선택) 외부에서 전달받은 Firestore Transaction 객체. 존재할 경우 해당 트랜잭션에 포함됨.
+ * @param {int} reactionValue - 공감 일기에 대한 정보 (0: 응원, 1: 공감, 2: 함께)
  * @return {Promise<void>}
  */
-async function addNotification(userId, notificationTitle, notificationType, notificationDataId, transaction = null) {
+async function addNotification(userId, notificationTitle, notificationType, notificationDataId, transaction = null, reactionValue = -1) {
     try {
         console.log(`[Proceed] Adding notification for user ${userId} (Type: ${notificationType})`);
 
         const userRef = db.collection("users").doc(userId);
         const notificationsRef = userRef.collection("notifications");
-        const summaryDocRef = notificationsRef.doc("0000_docSummary");
+        // const summaryDocRef = notificationsRef.doc("0000_docSummary");
 
         // 트랜잭션 내부에서 실행될 핵심 로직 (읽기 -> 쓰기 순서 준수)
         const executeNotificationLogic = async (t) => {
             // [READ] Summary document 읽기 (쓰기 전에 먼저 읽어야 함)
-            const summaryDoc = await t.get(summaryDocRef);
+            // const summaryDoc = await t.get(summaryDocRef);
 
             // 알림 ID 생성
             const notificationId = notificationsRef.doc().id;
@@ -364,6 +388,7 @@ async function addNotification(userId, notificationTitle, notificationType, noti
                 title: notificationTitle,
                 dataId: notificationDataId,
                 date: admin.firestore.FieldValue.serverTimestamp(),
+                reaction: reactionValue,
             });
 
             // [WRITE] 2. 유저 플래그 업데이트
@@ -372,17 +397,17 @@ async function addNotification(userId, notificationTitle, notificationType, noti
             });
 
             // [WRITE] 3. Summary 문서 업데이트 또는 생성
-            if (!summaryDoc.exists) {
-                // console.log(`[Proceed] Creating new summary doc for ${userId}`);
-                t.set(summaryDocRef, {
-                    isNew: 1,
-                });
-            } else {
-                // console.log(`[Proceed] Updating summary doc for ${userId}`);
-                t.update(summaryDocRef, {
-                    isNew: admin.firestore.FieldValue.increment(1),
-                });
-            }
+            // if (!summaryDoc.exists) {
+            //     // console.log(`[Proceed] Creating new summary doc for ${userId}`);
+            //     t.set(summaryDocRef, {
+            //         isNew: 1,
+            //     });
+            // } else {
+            //     // console.log(`[Proceed] Updating summary doc for ${userId}`);
+            //     t.update(summaryDocRef, {
+            //         isNew: admin.firestore.FieldValue.increment(1),
+            //     });
+            // }
         };
 
         // 분기 처리: 외부 트랜잭션이 있으면 그것을 사용하고, 없으면 새로 만듦
@@ -405,95 +430,111 @@ async function addNotification(userId, notificationTitle, notificationType, noti
 }
 
 /**
- * 매일 정해진 시간에 알림을 보내는 Cloud Function
- * 개선점: Batch Processing 도입, 메모리 최적화, 타임아웃 연장
+ * 매일 정해진 시간에 알림을 보내는 Cloud Function (Topic 방식 개선)
+ * - DB 조회/저장 없음 (비용 $0)
+ * - Topic을 사용하여 수백만 명에게도 즉시 전송 가능
  */
 exports.sendDailyReminder = functions
     .region("asia-northeast3")
     .runWith({
-        timeoutSeconds: 540, // 최대 9분 실행 허용 (대량 유저 처리 대비)
-        memory: "1GB", // 메모리 부족 방지
+        timeoutSeconds: 60, // 로직이 단순해져서 60초면 충분함
+        memory: "256MB",    // 메모리도 최소 사양이면 됨
     })
     .pubsub.schedule("0 21 * * *") // 매일 오후 9시 (한국 시간)
     .timeZone("Asia/Seoul")
     .onRun(async (context) => {
-        console.log("[Proceed] Daily Reminder Task Started");
+        console.log("[Proceed] Daily Reminder Task Started (Topic Mode)");
 
-        // 1. 메모리 최적화: 필요한 필드(fcmToken, language)만 조회
-        // 유저가 많아지면 stream()을 써야 하지만, 수천 명 단위까지는 select()로 충분
-        const usersSnapshot = await db.collection("users")
-            .select("fcmToken", "language")
-            .get();
+        try {
+            // 1. 한국어 사용자 전체 발송
+            const messageKo = {
+                notification: {
+                    title: "오늘 하루는 어떠셨나요?",
+                    body: "오늘의 기록을 남겨보세요 ✍️",
+                },
+                data: { screen: "diary_entry" },
+                topic: "daily_reminder_ko", // 한국어 구독자 토픽
+            };
 
-        if (usersSnapshot.empty) {
-            console.log("[Info] No users found.");
-            return null;
+            // 2. 영어 사용자 전체 발송
+            const messageEn = {
+                notification: {
+                    title: "How was your day?",
+                    body: "Write down your thoughts for today ✍️",
+                },
+                data: { screen: "diary_entry" },
+                topic: "daily_reminder_en", // 영어 구독자 토픽
+            };
+
+            // 두 메시지를 병렬로 전송 (총 2번의 API 호출만 발생)
+            await Promise.all([
+                admin.messaging().send(messageKo),
+                admin.messaging().send(messageEn),
+            ]);
+
+            console.log("[Success] Daily Reminder sent to topics (ko/en).");
+        } catch (error) {
+            console.error("[Error] Failed to send daily reminder:", error);
         }
 
-        const allDocs = usersSnapshot.docs;
-        console.log(`[Info] Found ${allDocs.length} users. Starting batch processing...`);
-
-        // 2. 배치 처리: 50명씩 끊어서 처리 (동시성 제어)
-        const BATCH_SIZE = 50;
-        const chunks = [];
-        for (let i = 0; i < allDocs.length; i += BATCH_SIZE) {
-            chunks.push(allDocs.slice(i, i + BATCH_SIZE));
-        }
-
-        let successCount = 0;
-        let failCount = 0;
-
-        // 청크 단위 루프
-        for (const chunk of chunks) {
-            const promises = chunk.map(async (userDoc) => {
-                const userId = userDoc.id;
-                const userData = userDoc.data();
-                const fcmToken = userData.fcmToken;
-
-                // 토큰 없으면 스킵
-                if (!fcmToken) return;
-
-                const langCode = userData.language || "ko";
-                let notificationTitle; let notificationBody;
-
-                if (langCode === "ko") {
-                    notificationTitle = "오늘 하루는 어떠셨나요?";
-                    notificationBody = "오늘의 기록을 남겨보세요 ✍️";
-                } else {
-                    notificationTitle = "How was your day?";
-                    notificationBody = "Write down your thoughts for today ✍️";
-                }
-
-                const notificationType = "dailyReminder";
-
-                // 병렬 처리: FCM 전송과 DB 저장을 동시에 시작
-                const sendFcmPromise = admin.messaging().send({
-                    notification: { title: notificationTitle, body: notificationBody },
-                    data: { screen: "diary_entry" },
-                    token: fcmToken,
-                }).catch((e) => {
-                    console.error(`[FCM Error] User ${userId}:`, e.message);
-                    // FCM 실패가 DB 저장을 막아야 하는지 결정 필요. 여기선 막지 않음.
-                });
-
-                // *비용 주의*: 매일 모든 유저에게 DB 쓰기가 발생합니다. 추후 FCM Topic 방식 도입 및 DB에 저장하지 않는 방식 고려
-                const saveDbPromise = addNotification(userId, notificationTitle, notificationType, null)
-                    .catch((e) => console.error(`[DB Error] User ${userId}:`, e.message));
-
-                try {
-                    await Promise.all([sendFcmPromise, saveDbPromise]);
-                    successCount++;
-                } catch (error) {
-                    failCount++;
-                }
-            });
-
-            // 50명 동시 실행 후 대기
-            await Promise.all(promises);
-        }
-
-        console.log(`[Exit] Daily Reminder Finished. Success: ${successCount}, Fail/Skip: ${failCount}`);
         return null;
+    });
+
+// 테스트용 알림 발송 함수 (배포 후 삭제 권장)
+exports.testNotification = functions
+    .region("asia-northeast3")
+    .https.onCall(async (data, context) => {
+
+        // 테스트할 기기의 토큰 (앱 로그에서 확인 후 입력하거나 data로 받음)
+        const targetToken = data.token;
+        const type = data.type || "basic"; // 테스트할 알림 타입
+
+        if (!targetToken) {
+            throw new functions.https.HttpsError('invalid-argument', 'Token is missing');
+        }
+
+        let payload = {};
+
+        // 타입별 테스트 데이터 구성
+        switch (type) {
+            case "letter":
+                payload = {
+                    notification: { title: "[FCM테스트]💌 편지 도착", body: "반디에게 편지가 왔어요." },
+                    data: { screen: "letter_detail", letterId: process.env.TEST_LETTER_ID }
+                };
+                break;
+            case "liked":
+                payload = {
+                    notification: { title: "[FCM테스트]❤️ 공감 알림", body: "누군가 공감했어요." },
+                    data: { screen: "liked_diary_detail", likedDiaryId: process.env.TEST_LIKED_DIARY_ID }
+                };
+                break;
+            case "other":
+                payload = {
+                    notification: { title: "[FCM테스트]🤝 추천 알림", body: "비슷한 친구를 찾았어요." },
+                    // other_diary는 likedDiaryId 키를 사용함 (구조상)
+                    data: { screen: "other_diary_detail", likedDiaryId: process.env.TEST_OTHER_DIARY_ID }
+                };
+                break;
+            default:
+                payload = {
+                    notification: { title: "[FCM테스트]🔔 기본 알림", body: "테스트 메시지입니다." },
+                    data: { screen: "diary_entry" }
+                };
+                break;
+        }
+
+        // 토큰 설정
+        payload.token = targetToken;
+
+        try {
+            const response = await admin.messaging().send(payload);
+            console.log("Successfully sent message:", response);
+            return { success: true, messageId: response };
+        } catch (error) {
+            console.error("Error sending message:", error);
+            throw new functions.https.HttpsError('internal', error.message);
+        }
     });
 
 // 유저 정보의 모든 관련 콜렉션을 삭제하는 함수

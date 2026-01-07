@@ -19,6 +19,7 @@ module.exports = {
     "max-len": "off",
     "valid-jsdoc": "off",
     "object-curly-spacing": "off",
+    "linebreak-style": 0,
   },
   overrides: [
     {
