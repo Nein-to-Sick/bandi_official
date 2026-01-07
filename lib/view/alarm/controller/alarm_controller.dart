@@ -12,17 +12,23 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:provider/provider.dart';
 import 'dart:developer' as dev;
 
 import '../../mail/detail_view.dart';
 
+class NotificationTestType {
+  static const String letter = "letter";
+  static const String liked = "liked";
+  static const String other = "other";
+}
+
 class NotificationType {
   static const String letterDetail = 'letter_detail';
   static const String likedDiaryDetail = 'liked_diary_detail';
   static const String otherDiaryDetail = 'other_diary_detail';
-  static const String diaryEntry = 'diary_entry';
 }
 
 class NotificationTopic {
@@ -564,5 +570,132 @@ class AlarmController with ChangeNotifier {
         .collection('notifications')
         .doc(notificationId)
         .delete();
+  }
+
+// ---------------------------------------------------------------------------
+
+  // [TEST] 모든 종류의 알림을 테스트하는 함수
+  Future<void> testAllNotificationTypes() async {
+    dev.log('🔔 [Test] Starting notification test...');
+
+    String testLetterId = dotenv.env['TEST_LETTER_ID']!;
+    String testLikedDiaryId = dotenv.env['TEST_LIKED_DIARY_ID']!;
+    String testMyDiaryId = dotenv.env['TEST_OTHER_DIARY_ID']!;
+
+    // 1. 편지 도착 알림 (Letter Detail)
+    await _showTestNotification(
+      id: 1001,
+      title: '새로운 편지가 도착했어요 💌',
+      body: '반디가 보낸 마음을 확인해보세요.',
+      screen: NotificationType.letterDetail,
+      letterId: testLetterId,
+    );
+
+    // 2. 공감 알림 (Liked Diary Detail)
+    await _showTestNotification(
+      id: 1002,
+      title: '누군가 내 일기에 공감했어요 ❤️',
+      body: '어떤 마음을 남겼는지 확인해보세요.',
+      screen: NotificationType.likedDiaryDetail,
+      likedDiaryId: testLikedDiaryId,
+    );
+
+    // 3. 다른 사람 일기 추천 알림 (Other Diary Detail)
+    await _showTestNotification(
+      id: 1003,
+      title: '나와 비슷한 친구를 찾았어요! 🤝',
+      body: '다른 사람의 일기를 읽어보세요.',
+      screen: NotificationType.otherDiaryDetail,
+      // other_diary_detail은 likedDiaryId 자리에 diaryId를 넣음 (구조상)
+      likedDiaryId: testMyDiaryId,
+    );
+
+    dev.log('✅ [Test] All notifications dispatched.');
+  }
+
+  // 내부 헬퍼 함수: 테스트용 로컬 알림 표시
+  Future<void> _showTestNotification({
+    required int id,
+    required String title,
+    required String body,
+    required String screen,
+    String letterId = '',
+    String likedDiaryId = '',
+  }) async {
+    // 실제 운영 코드와 동일한 Payload 형식 생성 (구분자: |)
+    // screen | letterId | likedDiaryId | campaignId
+    final payload = '$screen|$letterId|$likedDiaryId|test_campaign_v1';
+
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+      NotificationConfig.channelId,
+      NotificationConfig.channelName,
+      importance: Importance.max,
+      priority: Priority.high,
+      channelShowBadge: true,
+    );
+
+    const NotificationDetails details = NotificationDetails(
+      iOS: DarwinNotificationDetails(presentAlert: true, presentSound: true),
+      android: androidDetails,
+    );
+
+    // 2초 간격으로 알림을 띄워 겹치지 않게 함
+    await Future.delayed(const Duration(seconds: 2));
+
+    await _local.show(
+      id,
+      '[Local테스트] $title', // 테스트임을 알리기 위해 prefix 추가
+      body,
+      details,
+      payload: payload,
+    );
+
+    dev.log('🚀 Sent test notification: $screen');
+  }
+
+  // AlarmController 내부에 임시 테스트 함수 추가
+  Future<void> sendTestFCM(String type) async {
+    // 현재 로그인 중인 계정에 알림을 보냄
+    String? token = await FirebaseMessaging.instance.getToken();
+    if (token == null) return;
+
+    final HttpsCallable callable =
+        FirebaseFunctions.instanceFor(region: 'asia-northeast3')
+            .httpsCallable('testNotification');
+
+    try {
+      await callable.call({
+        'token': token,
+        'type': type,
+      });
+      dev.log("FCM Sent: $type");
+    } catch (e) {
+      dev.log("Error: $e");
+    }
+  }
+
+  // FCM Notification Test
+  Future<void> runFcmTest() async {
+    // 테스트할 알림 타입 리스트 정의
+    final List<String> typeList = [
+      NotificationTestType.letter, // 편지 알림
+      NotificationTestType.liked, // 공감 알림
+      NotificationTestType.other, // 추천 일기 알림
+    ];
+
+    dev.log('🚀 Starting FCM Test Sequence...');
+
+    for (String type in typeList) {
+      dev.log('📤 Sending test FCM: $type');
+
+      // 알림 전송 요청 (비동기)
+      await sendTestFCM(type);
+
+      // 2초 대기 (알림이 겹치지 않게 시간차 두기)
+      await Future.delayed(const Duration(seconds: 2));
+    }
+
+    dev.log('✅ FCM Test Sequence Completed.');
   }
 }

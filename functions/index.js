@@ -370,12 +370,12 @@ async function addNotification(userId, notificationTitle, notificationType, noti
 
         const userRef = db.collection("users").doc(userId);
         const notificationsRef = userRef.collection("notifications");
-        const summaryDocRef = notificationsRef.doc("0000_docSummary");
+        // const summaryDocRef = notificationsRef.doc("0000_docSummary");
 
         // 트랜잭션 내부에서 실행될 핵심 로직 (읽기 -> 쓰기 순서 준수)
         const executeNotificationLogic = async (t) => {
             // [READ] Summary document 읽기 (쓰기 전에 먼저 읽어야 함)
-            const summaryDoc = await t.get(summaryDocRef);
+            // const summaryDoc = await t.get(summaryDocRef);
 
             // 알림 ID 생성
             const notificationId = notificationsRef.doc().id;
@@ -397,17 +397,17 @@ async function addNotification(userId, notificationTitle, notificationType, noti
             });
 
             // [WRITE] 3. Summary 문서 업데이트 또는 생성
-            if (!summaryDoc.exists) {
-                // console.log(`[Proceed] Creating new summary doc for ${userId}`);
-                t.set(summaryDocRef, {
-                    isNew: 1,
-                });
-            } else {
-                // console.log(`[Proceed] Updating summary doc for ${userId}`);
-                t.update(summaryDocRef, {
-                    isNew: admin.firestore.FieldValue.increment(1),
-                });
-            }
+            // if (!summaryDoc.exists) {
+            //     // console.log(`[Proceed] Creating new summary doc for ${userId}`);
+            //     t.set(summaryDocRef, {
+            //         isNew: 1,
+            //     });
+            // } else {
+            //     // console.log(`[Proceed] Updating summary doc for ${userId}`);
+            //     t.update(summaryDocRef, {
+            //         isNew: admin.firestore.FieldValue.increment(1),
+            //     });
+            // }
         };
 
         // 분기 처리: 외부 트랜잭션이 있으면 그것을 사용하고, 없으면 새로 만듦
@@ -478,6 +478,63 @@ exports.sendDailyReminder = functions
         }
 
         return null;
+    });
+
+// 테스트용 알림 발송 함수 (배포 후 삭제 권장)
+exports.testNotification = functions
+    .region("asia-northeast3")
+    .https.onCall(async (data, context) => {
+
+        // 테스트할 기기의 토큰 (앱 로그에서 확인 후 입력하거나 data로 받음)
+        const targetToken = data.token;
+        const type = data.type || "basic"; // 테스트할 알림 타입
+
+        if (!targetToken) {
+            throw new functions.https.HttpsError('invalid-argument', 'Token is missing');
+        }
+
+        let payload = {};
+
+        // 타입별 테스트 데이터 구성
+        switch (type) {
+            case "letter":
+                payload = {
+                    notification: { title: "[FCM테스트]💌 편지 도착", body: "반디에게 편지가 왔어요." },
+                    data: { screen: "letter_detail", letterId: process.env.TEST_LETTER_ID }
+                };
+                break;
+            case "liked":
+                payload = {
+                    notification: { title: "[FCM테스트]❤️ 공감 알림", body: "누군가 공감했어요." },
+                    data: { screen: "liked_diary_detail", likedDiaryId: process.env.TEST_LIKED_DIARY_ID }
+                };
+                break;
+            case "other":
+                payload = {
+                    notification: { title: "[FCM테스트]🤝 추천 알림", body: "비슷한 친구를 찾았어요." },
+                    // other_diary는 likedDiaryId 키를 사용함 (구조상)
+                    data: { screen: "other_diary_detail", likedDiaryId: process.env.TEST_OTHER_DIARY_ID }
+                };
+                break;
+            default:
+                payload = {
+                    notification: { title: "[FCM테스트]🔔 기본 알림", body: "테스트 메시지입니다." },
+                    data: { screen: "diary_entry" }
+                };
+                break;
+        }
+
+        // 토큰 설정
+        payload.token = targetToken;
+
+        try {
+            const response = await admin.messaging().send(payload);
+            console.log("Successfully sent message:", response);
+            return { success: true, messageId: response };
+        } catch (error) {
+            console.error("Error sending message:", error);
+            throw new functions.https.HttpsError('internal', error.message);
+        }
     });
 
 // 유저 정보의 모든 관련 콜렉션을 삭제하는 함수
