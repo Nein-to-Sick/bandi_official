@@ -18,7 +18,32 @@ import 'dart:developer' as dev;
 
 import '../../mail/detail_view.dart';
 
+class NotificationType {
+  static const String letterDetail = 'letter_detail';
+  static const String likedDiaryDetail = 'liked_diary_detail';
+  static const String otherDiaryDetail = 'other_diary_detail';
+  static const String diaryEntry = 'diary_entry';
+}
+
+class NotificationTopic {
+  static const String dailyReminderKo = 'daily_reminder_ko';
+  static const String dailyReminderEn = 'daily_reminder_en';
+}
+
+class NotificationConfig {
+  static const String channelId = '1';
+  static const String channelName = 'local notification';
+  static const String defaultCampaignId = 'notification_open_v1';
+}
+
 class AlarmController with ChangeNotifier {
+  // initalize once
+  bool _isInitialized = false;
+
+  // local notification setting
+  static final FlutterLocalNotificationsPlugin _local =
+      FlutterLocalNotificationsPlugin();
+
   // determine whether to display the alarm view
   bool isAlarmOpen = false;
 
@@ -27,10 +52,6 @@ class AlarmController with ChangeNotifier {
 
   // Firebase messaging setting
   final fcmToken = FirebaseMessaging.instance.getToken();
-
-  // local notification setting
-  final FlutterLocalNotificationsPlugin _local =
-      FlutterLocalNotificationsPlugin();
 
   // manage the page scroll
   final alarmScrollController = ScrollController();
@@ -86,241 +107,342 @@ class AlarmController with ChangeNotifier {
     });
   }
 
-  // foreground notification receive
-  void firebaseOnMessageListen() async {
-    dev.log('foreground message setting done');
-    FirebaseMessaging.onMessage.listen((RemoteMessage? message) async {
-      if (message != null && message.notification != null) {
-        dev.log('local message received');
-        WidgetsBinding.instance.addPostFrameCallback((_) async {
-          MailController mailController = Provider.of<MailController>(
-              navigatorKey.currentState!.context,
-              listen: false);
+  // 통합 초기화 함수 (main.dart에서는 이 함수 하나만 호출하면 됩니다)
+  Future<void> initializeAlarmSystem() async {
+    if (_isInitialized) return; // 이미 초기화되었다면 중복 실행 방지
 
-          mailController.updateIsNewNotifications(true);
-        });
+    // 1. 로컬 알림 초기화 (가장 먼저)
+    await localNotificationInitialization();
 
-        // local notification update
-        NotificationDetails details = const NotificationDetails(
-          iOS: DarwinNotificationDetails(
-            presentAlert: true,
-            presentBadge: true,
-            presentSound: true,
-          ),
-          android: AndroidNotificationDetails(
-            "1",
-            "local notification",
-            importance: Importance.max,
-            priority: Priority.high,
-            channelShowBadge: true,
-          ),
-        );
+    // 2. Firebase 리스너 등록
+    firebaseOnMessageListen();
+    firebaseOnMessageOpenedApp();
 
-        final screen = message.data['screen'];
-        final letterId = message.data['letterId'] ?? '';
-        final likedDiaryDetail = message.data['likedDiaryId'] ?? '';
-        const campaignId = "notification_open_v1";
-
-        final payload = '$screen/$letterId/$likedDiaryDetail/$campaignId';
-
-        // 알람 송신 여부 로깅
-        /*
-          await logNotificationReceive(campaignId: campaignId);
-        */
-        _local.show(1, message.notification!.title!,
-            message.notification!.body!, details,
-            payload: payload);
-      }
+    // 3. 앱 종료 상태에서 알림 클릭으로 켜졌는지 확인
+    // (약간의 딜레이를 주어 네비게이터가 준비된 후 실행되도록 함)
+    Future.delayed(const Duration(milliseconds: 500), () {
+      firebaseGetInitialListen();
     });
+
+    _isInitialized = true;
   }
 
-  // background notification receive
-  void firebaseOnMessageOpenedApp() {
-    dev.log('message receive interact setting done');
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
-      if (message.notification != null) {
-        dev.log('back ground message received');
-        WidgetsBinding.instance.addPostFrameCallback((_) async {
-          MailController mailController = Provider.of<MailController>(
-              navigatorKey.currentState!.context,
-              listen: false);
-
-          mailController.updateIsNewNotifications(true);
-        });
-
-        // 알람 클릭 여부 로깅
-        final campaignId = message.data['campaignId'] ?? '';
-        final destination = message.data['screen'] ?? '';
-        if (campaignId.isNotEmpty) {
-          await logNotificationOpen(
-            campaignId: campaignId,
-            destination: destination,
-          );
-        }
-        messageInteractionDeclaration(message);
-      }
-    });
-  }
-
-  // terminate notificaiton receive
-  void firebaseGetInitialListen() {
-    dev.log('terminate message setting done');
-    FirebaseMessaging.instance
-        .getInitialMessage()
-        .then((RemoteMessage? message) {
-      if (message != null && message.notification != null) {
-        dev.log('terminate message received');
-        WidgetsBinding.instance.addPostFrameCallback((_) async {
-          MailController mailController = Provider.of<MailController>(
-              navigatorKey.currentState!.context,
-              listen: false);
-
-          mailController.updateIsNewNotifications(true);
-        });
-      }
-    });
-  }
-
-  // refactor common function for firebase messaging and local notification
-  void messageInteractionDeclaration(RemoteMessage message) {
-    if (message.data['screen'] == 'letter_detail') {
-      dev.log('read letter_detail message');
-      // 편지 데이터 읽기와 보여주기는 mailcontroller에서 구현하여 관리함
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        // 포그라운드에서만 실행되는 UI 관련 작업
-        MailController mailController = Provider.of<MailController>(
-            navigatorKey.currentState!.context,
-            listen: false);
-        Tuple<dynamic, dynamic> result = await mailController
-            .checkForNewLetterNewNotificationsAndSaveLetterToLocal();
-        if (result.item1) {
-          navigatorKey.currentState?.push(
-            PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) =>
-                  DetailView(
-                item: result.item2,
-                mailController: mailController,
-              ),
-              transitionsBuilder:
-                  (context, animation, secondaryAnimation, child) {
-                return FadeTransition(
-                  opacity: animation,
-                  child: child,
-                );
-              },
-              transitionDuration: const Duration(milliseconds: 400),
-            ),
-          );
-        }
-      });
-      WidgetsBinding.instance.ensureVisualUpdate();
-    } else if (message.data['screen'] == 'liked_diary_detail') {
-      dev.log('read liked_diary_detail message');
-      String likedDiaryId = message.data['likedDiaryId'];
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        NavigationToggleProvider navigationToggleProvider =
-            Provider.of<NavigationToggleProvider>(
-                navigatorKey.currentState!.context,
-                listen: false);
-        HomeToWrite writeProvider = Provider.of<HomeToWrite>(
-            navigatorKey.currentState!.context,
-            listen: false);
-
-        final documentSnapshot = await FirebaseFirestore.instance
-            .collection('allDiary')
-            .doc(likedDiaryId)
-            .get();
-
-        // 문서가 존재하면 Diary 객체로 변환 및 열람
-        if (documentSnapshot.exists) {
-          Diary diary = Diary.fromSnapshot(documentSnapshot);
-          writeProvider.readMyDiary(diary);
-          navigationToggleProvider.selectIndex(0);
-          writeProvider.toggleWrite();
-        }
-      });
-    }
-    // other_diary 추가
-    else if (message.data['screen'] == 'other_diary_detail') {
-      dev.log('read other_diary_detail message');
-
-      final String diaryId = message.data['likedDiaryId'] ?? '';
-      if (diaryId.isEmpty) return;
-
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        final nav = Provider.of<NavigationToggleProvider>(
-          navigatorKey.currentState!.context,
-          listen: false,
-        );
-        final writeProvider = Provider.of<HomeToWrite>(
-          navigatorKey.currentState!.context,
-          listen: false,
-        );
-
-        final snap = await FirebaseFirestore.instance
-            .collection('allDiary')
-            .doc(diaryId)
-            .get();
-
-        if (!snap.exists) return;
-
-        final diary = Diary.fromSnapshot(snap);
-
-        writeProvider.setOtherDiary(diary);
-        nav.selectIndex(0);
-      });
-    } else {
-      dev.log('message received but there is no related message');
-    }
-  }
-
-  // local notification setting
-  void localNotificationInitialization() {
-    dev.log('local message receive interact setting done');
+  // 1. 로컬 알림 초기화 (기존 로직 유지 + 클릭 리스너 보강)
+  Future<void> localNotificationInitialization() async {
     const AndroidInitializationSettings android =
-        AndroidInitializationSettings("@mipmap/ic_launcher");
-    const DarwinInitializationSettings ios = DarwinInitializationSettings(
-      requestSoundPermission: false,
-      requestBadgePermission: false,
-      requestAlertPermission: false,
-    );
-
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const DarwinInitializationSettings ios = DarwinInitializationSettings();
     const InitializationSettings settings =
         InitializationSettings(android: android, iOS: ios);
-    _local.initialize(
+
+    await _local.initialize(
       settings,
-      onDidReceiveNotificationResponse: onDidReceiveNotificationResponse,
+      // [개선] 앱 실행 중 로컬 알림 클릭 시 동작 처리
+      onDidReceiveNotificationResponse: (NotificationResponse response) {
+        if (response.payload != null) {
+          _handleNotificationPayload(response.payload!);
+        }
+      },
     );
   }
 
   // parts[0]: screen
   // parts[1]: letterId
   // parts[2]: likedDiaryId
-  // This should be a top level function
-  void onDidReceiveNotificationResponse(
-      NotificationResponse notificationResponse) {
-    final String? payload = notificationResponse.payload;
+  // payload 처리 핸들러
+  void _handleNotificationPayload(String payload) {
+    dev.log('local message opened');
+    // 구분자(|)를 사용하여 페이로드 분리
+    List<String> parts = payload.split('|');
 
-    if (payload != null) {
-      dev.log('local message opend');
-      List<String> parts = payload.split('/');
-      RemoteMessage remoteMessage = RemoteMessage(data: {
-        'screen': parts[0],
-        'letterId': parts[1],
-        'likedDiaryId': parts[2],
-        'campaignId': parts.length > 3 ? parts[3] : '',
-      });
-      // 알람 클릭 여부 로깅
-      final campaignId = parts.length > 3 ? parts[3] : '';
-      final destination = parts[0];
-      if (campaignId.isNotEmpty) {
-        logNotificationOpen(
-          campaignId: campaignId,
-          destination: destination,
-        );
-      }
-      messageInteractionDeclaration(remoteMessage);
+    // 데이터 맵핑
+    RemoteMessage remoteMessage = RemoteMessage(data: {
+      'screen': parts.isNotEmpty ? parts[0] : '',
+      'letterId': parts.length > 1 ? parts[1] : '',
+      'likedDiaryId': parts.length > 2 ? parts[2] : '',
+      'campaignId': parts.length > 3 ? parts[3] : '',
+    });
+
+    // 알람 클릭 여부 로깅
+    final campaignId = parts.length > 3 ? parts[3] : '';
+    final destination = parts.isNotEmpty ? parts[0] : '';
+
+    if (campaignId.isNotEmpty) {
+      logNotificationOpen(
+        campaignId: campaignId,
+        destination: destination,
+      );
     }
+
+    messageInteractionDeclaration(remoteMessage);
+  }
+
+  // foreground notification receive
+  void firebaseOnMessageListen() {
+    dev.log('foreground message setting done');
+
+    FirebaseMessaging.onMessage.listen((RemoteMessage? message) async {
+      if (message != null && message.notification != null) {
+        dev.log('local message received: ${message.notification!.title}');
+
+        // 1. UI 업데이트 (새 알림 표시)
+        // 안전하게 Context 접근: navigatorKey가 현재 연결된 상태인지 확인
+        final context = navigatorKey.currentContext;
+        if (context != null) {
+          // addPostFrameCallback 불필요: 이벤트 루프에서 실행되므로 바로 접근 가능
+          try {
+            MailController mailController =
+                Provider.of<MailController>(context, listen: false);
+            mailController.updateIsNewNotifications(true);
+          } catch (e) {
+            dev.log('Error updating MailController: $e');
+          }
+        }
+
+        // 2. Local Notification 표시 설정
+        const NotificationDetails details = NotificationDetails(
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
+          android: AndroidNotificationDetails(
+            NotificationConfig.channelId,
+            NotificationConfig.channelName,
+            importance: Importance.max,
+            priority: Priority.high,
+            channelShowBadge: true,
+          ),
+        );
+
+        // 3. Payload 구성
+        final screen = message.data['screen'] ?? '';
+        final letterId = message.data['letterId'] ?? '';
+        final likedDiaryDetail = message.data['likedDiaryId'] ?? '';
+        const campaignId = NotificationConfig.defaultCampaignId;
+
+        // 구분자(|)를 사용하여 페이로드 생성
+        final payload = '$screen|$letterId|$likedDiaryDetail|$campaignId';
+
+        // 4. 알림 표시
+        try {
+          await _local.show(
+            // message.hashCode를 사용하여 각 알림에 고유 ID 부여 (덮어쓰기 방지)
+            message.hashCode,
+            message.notification!.title ?? '알림',
+            message.notification!.body ?? '',
+            details,
+            payload: payload,
+          );
+        } catch (e) {
+          dev.log('Error showing local notification: $e');
+        }
+
+        // (선택사항) 알림 수신 로그 전송
+        await logNotificationReceive(campaignId: campaignId);
+      }
+    });
+  }
+
+  // background notification receive
+  void firebaseOnMessageOpenedApp() {
+    dev.log('message receive interact setting done (openedApp)');
+
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
+      // 1. 메시지 유효성 확인
+      if (message.notification != null || message.data.isNotEmpty) {
+        dev.log('background message opened: ${message.notification?.title}');
+
+        // 2. UI 업데이트 (새 알림 표시)
+        // navigatorKey를 통해 안전하게 Provider 접근
+        final context = navigatorKey.currentContext;
+        if (context != null) {
+          try {
+            MailController mailController =
+                Provider.of<MailController>(context, listen: false);
+            mailController.updateIsNewNotifications(true);
+          } catch (e) {
+            dev.log('Error updating MailController in openedApp: $e');
+          }
+        }
+
+        // 3. 알람 클릭 로깅
+        final campaignId = message.data['campaignId'] ?? '';
+        final destination = message.data['screen'] ?? '';
+
+        if (campaignId.isNotEmpty) {
+          try {
+            await logNotificationOpen(
+              campaignId: campaignId,
+              destination: destination,
+            );
+          } catch (e) {
+            dev.log('Error logging notification open: $e');
+          }
+        }
+
+        // 4. 네비게이션 처리 (통합 핸들러 사용 권장)
+        messageInteractionDeclaration(message);
+      }
+    });
+  }
+
+  // terminate notificaiton receive (App Cold Start)
+  Future<void> firebaseGetInitialListen() async {
+    dev.log('terminate message setting done');
+
+    // getInitialMessage는 앱이 종료된 상태에서 알림을 눌러 열었을 때만 메시지를 반환합니다.
+    RemoteMessage? message =
+        await FirebaseMessaging.instance.getInitialMessage();
+
+    if (message != null) {
+      dev.log('terminate message received: ${message.notification?.title}');
+
+      // 1. UI 업데이트 (새 알림 표시) - 선택 사항
+      final context = navigatorKey.currentContext;
+      if (context != null) {
+        try {
+          MailController mailController =
+              Provider.of<MailController>(context, listen: false);
+          mailController.updateIsNewNotifications(true);
+        } catch (e) {
+          dev.log('Error updating MailController in initialListen: $e');
+        }
+      }
+
+      // 2. 알람 클릭 로깅
+      final campaignId = message.data['campaignId'] ?? '';
+      final destination = message.data['screen'] ?? '';
+
+      if (campaignId.isNotEmpty) {
+        try {
+          await logNotificationOpen(
+            campaignId: campaignId,
+            destination: destination,
+          );
+        } catch (e) {
+          dev.log('Error logging notification open: $e');
+        }
+      }
+
+      // 3. 네비게이션 처리 (통합 핸들러 사용)
+      Future.delayed(const Duration(milliseconds: 500), () {
+        messageInteractionDeclaration(message);
+      });
+    }
+  }
+
+  // refactor common function for firebase messaging and local notification
+  void messageInteractionDeclaration(RemoteMessage message) async {
+    final String screenType = message.data['screen'] ?? '';
+
+    final context = navigatorKey.currentContext;
+    if (context == null) {
+      dev.log('Navigator context is null. Cannot navigate.');
+      return;
+    }
+
+    dev.log('Processing notification for screen: $screenType');
+
+    final navToggle =
+        Provider.of<NavigationToggleProvider>(context, listen: false);
+    final homeWrite = Provider.of<HomeToWrite>(context, listen: false);
+    final mailController = Provider.of<MailController>(context, listen: false);
+
+    try {
+      switch (screenType) {
+        // 1. 편지 상세 화면
+        case NotificationType.letterDetail:
+          dev.log('Navigating to letter_detail');
+
+          var (isSuccess, item) = await mailController
+              .checkForNewLetterNewNotificationsAndSaveLetterToLocal();
+
+          if (isSuccess && item != null) {
+            navigatorKey.currentState?.push(
+              PageRouteBuilder(
+                pageBuilder: (_, __, ___) => DetailView(
+                  item: item,
+                  mailController: mailController,
+                ),
+                transitionsBuilder: (_, animation, __, child) => FadeTransition(
+                  opacity: animation,
+                  child: child,
+                ),
+                transitionDuration: const Duration(milliseconds: 400),
+              ),
+            );
+          }
+          break;
+
+        // 2. 공감 일기 상세 화면
+        case NotificationType.likedDiaryDetail:
+          final String likedDiaryId = message.data['likedDiaryId'] ?? '';
+          if (likedDiaryId.isEmpty) return;
+
+          dev.log('Navigating to liked_diary_detail: $likedDiaryId');
+
+          // [Refactored] 공통 함수 사용
+          try {
+            Diary diary = await readDiaryDataFromDB(likedDiaryId);
+            homeWrite.readMyDiary(diary);
+            navToggle.selectIndex(0);
+            homeWrite.toggleWrite();
+          } catch (e) {
+            dev.log('Failed to load liked diary: $e');
+          }
+          break;
+
+        // 3. 다른 사람 일기 상세 화면
+        case NotificationType.otherDiaryDetail:
+          final String diaryId = message.data['likedDiaryId'] ?? '';
+          if (diaryId.isEmpty) return;
+
+          dev.log('Navigating to other_diary_detail: $diaryId');
+
+          try {
+            final diary = await readDiaryDataFromDB(diaryId);
+            homeWrite.setOtherDiary(diary);
+            navToggle.selectIndex(0);
+          } catch (e) {
+            dev.log('Failed to load other diary: $e');
+          }
+          break;
+
+        default:
+          dev.log('Unknown screen type or no related action');
+          break;
+      }
+    } catch (e) {
+      dev.log('Error handling notification navigation: $e');
+    }
+  }
+
+  Future<Letter> readLetterDataFromDB(String letterId) async {
+    DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('letters')
+        .doc(letterId)
+        .get();
+
+    if (documentSnapshot.exists) {
+      return Letter.fromSnapshot(documentSnapshot);
+    } else {
+      throw Exception('Letter not found');
+    }
+  }
+
+  Future<Diary> readDiaryDataFromDB(String diaryId) async {
+    final documentSnapshot = await FirebaseFirestore.instance
+        .collection('allDiary')
+        .doc(diaryId)
+        .get();
+
+    if (!documentSnapshot.exists) {
+      throw Exception('Diary not found');
+    }
+    return Diary.fromSnapshot(documentSnapshot);
   }
 
   // send liked Diary notification
@@ -378,58 +500,25 @@ class AlarmController with ChangeNotifier {
     }
   }
 
-  Future<Letter> readLetterDataFromDB(String letterId) async {
-    DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(userId)
-        .collection('letters')
-        .doc(letterId) // 문서 ID를 doc() 메서드로 전달
-        .get();
-
-    if (documentSnapshot.exists) {
-      return Letter.fromSnapshot(documentSnapshot); // DocumentSnapshot을 바로 전달
-    } else {
-      throw Exception('Letter not found');
-    }
-  }
-
-  Future<Diary> readLikedDiaryDataFromDB(String likedDiaryId) async {
-    final documentSnapshot = await FirebaseFirestore.instance
-        .collection('allDiary')
-        .doc(likedDiaryId)
-        .get();
-    return Diary.fromSnapshot(documentSnapshot);
-  }
-
   Future<void> subscribeToDailyReminder(String langCode) async {
     // langCode: 'ko' 또는 'en'
 
     // 1. 기존 구독 취소 (언어 변경 시 이전 언어 구독 해제)
     // (필요하다면 로직 추가: ko -> en 변경 시 daily_reminder_ko는 unsubscribe)
-    await FirebaseMessaging.instance.unsubscribeFromTopic('daily_reminder_ko');
-    await FirebaseMessaging.instance.unsubscribeFromTopic('daily_reminder_en');
+    await FirebaseMessaging.instance
+        .unsubscribeFromTopic(NotificationTopic.dailyReminderKo);
+    await FirebaseMessaging.instance
+        .unsubscribeFromTopic(NotificationTopic.dailyReminderEn);
 
     // 2. 현재 언어에 맞는 토픽 구독
-    String topic =
-        (langCode == 'ko') ? 'daily_reminder_ko' : 'daily_reminder_en';
+    String topic = (langCode == 'ko')
+        ? NotificationTopic.dailyReminderKo
+        : NotificationTopic.dailyReminderEn;
     await FirebaseMessaging.instance.subscribeToTopic(topic);
 
     dev.log("Subscribed to topic: $topic");
   }
 
-  Future<Diary> readOtherDiaryDataFromDB(String diaryId) async {
-    final documentSnapshot = await FirebaseFirestore.instance
-        .collection('allDiary')
-        .doc(diaryId)
-        .get();
-
-    if (!documentSnapshot.exists) {
-      throw Exception('Other diary not found: $diaryId');
-    }
-    return Diary.fromSnapshot(documentSnapshot);
-  }
-
-  // AlarmController 안에 추가
   Future<void> showLocalOtherDiaryNotification({
     required String diaryId,
   }) async {
@@ -440,8 +529,8 @@ class AlarmController with ChangeNotifier {
         presentSound: true,
       ),
       android: AndroidNotificationDetails(
-        "1",
-        "local notification",
+        NotificationConfig.channelId,
+        NotificationConfig.channelName,
         importance: Importance.max,
         priority: Priority.high,
         channelShowBadge: true,
@@ -449,10 +538,12 @@ class AlarmController with ChangeNotifier {
     );
 
     const campaignId = "notification_other_diary_v1";
-    final payload = "other_diary_detail//$diaryId/$campaignId";
+    // 구분자(|)를 사용하여 페이로드 생성
+    final payload = "other_diary_detail||$diaryId|$campaignId";
 
+    // 32비트 정수 범위 내에서 ID 생성 (Int32 Max: 2147483647)
     final int notifId =
-        DateTime.now().millisecondsSinceEpoch.remainder(1 << 31);
+        DateTime.now().millisecondsSinceEpoch.remainder(2147483647);
 
     await _local.show(
       notifId,

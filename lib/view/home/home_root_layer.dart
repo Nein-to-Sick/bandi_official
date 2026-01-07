@@ -104,7 +104,7 @@ class _HomeRootLayerState extends State<HomeRootLayer>
 
     if (alarm.type == AlarmType.likedDiary) {
       final Diary diary =
-          await alarmController.readLikedDiaryDataFromDB(alarm.dataId);
+          await alarmController.readDiaryDataFromDB(alarm.dataId);
 
       writeProvider.readMyDiary(diary);
       navigationToggleProvider.selectIndex(0);
@@ -151,7 +151,7 @@ class _HomeRootLayerState extends State<HomeRootLayer>
 
     if (alarm.type == AlarmType.otherDiary) {
       final Diary otherDiary =
-          await alarmController.readOtherDiaryDataFromDB(alarm.dataId);
+          await alarmController.readDiaryDataFromDB(alarm.dataId);
       writeProvider.setOtherDiary(otherDiary);
       return;
     }
