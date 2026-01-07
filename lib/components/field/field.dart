@@ -77,7 +77,7 @@ class _CustomFieldState extends State<CustomField> {
 
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
-          vertical: 8,
+          vertical: 7.5,
         ),
 
         border: OutlineInputBorder(

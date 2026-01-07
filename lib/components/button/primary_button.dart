@@ -59,7 +59,7 @@ class _CustomPrimaryButtonState extends State<CustomPrimaryButton> {
                 borderRadius: BandiEffects.radiusLarge)
             : BoxDecoration(
                 color: widget.disableButton
-                    ? BandiColor.foundationColor40(context)
+                    ? BandiColor.foundationColor10(context)
                     : isPressed
                         ? BandiColor.foundationColor40(context)
                         : BandiColor.foundationColor90(context),
@@ -88,7 +88,7 @@ class _CustomPrimaryButtonState extends State<CustomPrimaryButton> {
                       color: reverse
                           ? BandiColor.foundationColor80(context)
                           : widget.disableButton
-                              ? BandiColor.neutralColor20(context)
+                              ? BandiColor.neutralColor40(context)
                               : BandiColor.neutralColor90(context),
                     )
                   : BandiFont.labelLarge(context)?.copyWith(

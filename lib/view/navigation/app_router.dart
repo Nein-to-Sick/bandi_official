@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:bandi_official/view/home/home_view.dart';
 import 'package:bandi_official/view/login/login_view.dart';
 import 'package:bandi_official/view/mail/mail_view.dart';
-import 'package:bandi_official/view/user/user_view.dart';
 import 'package:bandi_official/components/loading/loading_page.dart';
 
 import '../../controller/home_to_write.dart';
@@ -14,6 +13,7 @@ import '../mail/controller/mail_controller.dart';
 import '../alarm/controller/alarm_controller.dart';
 import '../login/onboarding_gate.dart';
 import '../../string_extention.dart';
+import '../settings/user_view.dart';
 
 class AppRouter {
   static Widget buildMain({

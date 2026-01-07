@@ -1,19 +1,19 @@
 import 'dart:developer';
 
-import 'package:bandi_official/view/writing/controller/emotion_provider.dart';
 import 'package:bandi_official/controller/permission_controller.dart';
 import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
-import 'package:bandi_official/view/user/eula_agreement.dart';
-import 'package:bandi_official/view/user/privacy_policy.dart';
-import 'package:bandi_official/view/user/settings_home.dart';
-import 'package:bandi_official/view/user/terms_of_use.dart';
+import 'package:bandi_official/view/settings/privacy_policy.dart';
+import 'package:bandi_official/view/settings/settings_home.dart';
+import 'package:bandi_official/view/settings/terms_of_use.dart';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../controller/navigation_toggle_provider.dart';
 import 'account_management.dart';
 import 'company_info.dart';
+import 'eula_agreement.dart';
 import 'nickname_change.dart';
 import 'oss_licenses.dart';
 
