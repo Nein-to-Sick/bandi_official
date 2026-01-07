@@ -50,23 +50,27 @@ class _CustomSecondaryButtonState extends State<CustomSecondaryButton> {
             },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 100),
-        width: 327,
-        height: 46,
+        width: MediaQuery.of(context).size.width,
         decoration: BoxDecoration(
           color: (widget.disableButton)
               ? BandiColor.neutralColor20(context) // Disabled
               : (isPressed)
-                  ? BandiColor.neutralColor60(context) // Pressed
-                  : BandiColor.neutralColor20(context), // Default
+                  ? BandiColor.foundationColor80(context) // Pressed
+                  : BandiColor.foundationColor10(context), // Default
           borderRadius: BandiEffects.radiusSmall,
         ),
-        child: Center(
-          child: Text(
-            widget.title,
-            style: BandiFont.bodyMedium(context)?.copyWith(
-              color: (widget.disableButton)
-                  ? BandiColor.neutralColor20(context) // Disabled
-                  : BandiColor.neutralColor100(context), // Default
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12.0),
+          child: Center(
+            child: Text(
+              widget.title,
+              style: BandiFont.bodyMedium(context)?.copyWith(
+                color: (widget.disableButton)
+                    ? BandiColor.neutralColor20(context) // Disabled
+                    : (isPressed)
+                    ? BandiColor.neutralColor80(context) // Pressed
+                    : BandiColor.foundationColor80(context), // Default
+              ),
             ),
           ),
         ),

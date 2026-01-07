@@ -140,11 +140,12 @@ class _NavigationViewState extends State<NavigationView> {
               (snapshot.hasData && snapshot.data == true);
 
           return Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               image: DecorationImage(
                 fit: BoxFit.cover,
                 image:
-                    AssetImage('assets/images/backgrounds/background_dark.png'),
+                nav.selectedIndex != 3 ? const AssetImage('assets/images/backgrounds/background_dark.png')
+                     : const AssetImage('assets/images/backgrounds/background_blur.png')
               ),
             ),
             child: isOk
