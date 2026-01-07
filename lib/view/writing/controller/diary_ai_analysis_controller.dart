@@ -21,7 +21,7 @@ class DiaryAIAnalysisController with ChangeNotifier {
     await Future.wait([
       analyzeDiaryKeyword(diaryModel),
       analyzeDiaryTitle(diaryModel, langCode),
-      analyzeDiaryEncouragement(diaryModel, langCode),
+      // analyzeDiaryEncouragement(diaryModel, langCode),
     ]);
     notifyListeners();
   }
@@ -91,6 +91,7 @@ Example Output:
     // [프롬프트 개선]
     // 1. 역할: 감성적인 제목 작가
     // 2. 제약: 길이 제한, 특수문자(따옴표) 제거, 불필요한 서식 금지
+    // 3. [추가] 예외 처리: 무의미한 입력(초성, 너무 짧은 글) 방지
     final systemContent = isKorean
         ? """
 너는 사용자의 하루를 함축하는 감성적인 일기 제목 작가야. 일기 내용을 읽고 다음 조건에 맞춰 제목을 지어줘.
@@ -100,6 +101,9 @@ Example Output:
 2. 20자 이내의 간결한 문장이나 단어 조합으로 작성할 것.
 3. 따옴표(" "), 마침표(.), '제목:' 같은 불필요한 기호를 절대 포함하지 말 것.
 4. 한국어로 작성할 것.
+
+[예외 처리 - 중요]
+만약 입력된 내용이 너무 짧거나(5자 미만), 의미를 알 수 없는 초성(예: 'ㅎㅇ', 'ㅋㅋ'), 또는 단순한 인사말이라면, 제목을 짓지 말고 정확히 "무제"라고만 출력해. 절대로 대답하거나 말을 걸지 마.
 """
         : """
 You are an empathetic diary title creator. Read the diary entry and create a title based on the following constraints.
@@ -109,6 +113,9 @@ You are an empathetic diary title creator. Read the diary entry and create a tit
 2. Keep it concise (under 10 words).
 3. Do NOT use quotation marks (" "), periods (.), or prefixes like 'Title:'.
 4. Write in English.
+
+[Exception Handling]
+If the input is too short, meaningless, or just a greeting (e.g., "Hi"), output exactly "Untitled". Do NOT try to converse.
 """;
 
     final responseText = await _performOpenAIRequest(
@@ -118,19 +125,30 @@ You are an empathetic diary title creator. Read the diary entry and create a tit
       maxTokens: 30, // 15는 너무 짧을 수 있어 30으로 늘림 (비용 차이 미미함)
       frequencyPenalty: 0.0, // 요약 과제이므로 0.0 권장
       presencePenalty: 0.0, // -0.5는 반복을 유도할 수 있어 제거
-      temperature: 0.7, // 적당한 창의성을 위해 유지
+      temperature: 0.5, // 적당한 창의성을 위해 유지
     );
 
     if (responseText != null) {
-      // 혹시 모를 따옴표나 공백 한 번 더 제거 (안전장치)
-      diaryModel.title =
+      String cleanTitle =
           responseText.replaceAll('"', '').replaceAll("'", "").trim();
+
+      // [후처리] 모델이 "무제" 또는 "Untitled"를 반환했거나, 여전히 이상한 답을 했을 경우 기본값 처리
+      if (cleanTitle == "무제" ||
+          cleanTitle == "Untitled" ||
+          cleanTitle.length < 2) {
+        // 실패 시 로컬 기본값 설정 (날짜 기반)
+        String tempDiaryTitle = (isKorean)
+            ? "${DateFormat('yyyy-MM-dd').format(DateTime.now()).toString()}의 일기"
+            : "Diary of ${DateFormat('yyyy-MM-dd').format(DateTime.now()).toString()}";
+        diaryModel.title = tempDiaryTitle;
+      } else {
+        diaryModel.title = cleanTitle;
+      }
     } else {
-      // 실패 시 로컬 기본값 설정 (날짜 기반)
+      // API 실패 시
       String tempDiaryTitle = (isKorean)
           ? "${DateFormat('yyyy-MM-dd').format(DateTime.now()).toString()}의 일기"
           : "Diary of ${DateFormat('yyyy-MM-dd').format(DateTime.now()).toString()}";
-
       diaryModel.title = tempDiaryTitle;
     }
     notifyListeners();

@@ -88,7 +88,7 @@ class SecondStep extends StatelessWidget {
                             writeProvider.diaryModel.diaryId,
                           );
 
-                          navigationToggleProvider.selectIndex(0);
+                          navigationToggleProvider.selectIndex(1);
                           writeProvider.toggleWrite();
                         }
                       }

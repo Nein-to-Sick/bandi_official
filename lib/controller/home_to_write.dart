@@ -71,7 +71,7 @@ class HomeToWrite with ChangeNotifier {
   Future<void> aiAndSaveDiary(BuildContext context) async {
     String langCode = Localizations.localeOf(context).languageCode;
     MyDiaryListController myDiaryListController =
-        context.watch<MyDiaryListController>();
+        Provider.of<MyDiaryListController>(context, listen: false);
     await aiDiary(context, langCode);
     await saveDiary();
     myDiaryListController.saveMyDiaryToLocal(diaryModel);
