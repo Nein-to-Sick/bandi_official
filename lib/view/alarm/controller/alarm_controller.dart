@@ -40,6 +40,7 @@ class NotificationConfig {
   static const String channelId = '1';
   static const String channelName = 'local notification';
   static const String defaultCampaignId = 'notification_open_v1';
+  static const Color backgroundColor = Colors.black;
 }
 
 class AlarmController with ChangeNotifier {
@@ -136,7 +137,7 @@ class AlarmController with ChangeNotifier {
   // 1. 로컬 알림 초기화 (기존 로직 유지 + 클릭 리스너 보강)
   Future<void> localNotificationInitialization() async {
     const AndroidInitializationSettings android =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+        AndroidInitializationSettings('ic_notification');
     const DarwinInitializationSettings ios = DarwinInitializationSettings();
     const InitializationSettings settings =
         InitializationSettings(android: android, iOS: ios);
@@ -218,6 +219,7 @@ class AlarmController with ChangeNotifier {
             importance: Importance.max,
             priority: Priority.high,
             channelShowBadge: true,
+            color: NotificationConfig.backgroundColor,
           ),
         );
 
@@ -535,12 +537,11 @@ class AlarmController with ChangeNotifier {
         presentSound: true,
       ),
       android: AndroidNotificationDetails(
-        NotificationConfig.channelId,
-        NotificationConfig.channelName,
-        importance: Importance.max,
-        priority: Priority.high,
-        channelShowBadge: true,
-      ),
+          NotificationConfig.channelId, NotificationConfig.channelName,
+          importance: Importance.max,
+          priority: Priority.high,
+          channelShowBadge: true,
+          color: NotificationConfig.backgroundColor),
     );
 
     const campaignId = "notification_other_diary_v1";
@@ -633,6 +634,7 @@ class AlarmController with ChangeNotifier {
       importance: Importance.max,
       priority: Priority.high,
       channelShowBadge: true,
+      color: NotificationConfig.backgroundColor,
     );
 
     const NotificationDetails details = NotificationDetails(
