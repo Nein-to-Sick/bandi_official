@@ -14,7 +14,6 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import '../../components/bottom_sheet/show_floating_confirm_sheet.dart';
 import '../../components/button/primary_button.dart';
 import '../../components/button/secondary_button.dart';
-import '../../components/dialogue/reset_dialogue.dart';
 import '../mail/controller/mail_controller.dart';
 import '../../controller/navigation_toggle_provider.dart';
 import '../../controller/securestorage_controller.dart';
@@ -78,53 +77,44 @@ class _AccountManagementState extends State<AccountManagement> {
               CustomPrimaryButton(
                 title: 'settings_my_account_logout'.tr(context),
                 onPrimaryButtonPressed: () async {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return CustomResetDialogue(
-                        text: 'settings_my_account_logout_text'.tr(context),
-                        onYesText: 'dialogue_yes'.tr(context),
-                        onNoText: 'dialogue_no'.tr(context),
-                        onYesFunction: () async {
-                          Navigator.pop(context);
-
-                          // 만약 상태가 비활성화되어 있으면 추가 작업 중지
-                          if (!mounted) return;
-
-                          // 로딩 화면 노출
-                          navigationToggleProvider.selectIndex(100);
-                          await Future.delayed(const Duration(seconds: 1));
-
-                          // if (!mounted) return;
-
-                          // 구글 로그아웃
-                          final GoogleSignIn googleSignIn = GoogleSignIn();
-                          if (await googleSignIn.isSignedIn()) {
-                            await googleSignIn.signOut();
-                          }
-
-                          // if (!mounted) return;
-
-                          // Firebase에서 로그아웃
-                          await FirebaseAuth.instance.signOut();
-
-                          // SecureStorage의 로그인 정보 삭제
-                          await _storageProvider.clearLoginInfo();
-
-                          // 사용자 정보 초기화
-                          userInfo.clearUserInfo();
-
-                          // 로그인 페이지로 이동
-                          navigationToggleProvider.selectIndex(-1);
-                        },
-                        onNoFunction: () {
-                          if (mounted) {
-                            Navigator.pop(context);
-                          }
-                        },
-                      );
-                    },
+                  final ok = await showFloatingConfirmSheet(
+                    context,
+                    title: '정말로 로그아웃 하시겠어요?',
+                    description: '위로가 필요하면 언제든 다시 로그인해 주세요.',
+                    cancelText: '취소',
+                    confirmText: '로그아웃',
                   );
+
+                  if (ok == true) {
+                    // 만약 상태가 비활성화되어 있으면 추가 작업 중지
+                    if (!mounted) return;
+
+                    // 로딩 화면 노출
+                    navigationToggleProvider.selectIndex(100);
+                    await Future.delayed(const Duration(seconds: 1));
+
+                    // if (!mounted) return;
+
+                    // 구글 로그아웃
+                    final GoogleSignIn googleSignIn = GoogleSignIn();
+                    if (await googleSignIn.isSignedIn()) {
+                      await googleSignIn.signOut();
+                    }
+
+                    // if (!mounted) return;
+
+                    // Firebase에서 로그아웃
+                    await FirebaseAuth.instance.signOut();
+
+                    // SecureStorage의 로그인 정보 삭제
+                    await _storageProvider.clearLoginInfo();
+
+                    // 사용자 정보 초기화
+                    userInfo.clearUserInfo();
+
+                    // 로그인 페이지로 이동
+                    navigationToggleProvider.selectIndex(-1);
+                  }
                 },
                 size: "small",
                 disableButton: false,

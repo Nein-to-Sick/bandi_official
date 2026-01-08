@@ -1,8 +1,6 @@
-// other_diary.dart
 import 'dart:developer' as develop;
 
 import 'package:bandi_official/components/button/primary_button.dart';
-import 'package:bandi_official/components/dialogue/reset_dialogue.dart';
 import 'package:bandi_official/controller/home_to_write.dart';
 import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';

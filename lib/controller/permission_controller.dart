@@ -1,10 +1,7 @@
-import 'package:bandi_official/components/dialogue/reset_dialogue.dart';
-import 'package:bandi_official/string_extention.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'dart:developer' as dev;
-
 import 'package:shared_preferences/shared_preferences.dart';
+import '../components/bottom_sheet/show_floating_confirm_sheet.dart';
 
 class PermissionController with ChangeNotifier {
   bool notificationPermission = false;
@@ -42,23 +39,17 @@ class PermissionController with ChangeNotifier {
       if (!status.isGranted) {
         notificationPermission = false;
         if (context.mounted) {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return CustomResetDialogue(
-                text: 'dialogue_message_alarm_setting'.tr(context),
-                onYesText: 'dialogue_close'.tr(context),
-                onNoText: 'dialogue_setting'.tr(context),
-                onYesFunction: () {
-                  Navigator.pop(context);
-                },
-                onNoFunction: () {
-                  Navigator.pop(context);
-                  openAppSettings(); // 시스템 설정으로 이동
-                },
-              );
-            },
+          final ok = await showFloatingConfirmSheet(
+            context,
+            title: '알림을 받지 않으시나요?',
+            description: '알림이 꺼지면 반디의 답장을 바로 확인할 수 없어요.',
+            cancelText: '취소',
+            confirmText: '알림 끄기',
           );
+
+          if (ok == false) {
+            openAppSettings();
+          }
         }
       } else {
         notificationPermission = true;
