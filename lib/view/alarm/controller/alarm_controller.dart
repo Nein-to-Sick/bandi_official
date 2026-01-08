@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:bandi_official/analytics/log_notification_open.dart';
 import 'package:bandi_official/controller/home_to_write.dart';
 import 'package:bandi_official/view/mail/controller/mail_controller.dart';
@@ -86,16 +88,23 @@ class AlarmController with ChangeNotifier {
         .update({'language': langCode});
   }
 
-  void firebaseOnTokenRefresh() {
+  void firebaseOnTokenRefresh() async {
+    // [추가] iOS의 경우 APNs 토큰이 설정될 때까지 대기
+    if (Platform.isIOS) {
+      String? apnsToken = await FirebaseMessaging.instance.getAPNSToken();
+      if (apnsToken == null) {
+        dev.log('APNs token is not set yet. Waiting...');
+        await Future.delayed(const Duration(seconds: 1));
+      }
+    }
+
     FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) async {
       dev.log('FCM Token Refreshed: $fcmToken');
 
-      // 1. 로그인 상태 확인 (안전장치)
       User? user = FirebaseAuth.instance.currentUser;
 
       if (user != null) {
         try {
-          // 2. DB 업데이트
           await FirebaseFirestore.instance
               .collection('users')
               .doc(user.uid)
@@ -104,7 +113,6 @@ class AlarmController with ChangeNotifier {
           dev.log('FCM Token updated in Firestore for user: ${user.uid}');
         } catch (e) {
           dev.log('Failed to update FCM token in Firestore: $e');
-          // 필요 시 Crashlytics 기록: FirebaseCrashlytics.instance.recordError(e, stack);
         }
       } else {
         dev.log('User is not logged in. Token refresh ignored.');
