@@ -1,4 +1,5 @@
 {
+  "place_holder": "Null",
   "login_title": "BANDI",
   "login_subtitle": "A small light that brightens the heart",
   "login_google": "Sign in with Google",
@@ -30,7 +31,7 @@
   "journal_calendar_header_2": "MMMM d, yyyy",
   "journal_end": "END",
   "journal_loading": "Loading...",
-  "journal_nodiary": "No Diary",
+  "journal_no_diary": "No Diary",
   "write_title_generating": "Generating Title...",
   "write_emotion_title": "Bandi's Emotion Analysis",
   "write_emotion_loading": "Analyzing emotions...",
@@ -184,7 +185,8 @@
   "ai_chat_textbar_message_2": "Begin your conversation",
   "ai_chat_date_form": "EEE, MMM d",
   "ai_chat_date_form_country": "en_US",
-  "ai_chat_system_prompt": "Your name is Bandi. Respond in English like a friend using casual speech. Keep answers short and concise, within 3 sentences, and only make suggestions when practical help is requested.",
+  "ai_chat_today": "Today",
+  "ai_chat_system_prompt": "You are 'Bandi', a warm and supportive psychological counselor friend who deeply empathizes with the user. 1. Always use casual, friendly speech (like a close friend). 2. Prioritize empathy and validation over problem-solving. Acknowledge their feelings first. 3. Keep responses warm and affectionate, but concise (within 3-5 sentences). 4. Do not offer advice unless explicitly asked. Instead, ask open-ended questions to help the user explore their feelings further.",
   "ai_chat_greeting": "Hi! What's on your mind?",
   "ai_chat_assistant_message_guide": "Start a conversation like this!",
   "ai_chat_assistant_message_1": "I'm feeling good today. How about you?",
@@ -247,5 +249,8 @@
   "onboarding_nickname_button": "Confirm",
   "onboarding_nickname_empty": "no Nickname",
   "sharing_diary_on": "Share journal with others",
-  "sharing_diary_off": "View journal privately"
+  "sharing_diary_off": "View journal privately",
+  "calendar_header_format": "MMMM yyyy",
+  "calendar_year_format": "yyyy",
+  "calendar_selection_reset": "Reset"
 }

@@ -1,9 +1,10 @@
+/*
 import 'package:bandi_official/components/appbar/appbar.dart';
 import 'package:bandi_official/components/button/primary_button.dart';
 import 'package:bandi_official/components/loading/loading_page.dart';
-import 'package:bandi_official/controller/alarm_controller.dart';
+import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
 import 'package:bandi_official/controller/home_to_write.dart';
-import 'package:bandi_official/controller/mail_controller.dart';
+import 'package:bandi_official/view/mail/controller/mail_controller.dart';
 import 'package:bandi_official/controller/navigation_toggle_provider.dart';
 import 'package:bandi_official/model/alarm.dart';
 import 'package:bandi_official/model/diary.dart';
@@ -50,8 +51,8 @@ class _AlarmViewState extends State<AlarmView> {
     final NavigationToggleProvider navigationToggleProvider =
         context.watch<NavigationToggleProvider>();
 
-    return WillPopScope(
-      onWillPop: () => Future(() => false),
+    return PopScope(
+      canPop: false,
       child: Scaffold(
         resizeToAvoidBottomInset: true,
         backgroundColor: BandiColor.neutralColor80(context),
@@ -133,7 +134,7 @@ class _AlarmViewState extends State<AlarmView> {
                                     if (notifications[index].type ==
                                         AlarmType.likedDiary) {
                                       Diary diary = await alarmController
-                                          .readLikedDiaryDataFromDB(
+                                          .readDiaryDataFromDB(
                                               notifications[index].dataId);
                                       writeProvider.readMyDiary(diary);
                                       navigationToggleProvider.selectIndex(0);
@@ -153,19 +154,16 @@ class _AlarmViewState extends State<AlarmView> {
 
                                       WidgetsBinding.instance
                                           .addPostFrameCallback((_) {
-                                        showDialog(
-                                          context:
-                                              alarmController.navigationContext,
-                                          barrierDismissible: false,
-                                          barrierColor:
-                                              BandiColor.transparent(context),
-                                          builder: (BuildContext context) {
-                                            return DetailView(
-                                              item: letter,
-                                              mailController: mailController,
-                                            );
-                                          },
-                                        );
+                                        DetailViewSheet(
+                                                item: letter,
+                                                mailController: mailController)
+                                            .show(context)
+                                            .then((_) {
+                                          if (context.mounted) {
+                                            mailController
+                                                .toggleDetailView(false);
+                                          }
+                                        });
                                       });
                                     }
 
@@ -258,7 +256,7 @@ class _AlarmViewState extends State<AlarmView> {
                           ),
                           Text(
                             'notification_message'.tr(context),
-                            style: BandiFont.headlineSmall(context)?.copyWith(
+                            style: BandiFont.bodyMedium(context)?.copyWith(
                               color: BandiColor.foundationColor60(context),
                             ),
                           ),
@@ -287,3 +285,4 @@ class _AlarmViewState extends State<AlarmView> {
     );
   }
 }
+*/

@@ -1,11 +1,12 @@
+import 'package:bandi_official/analytics/log_other_journal_search.dart';
 import 'package:bandi_official/components/loading/loading_page.dart';
-import 'package:bandi_official/controller/mail_controller.dart';
+import 'package:bandi_official/view/mail/controller/mail_controller.dart';
 import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/mail/detail_view.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'dart:developer' as dev;
 
@@ -18,58 +19,6 @@ class LikedDiaryPage extends StatefulWidget {
 
 class _LikedDiaryPageState extends State<LikedDiaryPage> {
   late MailController mailController;
-
-  Widget filterChips(MailController mailController) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Wrap(
-        spacing: 10.0,
-        runSpacing: 8.0,
-        children: mailController.chipLabels.map((label) {
-          return IntrinsicWidth(
-            child: GestureDetector(
-              onTap: () {
-                mailController.updateFilter(label);
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  color: (mailController
-                              .chipLabels[mailController.filteredKeywordValue]
-                              .compareTo(label) ==
-                          0)
-                      ? BandiColor.foundationColor40(context)
-                      : BandiColor.neutralColor10(context),
-                  borderRadius: BorderRadius.circular(100),
-                ),
-                constraints: const BoxConstraints(
-                  minHeight: 29,
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 5,
-                  ),
-                  child: Center(
-                    child: Text(
-                      label.tr(context),
-                      style: BandiFont.labelLarge(context)?.copyWith(
-                        color: (mailController.chipLabels[
-                                        mailController.filteredKeywordValue]
-                                    .compareTo(label) ==
-                                0)
-                            ? BandiColor.neutralColor100(context)
-                            : BandiColor.neutralColor60(context),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
 
   @override
   void initState() {
@@ -94,15 +43,16 @@ class _LikedDiaryPageState extends State<LikedDiaryPage> {
   }
 
   void _scrollListener() async {
+    if (!mailController.loadMoreLikedDiaryData ||
+        mailController.isLoadingLikedDiary) {
+      return;
+    }
+
     final position = mailController.likedDiaryScrollController.position;
-    if (mailController.loadMoreLikedDiaryData &&
-        position.atEdge &&
-        position.pixels != 0) {
-      if (position.userScrollDirection == ScrollDirection.reverse &&
-          position.maxScrollExtent - position.pixels <= 300) {
-        mailController.toggleLoadMoreLikedDiaryData(
-            await mailController.loadMoreLikedDiary());
-      }
+
+    if (position.maxScrollExtent - position.pixels <= 200) {
+      bool hasMore = await mailController.loadMoreLikedDiary();
+      mailController.toggleLoadMoreLikedDiaryData(hasMore);
     }
   }
 
@@ -119,105 +69,122 @@ class _LikedDiaryPageState extends State<LikedDiaryPage> {
   Widget build(BuildContext context) {
     MailController mailController = context.watch<MailController>();
 
+    final allDiaries = mailController.likedDiaryList;
+    final DateTime? filterDate = mailController.likedDiaryFilteredDate;
+
+    // 선택된 날짜가 있으면 해당 날짜만, 없으면 전체 리스트
+    final displayList = filterDate == null
+        ? allDiaries
+        : allDiaries.where((diary) {
+            // diary.otherUserLikedAt 형식: "2024-07-25"
+            String targetDateString =
+                filterDate.toIso8601String().substring(0, 10);
+            return diary.otherUserLikedAt.startsWith(targetDateString);
+          }).toList();
+
     return (mailController.isLoading)
         ? MyFireFlyProgressbar(
             loadingText: 'loading'.tr(context),
           )
-        : (mailController.likedDiaryList.isEmpty)
-            ? Center(
-                child: Text(
-                  'inbox_no_reacted_diaries'.tr(context),
-                  style: BandiFont.headlineMedium(context)?.copyWith(
-                    color: BandiColor.neutralColor80(context),
-                  ),
+        : (displayList.isEmpty)
+            ? _buildEmptyState(filterDate != null, mailController, context)
+            : Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: ListView.builder(
+                  controller: mailController.likedDiaryScrollController,
+                  itemCount: displayList.length,
+                  itemBuilder: (context, index) {
+                    return Column(
+                      children: [
+                        likedDiaryWidget(
+                            displayList[index], mailController, context),
+                        if (index == displayList.length - 1)
+                          SizedBox(
+                            height: MediaQuery.of(context).padding.bottom + 188,
+                          )
+                      ],
+                    );
+                  },
                 ),
-              )
-            : Column(
-                children: [
-                  const SizedBox(height: 16),
-                  filterChips(mailController),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 10),
-                      child: ListView.builder(
-                        controller: mailController.likedDiaryScrollController,
-                        itemCount: mailController.likedDiaryList.length,
-                        itemBuilder: (context, index) {
-                          Diary diary = mailController.likedDiaryList[
-                              mailController.likedDiaryList.length - index - 1];
-                          return likedDiaryWidget(
-                              diary, mailController, context);
-                        },
-                      ),
-                    ),
-                  ),
-                ],
               );
   }
 }
 
+// 데이터가 없을 때 표시할 위젯
+Widget _buildEmptyState(
+    bool isFiltered, MailController mailController, BuildContext context) {
+  return Center(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          'inbox_no_reacted_diaries'.tr(context),
+          style: BandiFont.headlineMedium(context)?.copyWith(
+            color: BandiColor.neutralColor80(context),
+          ),
+        ),
+        // const SizedBox(height: 24),
+        // if (isFiltered)
+        //   TextButton(
+        //     onPressed: () => mailController.updateCalendarSelectedDate(null),
+        //     child: Text(
+        //       'calendar_selection_reset'.tr(context),
+        //       style: BandiFont.labelMedium(context)
+        //           ?.copyWith(color: BandiColor.neutralColor80(context)),
+        //     ),
+        //   ),
+      ],
+    ),
+  );
+}
+
 Widget likedDiaryWidget(
     Diary diary, MailController mailController, BuildContext context) {
-  String combinedEmotions = (diary.emotion).join(', ');
-  return (mailController.currentIndex == 0 ||
-          mailController.filteredKeywordValue == 0 ||
-          mailController.filteredKeywordValue == diary.otherUserReaction + 1)
+  DateTime parsedDate = DateTime.parse(diary.otherUserLikedAt);
+
+  String date = DateFormat('detail_view_diary_date_form'.tr(context),
+          'detail_view_date_form_country'.tr(context))
+      .format(parsedDate);
+
+  return (mailController.filteredchipLabels
+          .contains(diary.otherUserReaction + 1))
       ? Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: GestureDetector(
-            // 일기 열람 기능 추가
             onTap: () {
+              logOtherJournalSearch(journalType: 'others');
               mailController.toggleDetailView(true);
-              showDialog(
-                context: context,
-                barrierDismissible: false,
-                barrierColor: BandiColor.transparent(context),
-                builder: (BuildContext context) {
-                  return DetailView(
-                    item: diary,
-                    mailController: mailController,
-                  );
-                },
-              );
+              DetailViewSheet(item: diary, mailController: mailController)
+                  .show(context)
+                  .then((_) {
+                if (context.mounted) {
+                  mailController.toggleDetailView(false);
+                }
+              });
             },
             child: Container(
-              color: BandiColor.transparent(context),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              decoration: BoxDecoration(
+                color: BandiColor.transparent(context),
+                border: Border(
+                  bottom: BorderSide(
+                      color: BandiColor.neutralColor20(context), width: 1),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(diary.title,
-                      style: BandiFont.headlineMedium(context)?.copyWith(
-                          color: BandiColor.neutralColor100(context))),
-                  const SizedBox(height: 8),
                   Text(
-                    diary.content,
-                    maxLines: 2,
+                    diary.title,
+                    style: BandiFont.titleSmall(context)
+                        ?.copyWith(color: BandiColor.neutralColor90(context)),
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: BandiFont.headlineSmall(context)
+                  ),
+                  Text(
+                    date,
+                    style: BandiFont.labelSmall(context)
                         ?.copyWith(color: BandiColor.neutralColor60(context)),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Text(
-                        diary.otherUserLikedAt,
-                        style: BandiFont.headlineSmall(context)?.copyWith(
-                            color: BandiColor.neutralColor60(context)),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          combinedEmotions,
-                          style: BandiFont.headlineSmall(context)?.copyWith(
-                              color: BandiColor.neutralColor60(context)),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Divider(
-                    color: BandiColor.neutralColor20(context),
                   ),
                 ],
               ),

@@ -49,7 +49,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
         backgroundColor: BandiColor.transparent(context),
         title: Text(
           widget.title ?? '',
-          style: BandiFont.displaySmall(context)?.copyWith(
+          style: BandiFont.headlineMedium(context)?.copyWith(
             color: (widget.titleColor != null)
                 ? widget.titleColor
                 : BandiColor.neutralColor100(context),
@@ -58,24 +58,13 @@ class _CustomAppBarState extends State<CustomAppBar> {
         centerTitle: true,
         leading: (widget.isVisibleLeadingButton ?? true)
             ? Container(
-                // padding: const EdgeInsets.symmetric(
-                //   vertical: 8,
-                //   horizontal: 16,
-                // ),
                 child: widget.title == 'journal_title'.tr(context)
-                    ? IconButton(
-                        icon: PhosphorIcon(
-                          PhosphorIcons.arrowUDownLeft(),
-                          color: (widget.disableLeadingButton ?? false
-                              ? BandiColor.neutralColor20(context)
-                              : BandiColor.neutralColor80(context)),
-                          size: 24,
-                        ),
-                        onPressed: () {
-                          (widget.disableLeadingButton ?? false)
-                              ? null
-                              : widget.onLeadingIconPressed!();
-                        },
+                    ? CustomIconButton(
+                        icon: PhosphorIcons.arrowUDownLeft(),
+                        onIconButtonPressed:
+                            widget.onLeadingIconPressed ?? () {},
+                        disableButton: widget.disableLeadingButton ?? false,
+                        iconColor: widget.leadingIconColor,
                       )
                     : CustomIconButton(
                         onIconButtonPressed:
@@ -87,21 +76,12 @@ class _CustomAppBarState extends State<CustomAppBar> {
             : const SizedBox.shrink(),
         actions: [
           if (widget.isVisibleTrailingButton ?? true)
-            IconButton(
-              icon: PhosphorIcon(
-                widget.trailingIcon ?? PhosphorIcons.x(PhosphorIconsStyle.fill),
-                color: (widget.trailingIconColor != null)
-                    ? widget.trailingIconColor
-                    : widget.disableTrailingButton ?? false
-                        ? BandiColor.neutralColor20(context)
-                        : BandiColor.neutralColor80(context),
-                size: 24,
-              ),
-              onPressed: () {
-                (widget.disableTrailingButton ?? false)
-                    ? null
-                    : widget.onTrailingIconPressed!();
-              },
+            CustomIconButton(
+              icon: widget.trailingIcon ??
+                  PhosphorIcons.x(PhosphorIconsStyle.fill),
+              onIconButtonPressed: widget.onTrailingIconPressed ?? () {},
+              disableButton: widget.disableTrailingButton ?? false,
+              iconColor: widget.trailingIconColor,
             ),
         ],
       ),

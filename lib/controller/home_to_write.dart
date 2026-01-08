@@ -2,26 +2,21 @@ import 'dart:async';
 import 'dart:developer' as developer;
 import 'dart:math';
 
-import 'package:bandi_official/controller/diary_ai_analysis_controller.dart';
+import 'package:bandi_official/analytics/log_other_diary_received.dart';
+import 'package:bandi_official/controller/user_info_controller.dart';
+import 'package:bandi_official/view/my_diary_list/controller/my_diary_list_controller.dart';
+import 'package:bandi_official/view/writing/controller/diary_ai_analysis_controller.dart';
 import 'package:bandi_official/model/diary.dart';
-import 'package:bandi_official/utils/time_utils.dart';
 import 'package:bandi_official/model/keyword.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:developer' as dev;
 
-/*
-gpt 호출의 경우 Diary 모델을 인수로 전달해주시면 됩니다!
-(이미 diary의 변수가 초기화(content 내용 등)된 이후에 호출되어야 합니다)
-
-D:\flutter project\bandi_official\lib\model\diary.dart
-diary 모델은 아래 코드에서 사용하는 변수 기준으로 수정했으며,
-toMap, update, intialize 등 초기화 함수도 작성해놨습니다
-아마 gpt 물어보시면 어떻게 쓰는지 알아서 짜줄겁니다
-*/
+import '../view/alarm/controller/alarm_controller.dart';
 
 class HomeToWrite with ChangeNotifier {
   Diary diaryModel = Diary(
@@ -29,8 +24,8 @@ class HomeToWrite with ChangeNotifier {
     title: 'title',
     content: '',
     emotion: ['emotion'],
-    createdAt: timestampToLocal(Timestamp.now()),
-    updatedAt: timestampToLocal(Timestamp.now()),
+    createdAt: Timestamp.now(),
+    updatedAt: Timestamp.now(),
     reaction: [0, 0, 0],
     diaryId: 'diaryId',
   );
@@ -63,7 +58,6 @@ class HomeToWrite with ChangeNotifier {
     notifyListeners();
   }
 
-
   //--------------step 2--------------------------------------------------------
 
   void initialize() {
@@ -76,8 +70,11 @@ class HomeToWrite with ChangeNotifier {
 
   Future<void> aiAndSaveDiary(BuildContext context) async {
     String langCode = Localizations.localeOf(context).languageCode;
+    MyDiaryListController myDiaryListController =
+        Provider.of<MyDiaryListController>(context, listen: false);
     await aiDiary(context, langCode);
     await saveDiary();
+    myDiaryListController.saveMyDiaryToLocal(diaryModel);
     if (diaryModel.emotion.length >= 2) {
       Emotion emotion = classifyEmotion(diaryModel.emotion);
       if (emotion != Emotion.unknown) {
@@ -86,7 +83,17 @@ class HomeToWrite with ChangeNotifier {
         String returnDiaryId = await scanAndCompareEmotionTimestamps(
             emotionString, diaryModel.diaryId);
         if (_isPublic) {
-          sendOtherDiary(returnDiaryId);
+          final alarmController = context.read<AlarmController>();
+          final userInfo = context.read<UserInfoValueModel>();
+          final myNickname = userInfo.nickname;
+
+          await sendOtherDiary(
+            diaryId: returnDiaryId,
+            alarmController: alarmController,
+            username: myNickname,
+          );
+
+          await logOtherDiaryReceived();
         }
       }
     }
@@ -95,14 +102,7 @@ class HomeToWrite with ChangeNotifier {
   Future<void> aiDiary(BuildContext context, String langCode) async {
     DiaryAIAnalysisController diaryAIAnalysisController =
         context.read<DiaryAIAnalysisController>();
-
-    // 각 analysis 함수에서 diary 모델의 변수를 초기화 하고 notifyListeners()를 호출합니다.
-    // 화면에 보여지는 변수를 model의 변수로 변경하면 됩니다.
-    await diaryAIAnalysisController.analyzeDiaryKeyword(diaryModel);
-    await diaryAIAnalysisController.analyzeDiaryTitle(diaryModel, langCode);
-    await diaryAIAnalysisController.analyzeDiaryEncouragement(
-        diaryModel, langCode);
-
+    await diaryAIAnalysisController.analyzeAll(diaryModel, langCode);
     notifyListeners();
   }
 
@@ -143,15 +143,19 @@ class HomeToWrite with ChangeNotifier {
 
       diaryModel.userId = userId!;
       diaryModel.diaryId = newDiaryId;
-      notifyListeners();
 
       // Add the new diary to the allDiary collection
       await firestore.collection('allDiary').doc(newDiaryId).set(diaryData);
 
-      // Update the user's document in the users collection
+      final todayKey = _todayKey();
+
       await firestore.collection('users').doc(userId).update({
         'myDiaryId': FieldValue.arrayUnion([newDiaryId]),
+        'lastDiaryDateKey': todayKey,
       });
+
+      _lastDiaryDateKey = todayKey;
+      notifyListeners();
     } catch (e) {
       developer.log("Error saving diary: $e");
     }
@@ -266,7 +270,7 @@ class HomeToWrite with ChangeNotifier {
                 String id = data[idFieldKey];
                 // 업데이트할 데이터
                 Map<String, dynamic> updates = {
-                  timeFieldKey: timestampToLocal(Timestamp.now()),
+                  timeFieldKey: Timestamp.now(),
                   idFieldKey: diaryId,
                 };
 
@@ -307,33 +311,75 @@ class HomeToWrite with ChangeNotifier {
     }
   }
 
+  //========================= 일기 공유 ============================
+
   Diary otherDiaryModel = Diary(
     userId: 'userId',
     title: '행복한 날입니다.',
     content: '죄송해요 저는 여기까지입니다.',
     emotion: ['emotion'],
-    createdAt: timestampToLocal(Timestamp.now()),
-    updatedAt: timestampToLocal(Timestamp.now()),
+    createdAt: Timestamp.now(),
+    updatedAt: Timestamp.now(),
     reaction: [0, 0, 0],
     diaryId: 'diaryId',
     cheerText: 'cheerText',
   );
   bool otherDiaryOpen = false;
 
-  Future<void> sendOtherDiary(String diaryId) async {
-    DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
+  void setOtherDiary(Diary diary) {
+    otherDiaryModel = diary;
+    otherDiaryOpen = true;
+    notifyListeners();
+  }
+
+  Future<void> _saveOtherDiaryNotificationToDB({
+    required String diaryId,
+    String? title,
+  }) async {
+    final uid = userId;
+    if (uid == null || uid.isEmpty) return;
+
+    final docRef = firestore
+        .collection('users')
+        .doc(uid)
+        .collection('notifications')
+        .doc(); // auto id
+
+    await docRef.set({
+      'notificationId': docRef.id,
+      'type': 'otherDiary',
+      'title': title ?? '새로운 공유 일기가 도착했어요',
+      'dataId': diaryId,
+      'date': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Future<void> sendOtherDiary({
+    required String diaryId,
+    required AlarmController alarmController,
+    required String username,
+  }) async {
+    final documentSnapshot = await FirebaseFirestore.instance
         .collection('allDiary')
         .doc(diaryId)
         .get();
 
-    if (documentSnapshot.exists) {
-      Diary diary = Diary.fromSnapshot(documentSnapshot);
-      otherDiaryModel = diary;
-      otherDiaryOpen = true;
-      notifyListeners();
-    } else {
-      dev.log('Diary with ID $diaryId does not exist.');
-    }
+    if (!documentSnapshot.exists) return;
+
+    final diary = Diary.fromSnapshot(documentSnapshot);
+
+    await _saveOtherDiaryNotificationToDB(
+      diaryId: diaryId,
+      title: '$username님과 비슷한 친구가 있어요.',
+    );
+
+    await alarmController.showLocalOtherDiaryNotification(
+      diaryId: diaryId,
+    );
+
+    otherDiaryModel = diary;
+
+    notifyListeners();
   }
 
   void offDiaryOpen() {
@@ -343,8 +389,8 @@ class HomeToWrite with ChangeNotifier {
       title: 'title',
       content: 'content',
       emotion: ['emotion'],
-      createdAt: timestampToLocal(Timestamp.now()),
-      updatedAt: timestampToLocal(Timestamp.now()),
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
       reaction: [0, 0, 0],
       diaryId: 'diaryId',
       cheerText: 'cheerText',
@@ -356,9 +402,9 @@ class HomeToWrite with ChangeNotifier {
 
   bool gotoDirectListPage = false;
 
-  Future<void> readMyDiary(Diary dairy) async {
+  Future<void> readMyDiary(Diary diary) async {
     step = 2;
-    diaryModel = dairy;
+    diaryModel = diary;
     gotoDirectListPage = true;
     notifyListeners();
   }
@@ -367,29 +413,162 @@ class HomeToWrite with ChangeNotifier {
   // diaryModel 값 변경
   int flag = 0;
 
-  void changeDiaryValue(List<String> newEmotions) {
+  Future<void> changeDiaryValue(List<String> newEmotions) async {
     diaryModel.emotion = newEmotions;
     flag = 1;
+    await modifyDatabaseDiaryEmotionValue();
     notifyListeners();
   }
 
-  // DB 변경
-  Future<void> modifyDatabaseDiaryValue(
-      String titleText, String contentText, String diaryId) async {
+  // DB title, content 변경
+  Future<void> modifyDatabaseDiaryStringValue(
+      String titleText, String contentText) async {
     diaryModel.update(
-        title: titleText,
-        content: contentText,
-        updatedAt: timestampToLocal(Timestamp.now()));
+        title: titleText, content: contentText, updatedAt: Timestamp.now());
     try {
       final diaryData = {
         'title': diaryModel.title,
         'content': diaryModel.content,
-        'emotion': diaryModel.emotion,
         'updatedAt': diaryModel.updatedAt,
       };
-      await firestore.collection('allDiary').doc(diaryId).update(diaryData);
+      await firestore
+          .collection('allDiary')
+          .doc(diaryModel.diaryId)
+          .update(diaryData);
     } catch (e) {
       developer.log("Error modifying diary: $e");
     }
+  }
+
+  // DB emotion 변경
+  Future<void> modifyDatabaseDiaryEmotionValue() async {
+    diaryModel.update(updatedAt: Timestamp.now());
+
+    try {
+      final diaryData = {
+        'emotion': diaryModel.emotion,
+        'updatedAt': diaryModel.updatedAt,
+      };
+      await firestore
+          .collection('allDiary')
+          .doc(diaryModel.diaryId)
+          .update(diaryData);
+    } catch (e) {
+      developer.log("Error modifying diary: $e");
+    }
+  }
+
+  bool _deleting = false;
+  bool get deleting => _deleting;
+
+  Future<void> deleteDiaryById(String diaryId) async {
+    if (diaryId.isEmpty) return;
+    if (_deleting) return;
+
+    _deleting = true;
+    notifyListeners();
+
+    try {
+      final uid = userId;
+      final diaryRef = firestore.collection('allDiary').doc(diaryId);
+      final userRef = firestore.collection('users').doc(uid);
+
+      final snap = await diaryRef.get();
+      if (!snap.exists) {
+        developer.log("Diary not found: $diaryId");
+        return;
+      }
+      final data = snap.data() as Map<String, dynamic>;
+      if (data['userId'] != uid) {
+        developer.log("Permission denied: not owner");
+        return;
+      }
+
+      final batch = firestore.batch();
+      batch.delete(diaryRef);
+      batch.update(userRef, {
+        'myDiaryId': FieldValue.arrayRemove([diaryId]),
+      });
+
+      await batch.commit();
+
+      // 로컬 상태 초기화(지금 보고 있는 일기를 삭제한 경우)
+      if (diaryModel.diaryId == diaryId) {
+        initialize(); // step=1, diaryModel reset 등
+      }
+
+      developer.log("Diary deleted: $diaryId");
+    } catch (e) {
+      developer.log("Error deleting diary: $e");
+      rethrow;
+    } finally {
+      _deleting = false;
+      notifyListeners();
+    }
+  }
+
+  String? _lastDiaryDateKey; // "2026-01-01" 같은 형태
+  String? get lastDiaryDateKey => _lastDiaryDateKey;
+
+  String _todayKey() {
+    final now = DateTime.now();
+    return "${now.year.toString().padLeft(4, '0')}"
+        "-${now.month.toString().padLeft(2, '0')}"
+        "-${now.day.toString().padLeft(2, '0')}";
+  }
+
+  bool get wroteDiaryToday => _lastDiaryDateKey == _todayKey();
+
+  Future<void> loadLastDiaryDate() async {
+    final uid = userId;
+    if (uid == null) return;
+
+    final doc = await firestore.collection('users').doc(uid).get();
+    if (!doc.exists) return;
+
+    final data = doc.data() as Map<String, dynamic>;
+    _lastDiaryDateKey = data['lastDiaryDateKey'] as String?;
+    notifyListeners();
+  }
+
+  //========================화면 보호기==============================
+
+  bool hideChrome = false;
+  void setHideChrome(bool v) {
+    hideChrome = v;
+    notifyListeners();
+  }
+
+  void toggleChrome() => setHideChrome(!hideChrome);
+
+  //========================알림 확인(노란색 점)==============================
+  DateTime? _homeNotiLastSeenAt; // 마지막으로 "앱 종료/백그라운드 시점"에 확인 처리된 시각
+  DateTime? get homeNotiLastSeenAt => _homeNotiLastSeenAt;
+
+  Future<void> loadHomeNotiLastSeen() async {
+    final uid = userId;
+    if (uid == null) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final ms = prefs.getInt('${uid}_homeNotiLastSeenAt');
+    _homeNotiLastSeenAt =
+        (ms == null) ? null : DateTime.fromMillisecondsSinceEpoch(ms);
+    notifyListeners();
+  }
+
+  Future<void> setHomeNotiLastSeenAt(DateTime t) async {
+    final uid = userId;
+    if (uid == null) return;
+
+    // 더 최신값만 반영
+    if (_homeNotiLastSeenAt != null && !_homeNotiLastSeenAt!.isBefore(t)) {
+      return;
+    }
+
+    _homeNotiLastSeenAt = t;
+    notifyListeners();
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('${uid}_homeNotiLastSeenAt', t.millisecondsSinceEpoch);
   }
 }

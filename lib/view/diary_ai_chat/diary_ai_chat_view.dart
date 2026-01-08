@@ -1,67 +1,90 @@
-import 'package:bandi_official/components/appbar/appbar.dart';
-import 'package:bandi_official/components/dialogue/dialogue.dart';
-import 'package:bandi_official/components/no_reuse/chat_message_bar.dart';
-import 'package:bandi_official/components/dialogue/reset_dialogue.dart';
-import 'package:bandi_official/controller/diary_ai_chat_controller.dart';
-import 'package:bandi_official/string_extention.dart';
-import 'package:bandi_official/theme/custom_theme_data.dart';
-import 'package:flutter/rendering.dart';
-import 'package:provider/provider.dart';
+import 'dart:ui'; // Blur 처리를 위해 필요
+import 'package:bandi_official/components/appbar/new_custom_appbar.dart';
+import 'package:bandi_official/components/bottom_sheet/show_floating_confirm_sheet.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'dart:developer' as dev;
+import 'package:bandi_official/theme/custom_theme_data.dart';
+import 'package:bandi_official/string_extention.dart';
+import 'package:bandi_official/view/diary_ai_chat/controller/diary_ai_chat_controller.dart';
+import 'package:bandi_official/view/diary_ai_chat/components/dialogue.dart';
+import 'package:bandi_official/view/diary_ai_chat/components/chat_message_bar.dart';
 
-class DiaryAIChatPage extends StatefulWidget {
-  const DiaryAIChatPage({super.key});
-
-  @override
-  State<DiaryAIChatPage> createState() => _DiaryAIChatPageState();
+class DiaryAIChatSheet {
+  Future<void> show(BuildContext context) {
+    return showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      enableDrag: true,
+      barrierColor: BandiColor.transparent(context),
+      backgroundColor: BandiColor.neutralColor60(context),
+      builder: (_) {
+        return BackdropFilter(
+          filter: ImageFilter.blur(
+            sigmaX: BandiEffects.blurSmall,
+            sigmaY: BandiEffects.blurSmall,
+          ),
+          child: const _DiaryAIChatStateful(),
+        );
+      },
+    );
+  }
 }
 
-class _DiaryAIChatPageState extends State<DiaryAIChatPage> {
+class _DiaryAIChatStateful extends StatefulWidget {
+  const _DiaryAIChatStateful();
+
+  @override
+  State<_DiaryAIChatStateful> createState() => _DiaryAIChatStatefulState();
+}
+
+class _DiaryAIChatStatefulState extends State<_DiaryAIChatStateful> {
   late DiaryAiChatController diaryAiChatController;
 
   @override
   void initState() {
+    super.initState();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       diaryAiChatController =
           Provider.of<DiaryAiChatController>(context, listen: false);
 
       diaryAiChatController.loadDataAndSetting().then((value) {
         if (!diaryAiChatController.isListenerAdded) {
-          // when screen reached nearly top of the list load more past data
           WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
             diaryAiChatController.chatScrollController
                 .addListener(_scrollListener);
             diaryAiChatController.toggleIsListenerAdded(true);
-            diaryAiChatController.chatLogInitialization(context);
+            if (!diaryAiChatController.sendFirstMessage) {
+              diaryAiChatController.chatLogInitialization(context);
+            }
           });
         }
       });
     });
-
-    super.initState();
   }
 
   void _scrollListener() async {
+    if (!diaryAiChatController.loadMoreData ||
+        diaryAiChatController.isLoadingOlderChat) {
+      return;
+    }
+
     final position = diaryAiChatController.chatScrollController.position;
-    if (diaryAiChatController.loadMoreData &&
-        position.atEdge &&
-        position.pixels != 0) {
-      if (position.userScrollDirection == ScrollDirection.reverse &&
-          position.maxScrollExtent - position.pixels <= 500) {
-        diaryAiChatController
-            .toggleLoadMoreData(await diaryAiChatController.loadMoreChatLogs());
-      }
+
+    if (position.maxScrollExtent - position.pixels <= 200) {
+      bool hasMore = await diaryAiChatController.loadOlderChatLogs();
+      diaryAiChatController.toggleLoadMoreData(hasMore);
     }
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      diaryAiChatController.chatScrollController
-          .removeListener(_scrollListener);
-      diaryAiChatController.toggleIsListenerAdded(false);
+      if (diaryAiChatController.isListenerAdded) {
+        diaryAiChatController.chatScrollController
+            .removeListener(_scrollListener);
+        diaryAiChatController.toggleIsListenerAdded(false);
+      }
     });
     super.dispose();
   }
@@ -71,76 +94,85 @@ class _DiaryAIChatPageState extends State<DiaryAIChatPage> {
     DiaryAiChatController diaryAiChatController =
         context.watch<DiaryAiChatController>();
 
-    return WillPopScope(
-      onWillPop: () => Future(() => false),
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.9,
+      decoration: BoxDecoration(
+        color: BandiColor.neutralColor80(context),
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(BandiEffects.radiusValueSmall),
+        ),
+      ),
       child: Scaffold(
         resizeToAvoidBottomInset: true,
         backgroundColor: BandiColor.transparent(context),
-        appBar: CustomAppBar(
+        appBar: NewCustomAppBar(
+          appBarType: AppBarType.headLineFoundation,
           title: 'ai_chat_title'.tr(context),
-          trailingIcon:
-              PhosphorIcons.arrowCounterClockwise(PhosphorIconsStyle.regular),
-          onLeadingIconPressed: () {
-            diaryAiChatController.toggleChatOpen(false);
-          },
-          onTrailingIconPressed: () {
-            showDialog<bool>(
-              context: context,
-              barrierDismissible: false,
-              builder: (BuildContext context) {
-                return CustomResetDialogue(
-                  text: 'dialogue_message_ai_chat_reset'.tr(context),
-                  onYesText: 'dialogue_yes'.tr(context),
-                  onNoText: 'dialogue_no'.tr(context),
-                  onYesFunction: () {
-                    diaryAiChatController.resetTheChat(context);
-                    Navigator.pop(context);
-                  },
-                  onNoFunction: () {
-                    Navigator.pop(context);
-                  },
-                );
-              },
+          leftActionButtonIcon: PhosphorIcons.signOut(PhosphorIconsStyle.thin),
+          rightActionButtonIcon: PhosphorIcons.x(PhosphorIconsStyle.thin),
+          onLeftActionButtonPressed: () async {
+            final ok = await showFloatingConfirmSheet(
+              context,
+              title: '대화창을 정말로 나가시겠어요?',
+              description: '지금까지 나눈 이야기는 모두 사라져요.',
+              cancelText: '취소',
+              confirmText: '나가기',
             );
+
+            if (ok == true) {
+              diaryAiChatController.resetTheChat(context);
+            }
           },
-          disableLeadingButton: diaryAiChatController.isChatResponsLoading,
-          disableTrailingButton: diaryAiChatController.isChatResponsLoading,
+          onRightActionButtonPressed: () {
+            Navigator.pop(context);
+          },
+          disableLefttActionButton: diaryAiChatController.isChatResponsLoading,
         ),
         body: GestureDetector(
-          behavior: HitTestBehavior.translucent,
           onTap: () {
             if (diaryAiChatController.chatFocusNode.hasFocus) {
               diaryAiChatController.chatFocusNode.unfocus();
             }
           },
-          child: Column(
+          child: Stack(
             children: [
-              Expanded(
-                child: Align(
-                  alignment: Alignment.topCenter,
-                  child: ListView.builder(
-                    controller: diaryAiChatController.chatScrollController,
-                    shrinkWrap: true,
-                    reverse: true,
-                    itemCount: diaryAiChatController.chatlog.length,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 10, bottom: 10),
-                        child: IgnorePointer(
-                          ignoring: true,
-                          child: CustomDialogue(
-                            chatMessage: diaryAiChatController.chatlog[
-                                diaryAiChatController.chatlog.length -
-                                    index -
-                                    1],
-                            onDialoguePressed: () {},
-                          ),
-                        ),
-                      );
-                    },
-                  ),
+              // chat content
+              Align(
+                alignment: Alignment.topCenter,
+                child: ListView.builder(
+                  controller: diaryAiChatController.chatScrollController,
+                  shrinkWrap: true,
+                  reverse: true,
+                  itemCount: diaryAiChatController.chatlog.length,
+                  itemBuilder: (context, index) {
+                    final chatMsg = diaryAiChatController.chatlog[
+                        diaryAiChatController.chatlog.length - index - 1];
+                    return Column(
+                      children: [
+                        (chatMsg.isVisible)
+                            ? Padding(
+                                padding:
+                                    const EdgeInsets.only(top: 10, bottom: 10),
+                                child: IgnorePointer(
+                                  ignoring: true,
+                                  child: CustomDialogue(
+                                    chatMessage: chatMsg,
+                                    onDialoguePressed: () {},
+                                  ),
+                                ),
+                              )
+                            : const SizedBox.shrink(),
+                        if (index == 0)
+                          SizedBox(
+                            height: MediaQuery.of(context).padding.bottom + 94,
+                          )
+                      ],
+                    );
+                  },
                 ),
               ),
+
+              // chat bar
               const Align(
                 alignment: Alignment.bottomCenter,
                 child: ChatMessageBar(),

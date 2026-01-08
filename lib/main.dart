@@ -1,16 +1,19 @@
-import 'dart:developer';
-
-import 'package:bandi_official/controller/alarm_controller.dart';
+import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
 import 'package:bandi_official/controller/date_provider.dart';
-import 'package:bandi_official/controller/diary_ai_analysis_controller.dart';
-import 'package:bandi_official/controller/diary_ai_chat_controller.dart';
+import 'package:bandi_official/view/my_diary_list/controller/my_diary_list_controller.dart';
+import 'package:bandi_official/view/writing/controller/diary_ai_analysis_controller.dart';
+import 'package:bandi_official/view/diary_ai_chat/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/controller/internet_connection_controller.dart';
-import 'package:bandi_official/controller/mail_controller.dart';
+import 'package:bandi_official/view/mail/controller/mail_controller.dart';
 import 'package:bandi_official/controller/permission_controller.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/theme/custom_theme_mode.dart';
-import 'package:bandi_official/view/login/auth_service.dart';
-import 'package:bandi_official/view/navigation.dart';
+import 'package:bandi_official/view/home/controller/bgm_controller.dart';
+import 'package:bandi_official/view/login/controller/login_controller.dart';
+import 'package:bandi_official/view/login/data/agreement_repository.dart';
+import 'package:bandi_official/view/login/data/auth_service.dart';
+import 'package:bandi_official/view/login/data/user_profile_repository.dart';
+import 'package:bandi_official/view/navigation/navigation_view.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_app_badge_control/flutter_app_badge_control.dart';
@@ -39,6 +42,11 @@ Future<void> main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.light, // Android
+    statusBarBrightness: Brightness.dark, // iOS
+  ));
   // Initialize firebase connection
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   // Initialize .env file
@@ -48,12 +56,7 @@ Future<void> main() async {
 
   // firebase notification setting
   AlarmController alarmController = AlarmController();
-  alarmController.firebaseOnMessageListen();
-  alarmController.firebaseOnMessageOpenedApp();
-  alarmController.firebaseGetInitialListen();
-
-  // local notification setting
-  alarmController.localNotificationInitialization();
+  await alarmController.initializeAlarmSystem();
 
   // remove message badge
   FlutterAppBadgeControl.removeBadge();
@@ -74,8 +77,26 @@ class MainApp extends StatelessWidget {
       builder: (context, mode, child) {
         return MultiProvider(
           providers: [
-            ChangeNotifierProvider(
-              create: (context) => NavigationToggleProvider(),
+            ChangeNotifierProvider(create: (_) => BgmController()),
+            ChangeNotifierProvider(create: (_) => SecureStorageProvider()),
+            ChangeNotifierProvider(create: (_) => UserInfoValueModel()),
+            ChangeNotifierProvider(create: (_) => NavigationToggleProvider()),
+            Provider(create: (_) => UserProfileRepository()),
+            Provider(create: (_) => AgreementRepository()),
+            Provider<AuthService>(
+              create: (ctx) => AuthService(
+                storage: ctx.read<SecureStorageProvider>(),
+                userInfo: ctx.read<UserInfoValueModel>(),
+                userProfileRepository: ctx.read<UserProfileRepository>(),
+              ),
+            ),
+            ChangeNotifierProvider<LoginController>(
+              create: (ctx) => LoginController(
+                authService: ctx.read<AuthService>(),
+                storage: ctx.read<SecureStorageProvider>(),
+                nav: ctx.read<NavigationToggleProvider>(),
+                userInfo: ctx.read<UserInfoValueModel>(),
+              ),
             ),
             ChangeNotifierProvider(
               create: (context) => DiaryAIAnalysisController(),
@@ -87,9 +108,6 @@ class MainApp extends StatelessWidget {
               create: (context) => HomeToWrite(),
             ),
             ChangeNotifierProvider(
-              create: (context) => UserInfoValueModel(),
-            ),
-            ChangeNotifierProvider(
               create: (context) => MailController(),
             ),
             ChangeNotifierProvider(
@@ -99,16 +117,13 @@ class MainApp extends StatelessWidget {
               create: (context) => PermissionController(),
             ),
             ChangeNotifierProvider(
-              create: (context) => SecureStorageProvider(),
-            ),
-            ChangeNotifierProvider(
               create: (context) => DateProvider(),
             ),
             ChangeNotifierProvider(
               create: (context) => InternetConnectionController(),
             ),
             ChangeNotifierProvider(
-              create: (context) => AuthService(),
+              create: (context) => MyDiaryListController(),
             ),
           ],
           child: MaterialApp(
@@ -136,7 +151,7 @@ class MainApp extends StatelessWidget {
               }
               return supportedLocales.first;
             },
-            home: const Navigation(),
+            home: const NavigationView(),
           ),
           // AuthWrapper(),
         );

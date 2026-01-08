@@ -1,14 +1,14 @@
-import 'package:bandi_official/components/appbar/appbar.dart';
-import 'package:bandi_official/controller/alarm_controller.dart';
-import 'package:bandi_official/controller/mail_controller.dart';
-import 'package:bandi_official/model/letter.dart';
+import 'dart:ui';
+
+import 'package:bandi_official/components/appbar/new_custom_appbar.dart';
+import 'package:bandi_official/components/bottom_sheet/calendar_bottom_sheet.dart';
+import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
+import 'package:bandi_official/view/mail/controller/mail_controller.dart';
 import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
-import 'package:bandi_official/view/mail/every_mail_view.dart';
 import 'package:bandi_official/view/mail/letters_view.dart';
 import 'package:bandi_official/view/mail/liked_diary_view.dart';
-import 'package:bandi_official/view/mail/new_letter_popup.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:bandi_official/view/mail/widget/liked_diary_action_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
@@ -32,7 +32,7 @@ class _MailViewState extends State<MailView>
 
     // InitState of the ScrollControllers
     mailController!
-        .initTabController(this, 3, mailController!.savedCurrentIndex);
+        .initTabController(this, 2, mailController!.savedCurrentIndex);
 
     // InitState of the TabController
     mailController?.initScrollControllers();
@@ -41,7 +41,7 @@ class _MailViewState extends State<MailView>
   @override
   void dispose() {
     // Dispose of the ScrollControllers
-    mailController!.everyMailScrollController.dispose();
+    // mailController!.everyMailScrollController.dispose();
     mailController!.letterScrollController.dispose();
     mailController!.likedDiaryScrollController.dispose();
 
@@ -54,80 +54,89 @@ class _MailViewState extends State<MailView>
   @override
   Widget build(BuildContext context) {
     MailController mailController = context.watch<MailController>();
-    AlarmController alarmController = context.watch<AlarmController>();
+    // AlarmController alarmController = context.watch<AlarmController>();
+    bool isLikedDiaryView = (mailController.tabController.index == 1);
 
     return SafeArea(
       child: Scaffold(
         backgroundColor: BandiColor.transparent(context),
-        appBar: CustomAppBar(
+        appBar: NewCustomAppBar(
+          appBarType: AppBarType.subtitleNeutral,
           title: 'inbox_title'.tr(context),
-          trailingIcon: PhosphorIcons.flask(PhosphorIconsStyle.fill),
-          onTrailingIconPressed: () async {
+          leftActionButtonIcon: isLikedDiaryView
+              ? PhosphorIcons.funnelSimple(PhosphorIconsStyle.thin)
+              : null,
+          leftActionButtonColor: (mailController.filteredchipLabels.length != 3)
+              ? BandiColor.accentColorYellow(context)
+              : null,
+          rightActionButtonIcon:
+              PhosphorIcons.calendarBlank(PhosphorIconsStyle.thin),
+          rightActionButtonColor: ((isLikedDiaryView &&
+                      mailController.likedDiaryFilteredDate != null) ||
+                  (!isLikedDiaryView &&
+                      mailController.letterFilteredDate != null))
+              ? BandiColor.accentColorYellow(context)
+              : null,
+          onLeftActionButtonPressed: () async {
+            await showLikedDiaryActionSheet(context, mailController);
+
             // For alarm test
-            // messageTestFunction(alarmController);
-            // For test delete finction
-            // mailController.deleteEveryMailDataFromLocal();
-            // For new Letter pop page test
-            // newLetterPopUpPageTestFunction(context);
+            /*
+            messageTestFunction(context);
+            For test delete finction
+            mailController.deleteEveryMailDataFromLocal();
+            */
           },
-          isVisibleLeadingButton: false,
-          isVisibleTrailingButton: false,
+          onRightActionButtonPressed: () async {
+            List<DateTime> events =
+                await mailController.getAllEventDatesFromLocal(
+                    type: isLikedDiaryView
+                        ? MailDataType.diary
+                        : MailDataType.letter);
+
+            if (!mounted) return;
+
+            CalendarBottomSheet(
+              initialDate: isLikedDiaryView
+                  ? mailController.likedDiaryFilteredDate
+                  : mailController.letterFilteredDate,
+              mode: isLikedDiaryView ? CalendarMode.date : CalendarMode.month,
+              eventDates: events,
+              onDateSelected: (date) {
+                if (isLikedDiaryView) {
+                  mailController.updateLikedDiaryCalendarSelectedDate(date);
+                } else {
+                  mailController.updateLetterCalendarSelectedDate(date);
+                }
+              },
+            ).show(context);
+          },
+          disableLefttActionButton: false,
         ),
         body: Padding(
-          padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).size.height * 0.1, top: 10),
-          child: DefaultTabController(
-            length: 3,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Column(
-                children: [
-                  TabBar(
-                    isScrollable: true,
-                    controller: mailController.tabController,
-                    labelColor: BandiColor.neutralColor100(context),
-                    unselectedLabelColor: BandiColor.neutralColor40(context),
-                    labelStyle: BandiFont.headlineMedium(context)?.copyWith(
-                      color: BandiColor.neutralColor100(context),
-                    ),
-                    labelPadding: EdgeInsets.symmetric(
-                        horizontal: MediaQuery.of(context).size.width * 0.07),
-                    tabAlignment: TabAlignment.center,
-                    indicatorColor: BandiColor.neutralColor100(context),
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    dividerColor: BandiColor.neutralColor40(context),
-                    tabs: [
-                      FittedBox(
-                        fit: BoxFit.contain,
-                        child: Tab(text: 'inbox_all'.tr(context)),
-                      ),
-                      FittedBox(
-                        fit: BoxFit.contain,
-                        child: Tab(
-                          text: 'inbox_letters'.tr(context),
-                        ),
-                      ),
-                      FittedBox(
-                        fit: BoxFit.contain,
-                        child: Tab(
-                          text: 'inbox_reacted_diaries'.tr(context),
-                        ),
-                      ),
-                    ],
-                  ),
-                  Expanded(
-                    child: TabBarView(
-                      controller: mailController.tabController,
-                      children: const [
-                        EveryMailPage(),
-                        MyLettersPage(),
-                        LikedDiaryPage(),
-                      ],
-                    ),
-                  ),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Stack(
+            children: [
+              TabBarView(
+                controller: mailController.tabController,
+                physics: const NeverScrollableScrollPhysics(),
+                children: const [
+                  // EveryMailPage(),
+                  MyLettersPage(),
+                  LikedDiaryPage(),
                 ],
               ),
-            ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 112),
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: _buildCustomToggle(
+                    context,
+                    mailController,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -135,37 +144,90 @@ class _MailViewState extends State<MailView>
   }
 }
 
-void messageTestFunction(AlarmController alarmController) {
-  // receiver fcm token
-  String fcmToken = '';
+Widget _buildCustomToggle(BuildContext context, MailController controller) {
+  return ClipRRect(
+    borderRadius: BandiEffects.radiusLarge,
+    child: BackdropFilter(
+      filter: ImageFilter.blur(
+        sigmaX: BandiEffects.blurSmall,
+        sigmaY: BandiEffects.blurSmall,
+      ),
+      child: Container(
+        width: 239,
+        height: 40,
+        decoration: BoxDecoration(
+          color: BandiColor.foundationColor40(context),
+          borderRadius: BandiEffects.radiusLarge,
+        ),
+        child: Stack(
+          children: [
+            // 슬라이딩되는 선택 배경
+            AnimatedAlign(
+              duration: const Duration(milliseconds: 150),
+              curve: Curves.easeInOut,
+              alignment: Alignment(
+                controller.tabController.index == 0 ? -1.0 : 1.0,
+                0,
+              ),
+              child: FractionallySizedBox(
+                widthFactor: 0.5,
+                child: Container(
+                  margin: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: BandiColor.neutralColor10(context),
+                    borderRadius: BandiEffects.radiusLarge,
+                  ),
+                ),
+              ),
+            ),
+            // 탭 버튼들
+            Row(
+              children: List.generate(
+                2,
+                (index) {
+                  bool isSelected = controller.tabController.index == index;
+                  String label = index == 0 ? '편지' : '나눔 일기';
+
+                  return Expanded(
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        controller.tabController.animateTo(index);
+                      },
+                      child: Center(
+                        child: Text(
+                          label,
+                          style: BandiFont.bodyMedium(context)?.copyWith(
+                            color: isSelected
+                                ? BandiColor.neutralColor70(context)
+                                : BandiColor.neutralColor40(context),
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+void messageTestFunction(BuildContext context) {
+  AlarmController alarmController =
+      Provider.of<AlarmController>(context, listen: false);
   // receiver user Id
-  String userId = '';
+  String userId = 'rKtDVzplJhRfN4icJQBDbMABXeb2';
   // sender user Id
   String testLikedDiaryId = '21jPhIHrf7iBwVAh92ZW1';
 
-  alarmController.sendLikedDiaryNotification(
-      testLikedDiaryId, fcmToken, userId);
-}
-
-void newLetterPopUpPageTestFunction(BuildContext context) {
-  Letter letter = Letter(
-    title: 'title',
-    content: 'content',
-    date: Timestamp.now(),
-    letterId: 'letterId',
-  );
-  Navigator.push(
-    context,
-    PageRouteBuilder(
-      pageBuilder: (context, animation, secondaryAnimation) =>
-          NewLetterPopuView(newLetter: letter),
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        return FadeTransition(
-          opacity: animation,
-          child: child,
-        );
-      },
-      transitionDuration: const Duration(milliseconds: 400),
-    ),
-  );
+  alarmController.sendLikedDiaryNotification(testLikedDiaryId, userId, 0);
+  alarmController.sendLikedDiaryNotification(testLikedDiaryId, userId, 1);
+  alarmController.sendLikedDiaryNotification(testLikedDiaryId, userId, 2);
 }

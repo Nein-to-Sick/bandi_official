@@ -1,4 +1,3 @@
-import 'package:bandi_official/utils/time_utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Diary {
@@ -59,13 +58,13 @@ class Diary {
 
   // Method to update a Diary instance
   void update({
-    required String title,
-    required String content,
-    required Timestamp updatedAt,
+    String? title,
+    String? content,
+    Timestamp? updatedAt,
   }) {
-    this.title = title;
-    this.content = content;
-    this.updatedAt = updatedAt;
+    this.title = title ?? this.title;
+    this.content = content ?? this.content;
+    this.updatedAt = updatedAt ?? this.updatedAt;
   }
 
   // Initialize field values
@@ -74,8 +73,8 @@ class Diary {
     title = '';
     content = '';
     emotion = [];
-    createdAt = timestampToLocal(Timestamp.now());
-    updatedAt = timestampToLocal(Timestamp.now());
+    createdAt = Timestamp.now();
+    updatedAt = Timestamp.now();
     reaction = [0, 0, 0];
     diaryId = '';
     cheerText = '';
@@ -88,8 +87,22 @@ class Diary {
       //     title: '',
       //     content: '',
       //     emotion: [],
-      //     createdAt: timestampToLocal(Timestamp.now()),
-      //     updatedAt: timestampToLocal(Timestamp.now()),
+      //     createdAt: Timestamp.now(),
+      //     updatedAt: Timestamp.now(),
+      //     reaction: [],
+      //     diaryId: ''),
+    ];
+  }
+
+  static List<Diary> defaultMyDiaryList() {
+    return [
+      // Diary(
+      //     userId: '',
+      //     title: '',
+      //     content: '',
+      //     emotion: [],
+      //     createdAt: Timestamp.now(),
+      //     updatedAt: Timestamp.now(),
       //     reaction: [],
       //     diaryId: ''),
     ];
