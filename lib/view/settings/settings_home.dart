@@ -1,12 +1,10 @@
-// lib/views/user/settings_home.dart
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bandi_official/string_extention.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_switch/flutter_switch.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
-import '../../components/dialogue/reset_dialogue.dart';
+import '../../components/bottom_sheet/show_floating_confirm_sheet.dart';
 import '../../controller/permission_controller.dart';
 import '../../theme/custom_theme_data.dart';
 
@@ -60,24 +58,17 @@ class SettingsHome extends StatelessWidget {
                   trailing: FlutterSwitch(
                     value: permissionController
                         .getNotificationPermissionState(),
-                    onToggle: (bool value) {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return CustomResetDialogue(
-                            text: 'settings_notifications_text'.tr(context),
-                            onYesText: 'dialogue_yes'.tr(context),
-                            onNoText: 'dialogue_no'.tr(context),
-                            onYesFunction: () {
-                              Navigator.pop(context);
-                              openAppSettings();
-                            },
-                            onNoFunction: () {
-                              Navigator.pop(context);
-                            },
-                          );
-                        },
+                    onToggle: (bool value) async {
+                      final ok = await showFloatingConfirmSheet(
+                        context,
+                        title: '알림 설정을 변경하시겠어요?',
+                        description: '설정을 변경하려면 시스템 설정으로 이동해야 해요.',
+                        cancelText: '취소',
+                        confirmText: '이동하기',
                       );
+                      if (ok == true) {
+                        openAppSettings();
+                      }
                     },
                     width: 32.0,
                     height: 16.0,
@@ -111,7 +102,7 @@ class SettingsHome extends StatelessWidget {
                 _buildSettingDocument(
                   context: context,
                   text: 'settings_eula'.tr(context),
-                  onTap: () => onNavigate(8),
+                  onTap: () => onNavigate(7),
                   autotext: 0,
                 ),
                 _buildSettingDocument(

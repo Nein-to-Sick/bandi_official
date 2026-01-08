@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -7,14 +6,13 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import 'package:bandi_official/components/dialogue/reset_dialogue.dart';
 import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
 import 'package:bandi_official/view/diary_ai_chat/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/controller/internet_connection_controller.dart';
 import 'package:bandi_official/view/mail/controller/mail_controller.dart';
-import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 
+import '../../components/bottom_sheet/show_floating_confirm_sheet.dart';
 import '../../components/no_reuse/firefly.dart';
 import '../../controller/home_to_write.dart';
 import '../../controller/navigation_toggle_provider.dart';
@@ -35,6 +33,7 @@ class _NavigationViewState extends State<NavigationView> {
   String? _lastLangCode;
 
   bool _loginInitDone = false;
+  bool _offlineLoopRunning = false;
 
   @override
   void initState() {
@@ -43,20 +42,59 @@ class _NavigationViewState extends State<NavigationView> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
 
-      // ✅ BGM init (1회)
       context.read<BgmController>().init();
 
-      // ✅ 자동 로그인 init (1회)
       if (!_loginInitDone) {
         _loginInitDone = true;
         context.read<LoginController>().init();
       }
 
-      final internet = context.read<InternetConnectionController>();
-      setState(() {
-        _networkFuture = internet.checkNetworkConnectivity();
-      });
+      _ensureNetworkOrExit();
     });
+  }
+
+  Future<void> _ensureNetworkOrExit() async {
+    if (_offlineLoopRunning) return;
+    _offlineLoopRunning = true;
+
+    try {
+      final internet = context.read<InternetConnectionController>();
+
+      while (mounted) {
+        final ok = await internet.checkNetworkConnectivity();
+
+        // ✅ 연결되면 끝
+        if (ok == true) {
+          setState(() {
+            _networkFuture = Future.value(true);
+          });
+          return;
+        }
+
+        // ✅ 연결 안됨 → 시트 띄우고 선택 기다림
+        final res = await showFloatingConfirmSheet(
+          context,
+          title: '인터넷 연결이 잠시 끊겼나요?',
+          description: '네트워크 상태를 확인 후 다시 시도해 주세요.',
+          cancelText: '나가기',
+          confirmText: '새로고침',
+          barrierDismissible: false,
+        );
+
+        if (!mounted) return;
+
+        // 나가기(또는 null 포함)면 종료
+        if (res != true) {
+          exit(0); // 또는 SystemNavigator.pop();
+        }
+
+        // ✅ 새로고침(true) → 루프 계속(다시 체크)
+        // 여기서 잠깐 딜레이 주고 싶으면:
+        await Future.delayed(const Duration(milliseconds: 200));
+      }
+    } finally {
+      _offlineLoopRunning = false;
+    }
   }
 
   @override
@@ -117,16 +155,12 @@ class _NavigationViewState extends State<NavigationView> {
           return;
         }
 
-        final shouldExit = await showDialog<bool>(
-          context: context,
-          barrierDismissible: false,
-          builder: (_) => CustomResetDialogue(
-            text: 'dialogue_message_exit_app'.tr(context),
-            onYesText: 'dialogue_yes'.tr(context),
-            onNoText: 'dialogue_no'.tr(context),
-            onYesFunction: () => Navigator.pop(context, true),
-            onNoFunction: () => Navigator.pop(context, false),
-          ),
+        final shouldExit = await showFloatingConfirmSheet(
+          context,
+          title: '온기를 정말로 종료하시겠어요?',
+          description: '언제든 위로가 필요하면 다시 찾아와 주세요.',
+          cancelText: '취소',
+          confirmText: '종료하기',
         );
 
         if (shouldExit == true) {
@@ -142,11 +176,12 @@ class _NavigationViewState extends State<NavigationView> {
           return Container(
             decoration: BoxDecoration(
               image: DecorationImage(
-                fit: BoxFit.cover,
-                image:
-                nav.selectedIndex != 3 ? const AssetImage('assets/images/backgrounds/background_dark.png')
-                     : const AssetImage('assets/images/backgrounds/background_blur.png')
-              ),
+                  fit: BoxFit.cover,
+                  image: nav.selectedIndex != 3
+                      ? const AssetImage(
+                          'assets/images/backgrounds/background_dark.png')
+                      : const AssetImage(
+                          'assets/images/backgrounds/background_blur.png')),
             ),
             child: isOk
                 ? Scaffold(
@@ -197,21 +232,7 @@ class _NavigationViewState extends State<NavigationView> {
                   )
                 : Scaffold(
                     backgroundColor: BandiColor.transparent(context),
-                    body: Center(
-                      child: CustomResetDialogue(
-                        text: 'internet_connection_check'.tr(context),
-                        onYesText: 'internet_connection_refresh'.tr(context),
-                        onNoText: 'internet_connection_exit'.tr(context),
-                        onYesFunction: () {
-                          log('새로고침!');
-                          setState(() {
-                            _networkFuture =
-                                internet.checkNetworkConnectivity();
-                          });
-                        },
-                        onNoFunction: () => exit(0),
-                      ),
-                    ),
+                    body: const SizedBox.shrink(),
                   ),
           );
         },

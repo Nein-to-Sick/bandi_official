@@ -1,159 +1,155 @@
 // lib/views/user/oss_licenses.dart
-import 'package:bandi_official/components/appbar/appbar.dart';
 import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/view/settings/widget/frosted_settings_scaffold.dart';
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+
 import '../../model/oss_licenses_model.dart';
 import '../../theme/custom_theme_data.dart';
 
-class OssLicensesScreen extends StatelessWidget {
+class OssLicensesScreen extends StatefulWidget {
   final VoidCallback onBack;
 
-  // 새로 추가: 라이센스 상세 페이지로 이동하기 위한 콜백
-  final Function(Map<String, dynamic>) onNavigateLicenseDetail;
+  // ✅ 더 이상 상세 페이지 이동이 필요 없으면 제거해도 됨
+  // (남겨두고 싶으면 안 쓰더라도 파라미터만 유지 가능)
+  final Function(Map<String, dynamic>)? onNavigateLicenseDetail;
 
   const OssLicensesScreen({
     super.key,
     required this.onBack,
-    required this.onNavigateLicenseDetail,
+    this.onNavigateLicenseDetail,
   });
+
+  @override
+  State<OssLicensesScreen> createState() => _OssLicensesScreenState();
+}
+
+class _OssLicensesScreenState extends State<OssLicensesScreen>
+    with TickerProviderStateMixin {
+  int? expandedIndex;
+
+  String _licenseBodyText(String licenseText) {
+    return licenseText
+        .split('\n')
+        .map((line) {
+          if (line.startsWith('//')) line = line.substring(2);
+          return line.trimRight();
+        })
+        .join('\n')
+        .trim();
+  }
+
+  void _toggle(int index) {
+    setState(() {
+      if (expandedIndex == index) {
+        expandedIndex = null;
+      } else {
+        expandedIndex = index;
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return FrostedSettingsScaffold(
-        title: 'settings_open_license'.tr(context),
-        onBack: onBack,
-        child: Padding(
-          padding: const EdgeInsets.only(left: 24, right: 24, top: 16),
-          child: ListView.builder(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).size.height * 0.1,
-            ),
-            physics: const BouncingScrollPhysics(),
-            itemCount: ossLicenses.length,
-            itemBuilder: (context, index) {
-              final package = ossLicenses[index];
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      onNavigateLicenseDetail({
-                        'name': package.name,
-                        'version': package.version,
-                        'description': package.description,
-                        'license': package.license,
-                        'homepage': package.homepage,
-                      });
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 20.0),
-                      child: Container(
-                        color: Colors.transparent,
-                        child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                package.name,
-                                style: BandiFont.titleSmall(context)?.copyWith(
-                                  color: BandiColor.foundationColor90(context),
-                                ),
+      title: 'settings_open_license'.tr(context),
+      onBack: widget.onBack,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 24, right: 24, top: 16),
+        child: ListView.builder(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).size.height * 0.1,
+          ),
+          physics: const BouncingScrollPhysics(),
+          itemCount: ossLicenses.length,
+          itemBuilder: (context, index) {
+            final package = ossLicenses[index];
+            final isExpanded = expandedIndex == index;
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                InkWell(
+                  onTap: () => _toggle(index),
+                  splashColor: Colors.transparent,
+                  highlightColor: Colors.transparent,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20.0),
+                    child: Container(
+                      color: Colors.transparent,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // ===== Header (기존: name + description) =====
+                          Text(
+                            package.name,
+                            style: BandiFont.titleSmall(context)?.copyWith(
+                              color: BandiColor.foundationColor90(context),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          if (isExpanded && package.version.isNotEmpty) ...[
+                            Text('version : ${package.version}',
+                                style: BandiFont.labelSmall(context)?.copyWith(
+                                  color: BandiColor.foundationColor60(context),
+                                )),
+                            const SizedBox(height: 4,),
+                          ],
+                          if (package.description.isNotEmpty)
+                            Text(
+                              package.description,
+                              style: BandiFont.labelSmall(context)?.copyWith(
+                                color: BandiColor.foundationColor60(context),
                               ),
-                              const SizedBox(
-                                height: 8,
-                              ),
-                              Text(package.description,
-                                  style:
-                                      BandiFont.labelSmall(context)?.copyWith(
-                                    color:
-                                        BandiColor.foundationColor60(context),
-                                  ))
-                            ]),
+                            ),
+
+                          // ===== Expanded body =====
+                          AnimatedSize(
+                            duration: const Duration(milliseconds: 220),
+                            curve: Curves.easeInOut,
+                            child: isExpanded
+                                ? Padding(
+                                    padding: const EdgeInsets.only(top: 8.0),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        // license text
+                                        Text(
+                                          _licenseBodyText(package.license!),
+                                          style: BandiFont.labelSmall(context)?.copyWith(
+                                            color: BandiColor.foundationColor60(context),
+                                          ),
+                                        ),
+
+                                        if (package.homepage != null) ...[
+                                          const SizedBox(height: 14),
+                                          Text(
+                                            package.homepage!,
+                                            style: BandiFont.labelSmall(context)?.copyWith(
+                                              color: BandiColor.foundationColor60(context),
+                                              decoration: TextDecoration.underline
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  )
+                                : const SizedBox.shrink(),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                  Divider(
-                    height: 1.0,
-                    color: BandiColor.foundationColor10(context),
-                  ),
-                ],
-              );
-            },
-          ),
-        ));
-  }
-}
-
-class MiscOssLicenseSingle extends StatelessWidget {
-  final VoidCallback onBack;
-  final String name;
-  final String version;
-  final String description;
-  final String licenseText;
-  final String homepage;
-
-  const MiscOssLicenseSingle({
-    super.key,
-    required this.onBack,
-    required this.name,
-    required this.version,
-    required this.description,
-    required this.licenseText,
-    required this.homepage,
-  });
-
-  String _bodyText() {
-    return licenseText.split('\n').map((line) {
-      if (line.startsWith('//')) line = line.substring(2);
-      return line.trim();
-    }).join('\n');
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FrostedSettingsScaffold(
-        title: 'settings_open_license'.tr(context),
-        onBack: onBack,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.only(left: 24, right: 24, top: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                name,
-                style: BandiFont.bodySmall(context)?.copyWith(
-                  color: BandiColor.foundationColor100(context),
                 ),
-              ),
-              Text(
-                'version : $version',
-                style: BandiFont.bodySmall(context)?.copyWith(
-                  color: BandiColor.foundationColor100(context),
+                Divider(
+                  height: 1.0,
+                  color: BandiColor.foundationColor10(context),
                 ),
-              ),
-              if (description.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 12.0),
-                  child: Text(
-                    description,
-                    style: BandiFont.bodySmall(context)?.copyWith(
-                      color: BandiColor.foundationColor80(context),
-                    ),
-                  ),
-                ),
-              Divider(color: BandiColor.foundationColor20(context)),
-              Padding(
-                padding: const EdgeInsets.only(top: 12.0),
-                child: Text(
-                  _bodyText(),
-                  style: BandiFont.bodySmall(context)?.copyWith(
-                    color: BandiColor.foundationColor80(context),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ));
+              ],
+            );
+          },
+        ),
+      ),
+    );
   }
 }

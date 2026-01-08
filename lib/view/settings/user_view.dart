@@ -184,21 +184,6 @@ class _UserViewState extends State<UserView> with WidgetsBindingObserver {
           },
         );
       case 7:
-        return MiscOssLicenseSingle(
-          onBack: () {
-            // 상세화면 뒤로가기 시 다시 라이센스 목록 화면(3)으로
-            setState(() {
-              settings = 3;
-            });
-          },
-          // selectedLicenseData가 null일 경우 대비
-          name: selectedLicenseData?['name'] ?? '',
-          version: selectedLicenseData?['version'] ?? '',
-          description: selectedLicenseData?['description'] ?? '',
-          licenseText: selectedLicenseData?['license'] ?? '',
-          homepage: selectedLicenseData?['homepage'] ?? '',
-        );
-      case 8:
         return EulaAgreementScreen(
           onBack: () {
             setState(() {
