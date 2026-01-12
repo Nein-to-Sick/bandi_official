@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:bandi_official/analytics/log_other_diary_received.dart';
 import 'package:bandi_official/controller/user_info_controller.dart';
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:bandi_official/view/my_diary_list/controller/my_diary_list_controller.dart';
 import 'package:bandi_official/view/writing/controller/diary_ai_analysis_controller.dart';
 import 'package:bandi_official/model/diary.dart';
@@ -87,10 +88,13 @@ class HomeToWrite with ChangeNotifier {
           final userInfo = context.read<UserInfoValueModel>();
           final myNickname = userInfo.nickname;
 
+          if (!context.mounted) return;
+
           await sendOtherDiary(
             diaryId: returnDiaryId,
             alarmController: alarmController,
             username: myNickname,
+            context: context,
           );
 
           await logOtherDiaryReceived();
@@ -316,7 +320,7 @@ class HomeToWrite with ChangeNotifier {
   Diary otherDiaryModel = Diary(
     userId: 'userId',
     title: '행복한 날입니다.',
-    content: '죄송해요 저는 여기까지입니다.',
+    content: '이용해주셔서 정말 감사합니다!',
     emotion: ['emotion'],
     createdAt: Timestamp.now(),
     updatedAt: Timestamp.now(),
@@ -335,6 +339,7 @@ class HomeToWrite with ChangeNotifier {
   Future<void> _saveOtherDiaryNotificationToDB({
     required String diaryId,
     String? title,
+    required BuildContext context,
   }) async {
     final uid = userId;
     if (uid == null || uid.isEmpty) return;
@@ -348,7 +353,7 @@ class HomeToWrite with ChangeNotifier {
     await docRef.set({
       'notificationId': docRef.id,
       'type': 'otherDiary',
-      'title': title ?? '새로운 공유 일기가 도착했어요',
+      'title': title ?? 'v2_home_notification_sharing_state_1'.tr(context),
       'dataId': diaryId,
       'date': FieldValue.serverTimestamp(),
     });
@@ -358,7 +363,9 @@ class HomeToWrite with ChangeNotifier {
     required String diaryId,
     required AlarmController alarmController,
     required String username,
+    required BuildContext context,
   }) async {
+    String langCode = Localizations.localeOf(context).languageCode;
     final documentSnapshot = await FirebaseFirestore.instance
         .collection('allDiary')
         .doc(diaryId)
@@ -368,9 +375,14 @@ class HomeToWrite with ChangeNotifier {
 
     final diary = Diary.fromSnapshot(documentSnapshot);
 
+    if (!context.mounted) return;
+
     await _saveOtherDiaryNotificationToDB(
       diaryId: diaryId,
-      title: '$username님과 비슷한 친구가 있어요.',
+      title: (langCode == 'ko')
+          ? username + "v2_home_notification_sharing_state_2".tr(context)
+          : "v2_home_notification_sharing_state_2".tr(context) + username,
+      context: context,
     );
 
     await alarmController.showLocalOtherDiaryNotification(

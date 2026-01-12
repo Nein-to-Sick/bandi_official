@@ -160,10 +160,10 @@ class _NavigationViewState extends State<NavigationView> {
 
         final shouldExit = await showFloatingConfirmSheet(
           context,
-          title: '온기를 정말로 종료하시겠어요?',
-          description: '언제든 위로가 필요하면 다시 찾아와 주세요.',
-          cancelText: '취소',
-          confirmText: '종료하기',
+          title: 'dialogue_message_exit_app_title'.tr(context),
+          description: 'dialogue_message_exit_app_content'.tr(context),
+          cancelText: 'dialogue_message_exit_app_button_1'.tr(context),
+          confirmText: 'dialogue_message_exit_app_button_2'.tr(context),
         );
 
         if (shouldExit == true) {

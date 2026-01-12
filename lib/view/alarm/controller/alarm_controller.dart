@@ -245,7 +245,7 @@ class AlarmController with ChangeNotifier {
           await _local.show(
             // message.hashCode를 사용하여 각 알림에 고유 ID 부여 (덮어쓰기 방지)
             message.hashCode,
-            message.notification!.title ?? '알림',
+            message.notification!.title ?? '',
             message.notification!.body ?? '',
             details,
             payload: payload,
