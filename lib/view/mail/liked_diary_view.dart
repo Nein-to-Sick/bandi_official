@@ -22,24 +22,33 @@ class _LikedDiaryPageState extends State<LikedDiaryPage> {
 
   @override
   void initState() {
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       mailController = Provider.of<MailController>(context, listen: false);
 
-      mailController.loadDataAndSetting().then((value) {
-        mailController.restoreLikedDiaryScrollPosition();
+      mailController.loadDataAndSetting().then((_) {
+        if (mailController.likedDiaryScrollController.hasClients) {
+          mailController.restoreLikedDiaryScrollPosition();
+        } else {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mailController.likedDiaryScrollController.hasClients) {
+              mailController.restoreLikedDiaryScrollPosition();
+            }
+          });
+        }
 
         if (!mailController.isLikedDiaryListenerAdded) {
-          // when screen reached nearly bottom of the list load more past data
-          WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-            mailController.likedDiaryScrollController
-                .addListener(_scrollListener);
-            mailController.toggleIsLikedDiaryListenerAdded(true);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mailController.likedDiaryScrollController.hasClients) {
+              mailController.likedDiaryScrollController
+                  .addListener(_scrollListener);
+              mailController.toggleIsLikedDiaryListenerAdded(true);
+            }
           });
         }
       });
     });
-
-    super.initState();
   }
 
   void _scrollListener() async {

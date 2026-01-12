@@ -22,23 +22,33 @@ class _MyLettersPageState extends State<MyLettersPage> {
 
   @override
   void initState() {
+    super.initState();
+
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       mailController = Provider.of<MailController>(context, listen: false);
 
-      mailController.loadDataAndSetting().then((value) {
-        mailController.restoreLetterScrollPosition();
+      mailController.loadDataAndSetting().then((_) {
+        if (mailController.letterScrollController.hasClients) {
+          mailController.restoreLetterScrollPosition();
+        } else {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mailController.letterScrollController.hasClients) {
+              mailController.restoreLetterScrollPosition();
+            }
+          });
+        }
 
         if (!mailController.isLettersListenerAdded) {
-          // when screen reached nearly bottom of the list load more past data
-          WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-            mailController.letterScrollController.addListener(_scrollListener);
-            mailController.toggleIsLettersListenerAdded(true);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mailController.letterScrollController.hasClients) {
+              mailController.letterScrollController
+                  .addListener(_scrollListener);
+              mailController.toggleIsLettersListenerAdded(true);
+            }
           });
         }
       });
     });
-
-    super.initState();
   }
 
   void _scrollListener() async {

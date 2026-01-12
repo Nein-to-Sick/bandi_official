@@ -28,6 +28,8 @@ class _MyDiaryListViewState extends State<MyDiaryListView>
 
   @override
   void initState() {
+    super.initState();
+
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       myDiaryListController =
           Provider.of<MyDiaryListController>(context, listen: false);
@@ -35,20 +37,27 @@ class _MyDiaryListViewState extends State<MyDiaryListView>
       myDiaryListController.initScrollControllers();
 
       myDiaryListController.loadDataAndSetting().then((value) {
-        myDiaryListController.restoreMyDiaryScrollPosition();
+        if (myDiaryListController.myDiaryScrollController.hasClients) {
+          myDiaryListController.restoreMyDiaryScrollPosition();
+        } else {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (myDiaryListController.myDiaryScrollController.hasClients) {
+              myDiaryListController.restoreMyDiaryScrollPosition();
+            }
+          });
+        }
 
         if (!myDiaryListController.isMyDiaryListenerAdded) {
-          // when screen reached nearly bottom of the list load more past data
           WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-            myDiaryListController.myDiaryScrollController
-                .addListener(_scrollListener);
-            myDiaryListController.toggleIsMyDiaryListenerAdded(true);
+            if (myDiaryListController.myDiaryScrollController.hasClients) {
+              myDiaryListController.myDiaryScrollController
+                  .addListener(_scrollListener);
+              myDiaryListController.toggleIsMyDiaryListenerAdded(true);
+            }
           });
         }
       });
     });
-
-    super.initState();
   }
 
   void _scrollListener() async {
