@@ -180,8 +180,7 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                                 color: BandiColor.foundationColor20(context),
                               ),
                               border: InputBorder.none,
-                              contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 16),
+                              contentPadding: const EdgeInsets.only(left: 6),
                             ),
                           ),
                         ),
