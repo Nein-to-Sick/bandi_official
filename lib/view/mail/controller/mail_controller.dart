@@ -179,6 +179,11 @@ class MailController with ChangeNotifier {
     }
   }
 
+  void initializeLoadValue() {
+    loadLikedDiaryDataOnce = false;
+    loadLetterDataOnce = false;
+  }
+
   void initializeFilter() {
     filteredchipLabels.clear();
     filteredchipLabels.addAll([1, 2, 3]);

@@ -2,6 +2,7 @@
 import 'dart:developer';
 
 import 'package:bandi_official/localization/string_extention.dart';
+import 'package:bandi_official/view/my_diary_list/controller/my_diary_list_controller.dart';
 import 'package:bandi_official/view/settings/widget/frosted_settings_scaffold.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -48,6 +49,7 @@ class _AccountManagementState extends State<AccountManagement> {
         Provider.of<NavigationToggleProvider>(context);
     final mailController = Provider.of<MailController>(context);
     final storageProvider = Provider.of<SecureStorageProvider>(context);
+    final myDiaryListController = Provider.of<MyDiaryListController>(context);
 
     return FrostedSettingsScaffold(
         title: 'settings_my_account'.tr(context),
@@ -115,6 +117,14 @@ class _AccountManagementState extends State<AccountManagement> {
                     // 사용자 정보 초기화
                     userInfo.clearUserInfo();
 
+                    // 로컬 저장소 데이터 삭제
+                    mailController.deleteEveryMailDataFromLocal();
+                    myDiaryListController.deleteEveryMyDiaryDataFromLocal();
+
+                    // 로컬 저장소 로드 변수 초기화
+                    mailController.initializeLoadValue();
+                    myDiaryListController.initializeLoadValue();
+
                     // 로그인 페이지로 이동
                     navigationToggleProvider.selectIndex(-1);
                   }
@@ -148,6 +158,10 @@ class _AccountManagementState extends State<AccountManagement> {
 
                         // 로컬 저장소 데이터 삭제
                         mailController.deleteEveryMailDataFromLocal();
+
+                        // 로컬 저장소 로드 변수 초기화
+                        mailController.initializeLoadValue();
+                        myDiaryListController.initScrollControllers();
 
                         // 사용자 정보 초기화
                         userInfo.clearUserInfo();

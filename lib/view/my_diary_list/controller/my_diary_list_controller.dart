@@ -67,6 +67,10 @@ class MyDiaryListController with ChangeNotifier {
     }
   }
 
+  void initializeLoadValue() {
+    loadMyDiaryDataOnce = false;
+  }
+
   // toggle the loading value
   void toggleLoading(bool value) {
     isLoading = value;
