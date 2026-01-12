@@ -158,10 +158,11 @@ class _AccountManagementState extends State<AccountManagement> {
 
                         // 로컬 저장소 데이터 삭제
                         mailController.deleteEveryMailDataFromLocal();
+                        myDiaryListController.deleteEveryMyDiaryDataFromLocal();
 
                         // 로컬 저장소 로드 변수 초기화
                         mailController.initializeLoadValue();
-                        myDiaryListController.initScrollControllers();
+                        myDiaryListController.initializeLoadValue();
 
                         // 사용자 정보 초기화
                         userInfo.clearUserInfo();
@@ -191,24 +192,51 @@ class _AccountManagementState extends State<AccountManagement> {
         ));
   }
 
+// 사용자 데이터 삭제 함수 (프로필 및 모든 하위 컬렉션 삭제)
   Future<void> deleteUserData(String userId) async {
-    final userDocRef =
-        FirebaseFirestore.instance.collection('users').doc(userId);
+    final firestore = FirebaseFirestore.instance;
+    final userDocRef = firestore.collection('users').doc(userId);
 
-    // 1. 하위 컬렉션(letters, notifications 등) 삭제
-    Future<void> deleteSubCollection(String collectionName) async {
-      final subColRef = userDocRef.collection(collectionName);
-      final snapshots = await subColRef.get();
-      for (final doc in snapshots.docs) {
-        await doc.reference.delete();
-      }
+    try {
+      // 1. 하위 컬렉션 삭제 (Batch 적용)
+      // letters, notifications, otherDiary 컬렉션을 모두 비웁니다.
+      await _deleteCollectionInBatch(
+          firestore, userDocRef.collection('letters'));
+      await _deleteCollectionInBatch(
+          firestore, userDocRef.collection('notifications'));
+
+      // [추가] otherDiary 컬렉션 삭제
+      await _deleteCollectionInBatch(
+          firestore, userDocRef.collection('otherDiary'));
+
+      // 2. 사용자 문서(프로필 등) 삭제
+      await userDocRef.delete();
+
+      log('User profile and all sub-collections (letters, notifications, otherDiary) deleted successfully.');
+    } catch (e) {
+      log('Error deleting user data: $e');
+      rethrow;
     }
+  }
 
-    await deleteSubCollection('letters');
-    await deleteSubCollection('notifications');
+  // (기존 헬퍼 함수 유지) 배치 삭제 함수
+  Future<void> _deleteCollectionInBatch(
+      FirebaseFirestore firestore, CollectionReference collectionRef) async {
+    final snapshots = await collectionRef.get();
+    if (snapshots.docs.isEmpty) return;
 
-    // 2. 사용자 문서 삭제
-    await userDocRef.delete();
+    // 500개씩 끊어서 처리 (Firestore Batch 제한 준수)
+    for (var i = 0; i < snapshots.docs.length; i += 500) {
+      final batch = firestore.batch();
+      final end =
+          (i + 500 < snapshots.docs.length) ? i + 500 : snapshots.docs.length;
+      final chunk = snapshots.docs.sublist(i, end);
+
+      for (final doc in chunk) {
+        batch.delete(doc.reference);
+      }
+      await batch.commit();
+    }
   }
 
   Future<void> reauthenticateAndDeleteUser() async {
