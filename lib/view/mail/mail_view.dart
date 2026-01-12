@@ -186,7 +186,9 @@ Widget _buildCustomToggle(BuildContext context, MailController controller) {
                 2,
                 (index) {
                   bool isSelected = controller.tabController.index == index;
-                  String label = index == 0 ? '편지' : '나눔 일기';
+                  String label = index == 0
+                      ? 'inbox_letters'.tr(context)
+                      : 'inbox_shared_journals'.tr(context);
 
                   return Expanded(
                     child: GestureDetector(

@@ -118,7 +118,7 @@ Widget _buildEmptyState(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          'inbox_no_reacted_diaries'.tr(context),
+          'inbox_no_shared_journals'.tr(context),
           style: BandiFont.headlineMedium(context)?.copyWith(
             color: BandiColor.neutralColor80(context),
           ),

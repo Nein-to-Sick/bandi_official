@@ -17,7 +17,7 @@ Future<void> showLikedDiaryActionSheet(
       children: [
         NewCustomAppBar(
           appBarType: AppBarType.subtitleFoundation,
-          title: '공감 키워드'.tr(context),
+          title: 'inbox_hared_journals_filter_title'.tr(context),
           leftActionButtonIcon:
               PhosphorIcons.arrowClockwise(PhosphorIconsStyle.thin),
           rightActionButtonIcon: PhosphorIcons.x(PhosphorIconsStyle.thin),
