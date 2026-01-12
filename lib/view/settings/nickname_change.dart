@@ -88,7 +88,7 @@ class _NicknameChangeState extends State<NicknameChange> {
                 ),
                 const Spacer(),
                 CustomPrimaryButton(
-                  title: '저장',
+                  title: 'settings_nickname_change_save'.tr(context),
                   size: 'small',
                   onPrimaryButtonPressed: () async {
                     final trimmed = _nickname.trim();
@@ -108,8 +108,10 @@ class _NicknameChangeState extends State<NicknameChange> {
 
                     await showFloatingToastSheet(
                       context,
-                      message: "닉네임이 변경되었습니다.",
-                      buttonText: "완료",
+                      message:
+                          "settings_nickname_change_toast_title".tr(context),
+                      buttonText:
+                          "settings_nickname_change_toast_button".tr(context),
                     );
                   },
                   disableButton: !isChanged,

@@ -29,7 +29,8 @@ class CompanyInfoScreen extends StatelessWidget {
               children: [
                 _buildSettingOption(
                     context: context,
-                    text: '사업자명',
+                    text: 'settings_business_information_company_name'
+                        .tr(context),
                     value: companyInfo!['companyName']!),
                 _buildSettingOption(
                     context: context,

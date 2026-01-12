@@ -79,10 +79,13 @@ class _AccountManagementState extends State<AccountManagement> {
                 onPrimaryButtonPressed: () async {
                   final ok = await showFloatingConfirmSheet(
                     context,
-                    title: '정말로 로그아웃 하시겠어요?',
-                    description: '위로가 필요하면 언제든 다시 로그인해 주세요.',
-                    cancelText: '취소',
-                    confirmText: '로그아웃',
+                    title: 'settings_my_account_logout_title'.tr(context),
+                    description:
+                        'settings_my_account_logout_content'.tr(context),
+                    cancelText:
+                        'settings_my_account_logout_button_1'.tr(context),
+                    confirmText:
+                        'settings_my_account_logout_button_2'.tr(context),
                   );
 
                   if (ok == true) {
@@ -127,10 +130,14 @@ class _AccountManagementState extends State<AccountManagement> {
                 onSecondaryButtonPressed: () async {
                   final ok = await showFloatingConfirmSheet(
                     context,
-                    title: '계정을 정말로 탈퇴하시겠어요?',
-                    description: '탈퇴 시 모든 일기와 편지는 복구할 수 없어요.',
-                    cancelText: '취소',
-                    confirmText: '탈퇴',
+                    title:
+                        'settings_my_account_delete_account_title'.tr(context),
+                    description: 'settings_my_account_delete_account_content'
+                        .tr(context),
+                    cancelText: 'settings_my_account_delete_account_button_1'
+                        .tr(context),
+                    confirmText: 'settings_my_account_delete_account_button_2'
+                        .tr(context),
                   );
                   if (ok == true) {
                     try {
