@@ -26,6 +26,7 @@
   "navi_journal": "Journal",
   "navi_inbox": "Inbox",
   "navi_setting": "Settings",
+  "journal_writing": "Write a Journal",
   "journal_title": "My Journal",
   "journal_calendar_header_1": "MMMM yyyy",
   "journal_calendar_header_2": "MMMM d, yyyy",
@@ -191,7 +192,7 @@
   "settings_business_information_email": "Email",
   "ai_diary_title_analysis_prompt": "Given a diary entry, analyze the text and summarize it with a title in English.",
   "ai_diary_encouragement_analysis_prompt": "Please limit your response to a single sentence and provide encouragement in English based on the content of the diary entry.",
-  "ai_chat_title": "Talk to Bandi",
+  "ai_chat_title": "Chat with Bandi",
   "ai_chat_textbar_message_1": "Typing a response...",
   "ai_chat_textbar_message_2": "Begin your conversation",
   "ai_chat_date_form": "EEE, MMM d",
@@ -291,5 +292,8 @@
   "v2_other_diary_report_title": "Report this diary as inappropriate?",
   "v2_other_diary_report_content": "Once reported, similar content will no longer be shared with you.",
   "v2_other_diary_report_button_1": "Cancel",
-  "v2_other_diary_report_button_2": "Report"
+  "v2_other_diary_report_button_2": "Report",
+  "v2_home_notification_state_1": "How did today feel?",
+  "v2_home_notification_state_2": ",",
+  "v2_home_notification_state_3": "Good job today."
 }
