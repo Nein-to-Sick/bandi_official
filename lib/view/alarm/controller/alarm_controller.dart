@@ -8,7 +8,7 @@ import 'package:bandi_official/main.dart';
 import 'package:bandi_official/model/alarm.dart';
 import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/model/letter.dart';
-import 'package:bandi_official/string_extention.dart';
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';

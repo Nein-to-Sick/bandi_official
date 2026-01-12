@@ -1,7 +1,7 @@
 import 'package:bandi_official/components/appbar/new_custom_appbar.dart';
 import 'package:bandi_official/components/bottom_sheet/app_bottom_sheet.dart';
 import 'package:bandi_official/components/button/primary_button.dart';
-import 'package:bandi_official/string_extention.dart';
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:bandi_official/view/mail/controller/mail_controller.dart';
 import 'package:bandi_official/view/mail/widget/liked_diary_filter_chips.dart';
 import 'package:flutter/material.dart';

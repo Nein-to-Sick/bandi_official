@@ -2,7 +2,7 @@ import 'dart:developer' as develop;
 
 import 'package:bandi_official/components/button/primary_button.dart';
 import 'package:bandi_official/controller/home_to_write.dart';
-import 'package:bandi_official/string_extention.dart';
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
 import 'package:bandi_official/view/mail/controller/mail_controller.dart';
@@ -143,7 +143,7 @@ class _OtherDiaryState extends State<OtherDiary> {
   // =====================
   Future<void> _initAutoTranslateByLocale() async {
     final localeLang =
-    Localizations.localeOf(context).languageCode.toLowerCase();
+        Localizations.localeOf(context).languageCode.toLowerCase();
     final targetLang = (localeLang == 'ko') ? 'KO' : 'EN';
 
     // 원문 언어와 목표 언어가 같으면 번역 필요 없음
@@ -190,7 +190,8 @@ class _OtherDiaryState extends State<OtherDiary> {
       final originalContent = widget.writeProvider.otherDiaryModel.content;
 
       final tTitle = await _deepLService.translate(originalTitle, targetLang);
-      final tContent = await _deepLService.translate(originalContent, targetLang);
+      final tContent =
+          await _deepLService.translate(originalContent, targetLang);
 
       if (!mounted) return;
       setState(() {
@@ -272,7 +273,8 @@ class _OtherDiaryState extends State<OtherDiary> {
 
     try {
       final tTitle = await _deepLService.translate(originalTitle, targetLang);
-      final tContent = await _deepLService.translate(originalContent, targetLang);
+      final tContent =
+          await _deepLService.translate(originalContent, targetLang);
 
       if (!mounted) return;
       setState(() {
@@ -326,7 +328,7 @@ class _OtherDiaryState extends State<OtherDiary> {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style:
-                              BandiFont.headlineMedium(context)?.copyWith(
+                                  BandiFont.headlineMedium(context)?.copyWith(
                                 color: BandiColor.foundationColor100(context),
                               ),
                             ),
@@ -358,7 +360,7 @@ class _OtherDiaryState extends State<OtherDiary> {
                                 reaction3: r3,
                                 mailController: context.read<MailController>(),
                                 alarmController:
-                                context.read<AlarmController>(),
+                                    context.read<AlarmController>(),
                                 onDone: () =>
                                     widget.writeProvider.offDiaryOpen(),
                               );
@@ -392,11 +394,13 @@ class _OtherDiaryState extends State<OtherDiary> {
                                 child: SizedBox(
                                   width: double.infinity,
                                   child: Text(
-                                    _isTranslating ? "번역 중..." : translatedContent,
-                                    style: BandiFont.bodyLarge(context)
-                                        ?.copyWith(
+                                    _isTranslating
+                                        ? "번역 중..."
+                                        : translatedContent,
+                                    style:
+                                        BandiFont.bodyLarge(context)?.copyWith(
                                       color:
-                                      BandiColor.foundationColor90(context),
+                                          BandiColor.foundationColor90(context),
                                     ),
                                   ),
                                 ),
@@ -511,7 +515,8 @@ class _OtherDiaryState extends State<OtherDiary> {
                 borderRadius: BandiEffects.radiusLarge,
               ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 child: PhosphorIcon(
                   PhosphorIcons.paperPlaneRight(PhosphorIconsStyle.fill),
                   size: 16,
@@ -572,7 +577,8 @@ class _OtherDiaryState extends State<OtherDiary> {
   }
 
   bool get _shouldShowTranslateControls {
-    final localeLang = Localizations.localeOf(context).languageCode.toLowerCase();
+    final localeLang =
+        Localizations.localeOf(context).languageCode.toLowerCase();
     final userLang = (localeLang == 'ko') ? 'KO' : 'EN';
     return userLang != originalLang;
   }
@@ -618,7 +624,8 @@ class _OtherDiaryState extends State<OtherDiary> {
   // =====================
   // Report Dialog
   // =====================
-  Future<void> _showReportDialog(BuildContext context, HomeToWrite writeProvider) async {
+  Future<void> _showReportDialog(
+      BuildContext context, HomeToWrite writeProvider) async {
     final ok = await showFloatingConfirmSheet(
       context,
       title: '부적절한 일기로 신고할까요?',
@@ -634,8 +641,8 @@ class _OtherDiaryState extends State<OtherDiary> {
             .collection('users')
             .doc(userId)
             .update({
-          'blockedUsersList': FieldValue.arrayUnion(
-              [writeProvider.otherDiaryModel.userId]),
+          'blockedUsersList':
+              FieldValue.arrayUnion([writeProvider.otherDiaryModel.userId]),
         });
 
         await FirebaseFirestore.instance

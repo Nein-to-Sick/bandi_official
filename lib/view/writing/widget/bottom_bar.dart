@@ -1,3 +1,4 @@
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_switch/flutter_switch.dart';
 
@@ -12,15 +13,23 @@ class BottomBar extends StatelessWidget {
   final VoidCallback onDone;
   final bool doneEnabled;
 
-  const BottomBar({super.key, required this.isPublic, required this.onTogglePublic, required this.publicLabel, required this.onExit, required this.onDone, required this.doneEnabled});
-
-
+  const BottomBar(
+      {super.key,
+      required this.isPublic,
+      required this.onTogglePublic,
+      required this.publicLabel,
+      required this.onExit,
+      required this.onDone,
+      required this.doneEnabled});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Divider(color: BandiColor.neutralColor10(context), thickness: 1,),
+        Divider(
+          color: BandiColor.neutralColor10(context),
+          thickness: 1,
+        ),
         Padding(
           padding: const EdgeInsets.fromLTRB(24, 15, 24, 16),
           child: Row(
@@ -40,7 +49,8 @@ class BottomBar extends StatelessWidget {
                       toggleSize: 12.0,
                       activeColor: BandiColor.accentColorYellow(context),
                       inactiveColor: BandiColor.foundationColor40(context),
-                      inactiveToggleColor: BandiColor.foundationColor40(context),
+                      inactiveToggleColor:
+                          BandiColor.foundationColor40(context),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -59,18 +69,17 @@ class BottomBar extends StatelessWidget {
               Row(
                 children: [
                   _BarButton(
-                    title: "나가기",
+                    title: "v2_bottom_bar_button_exit".tr(context),
                     onTap: onExit,
                   ),
                   const SizedBox(width: 8),
                   _BarButton(
-                    title: "완료",
+                    title: "v2_bottom_bar_button_done".tr(context),
                     onTap: onDone,
                     disabled: !doneEnabled,
                   ),
                 ],
               )
-
             ],
           ),
         ),
@@ -99,8 +108,7 @@ class _BarButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(100),
-            color: BandiColor.neutralColor10(context)
-        ),
+            color: BandiColor.neutralColor10(context)),
         child: Text(
           title,
           style: BandiFont.labelMedium(context)?.copyWith(

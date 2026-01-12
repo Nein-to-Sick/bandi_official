@@ -5,7 +5,7 @@ import 'package:bandi_official/components/loading/loading_page.dart';
 import 'package:bandi_official/controller/home_to_write.dart';
 import 'package:bandi_official/controller/navigation_toggle_provider.dart';
 import 'package:bandi_official/model/diary.dart';
-import 'package:bandi_official/string_extention.dart';
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
 import 'package:bandi_official/view/my_diary_list/controller/my_diary_list_controller.dart';

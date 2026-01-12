@@ -1,7 +1,7 @@
 import 'dart:developer';
 
 import 'package:bandi_official/controller/permission_controller.dart';
-import 'package:bandi_official/string_extention.dart';
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/settings/privacy_policy.dart';
 import 'package:bandi_official/view/settings/settings_home.dart';

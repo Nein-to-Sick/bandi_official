@@ -1,4 +1,4 @@
-import 'package:bandi_official/string_extention.dart';
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_switch/flutter_switch.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -56,8 +56,8 @@ class SettingsHome extends StatelessWidget {
                   text: 'settings_notifications'.tr(context),
                   onTap: () {},
                   trailing: FlutterSwitch(
-                    value: permissionController
-                        .getNotificationPermissionState(),
+                    value:
+                        permissionController.getNotificationPermissionState(),
                     onToggle: (bool value) async {
                       final ok = await showFloatingConfirmSheet(
                         context,
@@ -148,7 +148,11 @@ class SettingsHome extends StatelessWidget {
             ),
           ),
         ),
-        Divider(height: 0, color: BandiColor.neutralColor04(context), thickness: 1,),
+        Divider(
+          height: 0,
+          color: BandiColor.neutralColor04(context),
+          thickness: 1,
+        ),
       ],
     );
   }

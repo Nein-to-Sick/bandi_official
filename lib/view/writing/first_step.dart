@@ -1,5 +1,5 @@
 import 'package:bandi_official/analytics/log_journal_share.dart';
-import 'package:bandi_official/string_extention.dart';
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:bandi_official/view/writing/widget/ai_saving_loading_dialog.dart';
 import 'package:bandi_official/view/writing/widget/bottom_bar.dart';
 import 'package:flutter/material.dart';
@@ -77,7 +77,6 @@ class _State extends State<FirstStep> {
               ),
             ),
 
-
             // ====== Bottom Bar (divider segmented) ======
             BottomBar(
               isPublic: writeProvider.isPublic,
@@ -97,10 +96,11 @@ class _State extends State<FirstStep> {
 
                 final ok = await showFloatingConfirmSheet(
                   context,
-                  title: '작성을 중단하고 나가시겠어요?',
-                  description: '작성 중인 내용은 저장되지 않고 모두 사라져요.',
-                  cancelText: '취소',
-                  confirmText: '나가기',
+                  title: 'v2_first_step_exit_confirm_title'.tr(context),
+                  description: 'v2_first_step_exit_confirm_content'.tr(context),
+                  cancelText: 'v2_first_step_exit_confirm_button_1'.tr(context),
+                  confirmText:
+                      'v2_first_step_exit_confirm_button_2'.tr(context),
                 );
 
                 if (ok == true) {
@@ -135,7 +135,6 @@ class _State extends State<FirstStep> {
                   await logJournalShare();
                 }
               },
-
               doneEnabled: writeProvider.diaryModel.content.isNotEmpty,
             ),
           ],
@@ -143,8 +142,4 @@ class _State extends State<FirstStep> {
       ),
     );
   }
-
 }
-
-
-

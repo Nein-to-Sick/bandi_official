@@ -12,7 +12,7 @@ import '../diary_ai_chat/controller/diary_ai_chat_controller.dart';
 import '../mail/controller/mail_controller.dart';
 import '../alarm/controller/alarm_controller.dart';
 import '../login/onboarding_gate.dart';
-import '../../string_extention.dart';
+import '../../localization/string_extention.dart';
 import '../settings/user_view.dart';
 
 class AppRouter {

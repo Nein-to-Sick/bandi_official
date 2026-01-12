@@ -1,5 +1,5 @@
 // lib/views/user/oss_licenses.dart
-import 'package:bandi_official/string_extention.dart';
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:bandi_official/view/settings/widget/frosted_settings_scaffold.dart';
 import 'package:flutter/material.dart';
 
@@ -92,7 +92,9 @@ class _OssLicensesScreenState extends State<OssLicensesScreen>
                                 style: BandiFont.labelSmall(context)?.copyWith(
                                   color: BandiColor.foundationColor60(context),
                                 )),
-                            const SizedBox(height: 4,),
+                            const SizedBox(
+                              height: 4,
+                            ),
                           ],
                           if (package.description.isNotEmpty)
                             Text(
@@ -116,8 +118,10 @@ class _OssLicensesScreenState extends State<OssLicensesScreen>
                                         // license text
                                         Text(
                                           _licenseBodyText(package.license!),
-                                          style: BandiFont.labelSmall(context)?.copyWith(
-                                            color: BandiColor.foundationColor60(context),
+                                          style: BandiFont.labelSmall(context)
+                                              ?.copyWith(
+                                            color: BandiColor.foundationColor60(
+                                                context),
                                           ),
                                         ),
 
@@ -125,10 +129,13 @@ class _OssLicensesScreenState extends State<OssLicensesScreen>
                                           const SizedBox(height: 14),
                                           Text(
                                             package.homepage!,
-                                            style: BandiFont.labelSmall(context)?.copyWith(
-                                              color: BandiColor.foundationColor60(context),
-                                              decoration: TextDecoration.underline
-                                            ),
+                                            style: BandiFont.labelSmall(context)
+                                                ?.copyWith(
+                                                    color: BandiColor
+                                                        .foundationColor60(
+                                                            context),
+                                                    decoration: TextDecoration
+                                                        .underline),
                                           ),
                                         ],
                                       ],

@@ -4,7 +4,7 @@ import 'package:bandi_official/components/appbar/new_custom_appbar.dart';
 import 'package:bandi_official/components/bottom_sheet/calendar_bottom_sheet.dart';
 import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
 import 'package:bandi_official/view/mail/controller/mail_controller.dart';
-import 'package:bandi_official/string_extention.dart';
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/mail/letters_view.dart';
 import 'package:bandi_official/view/mail/liked_diary_view.dart';

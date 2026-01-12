@@ -1,5 +1,5 @@
 import 'package:bandi_official/model/keyword.dart';
-import 'package:bandi_official/string_extention.dart';
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:flutter/material.dart';
 
 class EmotionProvider with ChangeNotifier {
