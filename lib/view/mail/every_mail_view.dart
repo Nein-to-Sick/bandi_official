@@ -110,6 +110,7 @@ class _EveryMailPageState extends State<EveryMailPage> {
             ? Center(
                 child: Text(
                   'inbox_no_all'.tr(context),
+                  textAlign: TextAlign.center,
                   style: BandiFont.headlineMedium(context)?.copyWith(
                     color: BandiColor.neutralColor80(context),
                   ),

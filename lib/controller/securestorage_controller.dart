@@ -3,7 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:developer' as dev;
 
 class SecureStorageProvider with ChangeNotifier {
-  final FlutterSecureStorage _storage = FlutterSecureStorage();
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   // 저장할 로그인 정보
   String? _loginMethod;

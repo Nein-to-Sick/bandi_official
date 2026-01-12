@@ -119,6 +119,7 @@ Widget _buildEmptyState(
       children: [
         Text(
           'inbox_no_shared_journals'.tr(context),
+          textAlign: TextAlign.center,
           style: BandiFont.headlineMedium(context)?.copyWith(
             color: BandiColor.neutralColor80(context),
           ),
@@ -174,17 +175,23 @@ Widget likedDiaryWidget(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    diary.title,
-                    style: BandiFont.titleSmall(context)
-                        ?.copyWith(color: BandiColor.neutralColor90(context)),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  Flexible(
+                    flex: 2,
+                    child: Text(
+                      diary.title,
+                      style: BandiFont.titleSmall(context)
+                          ?.copyWith(color: BandiColor.neutralColor90(context)),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                  Text(
-                    date,
-                    style: BandiFont.labelSmall(context)
-                        ?.copyWith(color: BandiColor.neutralColor60(context)),
+                  Flexible(
+                    flex: 1,
+                    child: Text(
+                      date,
+                      style: BandiFont.labelSmall(context)
+                          ?.copyWith(color: BandiColor.neutralColor60(context)),
+                    ),
                   ),
                 ],
               ),

@@ -505,8 +505,9 @@ class _OtherDiaryState extends State<OtherDiary> {
 
                   await showFloatingToastSheet(
                     context,
-                    message: "v2_other_diary_send_reaction_content",
-                    buttonText: "v2_other_diary_send_reaction_button",
+                    message: "v2_other_diary_send_reaction_content".tr(context),
+                    buttonText:
+                        "v2_other_diary_send_reaction_button".tr(context),
                   );
 
                   if (context.mounted) {

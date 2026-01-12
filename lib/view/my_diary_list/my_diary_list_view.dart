@@ -7,6 +7,7 @@ import 'package:bandi_official/controller/navigation_toggle_provider.dart';
 import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/localization/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
+import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
 import 'package:bandi_official/view/my_diary_list/controller/my_diary_list_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -100,8 +101,8 @@ class _MyDiaryListViewState extends State<MyDiaryListView>
           title: 'journal_title'.tr(context),
           // leftActionButtonIcon: PhosphorIcons.bell(PhosphorIconsStyle.thin),
           // onLeftActionButtonPressed: () async {
-          //   AlarmController alarmController =
-          //       Provider.of<AlarmController>(context, listen: false);
+          //   // AlarmController alarmController =
+          //   //     Provider.of<AlarmController>(context, listen: false);
 
           //   // local noti test
           //   // alarmController.testAllNotificationTypes();
@@ -177,6 +178,7 @@ Widget _buildEmptyState(bool isFiltered,
       children: [
         Text(
           'journal_no_diary'.tr(context),
+          textAlign: TextAlign.center,
           style: BandiFont.headlineMedium(context)?.copyWith(
             color: BandiColor.neutralColor80(context),
           ),
@@ -240,17 +242,23 @@ Widget myDiaryWidget(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              diary.title,
-              style: BandiFont.titleSmall(context)
-                  ?.copyWith(color: BandiColor.neutralColor90(context)),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            Flexible(
+              flex: 2,
+              child: Text(
+                diary.title,
+                style: BandiFont.titleSmall(context)
+                    ?.copyWith(color: BandiColor.neutralColor90(context)),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-            Text(
-              date,
-              style: BandiFont.labelSmall(context)
-                  ?.copyWith(color: BandiColor.neutralColor60(context)),
+            Flexible(
+              flex: 1,
+              child: Text(
+                date,
+                style: BandiFont.labelSmall(context)
+                    ?.copyWith(color: BandiColor.neutralColor60(context)),
+              ),
             ),
           ],
         ),
