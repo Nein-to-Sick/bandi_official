@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -71,13 +72,15 @@ class _NavigationViewState extends State<NavigationView> {
           return;
         }
 
+        if (!mounted) return;
+
         // ✅ 연결 안됨 → 시트 띄우고 선택 기다림
         final res = await showFloatingConfirmSheet(
           context,
-          title: '인터넷 연결이 잠시 끊겼나요?',
-          description: '네트워크 상태를 확인 후 다시 시도해 주세요.',
-          cancelText: '나가기',
-          confirmText: '새로고침',
+          title: 'internet_connection_check_title'.tr(context),
+          description: 'internet_connection_check_content'.tr(context),
+          cancelText: 'internet_connection_check_button_1'.tr(context),
+          confirmText: 'internet_connection_check_button_2'.tr(context),
           barrierDismissible: false,
         );
 
