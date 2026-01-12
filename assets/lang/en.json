@@ -270,5 +270,15 @@
   "v2_second_step_delete_confirm_title": "Sure you want to delete this entry?",
   "v2_second_step_delete_confirm_content": "Once deleted, this memory cannot be recovered.",
   "v2_second_step_delete_confirm_button_1": "Keep it",
-  "v2_second_step_delete_confirm_button_2": "Delete forever"
+  "v2_second_step_delete_confirm_button_2": "Delete forever",
+  "v2_other_diary_translation_loading": "Translating...",
+  "v2_other_diary_translation_state_1": "View in English",
+  "v2_other_diary_translation_state_2": "View in Korean",
+  "v2_other_diary_translation_state_3": "View Original",
+  "v2_other_diary_send_reaction_content": "Your kind words are on their way.",
+  "v2_other_diary_send_reaction_button": "Done",
+  "v2_other_diary_report_title": "Report this diary as inappropriate?",
+  "v2_other_diary_report_content": "Once reported, similar content will no longer be shared with you.",
+  "v2_other_diary_report_button_1": "Cancel",
+  "v2_other_diary_report_button_2": "Report"
 }
