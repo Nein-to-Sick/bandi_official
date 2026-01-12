@@ -163,7 +163,7 @@
   "inbox_no_all": "보관함이 비었습니다",
   "inbox_no_letters": "해당 날짜에 편지가 없습니다",
   "inbox_no_shared_journals": "해당 날짜에 공감한 일기가 없습니다",
-  "inbox_hared_journals_filter_title": "공감 키워드",
+  "inbox_shared_journals_filter_title": "공감 키워드",
   "settings_title": "설정",
   "settings_my_account": "계정 관리",
   "settings_my_account_email": "이메일",

@@ -1,6 +1,8 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:bandi_official/localization/string_extention.dart';
+import 'package:bandi_official/view/settings/controller/user_view_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -120,6 +122,7 @@ class _NavigationViewState extends State<NavigationView> {
     final mailController = context.watch<MailController>();
     final alarmController = context.watch<AlarmController>();
     final internet = context.watch<InternetConnectionController>();
+    final userViewController = context.watch<UserViewController>();
 
     // alarm detail에서 context 필요하다면 유지
     alarmController.updateContext(context);
@@ -155,6 +158,17 @@ class _NavigationViewState extends State<NavigationView> {
           }
           writeProvider.initialize();
           writeProvider.toggleWrite();
+          return;
+        }
+
+        // 설정 화면시
+        if (nav.selectedIndex == -2) {
+          if (userViewController.settings == 2) {
+            userViewController.updateSettingValue(1);
+          } else {
+            userViewController.updateSettingValue(0);
+          }
+          nav.selectIndex(3);
           return;
         }
 

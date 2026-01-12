@@ -381,7 +381,7 @@ class HomeToWrite with ChangeNotifier {
       diaryId: diaryId,
       title: (langCode == 'ko')
           ? username + "v2_home_notification_sharing_state_2".tr(context)
-          : "v2_home_notification_sharing_state_2".tr(context) + username,
+          : "v2_home_notification_sharing_state_2".tr(context),
       context: context,
     );
 

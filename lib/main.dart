@@ -1,6 +1,7 @@
 import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
 import 'package:bandi_official/controller/date_provider.dart';
 import 'package:bandi_official/view/my_diary_list/controller/my_diary_list_controller.dart';
+import 'package:bandi_official/view/settings/controller/user_view_controller.dart';
 import 'package:bandi_official/view/writing/controller/diary_ai_analysis_controller.dart';
 import 'package:bandi_official/view/diary_ai_chat/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/controller/internet_connection_controller.dart';
@@ -124,6 +125,9 @@ class MainApp extends StatelessWidget {
             ),
             ChangeNotifierProvider(
               create: (context) => MyDiaryListController(),
+            ),
+            ChangeNotifierProvider(
+              create: (context) => UserViewController(),
             ),
           ],
           child: MaterialApp(

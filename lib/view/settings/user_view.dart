@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:bandi_official/controller/permission_controller.dart';
 import 'package:bandi_official/localization/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
+import 'package:bandi_official/view/settings/controller/user_view_controller.dart';
 import 'package:bandi_official/view/settings/privacy_policy.dart';
 import 'package:bandi_official/view/settings/settings_home.dart';
 import 'package:bandi_official/view/settings/terms_of_use.dart';
@@ -93,64 +94,57 @@ class _UserViewState extends State<UserView> with WidgetsBindingObserver {
     );
   }
 
-  // OssLicensesScreen -> UserView로 라이센스 정보를 넘겨주어 상세 화면을 띄우는 함수
-  void onNavigateLicenseDetail(Map<String, dynamic> licenseData) {
-    setState(() {
-      selectedLicenseData = licenseData;
-      settings = 7; // 오픈 라이센스 상세 화면
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
+    UserViewController userViewController =
+        Provider.of<UserViewController>(context);
+
     var navigationToggleProvider =
         Provider.of<NavigationToggleProvider>(context);
 
+    // OssLicensesScreen -> UserView로 라이센스 정보를 넘겨주어 상세 화면을 띄우는 함수
+    void onNavigateLicenseDetail(Map<String, dynamic> licenseData) {
+      setState(() {
+        selectedLicenseData = licenseData;
+      });
+      userViewController.updateSettingValue(7);
+    }
+
     // settings가 0 이상이면 네비게이션 토글바 숨기기
-    if (settings > 0) {
+    if (userViewController.settings > 0) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         navigationToggleProvider.selectIndex(-2);
       });
     }
 
-    switch (settings) {
+    switch (userViewController.settings) {
       case 0:
         return SettingsHome(
           onNavigate: (int index) {
-            setState(() {
-              settings = index;
-            });
+            userViewController.updateSettingValue(index);
           },
         );
       case 1:
         return AccountManagement(
           onNavigate: (int index) {
-            setState(() {
-              settings = index;
-            });
+            userViewController.updateSettingValue(index);
           },
           onBack: () {
-            setState(() {
-              settings = 0;
-            });
+            userViewController.updateSettingValue(0);
             navigationToggleProvider.selectIndex(3);
           },
         );
       case 2:
         return NicknameChange(
           onBack: () {
-            setState(() {
-              settings = 1;
-            });
+            userViewController.updateSettingValue(1);
           },
         );
       case 3:
         // 오픈 라이센스 목록
         return OssLicensesScreen(
           onBack: () {
-            setState(() {
-              settings = 0;
-            });
+            userViewController.updateSettingValue(0);
             navigationToggleProvider.selectIndex(3);
           },
           // 상세 라이센스 페이지로 이동하기 위한 콜백
@@ -159,36 +153,28 @@ class _UserViewState extends State<UserView> with WidgetsBindingObserver {
       case 4:
         return TermsOfUseScreen(
           onBack: () {
-            setState(() {
-              settings = 0;
-            });
+            userViewController.updateSettingValue(0);
             navigationToggleProvider.selectIndex(3);
           },
         );
       case 5:
         return PrivacyPolicyScreen(
           onBack: () {
-            setState(() {
-              settings = 0;
-            });
+            userViewController.updateSettingValue(0);
             navigationToggleProvider.selectIndex(3);
           },
         );
       case 6:
         return CompanyInfoScreen(
           onBack: () {
-            setState(() {
-              settings = 0;
-            });
+            userViewController.updateSettingValue(0);
             navigationToggleProvider.selectIndex(3);
           },
         );
       case 7:
         return EulaAgreementScreen(
           onBack: () {
-            setState(() {
-              settings = 0;
-            });
+            userViewController.updateSettingValue(0);
             navigationToggleProvider.selectIndex(3);
           },
         );

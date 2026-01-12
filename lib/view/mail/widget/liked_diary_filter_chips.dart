@@ -48,7 +48,7 @@ class _LikedDiaryFilterChipsState extends State<LikedDiaryFilterChips> {
                         ),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
+                            horizontal: 10,
                             vertical: 6,
                           ),
                           child: Center(
