@@ -327,6 +327,8 @@ class MyDiaryListController with ChangeNotifier {
       // 키 형식: {userId}_myDiaryList_{yyyy-MM-dd}
       String targetKey = '${userId}_myDiaryList_$dateString';
 
+      dev.log("wowowow!!!: ${targetKey}");
+
       // 3. 해당 날짜의 기존 로컬 데이터 불러오기
       List<String>? storedMessages = prefs.getStringList(targetKey);
       List<Diary> messages = [];
@@ -344,31 +346,40 @@ class MyDiaryListController with ChangeNotifier {
         }).toList();
       }
 
-      // 4. 리스트에 새 일기 추가
-      // 최신순 정렬을 위해 리스트의 맨 앞(0번 인덱스)에 삽입합니다.
-      // (만약 시간순(오전->오후) 정렬을 원하시면 messages.add(myDiary)로 변경하세요)
-      messages.insert(0, myDiary);
+      // [핵심 수정] 참조 끊기! 새로운 객체를 생성하여 값을 복사합니다.
+      // 이렇게 해야 나중에 diaryModel이 초기화되어도 리스트의 데이터는 살아있습니다.
+      Diary newDiaryEntry = Diary(
+        userId: myDiary.userId,
+        title: myDiary.title,
+        content: myDiary.content,
+        emotion: List.from(myDiary.emotion), // 리스트도 복사
+        createdAt: myDiary.createdAt,
+        updatedAt: myDiary.updatedAt,
+        reaction: List.from(myDiary.reaction), // 리스트도 복사
+        diaryId: myDiary.diaryId,
+        cheerText: myDiary.cheerText,
+        otherUserReaction: -1,
+        otherUserLikedAt: '',
+      );
 
-      // 5. 메모리 리스트(화면 표시용)에도 즉시 추가
-      // 전체 리스트의 맨 앞에 추가하여 UI에 바로 반영되도록 함
-      myDiaryList.insert(0, myDiary);
+      // 4. 리스트에 '복사된 객체' 추가
+      messages.insert(0, newDiaryEntry);
 
-      // 6. 로컬 저장소에 저장 (JSON 인코딩)
+      // 5. 메모리 리스트에도 '복사된 객체' 추가
+      myDiaryList.insert(0, newDiaryEntry);
+
+      // 6. 저장
       List<String> jsonMessages =
           messages.map((message) => jsonEncode(message.toJson())).toList();
 
       await prefs.setStringList(targetKey, jsonMessages);
 
-      // 7. 날짜 키 리스트 업데이트 (새로운 날짜에 쓴 일기일 경우)
       if (!myDiaryListDates.contains(targetKey)) {
         myDiaryListDates.add(targetKey);
-        // 날짜 내림차순 정렬 (최신 날짜가 위로 오도록)
         myDiaryListDates.sort((a, b) => b.compareTo(a));
       }
 
       dev.log('Saved MY Diary to local for date $dateString');
-
-      // UI 갱신 알림
       notifyListeners();
     } catch (e) {
       dev.log('Error saving MY diary locally: $e');
@@ -618,6 +629,11 @@ class MyDiaryListController with ChangeNotifier {
   Future<List<dynamic>> fetchMyDiariesReactionAndSaveFromDB(
       String myDiaryId) async {
     List<dynamic> currentReaction = [0, 0, 0];
+
+    if (myDiaryId.isEmpty) {
+      dev.log('Skipping reaction fetch: myDiaryId is empty.');
+      return currentReaction;
+    }
 
     if (userId == null || userId!.isEmpty) return currentReaction;
 
