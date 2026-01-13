@@ -15,6 +15,9 @@ import '../../../controller/navigation_toggle_provider.dart';
 import '../../components/bottom_sheet/show_floating_confirm_sheet.dart';
 import 'dart:developer' as dev;
 
+import '../tutorial/controller/tutorial_controller.dart';
+import '../tutorial/tutorial_flow_page.dart';
+
 class SecondStep extends StatelessWidget {
   const SecondStep({super.key});
 
@@ -32,8 +35,30 @@ class SecondStep extends StatelessWidget {
     final dateText = DateFormat('yyyy년 M월 d일')
         .format(writeProvider.diaryModel.createdAt.toDate());
 
-    void onPagePop() {
-      navigationToggleProvider.selectIndex(1);
+    Future<void> onPagePop() async {
+      final t = context.read<TutorialController>();
+
+      final shouldShowNextFlow =
+          t.active &&
+              t.phase == TutorialPhase.practice &&
+              t.step == TutorialStep.emotionalWriting;
+
+      if (shouldShowNextFlow) {
+        await t.advanceAfterPractice();
+
+        final res = await TutorialFlowPage.show(
+          context,
+          startIndex: context.read<TutorialController>().explainIndex,
+        );
+
+        if (res != null) {
+          await context.read<TutorialController>().beginPracticeForStep(res.step);
+        }
+      }
+
+      if (t.active) { navigationToggleProvider.selectIndex(-3); }
+      else { navigationToggleProvider.selectIndex(1); }
+
       writeProvider.initialize();
       writeProvider.toggleWrite();
     }
@@ -173,8 +198,8 @@ class SecondStep extends StatelessWidget {
                   }
                 });
               },
-              onTapHome: () {
-                onPagePop();
+              onTapHome: () async {
+                await onPagePop();
               },
             ),
           ],

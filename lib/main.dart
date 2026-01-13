@@ -1,6 +1,8 @@
 import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
 import 'package:bandi_official/controller/date_provider.dart';
 import 'package:bandi_official/view/my_diary_list/controller/my_diary_list_controller.dart';
+import 'package:bandi_official/view/tutorial/controller/tutorial_controller.dart';
+import 'package:bandi_official/view/tutorial/controller/tutorial_target_registry.dart';
 import 'package:bandi_official/view/writing/controller/diary_ai_analysis_controller.dart';
 import 'package:bandi_official/view/diary_ai_chat/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/controller/internet_connection_controller.dart';
@@ -77,6 +79,8 @@ class MainApp extends StatelessWidget {
       builder: (context, mode, child) {
         return MultiProvider(
           providers: [
+            ChangeNotifierProvider(create: (_) => TutorialTargetRegistry()),
+            ChangeNotifierProvider(create: (_) => TutorialController()),
             ChangeNotifierProvider(create: (_) => BgmController()),
             ChangeNotifierProvider(create: (_) => SecureStorageProvider()),
             ChangeNotifierProvider(create: (_) => UserInfoValueModel()),
@@ -96,6 +100,8 @@ class MainApp extends StatelessWidget {
                 storage: ctx.read<SecureStorageProvider>(),
                 nav: ctx.read<NavigationToggleProvider>(),
                 userInfo: ctx.read<UserInfoValueModel>(),
+                tutorial: ctx.read<TutorialController>(),
+
               ),
             ),
             ChangeNotifierProvider(

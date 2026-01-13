@@ -19,6 +19,7 @@ import '../../controller/navigation_toggle_provider.dart';
 import '../../controller/securestorage_controller.dart';
 import '../../controller/user_info_controller.dart';
 import '../../theme/custom_theme_data.dart';
+import '../tutorial/controller/tutorial_controller.dart';
 
 class AccountManagement extends StatefulWidget {
   final Function(int) onNavigate;
@@ -33,12 +34,15 @@ class AccountManagement extends StatefulWidget {
 
 class _AccountManagementState extends State<AccountManagement> {
   late SecureStorageProvider _storageProvider;
+  late TutorialController _tutorial;
 
   @override
   void initState() {
     super.initState();
     _storageProvider =
         Provider.of<SecureStorageProvider>(context, listen: false);
+    _tutorial = Provider.of<TutorialController>(context, listen: false); // ✅ 미리 잡기
+
   }
 
   @override
@@ -153,6 +157,8 @@ class _AccountManagementState extends State<AccountManagement> {
 
                         // 계정 삭제를 위한 재인증 + 삭제 실행
                         await reauthenticateAndDeleteUser();
+
+                        await _tutorial.resetAll();
 
                         // 로그인 페이지로 이동
                         navigationToggleProvider.selectIndex(-1);

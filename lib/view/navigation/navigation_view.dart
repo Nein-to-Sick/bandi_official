@@ -18,6 +18,9 @@ import '../../controller/home_to_write.dart';
 import '../../controller/navigation_toggle_provider.dart';
 import '../home/controller/bgm_controller.dart';
 import '../login/controller/login_controller.dart';
+import '../tutorial/controller/tutorial_controller.dart';
+import '../tutorial/controller/tutorial_target_registry.dart';
+import '../tutorial/tutorial_overlay.dart';
 import 'app_router.dart';
 import 'components/frosted_nav_bar.dart';
 
@@ -35,22 +38,41 @@ class _NavigationViewState extends State<NavigationView> {
   bool _loginInitDone = false;
   bool _offlineLoopRunning = false;
 
+  bool _tutorialBootstrapped = false;
+
   @override
   void initState() {
     super.initState();
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _bootstrap();
+    });
+  }
+
+  Future<void> _bootstrap() async {
+    if (!mounted) return;
+
+    context.read<BgmController>().init();
+
+    if (!_tutorialBootstrapped) {
+      _tutorialBootstrapped = true;
+
+      final t = context.read<TutorialController>();
+      final nav = context.read<NavigationToggleProvider>();
+
+      await t.loadFromStorage();
       if (!mounted) return;
 
-      context.read<BgmController>().init();
-
-      if (!_loginInitDone) {
-        _loginInitDone = true;
-        context.read<LoginController>().init();
+      if (!t.finished) {
+        nav.selectIndex(-3);
       }
+    }
 
-      _ensureNetworkOrExit();
-    });
+    if (!_loginInitDone) {
+      _loginInitDone = true;
+      context.read<LoginController>().init();
+    }
+
+    await _ensureNetworkOrExit();
   }
 
   Future<void> _ensureNetworkOrExit() async {
@@ -63,15 +85,14 @@ class _NavigationViewState extends State<NavigationView> {
       while (mounted) {
         final ok = await internet.checkNetworkConnectivity();
 
-        // ✅ 연결되면 끝
         if (ok == true) {
+          if (!mounted) return;
           setState(() {
             _networkFuture = Future.value(true);
           });
           return;
         }
 
-        // ✅ 연결 안됨 → 시트 띄우고 선택 기다림
         final res = await showFloatingConfirmSheet(
           context,
           title: '인터넷 연결이 잠시 끊겼나요?',
@@ -83,13 +104,10 @@ class _NavigationViewState extends State<NavigationView> {
 
         if (!mounted) return;
 
-        // 나가기(또는 null 포함)면 종료
         if (res != true) {
-          exit(0); // 또는 SystemNavigator.pop();
+          exit(0);
         }
 
-        // ✅ 새로고침(true) → 루프 계속(다시 체크)
-        // 여기서 잠깐 딜레이 주고 싶으면:
         await Future.delayed(const Duration(milliseconds: 200));
       }
     } finally {
@@ -101,7 +119,6 @@ class _NavigationViewState extends State<NavigationView> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    // ✅ locale 바뀔 때만 date formatting
     final langCode = Localizations.localeOf(context).languageCode;
     if (_lastLangCode != langCode) {
       _lastLangCode = langCode;
@@ -118,6 +135,33 @@ class _NavigationViewState extends State<NavigationView> {
     final alarmController = context.watch<AlarmController>();
     final internet = context.watch<InternetConnectionController>();
 
+    final tutorial = context.watch<TutorialController>();
+    final registry = context.watch<TutorialTargetRegistry>();
+
+    // 튜토리얼 진행 중이면 타겟 rect 갱신
+    if (tutorial.active) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        context.read<TutorialTargetRegistry>().refreshAll();
+      });
+    }
+
+    final targetId = tutorial.targetId;
+    final rawRect = (targetId == null) ? null : registry.rectOf(targetId);
+
+    final pointRect = (targetId == null || rawRect == null)
+        ? null
+        : _makePointRect(
+      rawRect,
+      size: 28,
+      offset: _offsetForTarget(targetId),
+    );
+
+    final isWritingOpen = writeProvider.write; // 글쓰기 화면(FirstStep) 열렸는지
+    final shouldShowTutorialOverlay = tutorial.active
+        && !isWritingOpen           // ✅ 글쓰기 화면에선 전역 링 숨김
+        && pointRect != null;
+
     // alarm detail에서 context 필요하다면 유지
     alarmController.updateContext(context);
 
@@ -125,6 +169,14 @@ class _NavigationViewState extends State<NavigationView> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
+
+        // ✅ 튜토리얼 중이면 뒤로가기 막고 현재 step 다시 시작(이탈 시 해당 단계 처음으로)
+        if (tutorial.active) {
+          await context.read<TutorialController>().restartFromExplain();
+          // 설명 페이지가 떠야 하니 온보딩 게이트로 보내고 싶으면:
+          context.read<NavigationToggleProvider>().selectIndex(-3);
+          return;
+        }
 
         if (diaryAiChatController.isChatOpen) {
           diaryAiChatController.toggleChatOpen(false);
@@ -138,16 +190,11 @@ class _NavigationViewState extends State<NavigationView> {
         }
 
         if (writeProvider.write) {
-          // 일기 작성시
           if (writeProvider.step == 1) {
             nav.selectIndex(0);
-          }
-          // 일기 열람시
-          else if (writeProvider.step == 2) {
+          } else if (writeProvider.step == 2) {
             nav.selectIndex(1);
-          }
-          // 일기 수정시
-          else {
+          } else {
             return;
           }
           writeProvider.initialize();
@@ -174,69 +221,101 @@ class _NavigationViewState extends State<NavigationView> {
               (snapshot.hasData && snapshot.data == true);
 
           return Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
+              decoration: BoxDecoration(
+                image: DecorationImage(
                   fit: BoxFit.cover,
                   image: nav.selectedIndex != 3
                       ? const AssetImage(
                           'assets/images/backgrounds/background_dark.png')
                       : const AssetImage(
-                          'assets/images/backgrounds/background_blur.png')),
-            ),
-            child: isOk
-                ? Scaffold(
-                    backgroundColor: BandiColor.transparent(context),
-                    body: Stack(
-                      children: [
-                        const FireFly(),
-                        AppRouter.buildMain(
-                          context: context,
-                          nav: nav,
-                          writeProvider: writeProvider,
-                          diaryAiChatController: diaryAiChatController,
-                          mailController: mailController,
-                          alarmController: alarmController,
-                        ),
-                        if (AppRouter.shouldShowNavBar(
-                          nav: nav,
-                          writeProvider: writeProvider,
-                          diaryAiChatController: diaryAiChatController,
-                          mailController: mailController,
-                          alarmController: alarmController,
-                        ))
-                          Positioned(
-                            left: 0,
-                            right: 0,
-                            bottom: 32,
-                            child: FrostedNavBar(
-                              selectedIndex: nav.selectedIndex,
-                              onTap: (i) => nav.selectIndex(i),
-                              items: [
-                                NavItem(
-                                    icon: PhosphorIcons.house(
-                                        PhosphorIconsStyle.fill)),
-                                NavItem(
-                                    icon: PhosphorIcons.book(
-                                        PhosphorIconsStyle.fill)),
-                                NavItem(
-                                    icon: PhosphorIcons.tray(
-                                        PhosphorIconsStyle.fill)),
-                                NavItem(
-                                    icon: PhosphorIcons.gearSix(
-                                        PhosphorIconsStyle.fill)),
-                              ],
-                            ),
+                          'assets/images/backgrounds/background_blur.png'),
+                ),
+              ),
+              child: isOk
+                  ? Scaffold(
+                      backgroundColor: BandiColor.transparent(context),
+                      body: Stack(
+                        children: [
+                          const FireFly(),
+
+                          // ✅ 튜토리얼 중엔 화면 이탈 막기: overlay가 아닌 영역 탭을 전부 먹어버림
+                          // (구멍(holeRect) 내부는 TutorialOverlay에서 터치 통과 처리)
+                          AppRouter.buildMain(
+                            context: context,
+                            nav: nav,
+                            writeProvider: writeProvider,
+                            diaryAiChatController: diaryAiChatController,
+                            mailController: mailController,
+                            alarmController: alarmController,
                           ),
-                      ],
-                    ),
-                  )
-                : Scaffold(
-                    backgroundColor: BandiColor.transparent(context),
-                    body: const SizedBox.shrink(),
-                  ),
-          );
+
+                          // NavBar도 튜토리얼 중엔 막기
+                          if (AppRouter.shouldShowNavBar(
+                            nav: nav,
+                            writeProvider: writeProvider,
+                            diaryAiChatController: diaryAiChatController,
+                            mailController: mailController,
+                            alarmController: alarmController,
+                          ))
+                            Positioned(
+                              left: 0,
+                              right: 0,
+                              bottom: 32,
+                              child: FrostedNavBar(
+                                selectedIndex: nav.selectedIndex,
+                                onTap: (i) => nav.selectIndex(i),
+                                items: [
+                                  NavItem(
+                                      icon: PhosphorIcons.house(
+                                          PhosphorIconsStyle.fill)),
+                                  NavItem(
+                                      icon: PhosphorIcons.book(
+                                          PhosphorIconsStyle.fill)),
+                                  NavItem(
+                                      icon: PhosphorIcons.tray(
+                                          PhosphorIconsStyle.fill)),
+                                  NavItem(
+                                      icon: PhosphorIcons.gearSix(
+                                          PhosphorIconsStyle.fill)),
+                                ],
+                              ),
+                            ),
+
+                          // ✅ 튜토리얼 오버레이
+                          if (shouldShowTutorialOverlay)
+                            TutorialOverlay(
+                              targetRect: pointRect!,
+                              radius: 14, // 28 / 2
+                              guide: const SizedBox.shrink()
+                            ),
+                        ],
+                      ),
+                    )
+                  : Scaffold(
+                      backgroundColor: BandiColor.transparent(context),
+                      body: const SizedBox.shrink(),
+                    ));
         },
       ),
     );
+  }
+}
+
+Rect _makePointRect(Rect base, {double size = 28, Offset offset = Offset.zero}) {
+  final c = base.center + offset;
+  return Rect.fromCenter(center: c, width: size, height: size);
+}
+
+Offset _offsetForTarget(String targetId) {
+  switch (targetId) {
+    case 'home.writeButton':
+    // ✅ 예시: 카드 중앙보다 아이콘이 약간 왼쪽/위에 있을 가능성 큼
+      return const Offset(-28, -6);
+    case 'home.aiChatButton':
+      return const Offset(-28, -6);
+    case 'home.mailButton':
+      return const Offset(0, -10);
+    default:
+      return Offset.zero;
   }
 }

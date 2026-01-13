@@ -24,11 +24,6 @@ class AppRouter {
     required MailController mailController,
     required AlarmController alarmController,
   }) {
-    // 오버레이 우선
-    // if (writeProvider.otherDiaryOpen == true && writeProvider.step == 1) {
-    //   return OtherDiary(writeProvider: writeProvider);
-    // }
-
     // 회원가입/온보딩
     if (nav.selectedIndex == -3) return const OnboardingGate();
 

@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import '../../../controller/navigation_toggle_provider.dart';
 import '../../../controller/securestorage_controller.dart';
 import '../../../controller/user_info_controller.dart';
+import '../../tutorial/controller/tutorial_controller.dart';
 import '../data/auth_service.dart';
 
 sealed class LoginUiEvent {
@@ -15,6 +16,10 @@ sealed class LoginUiEvent {
 
 class ShowAgreementSheet extends LoginUiEvent {
   const ShowAgreementSheet();
+}
+
+class ShowTutorialFlow extends LoginUiEvent {
+  const ShowTutorialFlow();
 }
 
 class ShowNicknameSheet extends LoginUiEvent {
@@ -31,6 +36,7 @@ class LoginController extends ChangeNotifier {
   final SecureStorageProvider storage;
   final NavigationToggleProvider nav;
   final UserInfoValueModel userInfo;
+  final TutorialController tutorial;
 
   bool _disposed = false;
   bool _initialized = false;
@@ -57,9 +63,12 @@ class LoginController extends ChangeNotifier {
     required this.storage,
     required this.nav,
     required this.userInfo,
+    required this.tutorial,
   });
 
   void emit(LoginUiEvent e) {
+    log('emit $e hasListener=${_events.hasListener} closed=${_events.isClosed}');
+
     if (_disposed) return;
     if (_events.isClosed) return;
 
@@ -157,6 +166,14 @@ class LoginController extends ChangeNotifier {
       return;
     }
 
+    // ✅ 핵심: 닉네임이 아니라 "튜토리얼 완료 여부"로 판단
+    if (!tutorial.finished) {
+      nav.selectIndex(-3);
+      emit(const ShowTutorialFlow());
+      return;
+    }
+
+    // ✅ 튜토리얼 끝났는데 닉네임 없으면 닉네임
     if (userInfo.getNickName().trim().isEmpty) {
       nav.selectIndex(-3);
       emit(const ShowNicknameSheet());
@@ -167,7 +184,6 @@ class LoginController extends ChangeNotifier {
   }
 
 
-  /// 약관 동의 완료 시 UI에서 호출
   Future<void> onAgreementAccepted() async {
     final uid = userInfo.userId;
     if (uid.isEmpty) return;
@@ -176,10 +192,12 @@ class LoginController extends ChangeNotifier {
       userId: uid,
       isAgreed: true,
     );
-
     userInfo.updateIsAgreed(true);
+    nav.selectIndex(-3);
+  }
 
-    // 다음 단계로
+
+  Future<void> onTutorialFinished() async {
     emit(const ShowNicknameSheet());
   }
 

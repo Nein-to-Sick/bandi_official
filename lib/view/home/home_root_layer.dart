@@ -22,6 +22,7 @@ import '../diary_ai_chat/diary_ai_chat_view.dart';
 import '../mail/controller/mail_controller.dart';
 import '../mail/detail_view.dart';
 import '../sharing_diary/other_diary.dart';
+import '../tutorial/controller/tutorial_target_registry.dart';
 import '../writing/write_diary.dart';
 import 'controller/bgm_controller.dart';
 import 'package:bandi_official/model/letter.dart';
@@ -41,6 +42,18 @@ class _HomeRootLayerState extends State<HomeRootLayer>
 
   DateTime? _latestRealAlarmAt;
 
+  TutorialTargetRegistry? _tutorialReg;
+  HomeToWrite? _writeProvider;
+  final GlobalKey _tutorialWriteBtnKey = GlobalKey();
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    _tutorialReg ??= context.read<TutorialTargetRegistry>();
+    _writeProvider ??= context.read<HomeToWrite>();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -48,15 +61,21 @@ class _HomeRootLayerState extends State<HomeRootLayer>
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      final write = context.read<HomeToWrite>();
-      write.loadLastDiaryDate();
-      write.loadHomeNotiLastSeen();
+
+      final write = _writeProvider;
+      write?.loadLastDiaryDate();
+      write?.loadHomeNotiLastSeen();
       _scheduleMidnightRefresh();
+
+      _tutorialReg?.register('home.writeButton', _tutorialWriteBtnKey);
     });
   }
 
+
   @override
   void dispose() {
+    _tutorialReg?.unregister('home.writeButton');
+
     WidgetsBinding.instance.removeObserver(this);
     _midnightTimer?.cancel();
     super.dispose();
@@ -64,12 +83,10 @@ class _HomeRootLayerState extends State<HomeRootLayer>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.detached) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
       final t = _latestRealAlarmAt;
       if (t != null) {
-        // ignore: unawaited_futures
-        context.read<HomeToWrite>().setHomeNotiLastSeenAt(t);
+        _writeProvider?.setHomeNotiLastSeenAt(t);
       }
     }
   }
@@ -125,22 +142,6 @@ class _HomeRootLayerState extends State<HomeRootLayer>
           }
         });
       });
-
-      // if (!mounted) return;
-      // Navigator.of(context).push(
-      //   PageRouteBuilder(
-      //     opaque: false,
-      //     barrierColor: Colors.transparent,
-      //     pageBuilder: (_, __, ___) => DetailView(
-      //       item: letter,
-      //       mailController: mailController,
-      //     ),
-      //     transitionsBuilder: (_, anim, __, child) {
-      //       return FadeTransition(opacity: anim, child: child);
-      //     },
-      //     transitionDuration: const Duration(milliseconds: 220),
-      //   ),
-      // );
       return;
     }
 
@@ -417,12 +418,15 @@ class _HomeRootLayerState extends State<HomeRootLayer>
                             const SizedBox(width: 16),
                             Expanded(
                               child: HomeActionCardButton(
-                                icon: PhosphorIcons.pencilSimple(
-                                    PhosphorIconsStyle.light),
+                                key: _tutorialWriteBtnKey,
+                                icon: PhosphorIcons.pencilSimple(PhosphorIconsStyle.light),
                                 label: "일기 쓰기",
-                                onTap: () => writeProvider.toggleWrite(),
+                                onTap: () async {
+                                  writeProvider.toggleWrite();
+                                },
                               ),
                             ),
+
                           ],
                         ),
                       ),
