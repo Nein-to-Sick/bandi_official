@@ -187,6 +187,7 @@ class _TutorialStep extends StatelessWidget {
               color: BandiColor.neutralColor60(context),
               height: 1.4,
             ),
+            textAlign: TextAlign.center,
           ),
           const SizedBox(
             height: 53,

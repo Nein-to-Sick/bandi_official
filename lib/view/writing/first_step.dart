@@ -32,12 +32,14 @@ class _FirstStepState extends State<FirstStep> {
   final GlobalKey _toggleKey = GlobalKey();
   final GlobalKey _doneKey = GlobalKey();
 
-  // ✅ "텍스트 링 클릭하면 즉시 사라짐" + "5초 뒤 토글 단계로"
   Timer? _toTogglePhaseTimer;
-  bool _hideFocusRing = false;
 
-  // ✅ 토글 unlock
-  bool _toggleUnlocked = false;
+  // ✅ 로컬 UI 상태 (튜토리얼 표시/락 제어용)
+  bool _hideTextFocusRing = false; // focusText 링을 한번 누르면 즉시 숨김
+  bool _toggleUnlocked = false; // toggle 단계에서만 true
+  bool _didRegisterTargets = false;
+
+  TutorialTargetRegistry? _tutorialReg;
 
   @override
   void initState() {
@@ -45,65 +47,40 @@ class _FirstStepState extends State<FirstStep> {
     _textEditingController = TextEditingController();
     _focusNode = FocusNode();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!mounted) return;
-
-      final t = context.read<TutorialController>();
-
-      // ✅ homeWriteButton practice 상태일 때만 첫 서브 단계 시작
-      if (t.active &&
-          t.phase == TutorialPhase.practice &&
-          t.step == TutorialStep.emotionalWriting) {
-        await t.setFirstWritePhase(FirstWriteTutorialPhase.focusText);
-      }
-
-      // ✅ 진입 시 포커스 끔(요구사항)
-      _focusNode.unfocus();
-
-      // ✅ 튜토리얼 target 등록
-      final reg = context.read<TutorialTargetRegistry>();
-      reg.register('write.hintAnchor', _hintAnchorKey);
-      reg.register('write.togglePublic', _toggleKey);
-      reg.register('write.doneButton', _doneKey);
-
-      reg.refreshAll();
-
-      // ✅ 재진입/리빌드 시 현재 튜토 상태에 맞춰 내부 상태 동기화
-      _syncWithTutorialState();
-    });
+    // writeProvider content 동기화는 onChanged에서 처리
   }
 
-  void _syncWithTutorialState() {
-    final t = context.read<TutorialController>();
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
 
-    if (!t.isFirstWriteFlow) return;
+    _tutorialReg ??= context.read<TutorialTargetRegistry>();
 
-    // focusText면: 링 보이게, 토글 잠금
-    if (t.firstWritePhase == FirstWriteTutorialPhase.focusText) {
-      _toTogglePhaseTimer?.cancel();
-      setState(() {
-        _hideFocusRing = false;
-        _toggleUnlocked = false;
+    // ✅ 타겟 등록은 1회만
+    if (!_didRegisterTargets) {
+      _didRegisterTargets = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+
+        final reg = context.read<TutorialTargetRegistry>();
+        reg.register('write.hintAnchor', _hintAnchorKey);
+        reg.register('write.togglePublic', _toggleKey);
+        reg.register('write.doneButton', _doneKey);
+
+        reg.refreshAll();
+
+        // ✅ 진입 시 포커스 끔 (요구사항)
+        _focusNode.unfocus();
+
+        // ✅ 튜토 상태에 맞춰 로컬 상태 동기화
+        _syncLocalUiWithTutorial();
       });
-      return;
-    }
-
-    // togglePublic이면: 토글 링 보이고 클릭 가능(여기서는 이미 5초가 지난 상태라고 가정)
-    if (t.firstWritePhase == FirstWriteTutorialPhase.togglePublic) {
-      _toTogglePhaseTimer?.cancel();
-      setState(() {
-        _hideFocusRing = true;
-        _toggleUnlocked = true;
-      });
-      return;
-    }
-
-    // pressDone이면: 완료만 가능
-    if (t.firstWritePhase == FirstWriteTutorialPhase.pressDone) {
-      _toTogglePhaseTimer?.cancel();
-      setState(() {
-        _hideFocusRing = true;
-        _toggleUnlocked = false;
+    } else {
+      // ✅ controller 변화로 rebuild 될 때도 local 상태 동기화 필요
+      // (예: phase가 외부에서 바뀌어 들어오는 경우)
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _syncLocalUiWithTutorial();
       });
     }
   }
@@ -117,29 +94,83 @@ class _FirstStepState extends State<FirstStep> {
     // ✅ target 해제
     try {
       final reg = context.read<TutorialTargetRegistry>();
+      reg.unregister('write.hintAnchor');
       reg.unregister('write.togglePublic');
       reg.unregister('write.doneButton');
-      reg.unregister('write.hintAnchor');
     } catch (_) {}
 
     super.dispose();
   }
 
-  // ✅ 현재 튜토리얼 서브단계에서 “딱 이 target만” 클릭 가능하도록 targetId 반환
+  // ==========================
+  // ✅ Tutorial <-> Local UI Sync
+  // ==========================
+  void _syncLocalUiWithTutorial() {
+    final t = context.read<TutorialController>();
+
+    if (!t.isFirstWriteFlow) {
+      // 튜토리얼 아니면 로컬 상태 초기화
+      _toTogglePhaseTimer?.cancel();
+      if (!mounted) return;
+      setState(() {
+        _hideTextFocusRing = false;
+        _toggleUnlocked = false;
+      });
+      return;
+    }
+
+    switch (t.firstWritePhase) {
+      case FirstWriteTutorialPhase.focusText:
+        _toTogglePhaseTimer?.cancel();
+        if (!mounted) return;
+        setState(() {
+          _hideTextFocusRing = false;
+          _toggleUnlocked = false;
+        });
+        return;
+
+      case FirstWriteTutorialPhase.togglePublic:
+        _toTogglePhaseTimer?.cancel();
+        if (!mounted) return;
+        setState(() {
+          _hideTextFocusRing = true; // text 링은 숨김 상태
+          _toggleUnlocked = true; // 토글만 허용
+        });
+        return;
+
+      case FirstWriteTutorialPhase.pressDone:
+        _toTogglePhaseTimer?.cancel();
+        if (!mounted) return;
+        setState(() {
+          _hideTextFocusRing = true;
+          _toggleUnlocked = false; // 토글 단계 종료
+        });
+        return;
+    }
+  }
+
+  // ==========================
+  // ✅ Overlay target 결정 (단 하나만!)
+  // ==========================
   String? _currentPracticeTargetId(TutorialController t) {
     if (!t.isFirstWriteFlow) return null;
 
     switch (t.firstWritePhase) {
       case FirstWriteTutorialPhase.focusText:
-        // ✅ 링 클릭하면 즉시 사라져야 하므로, 숨긴 상태면 overlay도 꺼버림
-        return _hideFocusRing ? null : 'write.hintAnchor';
+        // ✅ 링 클릭하면 즉시 사라져야 하므로 숨김이면 target도 null (overlay off)
+        return _hideTextFocusRing ? null : 'write.hintAnchor';
+
       case FirstWriteTutorialPhase.togglePublic:
         return 'write.togglePublic';
+
       case FirstWriteTutorialPhase.pressDone:
         return 'write.doneButton';
     }
   }
 
+  // ==========================
+  // Exit / Done handlers
+  // ==========================
   Future<void> _handleExit(HomeToWrite writeProvider) async {
     _focusNode.unfocus();
 
@@ -192,9 +223,34 @@ class _FirstStepState extends State<FirstStep> {
       await logJournalShare();
     }
 
-    if (t.active && t.phase == TutorialPhase.practice && t.step == TutorialStep.emotionalWriting) {
+    if (t.active &&
+        t.phase == TutorialPhase.practice &&
+        t.step == TutorialStep.emotionalWriting) {
       await t.advanceAfterPractice();
     }
+  }
+
+  // ==========================
+  // tutorial focusText tap -> 10초 후 togglePublic 이동
+  // ==========================
+  void _scheduleToTogglePhase() {
+    _toTogglePhaseTimer?.cancel();
+    _toTogglePhaseTimer = Timer(const Duration(seconds: 10), () {
+      if (!mounted) return;
+
+      final t = context.read<TutorialController>();
+      if (!t.isFirstWriteFlow) return;
+
+      // ✅ focusText 중에만 이동
+      if (t.firstWritePhase != FirstWriteTutorialPhase.focusText) return;
+
+      t.setFirstWritePhase(FirstWriteTutorialPhase.togglePublic);
+
+      // toggle 단계 unlock
+      setState(() {
+        _toggleUnlocked = true;
+      });
+    });
   }
 
   @override
@@ -216,6 +272,7 @@ class _FirstStepState extends State<FirstStep> {
     final rawRect =
         (practiceTargetId == null) ? null : reg.rectOf(practiceTargetId);
 
+    // ✅ 말풍선: togglePublic 단계에서만
     final guideWidget = (t.isFirstWriteFlow &&
             t.firstWritePhase == FirstWriteTutorialPhase.togglePublic &&
             rawRect != null)
@@ -226,12 +283,14 @@ class _FirstStepState extends State<FirstStep> {
           )
         : const SizedBox.shrink();
 
+    // ✅ 링 위치 오프셋 (원래 로직 유지)
     final offset = switch (t.firstWritePhase) {
       FirstWriteTutorialPhase.focusText => Offset.zero,
-      FirstWriteTutorialPhase.togglePublic => const Offset(0, -10), // 토글 링만 이동
-      FirstWriteTutorialPhase.pressDone => const Offset(16, -7), // 완료 링만 이동
+      FirstWriteTutorialPhase.togglePublic => const Offset(0, -10),
+      FirstWriteTutorialPhase.pressDone => const Offset(16, -7),
     };
 
+    // ✅ pointRect: overlay의 “뚫린 원”
     final pointRect = (rawRect == null)
         ? null
         : Rect.fromCenter(
@@ -240,13 +299,14 @@ class _FirstStepState extends State<FirstStep> {
             height: 28,
           );
 
+    // ✅ overlay/락: targetId/rect가 유효할 때만!
     final lockAllExceptTarget =
         t.isFirstWriteFlow && practiceTargetId != null && pointRect != null;
 
-    // ✅ 단계별 bottom bar 허용 정책
+    // ✅ 단계별 클릭 허용 정책
     final allowTextTap = t.isFirstWriteFlow &&
         t.firstWritePhase == FirstWriteTutorialPhase.focusText &&
-        !_hideFocusRing; // ✅ 링 클릭 후엔 더 이상 클릭 단계 아님(이미 진행 중)
+        !_hideTextFocusRing;
 
     final allowToggleTap = t.isFirstWriteFlow &&
         t.firstWritePhase == FirstWriteTutorialPhase.togglePublic &&
@@ -255,7 +315,8 @@ class _FirstStepState extends State<FirstStep> {
     final allowDoneTap = t.isFirstWriteFlow &&
         t.firstWritePhase == FirstWriteTutorialPhase.pressDone;
 
-    final allowExitTap = !t.isFirstWriteFlow; // 튜토리얼 중엔 나가기 금지
+    // ✅ 튜토리얼 중엔 나가기 금지 (너 정책 유지)
+    final allowExitTap = !t.isFirstWriteFlow;
 
     final doneEnabled = writeProvider.diaryModel.content.isNotEmpty;
 
@@ -266,7 +327,6 @@ class _FirstStepState extends State<FirstStep> {
         // =======================
         GestureDetector(
           onTap: () {
-            // 튜토리얼 중에는 빈 곳 탭으로 unfocus 금지
             if (t.isFirstWriteFlow) return;
             _focusNode.unfocus();
           },
@@ -293,33 +353,19 @@ class _FirstStepState extends State<FirstStep> {
                               color: BandiColor.neutralColor40(context),
                             ),
                           ),
-                          onTap: () async {
+                          onTap: () {
                             if (!allowTextTap) return;
 
                             // 1) 포커스 주고 키보드 올림
                             _focusNode.requestFocus();
 
-                            // 2) 링 즉시 사라지게
+                            // 2) 링 즉시 사라지게 + overlay off
                             setState(() {
-                              _hideFocusRing = true;
+                              _hideTextFocusRing = true;
                             });
 
-                            // 3) 5초 뒤에 togglePublic로 phase 변경 + 토글 클릭 허용
-                            _toTogglePhaseTimer?.cancel();
-                            _toTogglePhaseTimer =
-                                Timer(const Duration(seconds: 10), () async {
-                              if (!mounted) return;
-
-                              await context
-                                  .read<TutorialController>()
-                                  .setFirstWritePhase(
-                                    FirstWriteTutorialPhase.togglePublic,
-                                  );
-
-                              setState(() {
-                                _toggleUnlocked = true;
-                              });
-                            });
+                            // 3) 10초 뒤 toggle 단계로
+                            _scheduleToTogglePhase();
                           },
                           onChanged: (_) {
                             setState(() {
@@ -331,12 +377,16 @@ class _FirstStepState extends State<FirstStep> {
                           expands: true,
                         ),
 
-                        // (left/top 값)
+                        // hintAnchor (rect 앵커)
+                        const SizedBox.shrink(),
                         Positioned(
                           left: 5,
                           top: 10,
                           child: SizedBox(
-                              key: _hintAnchorKey, width: 1, height: 1),
+                            key: _hintAnchorKey,
+                            width: 1,
+                            height: 1,
+                          ),
                         ),
                       ],
                     ),
@@ -368,14 +418,11 @@ class _FirstStepState extends State<FirstStep> {
                       writeProvider.setIsPublic(true);
 
                       // 다음 서브 단계(완료 버튼)
-                      await context
-                          .read<TutorialController>()
-                          .setFirstWritePhase(
-                            FirstWriteTutorialPhase.pressDone,
-                          );
+                      context.read<TutorialController>().setFirstWritePhase(
+                          FirstWriteTutorialPhase.pressDone);
 
                       setState(() {
-                        _toggleUnlocked = false; // 토글 단계 끝났으니 다시 잠금
+                        _toggleUnlocked = false;
                       });
                       return;
                     }

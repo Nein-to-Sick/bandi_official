@@ -7,6 +7,7 @@ import 'package:bandi_official/view/diary_ai_chat/controller/diary_ai_chat_contr
 import 'package:bandi_official/controller/home_to_write.dart';
 import 'package:bandi_official/view/home/widgets/home_action_card_button.dart';
 import 'package:bandi_official/view/home/widgets/home_notification_stack.dart';
+import 'package:bandi_official/view/home/widgets/home_top_notification_header.dart';
 import 'package:bandi_official/view/home/widgets/speaker_button.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -22,7 +23,9 @@ import '../diary_ai_chat/diary_ai_chat_view.dart';
 import '../mail/controller/mail_controller.dart';
 import '../mail/detail_view.dart';
 import '../sharing_diary/other_diary.dart';
+import '../tutorial/controller/tutorial_controller.dart';
 import '../tutorial/controller/tutorial_target_registry.dart';
+import '../tutorial/tutorial_flow_page.dart';
 import '../writing/write_diary.dart';
 import 'controller/bgm_controller.dart';
 import 'package:bandi_official/model/letter.dart';
@@ -44,7 +47,9 @@ class _HomeRootLayerState extends State<HomeRootLayer>
 
   TutorialTargetRegistry? _tutorialReg;
   HomeToWrite? _writeProvider;
+
   final GlobalKey _tutorialWriteBtnKey = GlobalKey();
+  final GlobalKey _tutorialNotiStackKey = GlobalKey();
 
   @override
   void didChangeDependencies() {
@@ -68,13 +73,14 @@ class _HomeRootLayerState extends State<HomeRootLayer>
       _scheduleMidnightRefresh();
 
       _tutorialReg?.register('home.writeButton', _tutorialWriteBtnKey);
+      _tutorialReg?.register('home.notificationButton', _tutorialNotiStackKey);
     });
   }
-
 
   @override
   void dispose() {
     _tutorialReg?.unregister('home.writeButton');
+    _tutorialReg?.unregister('home.notificationButton');
 
     WidgetsBinding.instance.removeObserver(this);
     _midnightTimer?.cancel();
@@ -83,7 +89,8 @@ class _HomeRootLayerState extends State<HomeRootLayer>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
       final t = _latestRealAlarmAt;
       if (t != null) {
         _writeProvider?.setHomeNotiLastSeenAt(t);
@@ -221,12 +228,17 @@ class _HomeRootLayerState extends State<HomeRootLayer>
     final navigationToggleProvider = context.watch<NavigationToggleProvider>();
     final userInfo = Provider.of<UserInfoValueModel>(context);
     final mailController = context.watch<MailController>();
+    final t = context.watch<TutorialController>();
 
     final isHomeVisible = !writeProvider.write &&
         !writeProvider.otherDiaryOpen &&
         !alarmController.isAlarmOpen;
 
     final canToggleChrome = isHomeVisible;
+
+    final wrapForTutorial = t.active &&
+        t.phase == TutorialPhase.practice &&
+        t.step == TutorialStep.connectionAndEmpathy;
 
     return Stack(
       children: [
@@ -264,135 +276,17 @@ class _HomeRootLayerState extends State<HomeRootLayer>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      StreamBuilder<QuerySnapshot>(
-                        stream: alarmController.alarmStreamQuery(),
-                        builder: (context, snapshot) {
-                          List<HomeNotiItem> items = [];
-
-                          // DB 알림
-                          List<Alarm> dbAlarms = [];
-                          if (snapshot.hasData &&
-                              snapshot.data!.docs.isNotEmpty) {
-                            dbAlarms = snapshot.data!.docs
-                                .map((doc) => Alarm.fromFirestore(doc))
-                                .toList();
-
-                            items = _mapAlarmsToHomeNotiItems(
-                              alarms: dbAlarms,
-                              alarmController: alarmController,
-                              mailController: mailController,
-                              writeProvider: writeProvider,
-                              navigationToggleProvider:
-                                  navigationToggleProvider,
-                            );
-                          }
-
-                          // DB 알림 기준 최신 시간 (NEW dot 계산용)
-                          DateTime? latestRealAlarmAt;
-                          for (final a in dbAlarms) {
-                            final t = a.alarmTime.toDate();
-                            if (latestRealAlarmAt == null ||
-                                t.isAfter(latestRealAlarmAt)) {
-                              latestRealAlarmAt = t;
-                            }
-                          }
-                          _latestRealAlarmAt = latestRealAlarmAt;
-
-                          // dailyReminder(상태 기반, DB에 쌓이지 않음)
-                          if (!writeProvider.wroteDiaryToday) {
-                            items.add(
-                              HomeNotiItem(
-                                id: _dailyReminderId(),
-                                text: "오늘 하루는 어떠셨나요?",
-                                type: HomeNotiType.dailyReminder,
-                                createdAt: _dailyReminderCreatedAt(),
-                                onTap: () => writeProvider.toggleWrite(),
-                              ),
-                            );
-                          }
-
-                          // 정렬
-                          items.sort(
-                              (a, b) => b.createdAt.compareTo(a.createdAt));
-
-                          // ✅ NEW dot 여부: DB 알림만 기준(리마인더 제외)
-                          final lastSeen = writeProvider.homeNotiLastSeenAt;
-                          final showNewDot = (latestRealAlarmAt != null) &&
-                              (lastSeen == null ||
-                                  latestRealAlarmAt.isAfter(lastSeen));
-
-                          final hideTopControls =
-                              items.isNotEmpty && _notiDropdownOpen;
-
-                          return Padding(
-                            padding: const EdgeInsets.only(top: 17.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: items.isEmpty
-                                      ? Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              "${userInfo.nickname}님,",
-                                              style:
-                                                  BandiFont.titleSmall(context)!
-                                                      .copyWith(
-                                                color:
-                                                    BandiColor.neutralColor60(
-                                                        context),
-                                              ),
-                                            ),
-                                            Text(
-                                              "오늘도 수고 많았어요.",
-                                              style: BandiFont.headlineMedium(
-                                                      context)!
-                                                  .copyWith(
-                                                color:
-                                                    BandiColor.neutralColor100(
-                                                        context),
-                                              ),
-                                            ),
-                                          ],
-                                        )
-                                      : HomeNotificationStack(
-                                          key: const ValueKey(
-                                              "home_notification_stack"),
-                                          items: items,
-                                          showNewDot: showNewDot,
-                                          onDropdownOpenChanged: (open) {
-                                            WidgetsBinding.instance
-                                                .addPostFrameCallback((_) {
-                                              if (!mounted) return;
-                                              setState(() =>
-                                                  _notiDropdownOpen = open);
-                                            });
-                                          },
-                                        ),
-                                ),
-                                const SizedBox(width: 12),
-                                AnimatedOpacity(
-                                  duration: const Duration(milliseconds: 80),
-                                  opacity: hideTopControls ? 0.0 : 1.0,
-                                  child: IgnorePointer(
-                                    ignoring: hideTopControls,
-                                    child: SpeakerButton(
-                                      speakerOn: context
-                                          .watch<BgmController>()
-                                          .speakerOn,
-                                      onPressed: () {
-                                        final bgm =
-                                            context.read<BgmController>();
-                                        bgm.setSpeakerOn(!bgm.speakerOn);
-                                      },
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
+                      HomeTopNotificationHeader(
+                        tutorialNotiStackKey: _tutorialNotiStackKey,
+                        mapAlarmsToHomeNotiItems: _mapAlarmsToHomeNotiItems,
+                        dailyReminderId: _dailyReminderId,
+                        dailyReminderCreatedAt: _dailyReminderCreatedAt,
+                        onLatestRealAlarmAtChanged: (latest) {
+                          _latestRealAlarmAt = latest;
+                        },
+                        onDropdownOpenChanged: (open) {
+                          if (!mounted) return;
+                          setState(() => _notiDropdownOpen = open);
                         },
                       ),
                       Padding(
@@ -419,14 +313,14 @@ class _HomeRootLayerState extends State<HomeRootLayer>
                             Expanded(
                               child: HomeActionCardButton(
                                 key: _tutorialWriteBtnKey,
-                                icon: PhosphorIcons.pencilSimple(PhosphorIconsStyle.light),
+                                icon: PhosphorIcons.pencilSimple(
+                                    PhosphorIconsStyle.light),
                                 label: "일기 쓰기",
                                 onTap: () async {
                                   writeProvider.toggleWrite();
                                 },
                               ),
                             ),
-
                           ],
                         ),
                       ),

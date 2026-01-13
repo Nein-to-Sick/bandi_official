@@ -1,11 +1,10 @@
 import 'dart:ui';
-
-import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:flutter/material.dart';
+import 'package:bandi_official/theme/custom_theme_data.dart';
 
 class TutorialOverlay extends StatelessWidget {
-  final Rect targetRect; // ✅ 여기만 터치 통과
-  final double radius; // 14 (28/2)
+  final Rect targetRect; // (보통 global rect)
+  final double radius;   // 14
   final Widget guide;
 
   const TutorialOverlay({
@@ -17,14 +16,11 @@ class TutorialOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // targetRect(28x28)을 기준으로 "원"을 만들 건데
-    // 터치 통과는 안전하게 "사각형 영역"으로 둬도 충분해 (28x28)
     final hole = targetRect;
 
     return Stack(
       children: [
-        // ✅ 1) 구멍을 제외한 영역만 터치 차단 (투명)
-        // top
+        // ✅ 1) 구멍을 제외한 영역만 터치 차단
         Positioned(
           left: 0,
           right: 0,
@@ -32,7 +28,6 @@ class TutorialOverlay extends StatelessWidget {
           height: hole.top,
           child: const AbsorbPointer(child: SizedBox.expand()),
         ),
-        // bottom
         Positioned(
           left: 0,
           right: 0,
@@ -40,7 +35,6 @@ class TutorialOverlay extends StatelessWidget {
           bottom: 0,
           child: const AbsorbPointer(child: SizedBox.expand()),
         ),
-        // left
         Positioned(
           left: 0,
           top: hole.top,
@@ -48,7 +42,6 @@ class TutorialOverlay extends StatelessWidget {
           height: hole.height,
           child: const AbsorbPointer(child: SizedBox.expand()),
         ),
-        // right
         Positioned(
           left: hole.right,
           right: 0,
@@ -57,17 +50,19 @@ class TutorialOverlay extends StatelessWidget {
           child: const AbsorbPointer(child: SizedBox.expand()),
         ),
 
-        // ✅ 2) 원형 링(시각 표시) - 이것도 터치는 통과시켜야 함
+        // ✅ 2) 링(시각) - 터치 통과
         Positioned(
           left: targetRect.center.dx - radius,
           top: targetRect.center.dy - radius,
           width: radius * 2,
           height: radius * 2,
           child: IgnorePointer(
-              ignoring: true, child: _TutorialRing(radius: radius)),
+            ignoring: true,
+            child: _TutorialRing(radius: radius),
+          ),
         ),
 
-        // ✅ 3) 가이드(말풍선) - 말풍선도 터치 먹지 않게 하려면 ignoring:true
+        // ✅ 3) 말풍선(가이드) - 터치 통과
         Positioned.fill(
           child: IgnorePointer(
             ignoring: true,
@@ -75,6 +70,52 @@ class TutorialOverlay extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// ✅ BottomSheet 안에서 쓰는 링 오버레이
+/// - "버튼 클릭을 막지 않는다"
+/// - registry의 rectOf가 보통 global 좌표이므로, sheet-local로 변환해서 링 위치를 맞춘다.
+class SheetRingOverlay extends StatelessWidget {
+  final Rect globalTargetRect;
+  final double radius;
+
+  const SheetRingOverlay({
+    super.key,
+    required this.globalTargetRect,
+    this.radius = 14,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // ✅ 터치 완전 통과
+    return IgnorePointer(
+      ignoring: true,
+      child: LayoutBuilder(
+        builder: (_, __) {
+          final ro = context.findRenderObject();
+          if (ro is! RenderBox) return const SizedBox.shrink();
+
+          // sheet(Stack) 기준의 global origin
+          final origin = ro.localToGlobal(Offset.zero);
+
+          // global -> local rect
+          final localRect = globalTargetRect.shift(-origin);
+
+          return Stack(
+            children: [
+              Positioned(
+                left: localRect.center.dx + 20,
+                top: localRect.center.dy + 25,
+                width: radius * 2,
+                height: radius * 2,
+                child: _TutorialRing(radius: radius),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 }
@@ -104,7 +145,7 @@ class _TutorialRing extends StatelessWidget {
               BoxShadow(
                 color: Colors.black.withOpacity(0.25),
                 blurRadius: 12,
-                offset: const Offset(0, 4)
+                offset: const Offset(0, 4),
               ),
             ],
           ),

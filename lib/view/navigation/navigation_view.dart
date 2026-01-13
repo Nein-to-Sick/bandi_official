@@ -158,8 +158,10 @@ class _NavigationViewState extends State<NavigationView> {
     );
 
     final isWritingOpen = writeProvider.write; // 글쓰기 화면(FirstStep) 열렸는지
+    final isOtherDiaryOpen = writeProvider.otherDiaryOpen; // 글쓰기 화면(FirstStep) 열렸는지
     final shouldShowTutorialOverlay = tutorial.active
-        && !isWritingOpen           // ✅ 글쓰기 화면에선 전역 링 숨김
+        && !isWritingOpen
+        && !isOtherDiaryOpen
         && pointRect != null;
 
     // alarm detail에서 context 필요하다면 유지
@@ -309,10 +311,9 @@ Rect _makePointRect(Rect base, {double size = 28, Offset offset = Offset.zero}) 
 Offset _offsetForTarget(String targetId) {
   switch (targetId) {
     case 'home.writeButton':
-    // ✅ 예시: 카드 중앙보다 아이콘이 약간 왼쪽/위에 있을 가능성 큼
       return const Offset(-28, -6);
-    case 'home.aiChatButton':
-      return const Offset(-28, -6);
+    case 'home.notificationButton':
+      return const Offset(28, -6);
     case 'home.mailButton':
       return const Offset(0, -10);
     default:

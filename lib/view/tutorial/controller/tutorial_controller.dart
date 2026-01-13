@@ -16,6 +16,14 @@ enum FirstWriteTutorialPhase {
   pressDone,
 }
 
+enum ConnectionTutorialPhase {
+  focusHomeNotification,
+  focusReactionSelector,
+  sheetOneRing,
+  focusSendButton,
+  done,
+}
+
 enum TutorialPhase {
   explain,
   practice,
@@ -23,47 +31,21 @@ enum TutorialPhase {
 
 class TutorialController extends ChangeNotifier {
   // ============
-  // Storage keys
+  // Storage keys (✅ step/phase/active만 저장)
   // ============
   static const _kActive = 'tutorial.active';
   static const _kStep = 'tutorial.step';
   static const _kPhase = 'tutorial.phase';
 
-  // ✅ 1단계(일기쓰기) 내부 서브 단계 저장
-  static const _kFirstWritePhase = 'tutorial.firstWritePhase';
-
   bool _active = false;
   TutorialStep _step = TutorialStep.emotionalWriting;
   TutorialPhase _phase = TutorialPhase.explain;
 
-  // ✅ 1단계 내부 서브 단계
-  FirstWriteTutorialPhase _firstWritePhase = FirstWriteTutorialPhase.focusText;
-
-  bool get isFirstWriteFlow =>
-      _active && _phase == TutorialPhase.practice && _step == TutorialStep.emotionalWriting;
-
-  FirstWriteTutorialPhase get firstWritePhase => _firstWritePhase;
-
-  Future<void> setFirstWritePhase(FirstWriteTutorialPhase p) async {
-    _firstWritePhase = p;
-    // 저장한다면 저장도 같이
-    notifyListeners();
-  }
-
-  Future<void> beginPracticeForStep(TutorialStep step) async {
-    _active = true;
-    _step = step;
-    _phase = TutorialPhase.practice;
-
-    // ✅ 1단계 글쓰기면 서브단계도 초기화
-    if (step == TutorialStep.emotionalWriting) {
-      _firstWritePhase = FirstWriteTutorialPhase.focusText;
-    }
-
-    _resetPracticeCompleter();
-    await _saveToStorage();
-    notifyListeners();
-  }
+  // ✅ 서브스텝은 "메모리 전용" (스토리지 저장 X)
+  FirstWriteTutorialPhase _firstWritePhase =
+      FirstWriteTutorialPhase.focusText;
+  ConnectionTutorialPhase _connectionPhase =
+      ConnectionTutorialPhase.focusHomeNotification;
 
   Completer<void>? _practiceCompleter;
 
@@ -77,6 +59,18 @@ class TutorialController extends ChangeNotifier {
   bool get locked => _active;
   bool get finished => !_active && _step == TutorialStep.done;
 
+  bool get isFirstWriteFlow =>
+      _active &&
+          _phase == TutorialPhase.practice &&
+          _step == TutorialStep.emotionalWriting;
+
+  bool get isConnectionFlow =>
+      _active &&
+          _phase == TutorialPhase.practice &&
+          _step == TutorialStep.connectionAndEmpathy;
+
+  FirstWriteTutorialPhase get firstWritePhase => _firstWritePhase;
+  ConnectionTutorialPhase get connectionPhase => _connectionPhase;
 
   int get explainIndex {
     return switch (_step) {
@@ -85,39 +79,42 @@ class TutorialController extends ChangeNotifier {
     TutorialStep.retrospect => 2,
     TutorialStep.growth => 3,
     TutorialStep.done => 4,
-    };
+  };
   }
 
   // ==================
-  // Overlay target info (홈 탭용)
+  // Overlay target info
   // ==================
   String? get targetId {
     if (!_active || _phase != TutorialPhase.practice) return null;
 
+    if (_step == TutorialStep.connectionAndEmpathy) {
+      return switch (_connectionPhase) {
+      ConnectionTutorialPhase.focusHomeNotification =>
+      'home.notificationButton',
+    ConnectionTutorialPhase.focusReactionSelector => 'other.reactionSelector',
+    ConnectionTutorialPhase.sheetOneRing => 'other.reactionOptionAnchor',
+    ConnectionTutorialPhase.focusSendButton => 'other.sendButton',
+    ConnectionTutorialPhase.done => null,
+    };
+    }
+
+    // connectionAndEmpathy는 위에서 이미 처리함
     return switch (_step) {
     TutorialStep.emotionalWriting => 'home.writeButton',
-    TutorialStep.connectionAndEmpathy => 'home.notificationButton',
     TutorialStep.retrospect => 'home.aiChatButton',
     TutorialStep.growth => 'home.mailButton',
     TutorialStep.done => null,
-  };
+    TutorialStep.connectionAndEmpathy => 'home.notificationButton',
+    };
   }
 
   String get guideText {
     if (!_active || _phase != TutorialPhase.practice) return '';
-
-    return switch (_step) {
-    TutorialStep.emotionalWriting => '',
-    TutorialStep.connectionAndEmpathy => '',
-    TutorialStep.retrospect => '',
-    TutorialStep.done => '',
-    TutorialStep.growth => '',
-    };
+    // 필요하면 여기서 step/substep별로 문구 넣기
+    return '';
   }
 
-  // ==========================
-  // ✅ 1단계(Write 화면)에서 쓸 타겟 id
-  // ==========================
   String? get firstWriteTargetId {
     if (!isFirstWriteFlow) return null;
     return switch (_firstWritePhase) {
@@ -128,48 +125,40 @@ class TutorialController extends ChangeNotifier {
   }
 
   // =================
-  // Storage (public)
+  // Storage
   // =================
   Future<void> loadFromStorage() async {
     final prefs = await SharedPreferences.getInstance();
 
     final savedStepIndex = prefs.getInt(_kStep);
     if (savedStepIndex == null) {
+      // 최초 진입 기본값
       _active = false;
       _step = TutorialStep.emotionalWriting;
       _phase = TutorialPhase.explain;
-      _firstWritePhase = FirstWriteTutorialPhase.focusText;
+
+      // ✅ 서브스텝은 항상 step의 "처음"으로
+      _resetSubPhasesForStep(_step);
+
       notifyListeners();
       return;
     }
 
-    final savedActive = prefs.getBool(_kActive) ?? false;
-    final savedPhaseIndex = prefs.getInt(_kPhase) ?? TutorialPhase.explain.index;
+    _active = prefs.getBool(_kActive) ?? false;
+
+    final savedPhaseIndex =
+        prefs.getInt(_kPhase) ?? TutorialPhase.explain.index;
 
     final stepIdx = savedStepIndex.clamp(0, TutorialStep.values.length - 1);
     final phaseIdx = savedPhaseIndex.clamp(0, TutorialPhase.values.length - 1);
 
     _step = TutorialStep.values[stepIdx];
     _phase = TutorialPhase.values[phaseIdx];
-    _active = savedActive;
 
-    // ✅ 1단계 서브 단계 복구
-    final savedFirstWrite = prefs.getInt(_kFirstWritePhase) ?? FirstWriteTutorialPhase.focusText.index;
-    final fwIdx = savedFirstWrite.clamp(0, FirstWriteTutorialPhase.values.length - 1);
-    _firstWritePhase = FirstWriteTutorialPhase.values[fwIdx];
-
-    // ✅ 여기서 "무조건 explain로 돌리기" 같은 건 하지 말아야
-    // (중간에 그만둔 단계부터 재개하려면 저장된 phase/firstWritePhase를 그대로 둬야 함)
+    // ✅ 핵심: 서브스텝은 저장/복구하지 않고 "항상 처음"으로 리셋
+    _resetSubPhasesForStep(_step);
 
     notifyListeners();
-  }
-
-  Future<void> _saveToStorage() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_kActive, _active);
-    await prefs.setInt(_kStep, _step.index);
-    await prefs.setInt(_kPhase, _phase.index);
-    await prefs.setInt(_kFirstWritePhase, _firstWritePhase.index);
   }
 
   Future<void> clearStorage() async {
@@ -177,7 +166,13 @@ class TutorialController extends ChangeNotifier {
     await prefs.remove(_kActive);
     await prefs.remove(_kStep);
     await prefs.remove(_kPhase);
-    await prefs.remove(_kFirstWritePhase);
+  }
+
+  Future<void> _saveToStorage() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_kActive, _active);
+    await prefs.setInt(_kStep, _step.index);
+    await prefs.setInt(_kPhase, _phase.index);
   }
 
   // =========================
@@ -185,13 +180,99 @@ class TutorialController extends ChangeNotifier {
   // =========================
   Future<void> start() async {
     _active = true;
+
     if (_step == TutorialStep.done) {
       _step = TutorialStep.emotionalWriting;
     }
+
     _phase = TutorialPhase.explain;
-    _firstWritePhase = FirstWriteTutorialPhase.focusText;
+
+    // ✅ 서브스텝은 항상 "처음"
+    _resetSubPhasesForStep(_step);
+
     _clearPracticeCompleter();
     await _saveToStorage();
+    notifyListeners();
+  }
+
+  Future<void> beginPracticeForStep(TutorialStep step) async {
+    _active = true;
+    _step = step;
+    _phase = TutorialPhase.practice;
+
+    // ✅ practice 시작 시도 항상 "처음"
+    _resetSubPhasesForStep(step);
+
+    _resetPracticeCompleter();
+    await _saveToStorage();
+    notifyListeners();
+  }
+
+  Future<void> restartFromExplain() async {
+    if (!_active || _step == TutorialStep.done) return;
+
+    _phase = TutorialPhase.explain;
+
+    // explain으로 돌아가도, 서브스텝은 어차피 다시 시작할 때 처음부터라면
+    // 여기서 굳이 리셋해도 되고 안 해도 됨. (안전하게 리셋)
+    _resetSubPhasesForStep(_step);
+
+    _clearPracticeCompleter();
+    await _saveToStorage();
+    notifyListeners();
+  }
+
+  Future<void> advanceAfterPractice() async {
+    if (!_active) return;
+
+    _step = _nextOf(_step);
+
+    if (_step == TutorialStep.done) {
+      _active = false;
+      _phase = TutorialPhase.explain;
+      _clearPracticeCompleter();
+
+      // done도 "처음" 상태로 리셋(의미는 없지만 일관성)
+      _resetSubPhasesForStep(_step);
+
+      await _saveToStorage();
+      notifyListeners();
+      return;
+    }
+
+    _active = true;
+    _phase = TutorialPhase.explain;
+
+    // ✅ 다음 step으로 넘어갈 때도 서브스텝은 "처음"
+    _resetSubPhasesForStep(_step);
+
+    _clearPracticeCompleter();
+    await _saveToStorage();
+    notifyListeners();
+  }
+
+  Future<void> finishAll() async {
+    _active = false;
+    _step = TutorialStep.done;
+    _phase = TutorialPhase.explain;
+
+    _resetSubPhasesForStep(_step);
+
+    _clearPracticeCompleter();
+    await _saveToStorage();
+    notifyListeners();
+  }
+
+  // =========================
+  // Sub-phase control (메모리 전용)
+  // =========================
+  void setFirstWritePhase(FirstWriteTutorialPhase p) {
+    _firstWritePhase = p;
+    notifyListeners();
+  }
+
+  void setConnectionPhase(ConnectionTutorialPhase p) {
+    _connectionPhase = p;
     notifyListeners();
   }
 
@@ -204,11 +285,29 @@ class TutorialController extends ChangeNotifier {
     FirstWriteTutorialPhase.pressDone => FirstWriteTutorialPhase.pressDone,
     };
 
-    await _saveToStorage();
     notifyListeners();
   }
 
-  // 기존 practice 완료 신호
+  Future<void> advanceConnectionPhase() async {
+    if (!isConnectionFlow) return;
+
+    _connectionPhase = switch (_connectionPhase) {
+    ConnectionTutorialPhase.focusHomeNotification =>
+    ConnectionTutorialPhase.focusReactionSelector,
+    ConnectionTutorialPhase.focusReactionSelector =>
+    ConnectionTutorialPhase.sheetOneRing,
+    ConnectionTutorialPhase.sheetOneRing =>
+    ConnectionTutorialPhase.focusSendButton,
+    ConnectionTutorialPhase.focusSendButton => ConnectionTutorialPhase.done,
+    ConnectionTutorialPhase.done => ConnectionTutorialPhase.done,
+  };
+
+    notifyListeners();
+  }
+
+  // =========================
+  // Practice completion (기존 유지)
+  // =========================
   void markPracticeDone() {
     if (!_active || _phase != TutorialPhase.practice) return;
     _practiceCompleter?.complete();
@@ -220,45 +319,6 @@ class TutorialController extends ChangeNotifier {
     return _practiceCompleter!.future;
   }
 
-  Future<void> advanceAfterPractice() async {
-    if (!_active) return;
-
-    _step = _nextOf(_step);
-
-    if (_step == TutorialStep.done) {
-      _active = false;
-      _phase = TutorialPhase.explain;
-      _clearPracticeCompleter();
-      await _saveToStorage();
-      notifyListeners();
-      return;
-    }
-
-    _active = true;
-    _phase = TutorialPhase.explain;
-    _clearPracticeCompleter();
-    await _saveToStorage();
-    notifyListeners();
-  }
-
-  Future<void> restartFromExplain() async {
-    if (!_active || _step == TutorialStep.done) return;
-    _phase = TutorialPhase.explain;
-    _clearPracticeCompleter();
-    await _saveToStorage();
-    notifyListeners();
-  }
-
-  Future<void> finishAll() async {
-    _active = false;
-    _step = TutorialStep.done;
-    _phase = TutorialPhase.explain;
-    _firstWritePhase = FirstWriteTutorialPhase.focusText;
-    _clearPracticeCompleter();
-    await _saveToStorage();
-    notifyListeners();
-  }
-
   // 호환용
   Future<void> startStep(TutorialStep step) async {
     await beginPracticeForStep(step);
@@ -268,6 +328,24 @@ class TutorialController extends ChangeNotifier {
   Future<void> completeStep() => advanceAfterPractice();
   Future<void> resetCurrentPhase() => restartFromExplain();
   Future<void> restartCurrentStep() => restartFromExplain();
+
+  // =========================
+  // Reset all
+  // =========================
+  Future<void> resetAll() async {
+    await clearStorage();
+
+    _active = false;
+    _step = TutorialStep.emotionalWriting;
+    _phase = TutorialPhase.explain;
+
+    _resetSubPhasesForStep(_step);
+
+    _practiceCompleter?.complete();
+    _practiceCompleter = null;
+
+    notifyListeners();
+  }
 
   // ==========
   // Internals
@@ -282,6 +360,20 @@ class TutorialController extends ChangeNotifier {
   };
   }
 
+  void _resetSubPhasesForStep(TutorialStep step) {
+    // ✅ 정책: 서브스텝은 항상 해당 step의 "처음"으로
+    _firstWritePhase = FirstWriteTutorialPhase.focusText;
+    _connectionPhase = ConnectionTutorialPhase.focusHomeNotification;
+
+    // step별로 더 명확하게 하고 싶으면 아래처럼 분기해도 됨.
+    if (step == TutorialStep.emotionalWriting) {
+      _firstWritePhase = FirstWriteTutorialPhase.focusText;
+    }
+    if (step == TutorialStep.connectionAndEmpathy) {
+      _connectionPhase = ConnectionTutorialPhase.focusHomeNotification;
+    }
+  }
+
   void _resetPracticeCompleter() {
     _practiceCompleter?.complete();
     _practiceCompleter = Completer<void>();
@@ -290,22 +382,5 @@ class TutorialController extends ChangeNotifier {
   void _clearPracticeCompleter() {
     _practiceCompleter?.complete();
     _practiceCompleter = null;
-  }
-
-  Future<void> resetAll() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_kActive);
-    await prefs.remove(_kStep);
-    await prefs.remove(_kPhase);
-    await prefs.remove(_kFirstWritePhase);
-
-    _active = false;
-    _step = TutorialStep.emotionalWriting;
-    _phase = TutorialPhase.explain;
-    _firstWritePhase = FirstWriteTutorialPhase.focusText;
-    _practiceCompleter?.complete();
-    _practiceCompleter = null;
-
-    notifyListeners();
   }
 }
