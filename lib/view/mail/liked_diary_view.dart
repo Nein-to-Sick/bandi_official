@@ -57,6 +57,8 @@ class _LikedDiaryPageState extends State<LikedDiaryPage> {
       return;
     }
 
+    if (!mailController.likedDiaryScrollController.hasClients) return;
+
     final position = mailController.likedDiaryScrollController.position;
 
     if (position.maxScrollExtent - position.pixels <= 200) {

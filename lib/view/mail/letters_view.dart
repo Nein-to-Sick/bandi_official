@@ -56,6 +56,8 @@ class _MyLettersPageState extends State<MyLettersPage> {
       return;
     }
 
+    if (!mailController.letterScrollController.hasClients) return;
+
     final position = mailController.letterScrollController.position;
 
     if (position.maxScrollExtent - position.pixels <= 300) {
@@ -104,7 +106,7 @@ class _MyLettersPageState extends State<MyLettersPage> {
                     return Column(
                       children: [
                         lettersWidget(
-                            index, displayList[0], mailController, context),
+                            index, displayList[index], mailController, context),
                         if (index == displayList.length - 1)
                           SizedBox(
                             height: MediaQuery.of(context).padding.bottom + 188,

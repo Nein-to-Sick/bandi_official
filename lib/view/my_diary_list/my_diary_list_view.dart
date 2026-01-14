@@ -30,12 +30,12 @@ class _MyDiaryListViewState extends State<MyDiaryListView>
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      myDiaryListController =
-          Provider.of<MyDiaryListController>(context, listen: false);
+    myDiaryListController =
+        Provider.of<MyDiaryListController>(context, listen: false);
 
-      myDiaryListController.initScrollControllers();
+    myDiaryListController.initScrollControllers();
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       myDiaryListController.loadDataAndSetting().then((value) {
         if (myDiaryListController.myDiaryScrollController.hasClients) {
           myDiaryListController.restoreMyDiaryScrollPosition();
@@ -48,7 +48,7 @@ class _MyDiaryListViewState extends State<MyDiaryListView>
         }
 
         if (!myDiaryListController.isMyDiaryListenerAdded) {
-          WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
             if (myDiaryListController.myDiaryScrollController.hasClients) {
               myDiaryListController.myDiaryScrollController
                   .addListener(_scrollListener);
@@ -66,6 +66,8 @@ class _MyDiaryListViewState extends State<MyDiaryListView>
       return;
     }
 
+    if (!myDiaryListController.myDiaryScrollController.hasClients) return;
+
     final position = myDiaryListController.myDiaryScrollController.position;
 
     if (position.maxScrollExtent - position.pixels <= 200) {
@@ -81,6 +83,7 @@ class _MyDiaryListViewState extends State<MyDiaryListView>
           .removeListener(_scrollListener);
       myDiaryListController.toggleIsMyDiaryListenerAdded(false);
     });
+    myDiaryListController.myDiaryScrollController.dispose();
     super.dispose();
   }
 

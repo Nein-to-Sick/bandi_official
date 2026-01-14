@@ -380,6 +380,7 @@ class MyDiaryListController with ChangeNotifier {
 
       if (!myDiaryListDates.contains(targetKey)) {
         myDiaryListDates.add(targetKey);
+        // 날짜 내림차순 정렬
         myDiaryListDates.sort((a, b) => b.compareTo(a));
       }
 
