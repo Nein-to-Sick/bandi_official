@@ -24,6 +24,12 @@ enum ConnectionTutorialPhase {
   done,
 }
 
+enum RetrospectTutorialPhase {
+  focusAiChatButton,
+  focusMessageBar,
+  messageSent,
+}
+
 enum TutorialPhase {
   explain,
   practice,
@@ -46,6 +52,8 @@ class TutorialController extends ChangeNotifier {
       FirstWriteTutorialPhase.focusText;
   ConnectionTutorialPhase _connectionPhase =
       ConnectionTutorialPhase.focusHomeNotification;
+  RetrospectTutorialPhase _retrospectPhase =
+      RetrospectTutorialPhase.focusAiChatButton;
 
   Completer<void>? _practiceCompleter;
 
@@ -69,8 +77,14 @@ class TutorialController extends ChangeNotifier {
           _phase == TutorialPhase.practice &&
           _step == TutorialStep.connectionAndEmpathy;
 
+  bool get isRetrospectFlow =>
+      _active &&
+          _phase == TutorialPhase.practice &&
+          _step == TutorialStep.retrospect;
+
   FirstWriteTutorialPhase get firstWritePhase => _firstWritePhase;
   ConnectionTutorialPhase get connectionPhase => _connectionPhase;
+  RetrospectTutorialPhase get retrospectPhase => _retrospectPhase;
 
   int get explainIndex {
     return switch (_step) {
@@ -80,6 +94,31 @@ class TutorialController extends ChangeNotifier {
     TutorialStep.growth => 3,
     TutorialStep.done => 4,
   };
+  }
+
+  bool _retrospectAssistantPicked = false;
+  bool get retrospectAssistantPicked => _retrospectAssistantPicked;
+
+  void markRetrospectAssistantPicked() {
+    if (!_active || _step != TutorialStep.retrospect) return;
+    if (_retrospectAssistantPicked) return;
+    _retrospectAssistantPicked = true;
+    notifyListeners();
+  }
+
+  bool get retrospectMessageSent =>
+      _retrospectPhase == RetrospectTutorialPhase.messageSent;
+
+  void setRetrospectPhase(RetrospectTutorialPhase p) {
+    _retrospectPhase = p;
+    notifyListeners();
+  }
+
+  void markRetrospectMessageSent() {
+    if (!isRetrospectFlow) return;
+    if (_retrospectPhase == RetrospectTutorialPhase.messageSent) return;
+    _retrospectPhase = RetrospectTutorialPhase.messageSent;
+    notifyListeners();
   }
 
   // ==================
@@ -96,6 +135,14 @@ class TutorialController extends ChangeNotifier {
     ConnectionTutorialPhase.sheetOneRing => 'other.reactionOptionAnchor',
     ConnectionTutorialPhase.focusSendButton => 'other.sendButton',
     ConnectionTutorialPhase.done => null,
+    };
+    }
+
+    if (_step == TutorialStep.retrospect) {
+    return switch (_retrospectPhase) {
+    RetrospectTutorialPhase.focusAiChatButton => 'home.aiChatButton',
+    RetrospectTutorialPhase.focusMessageBar => 'aichat.messageBar',
+    RetrospectTutorialPhase.messageSent => null,
     };
     }
 
@@ -364,6 +411,8 @@ class TutorialController extends ChangeNotifier {
     // ✅ 정책: 서브스텝은 항상 해당 step의 "처음"으로
     _firstWritePhase = FirstWriteTutorialPhase.focusText;
     _connectionPhase = ConnectionTutorialPhase.focusHomeNotification;
+    _retrospectPhase = RetrospectTutorialPhase.focusAiChatButton;
+    _retrospectAssistantPicked = false;
 
     // step별로 더 명확하게 하고 싶으면 아래처럼 분기해도 됨.
     if (step == TutorialStep.emotionalWriting) {
@@ -371,6 +420,10 @@ class TutorialController extends ChangeNotifier {
     }
     if (step == TutorialStep.connectionAndEmpathy) {
       _connectionPhase = ConnectionTutorialPhase.focusHomeNotification;
+    }
+    if (step == TutorialStep.retrospect) {
+      _retrospectPhase = RetrospectTutorialPhase.focusAiChatButton;
+      _retrospectAssistantPicked = false;
     }
   }
 

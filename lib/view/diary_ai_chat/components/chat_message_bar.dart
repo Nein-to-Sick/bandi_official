@@ -9,6 +9,9 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 import 'dart:developer' as dev;
 
+import '../../tutorial/controller/tutorial_controller.dart';
+import '../../tutorial/controller/tutorial_target_registry.dart';
+
 class ChatMessageBar extends StatefulWidget {
   const ChatMessageBar({super.key});
 
@@ -17,9 +20,11 @@ class ChatMessageBar extends StatefulWidget {
 }
 
 class _ChatMessageBarState extends State<ChatMessageBar> {
-  // button pressed state (just for design)
   bool isSendButtonPressed = false;
   late ScrollController listViewController;
+
+  // ✅ assistant message 2번째 요소 타겟
+  final GlobalKey _tutorialAssistantSecondKey = GlobalKey();
 
   @override
   void initState() {
@@ -29,22 +34,47 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<TutorialTargetRegistry>().unregister('aichat.assistantMessage.second');
+    });
+
     listViewController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    DiaryAiChatController diaryAiChatController =
-        context.watch<DiaryAiChatController>();
+    final diaryAiChatController = context.watch<DiaryAiChatController>();
+    final tc = context.watch<TutorialController>();
 
     bool sendButtonCondition() {
-      if (diaryAiChatController.chatTextController.text.trim().isEmpty ||
-          diaryAiChatController.isChatResponsLoading) {
-        return true;
-      } else {
-        return false;
-      }
+      return diaryAiChatController.chatTextController.text.trim().isEmpty ||
+          diaryAiChatController.isChatResponsLoading;
+    }
+
+    // ✅ 튜토리얼 중 + 아직 메시지 전송 전이면 assistant second만 클릭 가능하게
+    final focusingAssistantSecond =
+        tc.isRetrospectFlow &&
+            tc.retrospectPhase == RetrospectTutorialPhase.focusMessageBar &&
+            !tc.retrospectAssistantPicked;
+
+    final assistantList = DiaryAiChatController.assistantMessage(context);
+
+    // ✅ 타겟 등록은 "두 번째가 존재할 때만"
+    if (focusingAssistantSecond && assistantList.length >= 2) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final reg = context.read<TutorialTargetRegistry>();
+        reg.register('aichat.assistantMessage.second', _tutorialAssistantSecondKey);
+        reg.refreshAll();
+      });
+    } else {
+      // 두번째가 없거나 튜토리얼이 아니면 등록 제거
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        context.read<TutorialTargetRegistry>().unregister('aichat.assistantMessage.second');
+      });
     }
 
     return Column(
@@ -56,64 +86,49 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              /*
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 26),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Text(
-                      'ai_chat_assistant_message_guide'.tr(context),
-                      style: BandiFont.bodyMedium(context)?.copyWith(
-                        color: BandiColor.neutralColor100(context),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(
-                height: 8,
-              ),
-              */
-
               // assistant message
               SizedBox(
                 height: 35,
                 child: ListView.builder(
                   controller: listViewController,
                   physics: (listViewController.hasClients &&
-                          (listViewController.position.maxScrollExtent +
-                                  MediaQuery.of(context).size.width) <=
-                              MediaQuery.of(context).size.width)
+                      (listViewController.position.maxScrollExtent +
+                          MediaQuery.of(context).size.width) <=
+                          MediaQuery.of(context).size.width)
                       ? const NeverScrollableScrollPhysics()
                       : const AlwaysScrollableScrollPhysics()
-                          .applyTo(const BouncingScrollPhysics()),
+                      .applyTo(const BouncingScrollPhysics()),
                   shrinkWrap: true,
                   scrollDirection: Axis.horizontal,
-                  itemCount:
-                      DiaryAiChatController.assistantMessage(context).length,
+                  itemCount: assistantList.length,
                   itemBuilder: (context, index) {
+                    final isSecond = (index == 1);
+                    final msg = assistantList[index];
+
+                    // ✅ 튜토리얼 중엔 두번째만 클릭 가능
+                    final allowTap = focusingAssistantSecond ? isSecond : true;
+
                     return Padding(
+                      key: isSecond ? _tutorialAssistantSecondKey : null,
                       padding: EdgeInsets.only(
                         left: (index == 0) ? 24 : 12,
-                        right: (index ==
-                                DiaryAiChatController.assistantMessage(context)
-                                        .length -
-                                    1)
-                            ? 24
-                            : 0,
+                        right: (index == assistantList.length - 1) ? 24 : 0,
                       ),
-                      child: CustomDialogue(
-                        chatMessage: DiaryAiChatController.assistantMessage(
-                            context)[index],
-                        onDialoguePressed: () {
-                          diaryAiChatController.onAssistantMessageSubmitted(
-                              DiaryAiChatController.assistantMessage(
-                                      context)[index]
-                                  .message
-                                  .trim(),
-                              context);
-                        },
+                      child: IgnorePointer(
+                        ignoring: !allowTap,
+                        child: CustomDialogue(
+                          chatMessage: msg,
+                          onDialoguePressed: () {
+                            diaryAiChatController.onAssistantMessageSubmitted(
+                              msg.message.trim(),
+                              context,
+                            );
+
+                            if (focusingAssistantSecond && isSecond) {
+                              context.read<TutorialController>().markRetrospectAssistantPicked();
+                            }
+                          },
+                        ),
                       ),
                     );
                   },
@@ -122,7 +137,7 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
             ],
           ),
 
-        // chat message bar and send button
+        // chat message bar and send button (기존 유지)
         ClipRRect(
           child: BackdropFilter(
             filter: ImageFilter.blur(
@@ -137,8 +152,7 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                 color: BandiColor.neutralColor30(context),
               ),
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -150,8 +164,7 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                         ignoring: diaryAiChatController.isChatResponsLoading,
                         child: Container(
                           clipBehavior: Clip.antiAlias,
-                          constraints: const BoxConstraints(
-                              minHeight: 48, maxHeight: 96),
+                          constraints: const BoxConstraints(minHeight: 48, maxHeight: 96),
                           decoration: BoxDecoration(
                             color: BandiColor.neutralColor80(context),
                             borderRadius: BandiEffects.radiusSmall,
@@ -160,8 +173,7 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                             onChanged: (text) {
                               diaryAiChatController.updateTexfieldMessage();
                             },
-                            controller:
-                                diaryAiChatController.chatTextController,
+                            controller: diaryAiChatController.chatTextController,
                             focusNode: diaryAiChatController.chatFocusNode,
                             keyboardType: TextInputType.multiline,
                             maxLines: null,
@@ -172,16 +184,14 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                               color: BandiColor.foundationColor90(context),
                             ),
                             decoration: InputDecoration(
-                              hintText: (diaryAiChatController
-                                      .isChatResponsLoading)
+                              hintText: (diaryAiChatController.isChatResponsLoading)
                                   ? '  ${'ai_chat_textbar_message_1'.tr(context)}'
                                   : '  ${'ai_chat_textbar_message_2'.tr(context)}',
                               hintStyle: BandiFont.bodyLarge(context)?.copyWith(
                                 color: BandiColor.foundationColor20(context),
                               ),
                               border: InputBorder.none,
-                              contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 16),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                             ),
                           ),
                         ),
@@ -192,56 +202,41 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
                       child: Padding(
                         padding: const EdgeInsets.only(left: 8),
                         child: GestureDetector(
-                          onTapDown: (sendButtonCondition())
-                              ? null
-                              : (_) {
-                                  dev.log('Pressed!');
-                                  setState(() {
-                                    isSendButtonPressed = true;
-                                  });
-                                },
-                          onTapUp: (sendButtonCondition())
-                              ? null
-                              : (_) {
-                                  dev.log('Run!');
-                                  setState(() {
-                                    isSendButtonPressed = false;
-                                  });
-                                  diaryAiChatController
-                                      .onMessageSubmitted(context);
-                                },
-                          onTapCancel: (sendButtonCondition())
-                              ? null
-                              : () {
-                                  dev.log('Cancel!');
-                                  setState(() {
-                                    isSendButtonPressed = false;
-                                  });
-                                },
+                          onTapDown: sendButtonCondition() ? null : (_) {
+                            setState(() => isSendButtonPressed = true);
+                          },
+                          onTapUp: sendButtonCondition() ? null : (_) {
+                            setState(() => isSendButtonPressed = false);
+
+                            // ✅ 실제 전송
+                            diaryAiChatController.onMessageSubmitted(context);
+
+                            // ✅ 전송 1회 이상이면 X 활성/overlay 해제
+                            if (tc.isRetrospectFlow &&
+                                tc.retrospectPhase == RetrospectTutorialPhase.focusMessageBar) {
+                              context.read<TutorialController>().markRetrospectMessageSent();
+                            }
+                          },
+                          onTapCancel: sendButtonCondition() ? null : () {
+                            setState(() => isSendButtonPressed = false);
+                          },
                           child: AnimatedContainer(
                             height: 48,
                             duration: const Duration(milliseconds: 300),
                             decoration: BoxDecoration(
                               color: (sendButtonCondition())
-                                  ? BandiColor.foundationColor10(
-                                      context) // Disabled
+                                  ? BandiColor.foundationColor10(context)
                                   : (isSendButtonPressed)
-                                      ? BandiColor.foundationColor10(
-                                          context) // Pressed
-                                      : BandiColor.foundationColor90(
-                                          context), // Default
+                                  ? BandiColor.foundationColor10(context)
+                                  : BandiColor.foundationColor90(context),
                               borderRadius: BandiEffects.radiusSmall,
                             ),
                             child: Center(
                               child: PhosphorIcon(
-                                PhosphorIcons.paperPlaneRight(
-                                  PhosphorIconsStyle.fill,
-                                ),
+                                PhosphorIcons.paperPlaneRight(PhosphorIconsStyle.fill),
                                 color: (sendButtonCondition())
-                                    ? BandiColor.neutralColor40(
-                                        context) // Disabled
-                                    : BandiColor.neutralColor90(
-                                        context), // Default
+                                    ? BandiColor.neutralColor40(context)
+                                    : BandiColor.neutralColor90(context),
                                 size: 16,
                               ),
                             ),
@@ -254,7 +249,7 @@ class _ChatMessageBarState extends State<ChatMessageBar> {
               ),
             ),
           ),
-        )
+        ),
       ],
     );
   }

@@ -1,23 +1,21 @@
 import 'dart:async';
 
 import 'package:bandi_official/string_extention.dart';
-import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
 import 'package:bandi_official/view/diary_ai_chat/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/controller/home_to_write.dart';
 import 'package:bandi_official/view/home/widgets/home_action_card_button.dart';
 import 'package:bandi_official/view/home/widgets/home_notification_stack.dart';
 import 'package:bandi_official/view/home/widgets/home_top_notification_header.dart';
-import 'package:bandi_official/view/home/widgets/speaker_button.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:bandi_official/model/alarm.dart';
 
 import '../../controller/user_info_controller.dart';
 import '../../controller/navigation_toggle_provider.dart';
+import '../../main.dart';
 import '../../model/diary.dart';
 import '../diary_ai_chat/diary_ai_chat_view.dart';
 import '../mail/controller/mail_controller.dart';
@@ -27,7 +25,6 @@ import '../tutorial/controller/tutorial_controller.dart';
 import '../tutorial/controller/tutorial_target_registry.dart';
 import '../tutorial/tutorial_flow_page.dart';
 import '../writing/write_diary.dart';
-import 'controller/bgm_controller.dart';
 import 'package:bandi_official/model/letter.dart';
 
 class HomeRootLayer extends StatefulWidget {
@@ -50,6 +47,8 @@ class _HomeRootLayerState extends State<HomeRootLayer>
 
   final GlobalKey _tutorialWriteBtnKey = GlobalKey();
   final GlobalKey _tutorialNotiStackKey = GlobalKey();
+  final GlobalKey _tutorialAiChatBtnKey = GlobalKey();
+
 
   @override
   void didChangeDependencies() {
@@ -74,6 +73,7 @@ class _HomeRootLayerState extends State<HomeRootLayer>
 
       _tutorialReg?.register('home.writeButton', _tutorialWriteBtnKey);
       _tutorialReg?.register('home.notificationButton', _tutorialNotiStackKey);
+      _tutorialReg?.register('home.aiChatButton', _tutorialAiChatBtnKey);
     });
   }
 
@@ -81,6 +81,7 @@ class _HomeRootLayerState extends State<HomeRootLayer>
   void dispose() {
     _tutorialReg?.unregister('home.writeButton');
     _tutorialReg?.unregister('home.notificationButton');
+    _tutorialReg?.unregister('home.aiChatButton');
 
     WidgetsBinding.instance.removeObserver(this);
     _midnightTimer?.cancel();
@@ -225,20 +226,12 @@ class _HomeRootLayerState extends State<HomeRootLayer>
     final writeProvider = context.watch<HomeToWrite>();
     final diaryAiChatController = context.watch<DiaryAiChatController>();
     final alarmController = context.watch<AlarmController>();
-    final navigationToggleProvider = context.watch<NavigationToggleProvider>();
-    final userInfo = Provider.of<UserInfoValueModel>(context);
-    final mailController = context.watch<MailController>();
-    final t = context.watch<TutorialController>();
 
     final isHomeVisible = !writeProvider.write &&
         !writeProvider.otherDiaryOpen &&
         !alarmController.isAlarmOpen;
 
     final canToggleChrome = isHomeVisible;
-
-    final wrapForTutorial = t.active &&
-        t.phase == TutorialPhase.practice &&
-        t.step == TutorialStep.connectionAndEmpathy;
 
     return Stack(
       children: [
@@ -295,18 +288,72 @@ class _HomeRootLayerState extends State<HomeRootLayer>
                           children: [
                             Expanded(
                               child: HomeActionCardButton(
-                                icon: PhosphorIcons.chat(
-                                    PhosphorIconsStyle.light),
+                                key: _tutorialAiChatBtnKey,
+                                icon: PhosphorIcons.chat(PhosphorIconsStyle.light),
                                 label: "ai_chat_title".tr(context),
                                 onTap: () async {
+                                  final tc = context.read<TutorialController>();
+                                  final diaryAiChatController = context.read<DiaryAiChatController>();
+
+                                  // 3번째 step이면: aiChat 버튼 -> sheet 단계로
+                                  if (tc.isRetrospectFlow &&
+                                      tc.retrospectPhase == RetrospectTutorialPhase.focusAiChatButton) {
+                                    tc.setRetrospectPhase(RetrospectTutorialPhase.focusMessageBar);
+                                  }
+
                                   diaryAiChatController.toggleChatOpen(true);
-                                  DiaryAIChatSheet().show(context).then((_) {
-                                    if (context.mounted) {
-                                      diaryAiChatController
-                                          .toggleChatOpen(false);
-                                    }
+
+                                  // ✅ showModalBottomSheet는 Future로 받고, 닫힘은 whenComplete에서 처리
+                                  final f = DiaryAIChatSheet().show(
+                                    context,
+                                    lockDismiss: false, // 여기선 고정 잠금 쓰지 말고(아래 PopScope로 제어 추천)
+                                  );
+
+                                  f.whenComplete(() async {
+                                    // ✅ sheet가 닫힌 순간
+                                    final rootCtx = navigatorKey.currentContext;
+                                    if (rootCtx == null) return;
+
+                                    // chat open state off
+                                    Provider.of<DiaryAiChatController>(rootCtx, listen: false)
+                                        .toggleChatOpen(false);
+
+                                    final tc2 = Provider.of<TutorialController>(rootCtx, listen: false);
+
+                                    // ✅ retrospect 튜토리얼 중일 때만 다음 단계로 넘김
+                                    if (!tc2.isRetrospectFlow) return;
+
+                                    // ✅ “닫히면 3초 후 4단계 진입” 요구사항
+                                    Future.delayed(const Duration(seconds: 3), () async {
+                                      final rootCtx2 = navigatorKey.currentContext;
+                                      if (rootCtx2 == null) return;
+
+                                      final nav = Provider.of<NavigationToggleProvider>(rootCtx2, listen: false);
+                                      final tc3 = Provider.of<TutorialController>(rootCtx2, listen: false);
+
+                                      // 페이지 이동(필수)
+                                      nav.selectIndex(-3);
+
+                                      // 아직도 retrospect practice면 growth로
+                                      if (!tc3.isRetrospectFlow) return;
+
+                                      await tc3.advanceAfterPractice(); // => growth, explain
+
+                                      final res = await TutorialFlowPage.show(
+                                        rootCtx2,
+                                        startIndex: tc3.explainIndex, // growth explain index
+                                      );
+                                      if (res == null) return;
+
+                                      await Provider.of<TutorialController>(rootCtx2, listen: false)
+                                          .beginPracticeForStep(res.step);
+                                    });
                                   });
+
+                                  // await는 필요하면 유지(UX상 중복 탭 방지 등). 없어도 됨.
+                                  await f;
                                 },
+
                               ),
                             ),
                             const SizedBox(width: 16),
