@@ -98,7 +98,7 @@ Example Output:
 
 [조건]
 1. 내용을 관통하는 핵심 키워드나 감정을 포함할 것.
-2. 20자 이내의 간결한 문장이나 단어 조합으로 작성할 것.
+2. 15자 이내의 간결한 문장이나 단어 조합으로 작성할 것.
 3. 따옴표(" "), 마침표(.), '제목:' 같은 불필요한 기호를 절대 포함하지 말 것.
 4. 한국어로 작성할 것.
 
@@ -110,7 +110,7 @@ You are an empathetic diary title creator. Read the diary entry and create a tit
 
 [Constraints]
 1. Capture the core emotion or event of the day.
-2. Keep it concise (under 10 words).
+2. Keep it concise (under 8 words).
 3. Do NOT use quotation marks (" "), periods (.), or prefixes like 'Title:'.
 4. Write in English.
 
@@ -125,7 +125,7 @@ If the input is too short, meaningless, or just a greeting (e.g., "Hi"), output 
       maxTokens: 30, // 15는 너무 짧을 수 있어 30으로 늘림 (비용 차이 미미함)
       frequencyPenalty: 0.0, // 요약 과제이므로 0.0 권장
       presencePenalty: 0.0, // -0.5는 반복을 유도할 수 있어 제거
-      temperature: 0.5, // 적당한 창의성을 위해 유지
+      temperature: 0.6, // 적당한 창의성을 위해 유지
     );
 
     if (responseText != null) {
