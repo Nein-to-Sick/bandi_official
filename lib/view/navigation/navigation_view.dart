@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -16,6 +17,7 @@ import '../../components/bottom_sheet/show_floating_confirm_sheet.dart';
 import '../../components/no_reuse/firefly.dart';
 import '../../controller/home_to_write.dart';
 import '../../controller/navigation_toggle_provider.dart';
+import '../../controller/user_info_controller.dart';
 import '../../main.dart';
 import '../home/controller/bgm_controller.dart';
 import '../login/controller/login_controller.dart';
@@ -57,6 +59,10 @@ class _NavigationViewState extends State<NavigationView> {
   }
 
   Future<void> _bootstrap() async {
+    final current = FirebaseAuth.instance.currentUser;
+    if (current != null) {
+      context.read<UserInfoValueModel>().updateUserID(current.uid);
+    }
     if (!mounted) return;
 
     context.read<BgmController>().init();
@@ -70,9 +76,16 @@ class _NavigationViewState extends State<NavigationView> {
       await t.loadFromStorage();
       if (!mounted) return;
 
-      if (!t.finished) {
+      final userInfo = context.read<UserInfoValueModel>();
+
+      final needAgreement = !userInfo.isAgreed;
+      final needNickname = userInfo.getNickName().trim().isEmpty;
+      final needTutorial = !t.finished;
+
+      if (needAgreement || needNickname || needTutorial) {
         nav.selectIndex(-3);
       }
+
     }
 
     if (!_loginInitDone) {

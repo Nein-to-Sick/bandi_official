@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../../controller/navigation_toggle_provider.dart';
 import '../../../controller/securestorage_controller.dart';
@@ -91,13 +92,41 @@ class LoginController extends ChangeNotifier {
     if (_initialized) return;
     _initialized = true;
 
-    if (nav.getIndex() != -1) return;
-
     await storage.loadLoginInfo();
 
+    final current = FirebaseAuth.instance.currentUser;
+    log('[LOGIN init] storage.isLoggedIn=${storage.isLoggedIn} current=${current?.uid}');
+
+    // ✅ 핵심: 저장소 기준 "로그인 아님"인데 currentUser가 살아있으면 => 유령 세션
+    if (!storage.isLoggedIn && current != null) {
+      await _hardSignOut(); // 아래 함수
+    }
+
+    final current2 = FirebaseAuth.instance.currentUser;
+    if (current2 != null) {
+      await _routeAfterAuth(current2);
+      return;
+    }
+
+    // 저장소 기준 자동로그인 시도
     if (storage.isLoggedIn && !authService.checkOnce) {
       authService.toggleCheckOnce();
       await tryAutoLogin();
+    } else {
+      nav.selectIndex(-1);
+    }
+  }
+
+  Future<void> _hardSignOut() async {
+    try {
+      // Google 세션까지 완전히 끊기
+      final g = GoogleSignIn();
+      await g.signOut();
+      await g.disconnect(); // 중요: 캐시 계정 끊기
+
+      await FirebaseAuth.instance.signOut();
+    } catch (_) {
+      // ignore
     }
   }
 
@@ -115,7 +144,6 @@ class LoginController extends ChangeNotifier {
         nav.selectIndex(-1);
         return;
       }
-
       await _routeAfterAuth(user);
     } on FirebaseAuthException catch (e) {
       log("auto login error: ${e.code} ${e.message}");
@@ -159,30 +187,30 @@ class LoginController extends ChangeNotifier {
       return;
     }
 
-    // ✅ 가입 플로우는 -3에서만 처리
+    // ✅ 1) 가장 먼저 uid 주입
+    userInfo.updateUserID(user.uid);
+
+    // ✅ 2) 이제 온보딩 분기
     if (!userInfo.isAgreed) {
       nav.selectIndex(-3);
       emit(const ShowAgreementSheet());
       return;
     }
 
-    // ✅ 핵심: 닉네임이 아니라 "튜토리얼 완료 여부"로 판단
-    if (!tutorial.finished) {
-      nav.selectIndex(-3);
-      emit(const ShowTutorialFlow());
-      return;
-    }
-
-    // ✅ 튜토리얼 끝났는데 닉네임 없으면 닉네임
     if (userInfo.getNickName().trim().isEmpty) {
       nav.selectIndex(-3);
       emit(const ShowNicknameSheet());
       return;
     }
 
+    if (!tutorial.finished) {
+      nav.selectIndex(-3);
+      emit(const ShowTutorialFlow());
+      return;
+    }
+
     nav.selectIndex(0);
   }
-
 
   Future<void> onAgreementAccepted() async {
     final uid = userInfo.userId;
@@ -193,17 +221,20 @@ class LoginController extends ChangeNotifier {
       isAgreed: true,
     );
     userInfo.updateIsAgreed(true);
+
     nav.selectIndex(-3);
+    emit(const ShowNicknameSheet());
   }
 
 
   Future<void> onTutorialFinished() async {
-    emit(const ShowNicknameSheet());
+    nav.selectIndex(0);
   }
 
-  /// 닉네임 완료 시 UI에서 호출
   Future<void> onNicknameCompleted(String nickname) async {
     userInfo.updateNickname(nickname);
-    nav.selectIndex(0);
+
+    nav.selectIndex(-3);
+    emit(const ShowTutorialFlow());
   }
 }

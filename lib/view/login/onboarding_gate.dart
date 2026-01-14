@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
+import 'package:bandi_official/view/login/controller/login_controller.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -7,10 +9,8 @@ import '../../controller/navigation_toggle_provider.dart';
 import '../../controller/user_info_controller.dart';
 import '../tutorial/controller/tutorial_controller.dart';
 import '../tutorial/tutorial_flow_page.dart';
-import 'controller/login_controller.dart';
 import 'sheets/agreement_sheet.dart';
 import 'sheets/nickname_sheet.dart';
-import '../../theme/custom_theme_data.dart';
 
 class OnboardingGate extends StatefulWidget {
   const OnboardingGate({super.key});
@@ -32,76 +32,82 @@ class _OnboardingGateState extends State<OnboardingGate> {
     if (!mounted || _opened) return;
     _opened = true;
 
-    final login = context.read<LoginController>();
     final tutorial = context.read<TutorialController>();
     final nav = context.read<NavigationToggleProvider>();
     final userInfo = context.read<UserInfoValueModel>();
+    final login = context.read<LoginController>();
+
+    final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+    if (uid.isNotEmpty) {
+      userInfo.updateUserID(uid);
+      await userInfo.loadProfileFromServer(uid);
+    }
+
+    await tutorial.loadFromStorage();
 
     log('[GATE] kick '
         'agreed=${userInfo.isAgreed} '
         'nick="${userInfo.getNickName()}" '
         'tutorialActive=${tutorial.active} '
+        'finished=${tutorial.finished} '
         'phase=${tutorial.phase} '
         'step=${tutorial.step}');
 
-    // =====================================================
-    // 1️⃣ 튜토리얼을 이미 시작한 적이 있다면 → 무조건 재개
-    // =====================================================
-    if (tutorial.active && !tutorial.finished) {
-      // 항상 explain부터 다시
-      if (tutorial.phase != TutorialPhase.explain) {
-        await tutorial.restartFromExplain();
-      }
-
-      while (mounted &&
-          tutorial.active &&
-          tutorial.phase == TutorialPhase.explain) {
-        final idx = tutorial.explainIndex;
-
-        final res = await TutorialFlowPage.show(
-          context,
-          startIndex: idx,
-        );
-
-        if (!mounted || res == null) break;
-
-        nav.selectIndex(0);
-        await Future.delayed(const Duration(milliseconds: 16));
-        await tutorial.beginPracticeForStep(res.step);
-
-        _opened = false;
-        return;
-      }
-    }
-
     // =========================
-    // 2️⃣ 신규 유저 → 약관
+    // 1️⃣ 약관 (미동의면 무조건 여기)
     // =========================
     if (!userInfo.isAgreed) {
       final accepted = await AgreementSheet().show(context);
       if (!mounted) { _opened = false; return; }
 
-      if (accepted == true) {
-        await login.onAgreementAccepted();
-      } else {
+      if (accepted != true) {
         _opened = false;
         return;
+      } else {
+        await login.onAgreementAccepted();
       }
     }
 
     // =========================
-    // 3️⃣ 신규 튜토리얼 시작
+    // 2️⃣ 닉네임 (동의는 했지만 닉네임 없으면 무조건 여기)
+    // =========================
+    if (userInfo.getNickName().trim().isEmpty) {
+      final nickname = await NicknameSheet().show(context);
+      if (!mounted) { _opened = false; return; }
+
+      if (nickname == null || nickname.trim().isEmpty) {
+        _opened = false;
+        return;
+      }
+
+    }
+
+    // =========================
+    // 3️⃣ 튜토리얼 (동의+닉네임 완료면 여기서 시작/재개)
     // =========================
     if (!tutorial.finished) {
-      await tutorial.start(); // explain부터 시작
+      // ✅ 이미 하던 중이면 재개, 아니면 start()
+      if (tutorial.active) {
+        // explain으로 재진입 정책이면 여기서 고정
+        if (tutorial.phase != TutorialPhase.explain) {
+          await tutorial.restartFromExplain();
+        }
+      } else {
+        await tutorial.start(); // active=true, phase=explain, step 복원/초기화 정책에 따라
+      }
 
+      if (!mounted) { _opened = false; return; }
+
+      // explain UI
       final idx = tutorial.explainIndex;
       final res = await TutorialFlowPage.show(context, startIndex: idx);
+
       if (!mounted || res == null) {
         _opened = false;
         return;
       }
 
+      // practice로 진입
       nav.selectIndex(0);
       await Future.delayed(const Duration(milliseconds: 16));
       await tutorial.beginPracticeForStep(res.step);
@@ -111,17 +117,9 @@ class _OnboardingGateState extends State<OnboardingGate> {
     }
 
     // =========================
-    // 4️⃣ 닉네임
+    // 4️⃣ 모든 온보딩 완료 → 메인
     // =========================
-    if (userInfo.getNickName().trim().isEmpty) {
-      final nickname = await NicknameSheet().show(context);
-      if (!mounted) { _opened = false; return; }
-
-      if (nickname != null && nickname.trim().isNotEmpty) {
-        await login.onNicknameCompleted(nickname.trim());
-      }
-    }
-
+    nav.selectIndex(0);
     _opened = false;
   }
 
