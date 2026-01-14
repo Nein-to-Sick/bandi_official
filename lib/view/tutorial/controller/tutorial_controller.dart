@@ -30,6 +30,13 @@ enum RetrospectTutorialPhase {
   messageSent,
 }
 
+enum GrowthTutorialPhase {
+  focusLetterCloseX,
+  focusTrayNav,
+  done,
+}
+
+
 enum TutorialPhase {
   explain,
   practice,
@@ -54,6 +61,8 @@ class TutorialController extends ChangeNotifier {
       ConnectionTutorialPhase.focusHomeNotification;
   RetrospectTutorialPhase _retrospectPhase =
       RetrospectTutorialPhase.focusAiChatButton;
+  GrowthTutorialPhase _growthPhase =
+      GrowthTutorialPhase.focusLetterCloseX;
 
   Completer<void>? _practiceCompleter;
 
@@ -82,9 +91,13 @@ class TutorialController extends ChangeNotifier {
           _phase == TutorialPhase.practice &&
           _step == TutorialStep.retrospect;
 
+  bool get isGrowthFlow =>
+      _active && _phase == TutorialPhase.practice && _step == TutorialStep.growth;
+
   FirstWriteTutorialPhase get firstWritePhase => _firstWritePhase;
   ConnectionTutorialPhase get connectionPhase => _connectionPhase;
   RetrospectTutorialPhase get retrospectPhase => _retrospectPhase;
+  GrowthTutorialPhase get growthPhase => _growthPhase;
 
   int get explainIndex {
     return switch (_step) {
@@ -111,6 +124,11 @@ class TutorialController extends ChangeNotifier {
 
   void setRetrospectPhase(RetrospectTutorialPhase p) {
     _retrospectPhase = p;
+    notifyListeners();
+  }
+
+  void setGrowthPhase(GrowthTutorialPhase p) {
+    _growthPhase = p;
     notifyListeners();
   }
 
@@ -146,11 +164,19 @@ class TutorialController extends ChangeNotifier {
     };
     }
 
+    if (_step == TutorialStep.growth) {
+    return switch (_growthPhase) {
+    GrowthTutorialPhase.focusLetterCloseX => 'mail.detail.closeX',
+    GrowthTutorialPhase.focusTrayNav => 'nav.tray',
+    GrowthTutorialPhase.done => null,
+    };
+    }
+
     // connectionAndEmpathy는 위에서 이미 처리함
     return switch (_step) {
     TutorialStep.emotionalWriting => 'home.writeButton',
     TutorialStep.retrospect => 'home.aiChatButton',
-    TutorialStep.growth => 'home.mailButton',
+    TutorialStep.growth => null,
     TutorialStep.done => null,
     TutorialStep.connectionAndEmpathy => 'home.notificationButton',
     };
@@ -413,6 +439,7 @@ class TutorialController extends ChangeNotifier {
     _connectionPhase = ConnectionTutorialPhase.focusHomeNotification;
     _retrospectPhase = RetrospectTutorialPhase.focusAiChatButton;
     _retrospectAssistantPicked = false;
+    _growthPhase = GrowthTutorialPhase.focusLetterCloseX;
 
     // step별로 더 명확하게 하고 싶으면 아래처럼 분기해도 됨.
     if (step == TutorialStep.emotionalWriting) {
@@ -424,6 +451,9 @@ class TutorialController extends ChangeNotifier {
     if (step == TutorialStep.retrospect) {
       _retrospectPhase = RetrospectTutorialPhase.focusAiChatButton;
       _retrospectAssistantPicked = false;
+    }
+    if (step == TutorialStep.growth) {
+      _growthPhase = GrowthTutorialPhase.focusLetterCloseX;
     }
   }
 

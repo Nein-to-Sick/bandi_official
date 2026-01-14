@@ -16,11 +16,14 @@ import '../../components/bottom_sheet/show_floating_confirm_sheet.dart';
 import '../../components/no_reuse/firefly.dart';
 import '../../controller/home_to_write.dart';
 import '../../controller/navigation_toggle_provider.dart';
+import '../../main.dart';
 import '../home/controller/bgm_controller.dart';
 import '../login/controller/login_controller.dart';
 import '../tutorial/controller/tutorial_controller.dart';
 import '../tutorial/controller/tutorial_target_registry.dart';
+import '../tutorial/tutorial_flow_page.dart';
 import '../tutorial/tutorial_overlay.dart';
+import '../tutorial/tutorial_speech_bubble.dart';
 import 'app_router.dart';
 import 'components/frosted_nav_bar.dart';
 
@@ -40,11 +43,16 @@ class _NavigationViewState extends State<NavigationView> {
 
   bool _tutorialBootstrapped = false;
 
+  final GlobalKey _tutorialTrayKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _bootstrap();
+      context
+          .read<TutorialTargetRegistry>()
+          .register('nav.tray', _tutorialTrayKey);
     });
   }
 
@@ -152,17 +160,32 @@ class _NavigationViewState extends State<NavigationView> {
     final pointRect = (targetId == null || rawRect == null)
         ? null
         : _makePointRect(
-      rawRect,
-      size: 28,
-      offset: _offsetForTarget(targetId),
-    );
+            rawRect,
+            size: 28,
+            offset: _offsetForTarget(targetId),
+          );
+
+    final showTrayBubble = tutorial.active &&
+        tutorial.phase == TutorialPhase.practice &&
+        tutorial.step == TutorialStep.growth &&
+        tutorial.growthPhase == GrowthTutorialPhase.focusTrayNav;
+
+    final guideWidget = showTrayBubble
+        ? TutorialSpeechBubble(
+            targetRect: rawRect!,
+            title: '반디가 보낸 편지와 공감한 일기는 \n여기에 보관됩니다.',
+            subtitle: '따뜻한 위로가 필요할 때 언제든 다시 \n꺼내보세요.',
+            gap: 23,
+          )
+        : const SizedBox.shrink();
 
     final isWritingOpen = writeProvider.write; // 글쓰기 화면(FirstStep) 열렸는지
-    final isOtherDiaryOpen = writeProvider.otherDiaryOpen; // 글쓰기 화면(FirstStep) 열렸는지
-    final shouldShowTutorialOverlay = tutorial.active
-        && !isWritingOpen
-        && !isOtherDiaryOpen
-        && pointRect != null;
+    final isOtherDiaryOpen =
+        writeProvider.otherDiaryOpen; // 글쓰기 화면(FirstStep) 열렸는지
+    final shouldShowTutorialOverlay = tutorial.active &&
+        !isWritingOpen &&
+        !isOtherDiaryOpen &&
+        pointRect != null;
 
     // alarm detail에서 context 필요하다면 유지
     alarmController.updateContext(context);
@@ -240,8 +263,6 @@ class _NavigationViewState extends State<NavigationView> {
                         children: [
                           const FireFly(),
 
-                          // ✅ 튜토리얼 중엔 화면 이탈 막기: overlay가 아닌 영역 탭을 전부 먹어버림
-                          // (구멍(holeRect) 내부는 TutorialOverlay에서 터치 통과 처리)
                           AppRouter.buildMain(
                             context: context,
                             nav: nav,
@@ -265,7 +286,54 @@ class _NavigationViewState extends State<NavigationView> {
                               bottom: 32,
                               child: FrostedNavBar(
                                 selectedIndex: nav.selectedIndex,
-                                onTap: (i) => nav.selectIndex(i),
+                                onTap: (i) async {
+                                  final t = context.read<TutorialController>();
+
+                                  // ✅ growth 서브스텝: tray만 허용
+                                  final onlyTray = t.active &&
+                                      t.phase == TutorialPhase.practice &&
+                                      t.step == TutorialStep.growth &&
+                                      t.growthPhase ==
+                                          GrowthTutorialPhase.focusTrayNav;
+
+                                  if (onlyTray && i != 2) return; // 2 = tray
+
+                                  nav.selectIndex(i);
+
+                                  // ✅ tray 눌렀으면: 3초 뒤 done flow page + 튜토리얼 종료 업데이트
+                                  if (onlyTray && i == 2) {
+                                    // overlay 즉시 해제(링 사라짐)
+                                    t.setGrowthPhase(GrowthTutorialPhase.done);
+
+                                    Future.delayed(const Duration(seconds: 3),
+                                        () async {
+                                      final rootCtx =
+                                          navigatorKey.currentContext;
+                                      if (rootCtx == null) return;
+
+                                      final tc2 =
+                                          Provider.of<TutorialController>(
+                                              rootCtx,
+                                              listen: false);
+
+                                      // 여전히 튜토리얼 + growth 단계였다면 done 보여주고 종료
+                                      if (!(tc2.active &&
+                                          tc2.step == TutorialStep.growth))
+                                        return;
+
+                                      // ✅ done 페이지 show
+                                      await TutorialFlowPage.show(
+                                        rootCtx,
+                                        startIndex:
+                                            TutorialStep.done.index, // 4
+                                      );
+
+                                      // ✅ 튜토리얼 종료 상태 업데이트(스토리지 포함)
+                                      await tc2
+                                          .finishAll(); // active=false, step=done 저장됨
+                                    });
+                                  }
+                                },
                                 items: [
                                   NavItem(
                                       icon: PhosphorIcons.house(
@@ -275,7 +343,8 @@ class _NavigationViewState extends State<NavigationView> {
                                           PhosphorIconsStyle.fill)),
                                   NavItem(
                                       icon: PhosphorIcons.tray(
-                                          PhosphorIconsStyle.fill)),
+                                          PhosphorIconsStyle.fill),
+                                      tutorialKey: _tutorialTrayKey),
                                   NavItem(
                                       icon: PhosphorIcons.gearSix(
                                           PhosphorIconsStyle.fill)),
@@ -286,10 +355,9 @@ class _NavigationViewState extends State<NavigationView> {
                           // ✅ 튜토리얼 오버레이
                           if (shouldShowTutorialOverlay)
                             TutorialOverlay(
-                              targetRect: pointRect!,
-                              radius: 14, // 28 / 2
-                              guide: const SizedBox.shrink()
-                            ),
+                                targetRect: pointRect!,
+                                radius: 14, // 28 / 2
+                                guide: guideWidget),
                         ],
                       ),
                     )
@@ -303,7 +371,8 @@ class _NavigationViewState extends State<NavigationView> {
   }
 }
 
-Rect _makePointRect(Rect base, {double size = 28, Offset offset = Offset.zero}) {
+Rect _makePointRect(Rect base,
+    {double size = 28, Offset offset = Offset.zero}) {
   final c = base.center + offset;
   return Rect.fromCenter(center: c, width: size, height: size);
 }
@@ -314,8 +383,8 @@ Offset _offsetForTarget(String targetId) {
       return const Offset(-28, -6);
     case 'home.notificationButton':
       return const Offset(28, -6);
-    case 'home.mailButton':
-      return const Offset(0, -10);
+    case 'nav.tray':
+      return const Offset(8, -8);
     default:
       return Offset.zero;
   }

@@ -38,7 +38,7 @@ class _TutorialFlowPageState extends State<TutorialFlowPage> {
   final _controller = PageController();
   late int _index;
 
-  static const int _total = 4;
+  static const int _total = 5;
 
   @override
   void initState() {
@@ -61,13 +61,14 @@ class _TutorialFlowPageState extends State<TutorialFlowPage> {
       case 1: return TutorialStep.connectionAndEmpathy;
       case 2: return TutorialStep.retrospect;
       case 3: return TutorialStep.growth;
+      case 4: return TutorialStep.done;
       default: return TutorialStep.emotionalWriting;
     }
   }
 
   void _next() {
     final step = _stepForIndex(_index);
-    final nextIndex = _index + 1; // 4면 끝
+    final nextIndex = _index + 1;
 
     Navigator.pop(
       context,
@@ -131,6 +132,10 @@ class _TutorialFlowPageState extends State<TutorialFlowPage> {
                           image: Image.asset(
                               'assets/images/onboarding/onboarding_img4.png'),
                         ),
+                        const _TutorialStep(
+                          title: '이제 당신의 이야기를\n들려주세요.',
+                          description: '나의 감정을 분석하고, 힘들 때 나에게\n가장 필요한 한마디를 건네줄 거에요.',
+                        ),
                       ],
                     ),
                   ),
@@ -157,20 +162,20 @@ class _TutorialFlowPageState extends State<TutorialFlowPage> {
 class _TutorialStep extends StatelessWidget {
   final String title;
   final String description;
-  final String comment;
-  final Image image;
+  final String? comment;
+  final Image? image;
 
   const _TutorialStep({
     required this.title,
     required this.description,
-    required this.comment,
-    required this.image,
+    this.comment,
+    this.image,
   });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 98, 24, 24),
+      padding: EdgeInsets.fromLTRB(24, image != null ? 98 : 267, 24, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -179,6 +184,7 @@ class _TutorialStep extends StatelessWidget {
             style: BandiFont.headlineLarge(context)?.copyWith(
               color: BandiColor.neutralColor100(context),
             ),
+            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
           Text(
@@ -192,10 +198,11 @@ class _TutorialStep extends StatelessWidget {
           const SizedBox(
             height: 53,
           ),
-          image,
+          if (image != null) image!,
           const Spacer(),
+          if (comment != null)
           Text(
-            comment,
+            comment!,
             style: BandiFont.bodyLarge(context)?.copyWith(
                 color: BandiColor.neutralColor100(context),
                 height: 1.2,

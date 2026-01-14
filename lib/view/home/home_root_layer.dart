@@ -49,7 +49,6 @@ class _HomeRootLayerState extends State<HomeRootLayer>
   final GlobalKey _tutorialNotiStackKey = GlobalKey();
   final GlobalKey _tutorialAiChatBtnKey = GlobalKey();
 
-
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -280,6 +279,14 @@ class _HomeRootLayerState extends State<HomeRootLayer>
                         onDropdownOpenChanged: (open) {
                           if (!mounted) return;
                           setState(() => _notiDropdownOpen = open);
+                          if (open) {
+                            final tc = context.read<TutorialController>();
+                            if (tc.active &&
+                                tc.phase == TutorialPhase.practice &&
+                                tc.step == TutorialStep.growth) {
+                              tc.markPracticeDone(); // 또는 tc.advanceAfterPractice()로 바로 끝내도 됨(원하는 UX에 따라)
+                            }
+                          }
                         },
                       ),
                       Padding(
@@ -289,24 +296,29 @@ class _HomeRootLayerState extends State<HomeRootLayer>
                             Expanded(
                               child: HomeActionCardButton(
                                 key: _tutorialAiChatBtnKey,
-                                icon: PhosphorIcons.chat(PhosphorIconsStyle.light),
+                                icon: PhosphorIcons.chat(
+                                    PhosphorIconsStyle.light),
                                 label: "ai_chat_title".tr(context),
                                 onTap: () async {
                                   final tc = context.read<TutorialController>();
-                                  final diaryAiChatController = context.read<DiaryAiChatController>();
+                                  final diaryAiChatController =
+                                      context.read<DiaryAiChatController>();
 
                                   // 3번째 step이면: aiChat 버튼 -> sheet 단계로
                                   if (tc.isRetrospectFlow &&
-                                      tc.retrospectPhase == RetrospectTutorialPhase.focusAiChatButton) {
-                                    tc.setRetrospectPhase(RetrospectTutorialPhase.focusMessageBar);
+                                      tc.retrospectPhase ==
+                                          RetrospectTutorialPhase
+                                              .focusAiChatButton) {
+                                    tc.setRetrospectPhase(
+                                        RetrospectTutorialPhase
+                                            .focusMessageBar);
                                   }
 
                                   diaryAiChatController.toggleChatOpen(true);
 
-                                  // ✅ showModalBottomSheet는 Future로 받고, 닫힘은 whenComplete에서 처리
                                   final f = DiaryAIChatSheet().show(
                                     context,
-                                    lockDismiss: false, // 여기선 고정 잠금 쓰지 말고(아래 PopScope로 제어 추천)
+                                    lockDismiss: false,
                                   );
 
                                   f.whenComplete(() async {
@@ -315,37 +327,70 @@ class _HomeRootLayerState extends State<HomeRootLayer>
                                     if (rootCtx == null) return;
 
                                     // chat open state off
-                                    Provider.of<DiaryAiChatController>(rootCtx, listen: false)
+                                    Provider.of<DiaryAiChatController>(rootCtx,
+                                            listen: false)
                                         .toggleChatOpen(false);
 
-                                    final tc2 = Provider.of<TutorialController>(rootCtx, listen: false);
+                                    final tc2 = Provider.of<TutorialController>(
+                                        rootCtx,
+                                        listen: false);
 
                                     // ✅ retrospect 튜토리얼 중일 때만 다음 단계로 넘김
                                     if (!tc2.isRetrospectFlow) return;
 
                                     // ✅ “닫히면 3초 후 4단계 진입” 요구사항
-                                    Future.delayed(const Duration(seconds: 3), () async {
-                                      final rootCtx2 = navigatorKey.currentContext;
+                                    Future.delayed(const Duration(seconds: 3),
+                                        () async {
+                                      final rootCtx2 =
+                                          navigatorKey.currentContext;
                                       if (rootCtx2 == null) return;
 
-                                      final nav = Provider.of<NavigationToggleProvider>(rootCtx2, listen: false);
-                                      final tc3 = Provider.of<TutorialController>(rootCtx2, listen: false);
+                                      final nav =
+                                          Provider.of<NavigationToggleProvider>(
+                                              rootCtx2,
+                                              listen: false);
+                                      final tc3 =
+                                          Provider.of<TutorialController>(
+                                              rootCtx2,
+                                              listen: false);
 
-                                      // 페이지 이동(필수)
                                       nav.selectIndex(-3);
 
-                                      // 아직도 retrospect practice면 growth로
-                                      if (!tc3.isRetrospectFlow) return;
-
-                                      await tc3.advanceAfterPractice(); // => growth, explain
+                                      await tc3
+                                          .advanceAfterPractice(); // => growth, explain
 
                                       final res = await TutorialFlowPage.show(
                                         rootCtx2,
-                                        startIndex: tc3.explainIndex, // growth explain index
+                                        startIndex: tc3
+                                            .explainIndex, // growth explain index
                                       );
                                       if (res == null) return;
 
-                                      await Provider.of<TutorialController>(rootCtx2, listen: false)
+                                      if (res.step == TutorialStep.growth) {
+                                        await Provider.of<AlarmController>(
+                                                rootCtx2,
+                                                listen: false)
+                                            .createTutorialLetterAndAlarm(
+                                          title: '웰컴 편지',
+                                          content: '''
+사랑하는 OO에게,
+
+이번 한 달은 어떤 색깔이었나요? 유난히 비가 많이 오던 날, OO이 찾았던 작은 행복을 기억해요.
+
+아침부터 쏟아지는 할 일들에 마음이 참 무거웠지만, 포기하지 않고 카페로 향했던 그 마음이 참 기특해요. 그곳에서 마신 따뜻한 커피 한 잔이 부정적인 생각들을 긍정으로 바꾸어주었죠. 사소한 기쁨을 발견할 줄 아는 OO은 이미 충분히 빛나는 사람이에요.
+
+이렇게 당신이 남긴 소중한 하루하루를 모아, 반디는 매달 끝자락에 당신만을 위한 편지를 보낼 거예요. 숫자로 표현된 통계보다 더 따뜻하게, 당신의 단단해진 마음을 비추어 드릴게요.
+
+힘겨운 시작도 긍정으로 마무리할 줄 아는 당신의 마음을 반디가 항상 응원할게요. 우리 다음 달에도 이 편지함에서 다시 만나요.
+
+당신의 곁에서 늘 따스하게 자라날 반디가
+                                          ''',
+                                        );
+                                      }
+
+                                      await Provider.of<TutorialController>(
+                                              rootCtx2,
+                                              listen: false)
                                           .beginPracticeForStep(res.step);
                                     });
                                   });
@@ -353,7 +398,6 @@ class _HomeRootLayerState extends State<HomeRootLayer>
                                   // await는 필요하면 유지(UX상 중복 탭 방지 등). 없어도 됨.
                                   await f;
                                 },
-
                               ),
                             ),
                             const SizedBox(width: 16),
