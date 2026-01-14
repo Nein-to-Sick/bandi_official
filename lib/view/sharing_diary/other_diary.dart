@@ -586,7 +586,6 @@ class _OtherDiaryState extends State<OtherDiary> {
             onTap: () async {
               final t = context.read<TutorialController>();
 
-              // send는 3번째 서브스텝에서 눌러야 완료 처리
               if (t.isConnectionFlow &&
                   t.connectionPhase ==
                       ConnectionTutorialPhase.focusSendButton) {
@@ -618,53 +617,22 @@ class _OtherDiaryState extends State<OtherDiary> {
 
                   if (!context.mounted) return;
 
-                  // ✅ 여기서부터 "다음 스텝 예약"에 필요한 레퍼런스를 미리 잡아둔다
                   final tc = context.read<TutorialController>();
-                  final nav = context.read<NavigationToggleProvider>();
-                  final messenger = ScaffoldMessenger.maybeOf(context);
 
-                  // ✅ 2단계 튜토리얼이고 done 상태일 때만 다음 단계 예약
-                  final shouldScheduleNext =
+                  final shouldAdvance =
                       tc.isConnectionFlow && tc.connectionPhase == ConnectionTutorialPhase.done;
 
-                  // ✅ 화면은 먼저 닫아도 됨 (OtherDiary dispose 되어도 아래 예약은 돌아가야 함)
-                  writeProvider.offDiaryOpen();
+                  widget.writeProvider.offDiaryOpen();
 
-                  if (!shouldScheduleNext) return;
+                  if (!shouldAdvance) return;
 
-                  // ✅ 3초 뒤: 홈으로 이동 + 3단계 설명 show
-                  Future.delayed(const Duration(seconds: 3), () async {
-                    // ❌ 여기서 mounted 체크하면 안 됨 (OtherDiary는 이미 dispose됨)
-                    // 대신 "현재 튜토리얼 상태"만 확인
-                    if (!(tc.isConnectionFlow &&
-                        tc.connectionPhase == ConnectionTutorialPhase.done)) {
-                      return;
-                    }
+                  final rootCtx = navigatorKey.currentContext;
+                  if (rootCtx == null) return;
 
-                    // 홈 탭 이동
-                    nav.selectIndex(-3);
-
-                    // 3단계로 진행
-                    await tc.advanceAfterPractice(); // => step=retrospect, phase=explain
-
-
-                    final navContext = navigatorKey.currentContext;
-                    if (navContext == null) {
-                      messenger?.showSnackBar(
-                        const SnackBar(content: Text('튜토리얼 화면을 띄울 컨텍스트를 찾지 못했어요.')),
-                      );
-                      return;
-                    }
-
-                    final tc2 = navContext.read<TutorialController>();
-                    final res = await TutorialFlowPage.show(
-                      navContext,
-                      startIndex: tc2.explainIndex,
-                    );
-
-                    if (res == null) return;
-                    await navContext.read<TutorialController>().beginPracticeForStep(res.step);
-                  });
+                  final nav = rootCtx.read<NavigationToggleProvider>();
+                  final tcRoot = rootCtx.read<TutorialController>();
+                  await tcRoot.advanceAfterPractice();
+                  tcRoot.scheduleExplainFlow(rootCtx, delay: const Duration(seconds: 3));
                 },
 
               );

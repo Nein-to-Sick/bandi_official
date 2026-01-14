@@ -302,49 +302,23 @@ class _NavigationViewState extends State<NavigationView> {
                                 onTap: (i) async {
                                   final t = context.read<TutorialController>();
 
-                                  // ✅ growth 서브스텝: tray만 허용
                                   final onlyTray = t.active &&
                                       t.phase == TutorialPhase.practice &&
                                       t.step == TutorialStep.growth &&
-                                      t.growthPhase ==
-                                          GrowthTutorialPhase.focusTrayNav;
+                                      t.growthPhase == GrowthTutorialPhase.focusTrayNav;
 
-                                  if (onlyTray && i != 2) return; // 2 = tray
+                                  if (onlyTray && i != 2) return;
 
                                   nav.selectIndex(i);
 
-                                  // ✅ tray 눌렀으면: 3초 뒤 done flow page + 튜토리얼 종료 업데이트
                                   if (onlyTray && i == 2) {
-                                    // overlay 즉시 해제(링 사라짐)
                                     t.setGrowthPhase(GrowthTutorialPhase.done);
 
-                                    Future.delayed(const Duration(seconds: 3),
-                                        () async {
-                                      final rootCtx =
-                                          navigatorKey.currentContext;
-                                      if (rootCtx == null) return;
+                                    // ✅ practice 종료 → 다음 step
+                                    await t.advanceAfterPractice();
 
-                                      final tc2 =
-                                          Provider.of<TutorialController>(
-                                              rootCtx,
-                                              listen: false);
-
-                                      // 여전히 튜토리얼 + growth 단계였다면 done 보여주고 종료
-                                      if (!(tc2.active &&
-                                          tc2.step == TutorialStep.growth))
-                                        return;
-
-                                      // ✅ done 페이지 show
-                                      await TutorialFlowPage.show(
-                                        rootCtx,
-                                        startIndex:
-                                            TutorialStep.done.index, // 4
-                                      );
-
-                                      // ✅ 튜토리얼 종료 상태 업데이트(스토리지 포함)
-                                      await tc2
-                                          .finishAll(); // active=false, step=done 저장됨
-                                    });
+                                    // ✅ 설명 페이지 예약 (done)
+                                    t.scheduleExplainFlow(context);
                                   }
                                 },
                                 items: [

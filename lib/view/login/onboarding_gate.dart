@@ -86,28 +86,25 @@ class _OnboardingGateState extends State<OnboardingGate> {
     // 3️⃣ 튜토리얼 (동의+닉네임 완료면 여기서 시작/재개)
     // =========================
     if (!tutorial.finished) {
-      // ✅ 이미 하던 중이면 재개, 아니면 start()
+      if (tutorial.flowOpened || tutorial.hasPendingFlow) {
+        _opened = false;
+        return;
+      }
+
       if (tutorial.active) {
-        // explain으로 재진입 정책이면 여기서 고정
         if (tutorial.phase != TutorialPhase.explain) {
           await tutorial.restartFromExplain();
         }
       } else {
-        await tutorial.start(); // active=true, phase=explain, step 복원/초기화 정책에 따라
+        await tutorial.start();
       }
 
-      if (!mounted) { _opened = false; return; }
-
-      // explain UI
-      final idx = tutorial.explainIndex;
-      final res = await TutorialFlowPage.show(context, startIndex: idx);
-
+      final res = await tutorial.showExplainFlowNow(context);
       if (!mounted || res == null) {
         _opened = false;
         return;
       }
 
-      // practice로 진입
       nav.selectIndex(0);
       await Future.delayed(const Duration(milliseconds: 16));
       await tutorial.beginPracticeForStep(res.step);
@@ -115,6 +112,7 @@ class _OnboardingGateState extends State<OnboardingGate> {
       _opened = false;
       return;
     }
+
 
     // =========================
     // 4️⃣ 모든 온보딩 완료 → 메인

@@ -1,5 +1,10 @@
 // tutorial/tutorial_flow_page.dart
+import 'dart:developer';
+
+import 'package:bandi_official/components/no_reuse/navigation_bar.dart';
+import 'package:bandi_official/controller/navigation_toggle_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../theme/custom_theme_data.dart';
 import '../../../components/button/primary_button.dart';
@@ -17,6 +22,9 @@ class TutorialFlowPage extends StatefulWidget {
   const TutorialFlowPage({super.key, this.startIndex = 0});
 
   static Future<TutorialFlowResult?> show(BuildContext context, {int startIndex = 0}) {
+    final navState = Navigator.of(context);
+    log('[GATE] canPop=${navState.canPop()} routes? (cannot list without observer)');
+
     return Navigator.of(context).push<TutorialFlowResult>(
       PageRouteBuilder(
         opaque: false,
@@ -35,18 +43,17 @@ class TutorialFlowPage extends StatefulWidget {
 }
 
 class _TutorialFlowPageState extends State<TutorialFlowPage> {
-  final _controller = PageController();
   late int _index;
+  bool _handled = false;
 
   static const int _total = 5;
+  late final PageController _controller;
 
   @override
   void initState() {
     super.initState();
     _index = widget.startIndex;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _controller.jumpToPage(_index);
-    });
+    _controller = PageController(initialPage: _index);
   }
 
   @override
@@ -69,11 +76,14 @@ class _TutorialFlowPageState extends State<TutorialFlowPage> {
   void _next() {
     final step = _stepForIndex(_index);
     final nextIndex = _index + 1;
-
-    Navigator.pop(
-      context,
-      TutorialFlowResult(step: step, nextIndex: nextIndex),
-    );
+    if (_index == _total - 1) {
+      context.read<NavigationToggleProvider>().selectIndex(0);
+      Navigator.pop(context);
+    } else {
+      Navigator.of(context).pop(
+        TutorialFlowResult(step: step, nextIndex: nextIndex),
+      );
+    }
   }
 
   @override

@@ -1,6 +1,13 @@
 import 'dart:async';
+import 'package:bandi_official/components/no_reuse/navigation_bar.dart';
+import 'package:bandi_official/controller/navigation_toggle_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../../main.dart';
+import '../../alarm/controller/alarm_controller.dart';
+import '../tutorial_flow_page.dart';
 
 enum TutorialStep {
   emotionalWriting,
@@ -50,9 +57,25 @@ class TutorialController extends ChangeNotifier {
   static const _kStep = 'tutorial.step';
   static const _kPhase = 'tutorial.phase';
 
+  // =================
+  // 기존 상태들
+  // =================
   bool _active = false;
   TutorialStep _step = TutorialStep.emotionalWriting;
   TutorialPhase _phase = TutorialPhase.explain;
+
+  // =================
+  // 🔐 Flow control (NEW)
+  // =================
+  bool flowOpened = false;
+  Timer? _pendingFlowTimer;
+
+  bool get hasPendingFlow => _pendingFlowTimer != null;
+
+  void _cancelPendingFlow() {
+    _pendingFlowTimer?.cancel();
+    _pendingFlowTimer = null;
+  }
 
   // ✅ 서브스텝은 "메모리 전용" (스토리지 저장 X)
   FirstWriteTutorialPhase _firstWritePhase =
@@ -295,43 +318,93 @@ class TutorialController extends ChangeNotifier {
     notifyListeners();
   }
 
+  // =========================
+  // ✅ 단일 진입: 즉시 설명 페이지
+  // =========================
+  Future<TutorialFlowResult?> showExplainFlowNow(
+      BuildContext context,
+      ) async {
+    if (flowOpened) return null;
+
+    flowOpened = true;
+    _cancelPendingFlow();
+
+    try {
+      return await TutorialFlowPage.show(
+        context,
+        startIndex: explainIndex,
+      );
+    } finally {
+      flowOpened = false;
+    }
+  }
+
+  // =========================
+  // ✅ 단일 진입: 지연 설명 페이지 (3초 등)
+  // =========================
+  void scheduleExplainFlow(
+      BuildContext context, {
+        Duration delay = const Duration(seconds: 3),
+      }) {
+    if (flowOpened) return;
+
+    _cancelPendingFlow();
+
+    _pendingFlowTimer = Timer(delay, () async {
+      final rootCtx = navigatorKey.currentContext;
+      if (rootCtx == null) return;
+      final res = await showExplainFlowNow(rootCtx);
+      if (res?.step == TutorialStep.growth) {
+        await Provider.of<AlarmController>(
+            rootCtx,
+            listen: false)
+            .createTutorialLetterAndAlarm(
+          title: '웰컴 편지',
+          content: '''
+사랑하는 OO에게,
+
+이번 한 달은 어떤 색깔이었나요? 유난히 비가 많이 오던 날, OO이 찾았던 작은 행복을 기억해요.
+
+아침부터 쏟아지는 할 일들에 마음이 참 무거웠지만, 포기하지 않고 카페로 향했던 그 마음이 참 기특해요. 그곳에서 마신 따뜻한 커피 한 잔이 부정적인 생각들을 긍정으로 바꾸어주었죠. 사소한 기쁨을 발견할 줄 아는 OO은 이미 충분히 빛나는 사람이에요.
+
+이렇게 당신이 남긴 소중한 하루하루를 모아, 반디는 매달 끝자락에 당신만을 위한 편지를 보낼 거예요. 숫자로 표현된 통계보다 더 따뜻하게, 당신의 단단해진 마음을 비추어 드릴게요.
+
+힘겨운 시작도 긍정으로 마무리할 줄 아는 당신의 마음을 반디가 항상 응원할게요. 우리 다음 달에도 이 편지함에서 다시 만나요.
+
+당신의 곁에서 늘 따스하게 자라날 반디가
+                                          ''',
+        );
+      }
+
+      if (res != null) beginPracticeForStep(res.step);
+    });
+  }
+
   Future<void> advanceAfterPractice() async {
     if (!_active) return;
 
     _step = _nextOf(_step);
 
     if (_step == TutorialStep.done) {
-      _active = false;
-      _phase = TutorialPhase.explain;
-      _clearPracticeCompleter();
-
-      // done도 "처음" 상태로 리셋(의미는 없지만 일관성)
-      _resetSubPhasesForStep(_step);
-
-      await _saveToStorage();
-      notifyListeners();
+      await finishAll();
       return;
     }
 
     _active = true;
     _phase = TutorialPhase.explain;
-
-    // ✅ 다음 step으로 넘어갈 때도 서브스텝은 "처음"
     _resetSubPhasesForStep(_step);
-
-    _clearPracticeCompleter();
     await _saveToStorage();
     notifyListeners();
   }
 
   Future<void> finishAll() async {
+    _cancelPendingFlow();
+    flowOpened = false;
+
     _active = false;
     _step = TutorialStep.done;
     _phase = TutorialPhase.explain;
 
-    _resetSubPhasesForStep(_step);
-
-    _clearPracticeCompleter();
     await _saveToStorage();
     notifyListeners();
   }
