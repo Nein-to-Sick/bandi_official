@@ -131,7 +131,7 @@ class MyDiaryListController with ChangeNotifier {
 
           if (jsonMessages != null) {
             String datePart = key.split('_').last; // yyyy-MM-dd 추출
-            dev.log('Read MY Diary log from local for date $datePart');
+            dev.log('Read my diary log from local for date $datePart');
             myDiaryListDates.add(key);
 
             List<Diary> diaries = [];
@@ -164,11 +164,11 @@ class MyDiaryListController with ChangeNotifier {
         loadMyDiaryDataOnce = true;
       } else {
         // 6. 로컬 데이터가 없을 경우 -> DB에서 가져오기
-        dev.log('There is no MY Diary data in local storage.');
+        dev.log('There is no my diary data in local storage.');
         await fetchMyDiariesAndSaveFromDB();
       }
     } catch (e) {
-      dev.log('Error getting MY diary from local: $e');
+      dev.log('Error getting my diary from local: $e');
     } finally {
       // 7. 로딩 상태 해제 및 UI 갱신
       toggleLoading(false);
@@ -184,7 +184,7 @@ class MyDiaryListController with ChangeNotifier {
       return;
     }
 
-    dev.log('Trying to fetch MY Diary from DB with Chunking');
+    dev.log('Trying to fetch my diary from DB with Chunking');
     myDiaryListDates.clear();
     myDiaryList.clear();
 
@@ -219,7 +219,7 @@ class MyDiaryListController with ChangeNotifier {
 
       // 3. Chunking을 통한 일기 데이터 일괄 조회 (Firestore 10개 제한 대응)
       List<QueryDocumentSnapshot> allFetchedDocs = [];
-      int chunkSize = 10;
+      int chunkSize = maxDataToLoad;
 
       for (int i = 0; i < myDiaryIds.length; i += chunkSize) {
         int end = (i + chunkSize < myDiaryIds.length)
@@ -312,11 +312,11 @@ class MyDiaryListController with ChangeNotifier {
       myDiaryListDates.sort((a, b) => b.compareTo(a));
 
       dev.log(
-          'Fetched ${myDiaryList.length} MY diaries using chunking and saved locally.');
+          'Fetched ${myDiaryList.length} my diaries using chunking and saved locally.');
 
       notifyListeners();
     } catch (e) {
-      dev.log('Error fetching MY diaries: $e');
+      dev.log('Error fetching my diaries: $e');
     }
   }
 
@@ -383,10 +383,10 @@ class MyDiaryListController with ChangeNotifier {
         myDiaryListDates.sort((a, b) => b.compareTo(a));
       }
 
-      dev.log('Saved MY Diary to local for date $dateString');
+      dev.log('Saved my diary to local for date $dateString');
       notifyListeners();
     } catch (e) {
-      dev.log('Error saving MY diary locally: $e');
+      dev.log('Error saving my diary locally: $e');
     }
   }
 
@@ -451,7 +451,7 @@ class MyDiaryListController with ChangeNotifier {
         }
 
         if (!hasMoreData) {
-          dev.log('No more older MY diary data.');
+          dev.log('No more older my diary data.');
           return false;
         }
 
@@ -608,7 +608,7 @@ class MyDiaryListController with ChangeNotifier {
       // 5. UI 갱신
       notifyListeners();
 
-      dev.log('Deleted all MY Diary data from local storage.');
+      dev.log('Deleted all my diary data from local storage.');
     } else {
       dev.log('There is no firebase uid');
     }

@@ -82,14 +82,20 @@ class _MyLettersPageState extends State<MyLettersPage> {
     final allLetters = mailController.letterList;
     final DateTime? filterDate = mailController.letterFilteredDate;
 
-    final displayList = filterDate == null
-        ? allLetters
-        : allLetters.where((letter) {
-            DateTime letterDate = letter.date.toDate();
-            // 연도와 월이 모두 일치하는지 확인
-            return letterDate.year == filterDate.year &&
-                letterDate.month == filterDate.month;
-          }).toList();
+    List<Letter> displayList;
+
+    if (filterDate == null) {
+      displayList = List.from(allLetters); // 원본 보호를 위해 복사본 생성
+    } else {
+      displayList = allLetters.where((letter) {
+        DateTime letterDate = letter.date.toDate();
+        // 연도와 월이 모두 일치하는지 확인
+        return letterDate.year == filterDate.year &&
+            letterDate.month == filterDate.month;
+      }).toList();
+    }
+
+    displayList.sort((a, b) => b.date.compareTo(a.date));
 
     return (mailController.isLoading)
         ? MyFireFlyProgressbar(
