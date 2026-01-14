@@ -83,15 +83,19 @@ class _LikedDiaryPageState extends State<LikedDiaryPage> {
     final allDiaries = mailController.likedDiaryList;
     final DateTime? filterDate = mailController.likedDiaryFilteredDate;
 
-    // 선택된 날짜가 있으면 해당 날짜만, 없으면 전체 리스트
-    final displayList = filterDate == null
-        ? allDiaries
-        : allDiaries.where((diary) {
-            // diary.otherUserLikedAt 형식: "2024-07-25"
-            String targetDateString =
-                filterDate.toIso8601String().substring(0, 10);
-            return diary.otherUserLikedAt.startsWith(targetDateString);
-          }).toList();
+    List<Diary> displayList;
+
+    if (filterDate == null) {
+      displayList = List.from(allDiaries); // 원본 보호를 위해 복사본 생성
+    } else {
+      displayList = allDiaries.where((diary) {
+        // diary.otherUserLikedAt 형식: "2024-07-25"
+        String targetDateString = filterDate.toIso8601String().substring(0, 10);
+        return diary.otherUserLikedAt.startsWith(targetDateString);
+      }).toList();
+    }
+
+    displayList.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
     return (mailController.isLoading)
         ? MyFireFlyProgressbar(

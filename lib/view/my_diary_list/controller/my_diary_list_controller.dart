@@ -161,7 +161,6 @@ class MyDiaryListController with ChangeNotifier {
             myDiaryList.addAll(diaries);
           }
         }
-
         loadMyDiaryDataOnce = true;
       } else {
         // 6. 로컬 데이터가 없을 경우 -> DB에서 가져오기
@@ -410,9 +409,6 @@ class MyDiaryListController with ChangeNotifier {
         keys.sort(); // 오름차순 (옛날 -> 최신)
         List<String> reversedKeys = keys.reversed.toList(); // 최신 -> 옛날
 
-        // 현재 로드된 마지막 날짜(가장 과거)보다 더 뒤에 있는 키들을 찾음
-        // 혹은 간단하게: 이미 로드된 키(myDiaryListDates)에 없는 키를 순서대로 찾음
-
         int loadedCount = 0;
         bool hasMoreData = false;
 
@@ -445,7 +441,9 @@ class MyDiaryListController with ChangeNotifier {
             loadedCount++;
             hasMoreData = true;
 
-            // 한 번에 하나(하루치)만 로드하고 리턴 (부드러운 로딩을 위해)
+            dev.log(
+                'read older My Diary from local for date ${key.split('_').skip(1).join('_')}');
+
             if (loadedCount >= maxDataToLoad) {
               break;
             }
@@ -461,7 +459,7 @@ class MyDiaryListController with ChangeNotifier {
       }
       return false;
     } catch (e) {
-      dev.log('Error loading more MY diaries: $e');
+      dev.log('Error loading more My diaries: $e');
       return false;
     } finally {
       _isLoadingMyDiary = false;
