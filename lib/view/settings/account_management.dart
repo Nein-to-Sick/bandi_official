@@ -101,6 +101,14 @@ class _AccountManagementState extends State<AccountManagement> {
                       navigationToggleProvider.selectIndex(100);
                       await Future.delayed(const Duration(seconds: 1));
 
+                      // 로컬 저장소 데이터 삭제
+                      mailController.deleteEveryMailDataFromLocal();
+                      myDiaryListController.deleteEveryMyDiaryDataFromLocal();
+
+                      // 로컬 저장소 로드 변수 초기화
+                      mailController.initializeLoadValue();
+                      myDiaryListController.initializeLoadValue();
+
                       // 설정 화면 위치 이동
                       userViewController.updateSettingValue(0);
 
@@ -115,14 +123,6 @@ class _AccountManagementState extends State<AccountManagement> {
 
                       // SecureStorage의 로그인 정보 삭제
                       await _storageProvider.clearLoginInfo();
-
-                      // 로컬 저장소 데이터 삭제
-                      mailController.deleteEveryMailDataFromLocal();
-                      myDiaryListController.deleteEveryMyDiaryDataFromLocal();
-
-                      // 로컬 저장소 로드 변수 초기화
-                      mailController.initializeLoadValue();
-                      myDiaryListController.initializeLoadValue();
 
                       // 사용자 정보 초기화
                       userInfo.clearUserInfo();
@@ -163,9 +163,6 @@ class _AccountManagementState extends State<AccountManagement> {
                         navigationToggleProvider.selectIndex(100);
                         await Future.delayed(const Duration(seconds: 1));
 
-                        // 설정 화면 위치 이동
-                        userViewController.updateSettingValue(0);
-
                         // 로컬 저장소 데이터 삭제
                         mailController.deleteEveryMailDataFromLocal();
                         myDiaryListController.deleteEveryMyDiaryDataFromLocal();
@@ -173,6 +170,9 @@ class _AccountManagementState extends State<AccountManagement> {
                         // 로컬 저장소 로드 변수 초기화
                         mailController.initializeLoadValue();
                         myDiaryListController.initializeLoadValue();
+
+                        // 설정 화면 위치 이동
+                        userViewController.updateSettingValue(0);
 
                         // 사용자 정보 초기화
                         userInfo.clearUserInfo();

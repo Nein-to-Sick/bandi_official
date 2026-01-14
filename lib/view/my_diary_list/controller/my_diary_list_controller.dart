@@ -116,46 +116,52 @@ class MyDiaryListController with ChangeNotifier {
         // 날짜순 정렬 (키에 날짜가 포함되어 있으므로 문자열 정렬 시 날짜순이 됨)
         keys.sort();
 
-        // 4. 최신 데이터만 로드 (Pagination / Lazy Loading)
-        int startIndex =
-            (keys.length - maxDataToLoad) > 0 ? keys.length - maxDataToLoad : 0;
+        List<String> reversedKeys = keys.reversed.toList();
 
-        List<String> latestKeys = keys.sublist(startIndex);
+        // 4. 앞에서부터 N개 가져오기 (가장 최신 데이터들)
+        List<String> targetKeys = reversedKeys.take(maxDataToLoad).toList();
 
         // 메모리 리스트 초기화
         myDiaryListDates.clear();
         myDiaryList.clear();
 
         // 5. 각 키에 저장된 JSON 리스트 파싱
-        for (String key in latestKeys) {
+        for (String key in targetKeys) {
           List<String>? jsonMessages = prefs.getStringList(key);
 
           if (jsonMessages != null) {
             String datePart = key.split('_').last; // yyyy-MM-dd 추출
             dev.log('Read MY Diary log from local for date $datePart');
             myDiaryListDates.add(key);
-            myDiaryList.addAll(
-              jsonMessages.map((jsonMessage) {
+
+            List<Diary> diaries = [];
+            for (String jsonMessage in jsonMessages) {
+              try {
                 final jsonMap = jsonDecode(jsonMessage);
-                try {
-                  return Diary.fromJsonLocal(
-                      jsonMap,
-                      -1, // otherUserReaction
-                      "" // otherUserLikedAt
-                      );
-                } catch (e) {
-                  dev.log("Error parsing local json: $e");
-                  return Diary.fromJsonLocal(jsonMap, -1, "");
+                // ID 유효성 검사
+                if (jsonMap['diaryId'] == null ||
+                    jsonMap['diaryId'].toString().isEmpty) {
+                  continue;
                 }
-              }).toList(),
-            );
-          } else {
-            dev.log('There is no MY Diary data for key $key');
+
+                diaries.add(Diary.fromJsonLocal(
+                  jsonMap,
+                  jsonMap['otherUserReaction'] ?? -1,
+                  jsonMap['otherUserLikedAt'] ?? '',
+                ));
+              } catch (e) {
+                dev.log("JSON parsing error: $e");
+              }
+            }
+
+            // [중요] 해당 날짜 내의 일기들도 최신순 정렬 (하루에 여러 개 썼을 경우 대비)
+            diaries.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+            // 리스트에 추가 (최신 날짜부터 순서대로 addAll 하므로 결과적으로 최신순 유지됨)
+            myDiaryList.addAll(diaries);
           }
         }
 
-        // 날짜 리스트를 최신순(내림차순)으로 정렬 (UI 표시용)
-        myDiaryListDates.sort((a, b) => b.compareTo(a));
         loadMyDiaryDataOnce = true;
       } else {
         // 6. 로컬 데이터가 없을 경우 -> DB에서 가져오기
@@ -262,6 +268,9 @@ class MyDiaryListController with ChangeNotifier {
         }
       }
 
+      // 5.5. [핵심 추가] 전체 일기 목록을 최신순으로 정렬 (가장 최근 작성일 기준)
+      fetchedDiaries.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
       // 메모리 리스트 업데이트
       myDiaryList = fetchedDiaries;
 
@@ -324,30 +333,21 @@ class MyDiaryListController with ChangeNotifier {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       // 2. 로컬 저장소 키 생성
       // 내 일기는 '작성일(createdAt)'을 기준으로 날짜 키를 생성합니다.
-      DateTime createdDate = myDiary.createdAt.toDate();
+      DateTime createdDate = myDiary.createdAt.toDate().toLocal();
       String dateString =
           createdDate.toIso8601String().substring(0, 10); // yyyy-MM-dd
 
       // 키 형식: {userId}_myDiaryList_{yyyy-MM-dd}
       String targetKey = '${userId}_myDiaryList_$dateString';
 
-      dev.log("wowowow!!!: ${targetKey}");
-
       // 3. 해당 날짜의 기존 로컬 데이터 불러오기
       List<String>? storedMessages = prefs.getStringList(targetKey);
       List<Diary> messages = [];
 
       if (storedMessages != null) {
-        messages = storedMessages.map((jsonMessage) {
-          final decodedJson = jsonDecode(jsonMessage);
-
-          // 기존 데이터 파싱 (내 일기이므로 타인 반응 정보는 기본값 처리)
-          return Diary.fromJsonLocal(
-            decodedJson,
-            decodedJson['otherUserReaction'] ?? -1,
-            decodedJson['otherUserLikedAt'] ?? '',
-          );
-        }).toList();
+        messages = storedMessages
+            .map((e) => Diary.fromJsonLocal(jsonDecode(e), -1, ''))
+            .toList();
       }
 
       // [핵심 수정] 참조 끊기! 새로운 객체를 생성하여 값을 복사합니다.
@@ -393,87 +393,73 @@ class MyDiaryListController with ChangeNotifier {
 
   // 과거의 내 일기 데이터를 추가로 로드하는 함수 (Pagination)
   Future<bool> loadMoreMyDiary() async {
-    if (_isLoadingMyDiary) {
-      dev.log('MyDiary 로딩 중입니다. 중복 요청을 무시합니다.');
-      return false;
-    }
-
+    if (_isLoadingMyDiary) return false;
     _isLoadingMyDiary = true;
-    notifyListeners(); // 로딩 상태 UI 반영
+    notifyListeners();
 
     try {
-      if (userId != null && userId!.isNotEmpty) {
-        final SharedPreferences prefs = await SharedPreferences.getInstance();
+      if (userId == null || userId!.isEmpty) return false;
 
-        // 1. 내 일기 키 검색
-        // 키 형식: {userId}_myDiaryList_{yyyy-MM-dd}
-        List<String> keys = prefs
-            .getKeys()
-            .where((key) => key.startsWith('${userId}_myDiaryList_'))
-            .toList();
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      List<String> keys = prefs
+          .getKeys()
+          .where((key) => key.startsWith('${userId}_myDiaryList_'))
+          .toList();
 
-        if (keys.isNotEmpty) {
-          // 날짜순 정렬 (오름차순: 옛날 -> 최신)
-          keys.sort();
+      if (keys.isNotEmpty) {
+        keys.sort(); // 오름차순 (옛날 -> 최신)
+        List<String> reversedKeys = keys.reversed.toList(); // 최신 -> 옛날
 
-          // 2. 더 오래된 데이터 찾기
-          // reversed를 사용하여 최신 데이터부터 거꾸로 탐색하며,
-          // 이미 로드된 날짜(myDiaryListDates)에 없는 키를 찾습니다.
-          for (String key in keys.reversed) {
-            if (!myDiaryListDates.contains(key)) {
-              List<String>? jsonMessages = prefs.getStringList(key);
+        // 현재 로드된 마지막 날짜(가장 과거)보다 더 뒤에 있는 키들을 찾음
+        // 혹은 간단하게: 이미 로드된 키(myDiaryListDates)에 없는 키를 순서대로 찾음
 
-              if (jsonMessages != null) {
-                // 3. JSON 파싱 및 Diary 객체 생성
-                List<Diary> additionalMessages =
-                    jsonMessages.map((jsonMessage) {
-                  final jsonMap = jsonDecode(jsonMessage);
+        int loadedCount = 0;
+        bool hasMoreData = false;
 
-                  // 내 일기 생성 (타인 반응 정보는 기본값 처리)
-                  // jsonMap에 'otherUserReaction' 등이 없을 수 있으므로 안전하게 처리
-                  return Diary.fromJsonLocal(
+        for (String key in reversedKeys) {
+          // 이미 로드된 날짜는 건너뜀
+          if (myDiaryListDates.contains(key)) continue;
+
+          // 새로운 과거 데이터 발견
+          List<String>? jsonMessages = prefs.getStringList(key);
+          if (jsonMessages != null) {
+            List<Diary> oldDiaries = [];
+            for (String jsonStr in jsonMessages) {
+              try {
+                final jsonMap = jsonDecode(jsonStr);
+                if (jsonMap['diaryId'] == null) continue;
+                oldDiaries.add(Diary.fromJsonLocal(
                     jsonMap,
                     jsonMap['otherUserReaction'] ?? -1,
-                    jsonMap['otherUserLikedAt'] ?? '',
-                  );
-                }).toList();
+                    jsonMap['otherUserLikedAt'] ?? ''));
+              } catch (_) {}
+            }
 
-                // 4. 리스트에 추가 (과거 데이터이므로 리스트의 끝에 추가)
-                myDiaryList.addAll(additionalMessages);
-                myDiaryListDates.add(key);
+            // 날짜 내 정렬 (최신순)
+            oldDiaries.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
-                dev.log(
-                    'Read older MY Diary from local for date ${key.split('_').last}');
+            // [핵심] 과거 데이터이므로 리스트의 '맨 뒤'에 추가
+            myDiaryList.addAll(oldDiaries);
+            myDiaryListDates.add(key);
 
-                notifyListeners();
+            loadedCount++;
+            hasMoreData = true;
 
-                // 5. 더 가져올 데이터가 있는지 확인 (가장 오래된 키인지 체크)
-                if (keys.indexOf(key) == 0) {
-                  dev.log('[2] There is no more older My Diary data');
-                  return false;
-                }
-
-                // 한 번에 하루치(또는 한 키 단위)만 로드하고 종료
-                return true;
-              }
-            } else {
-              // 이미 로드된 키라면, 가장 오래된 키인지 확인
-              if (keys.indexOf(key) == 0) {
-                dev.log('[1] There is no more older My Diary data');
-                return false;
-              }
+            // 한 번에 하나(하루치)만 로드하고 리턴 (부드러운 로딩을 위해)
+            if (loadedCount >= maxDataToLoad) {
+              break;
             }
           }
-        } else {
-          dev.log('There is no ${userId}_myDiaryList_ keys');
+        }
+
+        if (!hasMoreData) {
+          dev.log('No more older MY diary data.');
           return false;
         }
-      } else {
-        dev.log('There is no firebase uid');
-        return false;
-      }
 
-      return true;
+        return true;
+      }
+      return false;
     } catch (e) {
       dev.log('Error loading more MY diaries: $e');
       return false;
@@ -753,20 +739,32 @@ class MyDiaryListController with ChangeNotifier {
       if (key.startsWith(myDiaryPrefix)) {
         try {
           // 3. 키에서 날짜 부분 추출
-          String datePart = key.split('_').last;
+          final dateString = key.substring(myDiaryPrefix.length);
 
           // yyyy-MM-dd 형식인지 간단히 길이 체크
-          if (datePart.length == 10) {
-            uniqueDateStrings.add(datePart);
+          if (dateString.length == 10 && dateString.contains('-')) {
+            uniqueDateStrings.add(dateString);
           }
-        } catch (e) {
+        } catch (_) {
           // 키 형식이 예상과 다를 경우 무시
           continue;
         }
       }
     }
 
-    // 4. 문자열을 DateTime 객체로 변환하여 리스트 반환
-    return uniqueDateStrings.map((d) => DateTime.parse(d)).toList();
+    final List<DateTime> dates = [];
+    for (String dateStr in uniqueDateStrings) {
+      try {
+        final date = DateTime.parse(dateStr);
+        dates.add(date);
+      } catch (_) {
+        dev.log('Invalid date format in key: $dateStr');
+      }
+    }
+
+    // 5. 날짜를 오름차순으로 정렬 (달력 표시를 위해)
+    dates.sort((a, b) => a.compareTo(b));
+
+    return dates;
   }
 }

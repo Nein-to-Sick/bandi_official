@@ -95,15 +95,25 @@ class _MyDiaryListViewState extends State<MyDiaryListView>
     final allDiaries = myDiaryListController.myDiaryList;
     final DateTime? filterDate = myDiaryListController.myDiaryFilteredDate;
 
-    // 선택된 날짜가 있으면 해당 날짜만, 없으면 전체 리스트
-    final displayList = filterDate == null
-        ? allDiaries
-        : allDiaries.where((diary) {
-            DateTime diaryDate = diary.createdAt.toDate();
-            return diaryDate.year == filterDate.year &&
-                diaryDate.month == filterDate.month &&
-                diaryDate.day == filterDate.day;
-          }).toList();
+    // 1. 필터링 로직 (기존 코드)
+    // List<Diary> 타입으로 선언 (final 제거하여 정렬 가능하게 함)
+    List<Diary> displayList;
+
+    if (filterDate == null) {
+      displayList = List.from(allDiaries); // 원본 보호를 위해 복사본 생성
+    } else {
+      displayList = allDiaries.where((diary) {
+        // [중요] Timezone 문제 방지를 위해 .toLocal() 필수
+        DateTime diaryDate = diary.createdAt.toDate().toLocal();
+        return diaryDate.year == filterDate.year &&
+            diaryDate.month == filterDate.month &&
+            diaryDate.day == filterDate.day;
+      }).toList();
+    }
+
+    // 2. [핵심 수정] 화면 표시 직전 '최신순' 강제 정렬
+    // 작성일(createdAt) 기준 내림차순 (b를 a보다 앞에)
+    displayList.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
     return SafeArea(
       child: Scaffold(
