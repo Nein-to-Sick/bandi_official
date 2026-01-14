@@ -163,9 +163,12 @@ class _NavigationViewState extends State<NavigationView> {
 
         // 설정 화면시
         if (nav.selectedIndex == -2) {
+          // 닉네임 수정 창
           if (userViewController.settings == 2) {
             userViewController.updateSettingValue(1);
-          } else {
+          }
+          // 그 외 설정창
+          else {
             userViewController.updateSettingValue(0);
           }
           nav.selectIndex(3);
