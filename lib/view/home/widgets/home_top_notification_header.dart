@@ -149,7 +149,10 @@ class HomeTopNotificationHeader extends StatelessWidget {
                   onStackTap: wrapForTutorial
                       ? () async {
                     final t = context.read<TutorialController>();
-                    if (t.connectionPhase == ConnectionTutorialPhase.focusHomeNotification) {
+                    if (t.step == TutorialStep.connectionAndEmpathy) {
+                      await t.advanceConnectionPhase(); // => focusReactionSelector
+                    }
+                    else if (t.connectionPhase == ConnectionTutorialPhase.focusHomeNotification) {
                       t.setGrowthPhase(GrowthTutorialPhase.focusLetterCloseX);
                     }
                   }

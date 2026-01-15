@@ -32,8 +32,6 @@ class _MyDiaryListViewState extends State<MyDiaryListView>
       myDiaryListController =
           Provider.of<MyDiaryListController>(context, listen: false);
 
-      myDiaryListController.initScrollControllers();
-
       myDiaryListController.loadDataAndSetting().then((value) {
         myDiaryListController.restoreMyDiaryScrollPosition();
 
