@@ -807,8 +807,7 @@ class MailController with ChangeNotifier {
     }
   }
 
-  Future<(bool, dynamic)>
-      checkForNewLetterNewNotificationsAndSaveLetterToLocal() async {
+  Future<(bool, dynamic)> checkNewLetterAndSaveToLocal() async {
     bool newLetterAvailable = false;
     // 유저 ID 체크
     if (userId == null || userId!.isEmpty) {

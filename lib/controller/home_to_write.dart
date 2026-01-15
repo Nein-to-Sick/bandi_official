@@ -422,6 +422,7 @@ class HomeToWrite with ChangeNotifier {
 
     await alarmController.showLocalOtherDiaryNotification(
       diaryId: diaryId,
+      context: context,
     );
 
     otherDiaryModel = diary;

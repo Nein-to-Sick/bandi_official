@@ -305,6 +305,8 @@
   "v2_home_notification_state_3": "오늘도 수고 많았어요.",
   "v2_home_notification_sharing_state_1": "새로운 공유 일기가 도착했어요",
   "v2_home_notification_sharing_state_2": "님과 비슷한 친구가 있어요.",
+  "v2_home_notification_sharing_state_3": "나와 비슷한 친구를 찾았어요!",
+  "v2_home_notification_sharing_state_4": "탭하여 확인해보세요.",
   "v2_ai_chat_confirm_title": "대화창을 정말로 나가시겠어요?",
   "v2_ai_chat_confirm_content": "지금까지 나눈 이야기는 모두 사라져요.",
   "v2_ai_chat_confirm_button_1": "취소",

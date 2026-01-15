@@ -38,8 +38,7 @@ class _HomePageState extends State<HomePage> {
       alarmController.subscribeToDailyReminder(langCode);
       alarmController.firebaseLanguageSetting(
           Localizations.localeOf(context).languageCode);
-      await mailController
-          .checkForNewLetterNewNotificationsAndSaveLetterToLocal();
+      await mailController.checkNewLetterAndSaveToLocal();
     } else {
       dev.log('did not read new letter and new notifications data');
     }

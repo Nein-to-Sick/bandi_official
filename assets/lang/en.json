@@ -305,6 +305,8 @@
   "v2_home_notification_state_3": "Good job today.",
   "v2_home_notification_sharing_state_1": "A new shared journal has arrived",
   "v2_home_notification_sharing_state_2": "Found someone who feels just like you!",
+  "v2_home_notification_sharing_state_3": "Found someone who feels just like you!",
+  "v2_home_notification_sharing_state_4": "Tap to check it out.",
   "v2_ai_chat_confirm_title": "Are you sure you want to leave?",
   "v2_ai_chat_confirm_content": "If you leave, the data of conversation will be lost forever.",
   "v2_ai_chat_confirm_button_1": "Stay here",
