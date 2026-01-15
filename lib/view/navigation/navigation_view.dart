@@ -21,12 +21,10 @@ import '../../components/no_reuse/firefly.dart';
 import '../../controller/home_to_write.dart';
 import '../../controller/navigation_toggle_provider.dart';
 import '../../controller/user_info_controller.dart';
-import '../../main.dart';
 import '../home/controller/bgm_controller.dart';
 import '../login/controller/login_controller.dart';
 import '../tutorial/controller/tutorial_controller.dart';
 import '../tutorial/controller/tutorial_target_registry.dart';
-import '../tutorial/tutorial_flow_page.dart';
 import '../tutorial/tutorial_overlay.dart';
 import '../tutorial/tutorial_speech_bubble.dart';
 import 'app_router.dart';
@@ -161,7 +159,6 @@ class _NavigationViewState extends State<NavigationView> {
     final alarmController = context.watch<AlarmController>();
     final internet = context.watch<InternetConnectionController>();
     final userViewController = context.watch<UserViewController>();
-
     final tutorial = context.watch<TutorialController>();
     final registry = context.watch<TutorialTargetRegistry>();
 
