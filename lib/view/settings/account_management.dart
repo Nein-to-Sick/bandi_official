@@ -21,6 +21,7 @@ import '../../controller/navigation_toggle_provider.dart';
 import '../../controller/securestorage_controller.dart';
 import '../../controller/user_info_controller.dart';
 import '../../theme/custom_theme_data.dart';
+import '../tutorial/controller/tutorial_controller.dart';
 
 class AccountManagement extends StatefulWidget {
   final Function(int) onNavigate;
@@ -35,12 +36,15 @@ class AccountManagement extends StatefulWidget {
 
 class _AccountManagementState extends State<AccountManagement> {
   late SecureStorageProvider _storageProvider;
+  late TutorialController _tutorial;
 
   @override
   void initState() {
     super.initState();
     _storageProvider =
         Provider.of<SecureStorageProvider>(context, listen: false);
+    _tutorial = Provider.of<TutorialController>(context, listen: false); // ✅ 미리 잡기
+
   }
 
   @override
@@ -155,45 +159,7 @@ class _AccountManagementState extends State<AccountManagement> {
                     confirmText: 'settings_my_account_delete_account_button_2'
                         .tr(context),
                   );
-                  if (ok == true) {
-                    try {
-                      User? user = FirebaseAuth.instance.currentUser;
-                      if (user != null) {
-                        // 로딩 화면 노출
-                        navigationToggleProvider.selectIndex(100);
-                        await Future.delayed(const Duration(seconds: 1));
-
-                        // 로컬 저장소 데이터 삭제
-                        mailController.deleteEveryMailDataFromLocal();
-                        myDiaryListController.deleteEveryMyDiaryDataFromLocal();
-
-                        // 로컬 저장소 로드 변수 초기화
-                        mailController.initializeLoadValue();
-                        myDiaryListController.initializeLoadValue();
-
-                        // 설정 화면 위치 이동
-                        userViewController.updateSettingValue(0);
-
-                        // 사용자 정보 초기화
-                        userInfo.clearUserInfo();
-
-                        // firebase DB 삭제
-                        await deleteUserData(user.uid);
-
-                        // SecureStorage의 로그인 정보 삭제
-                        await storageProvider.clearLoginInfo();
-
-                        // 계정 삭제를 위한 재인증 + 삭제 실행
-                        await reauthenticateAndDeleteUser();
-
-                        // 로그인 페이지로 이동
-                        navigationToggleProvider.selectIndex(-1);
-                      }
-                    } catch (e) {
-                      // 로그인 페이지로 이동
-                      navigationToggleProvider.selectIndex(-1);
-                    }
-                  }
+                  if (ok == true) deleteAccountFlow(context);
                 },
                 disableButton: false,
               ),
@@ -249,64 +215,106 @@ class _AccountManagementState extends State<AccountManagement> {
     }
   }
 
-  Future<void> reauthenticateAndDeleteUser() async {
-    final FirebaseAuth auth = FirebaseAuth.instance;
-    final User? user = auth.currentUser;
+  Future<void> reauthAndDeleteGoogle() async {
+    final auth = FirebaseAuth.instance;
+    final user = auth.currentUser;
+    if (user == null) return;
 
-    if (user == null) {
-      log("No user is currently signed in.");
-      return;
+    final googleSignIn = GoogleSignIn();
+
+    // ✅ 1) 팝업 없는 시도
+    GoogleSignInAccount? gUser = await googleSignIn.signInSilently();
+
+    // ✅ 2) silent 실패하면 그때만 팝업
+    gUser ??= await googleSignIn.signIn();
+    if (gUser == null) {
+      // 사용자가 취소
+      throw Exception('Google reauth cancelled');
     }
+
+    final gAuth = await gUser.authentication;
+    final credential = GoogleAuthProvider.credential(
+      accessToken: gAuth.accessToken,
+      idToken: gAuth.idToken,
+    );
+
+    await user.reauthenticateWithCredential(credential);
+    await user.delete();
+  }
+
+  Future<void> reauthAndDeleteApple() async {
+    final auth = FirebaseAuth.instance;
+    final user = auth.currentUser;
+    if (user == null) return;
+
+    final appleCredential = await SignInWithApple.getAppleIDCredential(
+      scopes: [AppleIDAuthorizationScopes.email, AppleIDAuthorizationScopes.fullName],
+    );
+
+    final oauthCredential = OAuthProvider("apple.com").credential(
+      idToken: appleCredential.identityToken,
+      accessToken: appleCredential.authorizationCode,
+    );
+
+    await user.reauthenticateWithCredential(oauthCredential);
+    await user.delete();
+  }
+
+  Future<void> deleteAccountFlow(BuildContext context) async {
+    final nav = context.read<NavigationToggleProvider>();
+    final storage = context.read<SecureStorageProvider>();
+    final userInfo = context.read<UserInfoValueModel>();
+    final tutorial = context.read<TutorialController>();
+    final mail = context.read<MailController>();
+
+    nav.selectIndex(100); // 로딩
 
     try {
-      // 로그인 제공자 확인
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) throw Exception('No current user');
+
       final providerId = user.providerData.first.providerId;
 
+      // 1) (선택) Firestore 데이터 삭제는 "Auth 삭제 전에" 해도 되고, 후에 해도 됨
+      //    보통은 uid 필요하니 Auth 삭제 전에 처리
+      await deleteUserData(user.uid);
+      await mail.deleteEveryMailDataFromLocal();
+
+      // 2) 재인증 + Auth 계정 삭제
       if (providerId == 'google.com') {
-        // Google 로그인 재인증
-        final GoogleSignInAccount? gUser = await GoogleSignIn().signIn();
-        if (gUser == null) {
-          log("Google login cancelled by user.");
-          return;
-        }
-
-        final GoogleSignInAuthentication gAuth = await gUser.authentication;
-
-        final OAuthCredential credential = GoogleAuthProvider.credential(
-          accessToken: gAuth.accessToken,
-          idToken: gAuth.idToken,
-        );
-
-        await user.reauthenticateWithCredential(credential);
-        log("Google reauthentication successful.");
+        await reauthAndDeleteGoogle();
       } else if (providerId == 'apple.com') {
-        // 🔹 Apple 로그인 재인증
-        final appleCredential = await SignInWithApple.getAppleIDCredential(
-          scopes: [
-            AppleIDAuthorizationScopes.email,
-            AppleIDAuthorizationScopes.fullName
-          ],
-        );
-
-        final oauthCredential = OAuthProvider("apple.com").credential(
-          idToken: appleCredential.identityToken,
-          accessToken: appleCredential.authorizationCode,
-        );
-
-        await user.reauthenticateWithCredential(oauthCredential);
-        log("Apple reauthentication successful.");
+        await reauthAndDeleteApple();
       } else {
-        log("Unsupported provider: $providerId");
-        return;
+        throw Exception('Unsupported provider $providerId');
       }
 
-      // ✅ 재인증 후 계정 삭제
-      await user.delete();
-      log("User account deleted successfully.");
+      // 3) 로컬/세션 완전 정리
+      final googleSignIn = GoogleSignIn();
+      await googleSignIn.signOut();
+      await googleSignIn.disconnect();
+      await FirebaseAuth.instance.signOut();
+
+      await storage.clearLoginInfo();
+      userInfo.clearUserInfo();
+      await tutorial.resetAll();
+
+      // 4) 로그인 화면
+      nav.selectIndex(-1);
     } catch (e) {
-      log("Error during reauthentication or deletion: $e");
+      // 실패해도 최소한 로그인 화면으로 보내고 싶다면:
+      await FirebaseAuth.instance.signOut();
+      await storage.clearLoginInfo();
+      userInfo.clearUserInfo();
+      await tutorial.resetAll();
+      nav.selectIndex(-1);
+
+      // 필요하면 토스트/다이얼로그
+      // log('delete flow error: $e');
     }
   }
+
+
 
   Widget _buildSettingOption({
     context,

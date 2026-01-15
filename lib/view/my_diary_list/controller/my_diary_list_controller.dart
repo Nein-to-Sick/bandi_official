@@ -27,15 +27,14 @@ class MyDiaryListController with ChangeNotifier {
   List<String> myDiaryListDates = [];
 
   // Manage the page scroll
-  late ScrollController _myDiaryScrollController;
+  final ScrollController _myDiaryScrollController = ScrollController();
   ScrollController get myDiaryScrollController => _myDiaryScrollController;
   double myDiaryScrollPosition = 0.0;
 
-  void initScrollControllers() {
-    _myDiaryScrollController = ScrollController();
-
+  MyDiaryListController() {
     // Add listener to save scroll position for MyDiary
     _myDiaryScrollController.addListener(() {
+      if (!_myDiaryScrollController.hasClients) return;
       myDiaryScrollPosition = _myDiaryScrollController.position.pixels;
     });
   }
@@ -47,6 +46,13 @@ class MyDiaryListController with ChangeNotifier {
       dev.log('_myDiaryScrollController has no clients');
     }
   }
+
+  @override
+  void dispose() {
+    _myDiaryScrollController.dispose();
+    super.dispose();
+  }
+
 
   // while loading
   bool isLoading = false;

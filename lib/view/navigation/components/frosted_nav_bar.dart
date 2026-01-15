@@ -35,10 +35,10 @@ class FrostedNavBar extends StatelessWidget {
                 children: List.generate(items.length, (i) {
                   final active = i == selectedIndex;
                   return _NavButton(
-                    active: active,
-                    icon: items[i].icon,
-                    onTap: () => onTap(i),
-                  );
+                      active: active,
+                      icon: items[i].icon,
+                      onTap: () => onTap(i),
+                      tutorialKey: items[i].tutorialKey);
                 }),
               ),
             ),
@@ -51,8 +51,9 @@ class FrostedNavBar extends StatelessWidget {
 
 class NavItem {
   final IconData icon;
+  final GlobalKey? tutorialKey;
 
-  const NavItem({required this.icon});
+  NavItem({required this.icon, this.tutorialKey});
 }
 
 class _NavButton extends StatelessWidget {
@@ -60,15 +61,18 @@ class _NavButton extends StatelessWidget {
     required this.active,
     required this.icon,
     required this.onTap,
+    required this.tutorialKey,
   });
 
   final bool active;
   final IconData icon;
   final VoidCallback onTap;
+  final GlobalKey? tutorialKey;
 
   @override
   Widget build(BuildContext context) {
     return InkResponse(
+      key: tutorialKey,
       onTap: onTap,
       radius: 22,
       child: Icon(

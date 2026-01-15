@@ -987,7 +987,7 @@ class MailController with ChangeNotifier {
   }
 
   // delete all data from local storage
-  void deleteEveryMailDataFromLocal() async {
+  Future<void> deleteEveryMailDataFromLocal() async {
     if (userId!.isNotEmpty) {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       List<String> keys = prefs

@@ -15,6 +15,13 @@ import 'package:provider/provider.dart';
 import '../../components/bottom_sheet/show_floating_confirm_sheet.dart';
 import '../../components/bottom_sheet/show_floating_toast_sheet.dart';
 import '../../components/bottom_sheet/app_bottom_sheet.dart';
+import '../../controller/navigation_toggle_provider.dart';
+import '../../main.dart';
+import '../tutorial/controller/tutorial_controller.dart';
+import '../tutorial/controller/tutorial_target_registry.dart';
+import '../tutorial/tutorial_flow_page.dart';
+import '../tutorial/tutorial_overlay.dart';
+import '../tutorial/tutorial_speech_bubble.dart';
 import 'controller/deepl_service.dart';
 import 'controller/other_diary_controller.dart';
 
@@ -59,7 +66,6 @@ class _OtherDiaryState extends State<OtherDiary> {
   // UI / state
   // =====================
   bool showFirstPage = true;
-
   DiaryReaction? selectedReaction;
 
   // =====================
@@ -84,6 +90,12 @@ class _OtherDiaryState extends State<OtherDiary> {
 
   late OtherDiaryController _controller;
 
+  final GlobalKey _tutorialReactionSelectorKey = GlobalKey();
+  final GlobalKey _tutorialSendButtonKey = GlobalKey();
+  final GlobalKey _tutorialReactionOptionAnchorKey = GlobalKey();
+
+  TutorialTargetRegistry? _tutorialReg;
+
   // =====================
   // utils
   // =====================
@@ -95,7 +107,6 @@ class _OtherDiaryState extends State<OtherDiary> {
   String get _otherLang => (originalLang == 'KO') ? 'EN' : 'KO';
 
   String _moreToggleButtonText() {
-    // 현재 원문을 보고 있으면 -> 반대 언어로 보기
     if (currentLang == originalLang) {
       return (originalLang == 'KO')
           ? "v2_other_diary_translation_state_1".tr(context)
@@ -129,8 +140,17 @@ class _OtherDiaryState extends State<OtherDiary> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _tutorialReg ??= context.read<TutorialTargetRegistry>();
 
-    // ✅ locale은 여기서 안전하게 접근 가능
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _tutorialReg?.register(
+          'other.reactionSelector', _tutorialReactionSelectorKey);
+      _tutorialReg?.register('other.sendButton', _tutorialSendButtonKey);
+
+      _tutorialReg?.refreshAll();
+    });
+
     if (!_initTranslated) {
       _initTranslated = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -300,91 +320,152 @@ class _OtherDiaryState extends State<OtherDiary> {
     }
   }
 
+  @override
+  void dispose() {
+    _tutorialReg?.unregister('other.reactionSelector');
+    _tutorialReg?.unregister('other.sendButton');
+    _tutorialReg?.unregister('other.reactionOptionAnchor');
+    super.dispose();
+  }
+
   // =====================
   // build
   // =====================
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: BandiColor.neutralColor80(context),
-        borderRadius: BandiEffects.radiusSmall,
-      ),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.only(top: 24, bottom: 32),
-          child: Column(
-            children: [
-              Expanded(
-                child: Column(
-                  children: [
-                    // ===== Header (… + X) =====
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              _isTranslating
-                                  ? "v2_other_diary_translation_loading"
-                                      .tr(context)
-                                  : translatedTitle,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style:
-                                  BandiFont.headlineMedium(context)?.copyWith(
-                                color: BandiColor.foundationColor100(context),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          GestureDetector(
-                            onTap: () =>
-                                _openMoreSheet(context, widget.writeProvider),
-                            child: PhosphorIcon(
-                              PhosphorIcons.dotsThreeVertical(),
-                              size: 24,
-                              color: BandiColor.foundationColor30(context),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          GestureDetector(
-                            onTap: () async {
-                              final r1 =
-                                  selectedReaction == DiaryReaction.cheer;
-                              final r2 =
-                                  selectedReaction == DiaryReaction.empathize;
-                              final r3 =
-                                  selectedReaction == DiaryReaction.together;
+    final t = context.watch<TutorialController>();
+    final reg = context.watch<TutorialTargetRegistry>();
 
-                              await _controller.handleCloseAndReaction(
-                                writeProvider: widget.writeProvider,
-                                reaction1: r1,
-                                reaction2: r2,
-                                reaction3: r3,
-                                mailController: context.read<MailController>(),
-                                alarmController:
-                                    context.read<AlarmController>(),
-                                onDone: () =>
-                                    widget.writeProvider.offDiaryOpen(),
-                              );
-                            },
-                            child: PhosphorIcon(
-                              PhosphorIcons.x(),
-                              size: 24,
-                              color: BandiColor.foundationColor30(context),
-                            ),
+    // ✅ OtherDiary에서 진행되는 tutorial target
+    final practiceTargetId =
+        (t.isConnectionFlow) ? t.targetId : null; // targetId가 other.* 로 내려옴
+
+    final rawRect =
+        (practiceTargetId == null) ? null : reg.rectOf(practiceTargetId);
+
+    final guideWidget = (t.isConnectionFlow &&
+            t.connectionPhase ==
+                ConnectionTutorialPhase.focusReactionSelector &&
+            rawRect != null)
+        ? TutorialSpeechBubble(
+            targetRect: rawRect,
+            title: '원하는 공감 메시지를 전하세요.',
+            subtitle: '메시지는 익명으로 안전하게 전달됩니다.',
+            bubbleOffset: const Offset(20, 0),
+            // ✅ 말풍선 전체를 오른쪽/아래로
+            arrowOffsetX: -100, // ✅ 화살표만 살짝 오른쪽
+          )
+        : const SizedBox.shrink();
+
+    final offset = switch (t.connectionPhase) {
+      ConnectionTutorialPhase.focusHomeNotification => Offset.zero,
+      ConnectionTutorialPhase.focusReactionSelector => const Offset(-60, -12),
+      ConnectionTutorialPhase.sheetOneRing => const Offset(0, -10),
+      ConnectionTutorialPhase.focusSendButton => const Offset(13, -8),
+      ConnectionTutorialPhase.done => Offset.zero,
+    };
+
+    final pointRect = (rawRect == null)
+        ? null
+        : Rect.fromCenter(
+            center: rawRect.center + offset,
+            width: 28,
+            height: 28,
+          );
+
+    final lockAllExceptTarget =
+        t.isConnectionFlow && practiceTargetId != null && pointRect != null;
+
+    // ✅ tutorial 중이면 rect 갱신 (register 이후 레이아웃 확정 타이밍 보정)
+    if (t.isConnectionFlow) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!context.mounted) return;
+        context.read<TutorialTargetRegistry>().refreshAll();
+      });
+    }
+
+    return Stack(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: BandiColor.neutralColor80(context),
+            borderRadius: BandiEffects.radiusSmall,
+          ),
+          child: SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 24, bottom: 32),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Column(
+                      children: [
+                        // ===== Header (… + X) =====
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  _isTranslating ? "v2_other_diary_translation_loading"
+                                      .tr(context) : translatedTitle,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: BandiFont.headlineMedium(context)
+                                      ?.copyWith(
+                                    color:
+                                        BandiColor.foundationColor100(context),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              GestureDetector(
+                                onTap: () => _openMoreSheet(
+                                    context, widget.writeProvider),
+                                child: PhosphorIcon(
+                                  PhosphorIcons.dotsThreeVertical(),
+                                  size: 24,
+                                  color: BandiColor.foundationColor30(context),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              GestureDetector(
+                                onTap: () async {
+                                  final r1 =
+                                      selectedReaction == DiaryReaction.cheer;
+                                  final r2 = selectedReaction ==
+                                      DiaryReaction.empathize;
+                                  final r3 = selectedReaction ==
+                                      DiaryReaction.together;
+
+                                  await _controller.handleCloseAndReaction(
+                                    writeProvider: widget.writeProvider,
+                                    reaction1: r1,
+                                    reaction2: r2,
+                                    reaction3: r3,
+                                    mailController:
+                                        context.read<MailController>(),
+                                    alarmController:
+                                        context.read<AlarmController>(),
+                                    onDone: () =>
+                                        widget.writeProvider.offDiaryOpen(),
+                                  );
+                                },
+                                child: PhosphorIcon(
+                                  PhosphorIcons.x(),
+                                  size: 24,
+                                  color: BandiColor.foundationColor30(context),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 13),
-                    Divider(
-                      color: BandiColor.foundationColor04(context),
-                      thickness: 1,
-                      height: 0,
-                    ),
+                        ),
+                        const SizedBox(height: 13),
+                        Divider(
+                          color: BandiColor.foundationColor04(context),
+                          thickness: 1,
+                          height: 0,
+                        ),
 
                     // ===== Content =====
                     const SizedBox(height: 16),
@@ -410,23 +491,29 @@ class _OtherDiaryState extends State<OtherDiary> {
                                     ),
                                   ),
                                 ),
-                              ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
-                      ),
+                        const SizedBox(height: 10),
+                      ],
                     ),
-                    const SizedBox(height: 10),
-                  ],
-                ),
-              ),
+                  ),
 
-              // ===== Bottom "chat-like" bar (reaction + send) =====
-              _bottomChatBar(context, widget.writeProvider),
-            ],
+                  // ===== Bottom "chat-like" bar (reaction + send) =====
+                  _bottomChatBar(context, widget.writeProvider),
+                ],
+              ),
+            ),
           ),
         ),
-      ),
+        if (lockAllExceptTarget)
+          TutorialOverlay(
+            targetRect: pointRect!,
+            radius: 14,
+            guide: guideWidget,
+          ),
+      ],
     );
   }
 
@@ -449,7 +536,19 @@ class _OtherDiaryState extends State<OtherDiary> {
           // Left "reaction selector"
           Expanded(
             child: GestureDetector(
-              onTap: () => _openReactionSheet(context),
+              key: _tutorialReactionSelectorKey,
+              onTap: () async {
+                final t = context.read<TutorialController>();
+
+                // 1) 첫 서브스텝 -> sheetOneRing으로
+                if (t.isConnectionFlow &&
+                    t.connectionPhase ==
+                        ConnectionTutorialPhase.focusReactionSelector) {
+                  await t.advanceConnectionPhase(); // => sheetOneRing
+                }
+
+                _openReactionSheet(context);
+              },
               child: Container(
                 decoration: BoxDecoration(
                   color: BandiColor.neutralColor40(context),
@@ -485,7 +584,16 @@ class _OtherDiaryState extends State<OtherDiary> {
 
           // Right send button
           GestureDetector(
+            key: _tutorialSendButtonKey,
             onTap: () async {
+              final t = context.read<TutorialController>();
+
+              if (t.isConnectionFlow &&
+                  t.connectionPhase ==
+                      ConnectionTutorialPhase.focusSendButton) {
+                await t.advanceConnectionPhase(); // => done
+              }
+
               final mailController = context.read<MailController>();
               final alarmController = context.read<AlarmController>();
 
@@ -510,10 +618,26 @@ class _OtherDiaryState extends State<OtherDiary> {
                         "v2_other_diary_send_reaction_button".tr(context),
                   );
 
-                  if (context.mounted) {
-                    writeProvider.offDiaryOpen();
-                  }
+                  if (!context.mounted) return;
+
+                  final tc = context.read<TutorialController>();
+
+                  final shouldAdvance =
+                      tc.isConnectionFlow && tc.connectionPhase == ConnectionTutorialPhase.done;
+
+                  widget.writeProvider.offDiaryOpen();
+
+                  if (!shouldAdvance) return;
+
+                  final rootCtx = navigatorKey.currentContext;
+                  if (rootCtx == null) return;
+
+                  final nav = rootCtx.read<NavigationToggleProvider>();
+                  final tcRoot = rootCtx.read<TutorialController>();
+                  await tcRoot.advanceAfterPractice();
+                  tcRoot.scheduleExplainFlow(rootCtx, delay: const Duration(seconds: 3));
                 },
+
               );
             },
             child: Container(
@@ -541,46 +665,110 @@ class _OtherDiaryState extends State<OtherDiary> {
   // Reaction Bottom Sheet
   // =====================
   void _openReactionSheet(BuildContext context) {
+    final t = context.read<TutorialController>();
+
     showAppBottomSheet(
       context: context,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          CustomPrimaryButton(
-            icon: reactionIcon(DiaryReaction.cheer),
-            title: "reaction_support".tr(context),
-            onPrimaryButtonPressed: () {
-              setState(() => selectedReaction = DiaryReaction.cheer);
-              Navigator.pop(context);
-            },
-            size: "small",
-            disableButton: false,
-          ),
-          const SizedBox(height: 8),
-          CustomPrimaryButton(
-            icon: reactionIcon(DiaryReaction.empathize),
-            title: "reaction_relate".tr(context),
-            onPrimaryButtonPressed: () {
-              setState(() => selectedReaction = DiaryReaction.empathize);
-              Navigator.pop(context);
-            },
-            size: "small",
-            disableButton: false,
-          ),
-          const SizedBox(height: 8),
-          CustomPrimaryButton(
-            icon: reactionIcon(DiaryReaction.together),
-            title: "reaction_with".tr(context),
-            onPrimaryButtonPressed: () {
-              setState(() => selectedReaction = DiaryReaction.together);
-              Navigator.pop(context);
-            },
-            size: "small",
-            disableButton: false,
-          ),
-        ],
+      lockDismiss: t.isConnectionFlow &&
+          t.connectionPhase == ConnectionTutorialPhase.sheetOneRing,
+      child: Builder(
+        builder: (sheetCtx) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            _tutorialReg?.register(
+                'other.reactionOptionAnchor', _tutorialReactionOptionAnchorKey);
+            _tutorialReg?.refreshAll();
+          });
+
+          return Stack(
+            children: [
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CustomPrimaryButton(
+                    key: _tutorialReactionOptionAnchorKey,
+                    icon: reactionIcon(DiaryReaction.cheer),
+                    title: "reaction_support".tr(context),
+                    onPrimaryButtonPressed: () async {
+                      setState(() => selectedReaction = DiaryReaction.cheer);
+                      Navigator.pop(context);
+
+                      final tc = context.read<TutorialController>();
+                      if (tc.isConnectionFlow &&
+                          tc.connectionPhase ==
+                              ConnectionTutorialPhase.sheetOneRing) {
+                        await tc.advanceConnectionPhase(); // => focusSendButton
+                      }
+                    },
+                    size: "small",
+                    disableButton: false,
+                  ),
+                  const SizedBox(height: 8),
+                  CustomPrimaryButton(
+                    icon: reactionIcon(DiaryReaction.empathize),
+                    title: "reaction_relate".tr(context),
+                    onPrimaryButtonPressed: () async {
+                      setState(
+                          () => selectedReaction = DiaryReaction.empathize);
+                      Navigator.pop(context);
+
+                      final tc = context.read<TutorialController>();
+                      if (tc.isConnectionFlow &&
+                          tc.connectionPhase ==
+                              ConnectionTutorialPhase.sheetOneRing) {
+                        await tc.advanceConnectionPhase();
+                      }
+                    },
+                    size: "small",
+                    disableButton: false,
+                  ),
+                  const SizedBox(height: 8),
+                  CustomPrimaryButton(
+                    icon: reactionIcon(DiaryReaction.together),
+                    title: "reaction_with".tr(context),
+                    onPrimaryButtonPressed: () async {
+                      setState(() => selectedReaction = DiaryReaction.together);
+                      Navigator.pop(context);
+
+                      final tc = context.read<TutorialController>();
+                      if (tc.isConnectionFlow &&
+                          tc.connectionPhase ==
+                              ConnectionTutorialPhase.sheetOneRing) {
+                        await tc.advanceConnectionPhase();
+                      }
+                    },
+                    size: "small",
+                    disableButton: false,
+                  ),
+                ],
+              ),
+
+              // ✅ 시트 안 링(터치 통과 + global->local 변환 포함)
+              Consumer2<TutorialController, TutorialTargetRegistry>(
+                builder: (_, tc, reg, __) {
+                  if (!(tc.isConnectionFlow &&
+                      tc.connectionPhase ==
+                          ConnectionTutorialPhase.sheetOneRing)) {
+                    return const SizedBox.shrink();
+                  }
+                  final r = reg.rectOf('other.reactionOptionAnchor');
+                  if (r == null) return const SizedBox.shrink();
+
+                  return Positioned.fill(
+                    child: SheetRingOverlay(
+                      globalTargetRect: r,
+                      radius: 14,
+                    ),
+                  );
+                },
+              ),
+            ],
+          );
+        },
       ),
-    );
+    ).whenComplete(() {
+      _tutorialReg?.unregister('other.reactionOptionAnchor');
+    });
   }
 
   bool get _shouldShowTranslateControls {

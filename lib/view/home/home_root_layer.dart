@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bandi_official/string_extention.dart';
 import 'package:bandi_official/localization/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
@@ -7,23 +8,25 @@ import 'package:bandi_official/view/diary_ai_chat/controller/diary_ai_chat_contr
 import 'package:bandi_official/controller/home_to_write.dart';
 import 'package:bandi_official/view/home/widgets/home_action_card_button.dart';
 import 'package:bandi_official/view/home/widgets/home_notification_stack.dart';
-import 'package:bandi_official/view/home/widgets/speaker_button.dart';
+import 'package:bandi_official/view/home/widgets/home_top_notification_header.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:bandi_official/model/alarm.dart';
 
 import '../../controller/user_info_controller.dart';
 import '../../controller/navigation_toggle_provider.dart';
+import '../../main.dart';
 import '../../model/diary.dart';
 import '../diary_ai_chat/diary_ai_chat_view.dart';
 import '../mail/controller/mail_controller.dart';
 import '../mail/detail_view.dart';
 import '../sharing_diary/other_diary.dart';
+import '../tutorial/controller/tutorial_controller.dart';
+import '../tutorial/controller/tutorial_target_registry.dart';
+import '../tutorial/tutorial_flow_page.dart';
 import '../writing/write_diary.dart';
-import 'controller/bgm_controller.dart';
 import 'package:bandi_official/model/letter.dart';
 
 class HomeRootLayer extends StatefulWidget {
@@ -41,6 +44,21 @@ class _HomeRootLayerState extends State<HomeRootLayer>
 
   DateTime? _latestRealAlarmAt;
 
+  TutorialTargetRegistry? _tutorialReg;
+  HomeToWrite? _writeProvider;
+
+  final GlobalKey _tutorialWriteBtnKey = GlobalKey();
+  final GlobalKey _tutorialNotiStackKey = GlobalKey();
+  final GlobalKey _tutorialAiChatBtnKey = GlobalKey();
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    _tutorialReg ??= context.read<TutorialTargetRegistry>();
+    _writeProvider ??= context.read<HomeToWrite>();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -48,15 +66,24 @@ class _HomeRootLayerState extends State<HomeRootLayer>
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      final write = context.read<HomeToWrite>();
-      write.loadLastDiaryDate();
-      write.loadHomeNotiLastSeen();
+
+      final write = _writeProvider;
+      write?.loadLastDiaryDate();
+      write?.loadHomeNotiLastSeen();
       _scheduleMidnightRefresh();
+
+      _tutorialReg?.register('home.writeButton', _tutorialWriteBtnKey);
+      _tutorialReg?.register('home.notificationButton', _tutorialNotiStackKey);
+      _tutorialReg?.register('home.aiChatButton', _tutorialAiChatBtnKey);
     });
   }
 
   @override
   void dispose() {
+    _tutorialReg?.unregister('home.writeButton');
+    _tutorialReg?.unregister('home.notificationButton');
+    _tutorialReg?.unregister('home.aiChatButton');
+
     WidgetsBinding.instance.removeObserver(this);
     _midnightTimer?.cancel();
     super.dispose();
@@ -68,8 +95,7 @@ class _HomeRootLayerState extends State<HomeRootLayer>
         state == AppLifecycleState.detached) {
       final t = _latestRealAlarmAt;
       if (t != null) {
-        // ignore: unawaited_futures
-        context.read<HomeToWrite>().setHomeNotiLastSeenAt(t);
+        _writeProvider?.setHomeNotiLastSeenAt(t);
       }
     }
   }
@@ -125,22 +151,6 @@ class _HomeRootLayerState extends State<HomeRootLayer>
           }
         });
       });
-
-      // if (!mounted) return;
-      // Navigator.of(context).push(
-      //   PageRouteBuilder(
-      //     opaque: false,
-      //     barrierColor: Colors.transparent,
-      //     pageBuilder: (_, __, ___) => DetailView(
-      //       item: letter,
-      //       mailController: mailController,
-      //     ),
-      //     transitionsBuilder: (_, anim, __, child) {
-      //       return FadeTransition(opacity: anim, child: child);
-      //     },
-      //     transitionDuration: const Duration(milliseconds: 220),
-      //   ),
-      // );
       return;
     }
 
@@ -215,11 +225,7 @@ class _HomeRootLayerState extends State<HomeRootLayer>
   @override
   Widget build(BuildContext context) {
     final writeProvider = context.watch<HomeToWrite>();
-    final diaryAiChatController = context.watch<DiaryAiChatController>();
     final alarmController = context.watch<AlarmController>();
-    final navigationToggleProvider = context.watch<NavigationToggleProvider>();
-    final userInfo = Provider.of<UserInfoValueModel>(context);
-    final mailController = context.watch<MailController>();
 
     final isHomeVisible = !writeProvider.write &&
         !writeProvider.otherDiaryOpen &&
@@ -263,29 +269,24 @@ class _HomeRootLayerState extends State<HomeRootLayer>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      StreamBuilder<QuerySnapshot>(
-                        stream: alarmController.alarmStreamQuery(),
-                        builder: (context, snapshot) {
-                          List<HomeNotiItem> items = [];
+                      HomeTopNotificationHeader(
+                        tutorialNotiStackKey: _tutorialNotiStackKey,
+                        mapAlarmsToHomeNotiItems: _mapAlarmsToHomeNotiItems,
+                        dailyReminderId: _dailyReminderId,
+                        dailyReminderCreatedAt: _dailyReminderCreatedAt,
+                        onLatestRealAlarmAtChanged: (latest) {
+                          _latestRealAlarmAt = latest;
+                        },
+                        onDropdownOpenChanged: (open) {
+                          if (!mounted) return;
+                          setState(() => _notiDropdownOpen = open);
 
-                          // DB 알림
-                          List<Alarm> dbAlarms = [];
-                          if (snapshot.hasData &&
-                              snapshot.data!.docs.isNotEmpty) {
-                            dbAlarms = snapshot.data!.docs
-                                .map((doc) => Alarm.fromFirestore(doc))
-                                .toList();
+                          if (!open) return;
 
-                            items = _mapAlarmsToHomeNotiItems(
-                              alarms: dbAlarms,
-                              alarmController: alarmController,
-                              mailController: mailController,
-                              writeProvider: writeProvider,
-                              navigationToggleProvider:
-                                  navigationToggleProvider,
-                            );
+                          final tc = context.read<TutorialController>();
+                          if (tc.isGrowthFlow && tc.growthPhase == GrowthTutorialPhase.focusHomeNotification) {
+                            tc.setGrowthPhase(GrowthTutorialPhase.focusLetterCloseX);
                           }
-
                           // DB 알림 기준 최신 시간 (NEW dot 계산용)
                           DateTime? latestRealAlarmAt;
                           for (final a in dbAlarms) {
@@ -404,27 +405,63 @@ class _HomeRootLayerState extends State<HomeRootLayer>
                           children: [
                             Expanded(
                               child: HomeActionCardButton(
+                                key: _tutorialAiChatBtnKey,
                                 icon: PhosphorIcons.chat(
                                     PhosphorIconsStyle.light),
                                 label: "ai_chat_title".tr(context),
                                 onTap: () async {
+                                  final tc = context.read<TutorialController>();
+                                  final diaryAiChatController =
+                                  context.read<DiaryAiChatController>();
+
+                                  if (tc.isRetrospectFlow &&
+                                      tc.retrospectPhase ==
+                                          RetrospectTutorialPhase.focusAiChatButton) {
+                                    tc.setRetrospectPhase(
+                                        RetrospectTutorialPhase.focusMessageBar);
+                                  }
+
                                   diaryAiChatController.toggleChatOpen(true);
-                                  DiaryAIChatSheet().show(context).then((_) {
-                                    if (context.mounted) {
-                                      diaryAiChatController
-                                          .toggleChatOpen(false);
-                                    }
+
+                                  final f = DiaryAIChatSheet().show(
+                                    context,
+                                    lockDismiss: tc.active,
+                                  );
+
+                                  f.whenComplete(() async {
+                                    final rootCtx = navigatorKey.currentContext;
+                                    if (rootCtx == null) return;
+
+                                    Provider.of<DiaryAiChatController>(
+                                      rootCtx,
+                                      listen: false,
+                                    ).toggleChatOpen(false);
+
+                                    final tc2 =
+                                    Provider.of<TutorialController>(rootCtx, listen: false);
+
+                                    if (!tc2.isRetrospectFlow) return;
+
+                                    // ✅ practice 완료 → 다음 step으로
+                                    await tc2.advanceAfterPractice();
+
+                                    tc2.scheduleExplainFlow(rootCtx);
                                   });
+
+                                  await f;
                                 },
                               ),
                             ),
                             const SizedBox(width: 16),
                             Expanded(
                               child: HomeActionCardButton(
+                                key: _tutorialWriteBtnKey,
                                 icon: PhosphorIcons.pencilSimple(
                                     PhosphorIconsStyle.light),
                                 label: "journal_writing".tr(context),
-                                onTap: () => writeProvider.toggleWrite(),
+                                onTap: () async {
+                                  writeProvider.toggleWrite();
+                                },
                               ),
                             ),
                           ],

@@ -31,8 +31,8 @@ class HomeNotiItem {
 class HomeNotificationStack extends StatefulWidget {
   final List<HomeNotiItem> items;
   final ValueChanged<bool>? onDropdownOpenChanged;
-
   final bool showNewDot;
+  final VoidCallback? onStackTap;
 
   static const double pillHeight = 44;
   static const double peek = 2;
@@ -42,6 +42,7 @@ class HomeNotificationStack extends StatefulWidget {
     required this.items,
     this.onDropdownOpenChanged,
     required this.showNewDot,
+    this.onStackTap,
   });
 
   @override
@@ -172,6 +173,7 @@ class _HomeNotificationStackState extends State<HomeNotificationStack>
                       onItemTap: (item) {
                         _closeDropdown();
                         item.onTap();
+                        widget.onStackTap?.call();
                       },
                       onClose: _closeDropdown,
                     ),
@@ -280,6 +282,7 @@ class _HomeNotificationStackState extends State<HomeNotificationStack>
                         onTap: () {
                           if (items.length == 1) {
                             top.onTap();
+                            widget.onStackTap?.call();
                           } else {
                             _openDropdown();
                           }

@@ -708,4 +708,46 @@ class AlarmController with ChangeNotifier {
 
     dev.log('✅ FCM Test Sequence Completed.');
   }
+
+  Future<void> createTutorialLetterAndAlarm({
+    required String title,
+    required String content,
+  }) async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    final now = DateTime.now();
+    final fs = FirebaseFirestore.instance;
+
+    final letterRef = fs
+        .collection('users')
+        .doc(uid)
+        .collection('letters')
+        .doc();
+
+    final alarmRef = fs
+        .collection('users')
+        .doc(uid)
+        .collection('notifications')
+        .doc();
+
+    final batch = fs.batch();
+
+    batch.set(letterRef, {
+      'letterId': letterRef.id,
+      'date': Timestamp.fromDate(now),
+      'title': title,
+      'content': content,
+    });
+
+    batch.set(alarmRef, {
+      'notificationId': alarmRef.id,
+      'type': 'letter',                 // AlarmType.letter 로 매핑되는 값
+      'title': title,
+      'dataId': letterRef.id,           // ✅ _handleHomeNotiTap에서 readLetterDataFromDB(alarm.dataId)
+      'date': Timestamp.fromDate(now),
+    });
+
+    await batch.commit();
+  }
 }
