@@ -278,13 +278,12 @@ class _HomeRootLayerState extends State<HomeRootLayer>
                         onDropdownOpenChanged: (open) {
                           if (!mounted) return;
                           setState(() => _notiDropdownOpen = open);
-                          if (open) {
-                            final tc = context.read<TutorialController>();
-                            if (tc.active &&
-                                tc.phase == TutorialPhase.practice &&
-                                tc.step == TutorialStep.growth) {
-                              tc.markPracticeDone(); // 또는 tc.advanceAfterPractice()로 바로 끝내도 됨(원하는 UX에 따라)
-                            }
+
+                          if (!open) return;
+
+                          final tc = context.read<TutorialController>();
+                          if (tc.isGrowthFlow && tc.growthPhase == GrowthTutorialPhase.focusHomeNotification) {
+                            tc.setGrowthPhase(GrowthTutorialPhase.focusLetterCloseX);
                           }
                         },
                       ),

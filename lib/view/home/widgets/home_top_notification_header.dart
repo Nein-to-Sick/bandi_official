@@ -10,7 +10,6 @@ import '../../../model/alarm.dart';
 import '../../alarm/controller/alarm_controller.dart';
 import '../../mail/controller/mail_controller.dart';
 import '../../tutorial/controller/tutorial_controller.dart';
-import '../../tutorial/tutorial_flow_page.dart';
 import '../../../controller/user_info_controller.dart';
 
 typedef MapAlarmsToItems = List<HomeNotiItem> Function({
@@ -56,7 +55,7 @@ class HomeTopNotificationHeader extends StatelessWidget {
 
     final wrapForTutorial = tutorial.active &&
         tutorial.phase == TutorialPhase.practice &&
-        tutorial.step == TutorialStep.connectionAndEmpathy;
+        (tutorial.step == TutorialStep.connectionAndEmpathy || tutorial.step == TutorialStep.growth);
 
     return StreamBuilder<QuerySnapshot>(
       stream: alarmController.alarmStreamQuery(),
@@ -150,13 +149,8 @@ class HomeTopNotificationHeader extends StatelessWidget {
                   onStackTap: wrapForTutorial
                       ? () async {
                     final t = context.read<TutorialController>();
-                    final isThisStep = t.active &&
-                        t.phase == TutorialPhase.practice &&
-                        t.step == TutorialStep.connectionAndEmpathy;
-
-                    if (!isThisStep) return;
                     if (t.connectionPhase == ConnectionTutorialPhase.focusHomeNotification) {
-                      await t.advanceConnectionPhase(); // => focusReactionSelector
+                      t.setGrowthPhase(GrowthTutorialPhase.focusLetterCloseX);
                     }
                   }
                       : null,
