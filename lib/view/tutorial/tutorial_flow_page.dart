@@ -320,6 +320,7 @@ class _TutorialStep extends StatelessWidget {
                   color: BandiColor.neutralColor100(context),
                   height: 1.2,
                   fontSize: 16),
+              textAlign: TextAlign.center,
             ),
         ],
       ),

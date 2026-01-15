@@ -43,8 +43,8 @@ class _AccountManagementState extends State<AccountManagement> {
     super.initState();
     _storageProvider =
         Provider.of<SecureStorageProvider>(context, listen: false);
-    _tutorial = Provider.of<TutorialController>(context, listen: false); // ✅ 미리 잡기
-
+    _tutorial =
+        Provider.of<TutorialController>(context, listen: false); // ✅ 미리 잡기
   }
 
   @override
@@ -106,8 +106,9 @@ class _AccountManagementState extends State<AccountManagement> {
                       await Future.delayed(const Duration(seconds: 1));
 
                       // 로컬 저장소 데이터 삭제
-                      mailController.deleteEveryMailDataFromLocal();
-                      myDiaryListController.deleteEveryMyDiaryDataFromLocal();
+                      await mailController.deleteEveryMailDataFromLocal();
+                      await myDiaryListController
+                          .deleteEveryMyDiaryDataFromLocal();
 
                       // 로컬 저장소 로드 변수 초기화
                       mailController.initializeLoadValue();
@@ -248,7 +249,10 @@ class _AccountManagementState extends State<AccountManagement> {
     if (user == null) return;
 
     final appleCredential = await SignInWithApple.getAppleIDCredential(
-      scopes: [AppleIDAuthorizationScopes.email, AppleIDAuthorizationScopes.fullName],
+      scopes: [
+        AppleIDAuthorizationScopes.email,
+        AppleIDAuthorizationScopes.fullName
+      ],
     );
 
     final oauthCredential = OAuthProvider("apple.com").credential(
@@ -266,6 +270,8 @@ class _AccountManagementState extends State<AccountManagement> {
     final userInfo = context.read<UserInfoValueModel>();
     final tutorial = context.read<TutorialController>();
     final mail = context.read<MailController>();
+    final userView = context.read<UserViewController>();
+    final myDiary = context.read<MyDiaryListController>();
 
     nav.selectIndex(100); // 로딩
 
@@ -275,10 +281,20 @@ class _AccountManagementState extends State<AccountManagement> {
 
       final providerId = user.providerData.first.providerId;
 
+      // 로컬 저장소 데이터 삭제
+      await mail.deleteEveryMailDataFromLocal();
+      await myDiary.deleteEveryMyDiaryDataFromLocal();
+
+      // 로컬 저장소 로드 변수 초기화
+      mail.initializeLoadValue();
+      myDiary.initializeLoadValue();
+
+      // 설정 화면 위치 이동
+      userView.updateSettingValue(0);
+
       // 1) (선택) Firestore 데이터 삭제는 "Auth 삭제 전에" 해도 되고, 후에 해도 됨
       //    보통은 uid 필요하니 Auth 삭제 전에 처리
       await deleteUserData(user.uid);
-      await mail.deleteEveryMailDataFromLocal();
 
       // 2) 재인증 + Auth 계정 삭제
       if (providerId == 'google.com') {
@@ -307,14 +323,13 @@ class _AccountManagementState extends State<AccountManagement> {
       await storage.clearLoginInfo();
       userInfo.clearUserInfo();
       await tutorial.resetAll();
+      userView.updateSettingValue(0);
       nav.selectIndex(-1);
 
       // 필요하면 토스트/다이얼로그
       // log('delete flow error: $e');
     }
   }
-
-
 
   Widget _buildSettingOption({
     context,

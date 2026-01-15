@@ -581,7 +581,7 @@ class MyDiaryListController with ChangeNotifier {
   }
 
   // 로컬 저장소에 있는 '나의 일기' 데이터를 모두 삭제하는 함수
-  void deleteEveryMyDiaryDataFromLocal() async {
+  Future<void> deleteEveryMyDiaryDataFromLocal() async {
     // 1. 유저 ID 확인
     if (userId != null && userId!.isNotEmpty) {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
