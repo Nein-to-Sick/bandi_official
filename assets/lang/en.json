@@ -327,5 +327,11 @@
   "v2_onboarding_step_description_4": "Trace your journey\nto a more resilient you.",
   "v2_onboarding_step_comment_4": "Read a personal letter written just for you by Bandi.",
   "v2_onboarding_step_title_5": "Your story begins here.",
-  "v2_onboarding_step_description_5": "Your emotions, understood.\nYour comfort, delivered."
+  "v2_onboarding_step_description_5": "Your emotions, understood.\nYour comfort, delivered.",
+  "v2_tutorial_speech_bubble_write_diary_title": "Share to find warm empathy,\nand be a light for others.",
+  "v2_tutorial_speech_bubble_write_diary_subtitle": "Send a message of support you wish to give.",
+  "v2_tutorial_speech_bubble_other_diary_title": "Your message is sent anonymously and safely.",
+  "v2_tutorial_speech_bubble_other_diary_subtitle": "메시지는 익명으로 안전하게 전달됩니다.",
+  "v2_tutorial_speech_bubble_inbox_title": "Bandi's letters and the diaries\nyou resonated with are kept here.",
+  "v2_tutorial_speech_bubble_inbox_subtitle": "Revisit them anytime you need a little warmth."
 }

@@ -88,7 +88,6 @@ class _NavigationViewState extends State<NavigationView> {
       if (needAgreement || needNickname || needTutorial) {
         nav.selectIndex(-3);
       }
-
     }
 
     if (!_loginInitDone) {
@@ -193,8 +192,8 @@ class _NavigationViewState extends State<NavigationView> {
     final guideWidget = showTrayBubble
         ? TutorialSpeechBubble(
             targetRect: rawRect!,
-            title: '반디가 보낸 편지와 공감한 일기는 \n여기에 보관됩니다.',
-            subtitle: '따뜻한 위로가 필요할 때 언제든 다시 \n꺼내보세요.',
+            title: 'v2_tutorial_speech_bubble_inbox_title'.tr(context),
+            subtitle: 'v2_tutorial_speech_bubble_inbox_subtitle'.tr(context),
             gap: 23,
           )
         : const SizedBox.shrink();
@@ -326,7 +325,8 @@ class _NavigationViewState extends State<NavigationView> {
                                   final onlyTray = t.active &&
                                       t.phase == TutorialPhase.practice &&
                                       t.step == TutorialStep.growth &&
-                                      t.growthPhase == GrowthTutorialPhase.focusTrayNav;
+                                      t.growthPhase ==
+                                          GrowthTutorialPhase.focusTrayNav;
 
                                   if (onlyTray && i != 2) return;
 

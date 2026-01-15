@@ -149,7 +149,7 @@ class _FirstStepState extends State<FirstStep> with WidgetsBindingObserver {
 
     switch (t.firstWritePhase) {
       case FirstWriteTutorialPhase.focusText:
-      // ✅ 여기서 타이머 cancel 하지 말 것!
+        // ✅ 여기서 타이머 cancel 하지 말 것!
         if (!mounted) return;
         setState(() {
           _hideTextFocusRing = _didUserDismissTextRing;
@@ -158,7 +158,7 @@ class _FirstStepState extends State<FirstStep> with WidgetsBindingObserver {
         return;
 
       case FirstWriteTutorialPhase.togglePublic:
-      // ✅ focusText를 벗어났을 때만 타이머 정리
+        // ✅ focusText를 벗어났을 때만 타이머 정리
         _toTogglePhaseTimer?.cancel();
         _toTogglePhaseTimer = null;
 
@@ -281,7 +281,6 @@ class _FirstStepState extends State<FirstStep> with WidgetsBindingObserver {
     });
   }
 
-
   @override
   Widget build(BuildContext context) {
     final writeProvider = context.watch<HomeToWrite>();
@@ -307,8 +306,9 @@ class _FirstStepState extends State<FirstStep> with WidgetsBindingObserver {
             rawRect != null)
         ? TutorialSpeechBubble(
             targetRect: rawRect,
-            title: '공유를 통해 따뜻한 공감을 받고, \n또 누군가에게 힘이 되어주세요. ',
-            subtitle: '기록마다 개별 설정 가능합니다.',
+            title: 'v2_tutorial_speech_bubble_write_diary_title'.tr(context),
+            subtitle:
+                'v2_tutorial_speech_bubble_write_diary_subtitle'.tr(context),
             gap: 30,
           )
         : const SizedBox.shrink();
