@@ -38,6 +38,7 @@ enum RetrospectTutorialPhase {
 }
 
 enum GrowthTutorialPhase {
+  focusHomeNotification,
   focusLetterCloseX,
   focusTrayNav,
   done,
@@ -85,7 +86,7 @@ class TutorialController extends ChangeNotifier {
   RetrospectTutorialPhase _retrospectPhase =
       RetrospectTutorialPhase.focusAiChatButton;
   GrowthTutorialPhase _growthPhase =
-      GrowthTutorialPhase.focusLetterCloseX;
+      GrowthTutorialPhase.focusHomeNotification;
 
   Completer<void>? _practiceCompleter;
 
@@ -189,6 +190,7 @@ class TutorialController extends ChangeNotifier {
 
     if (_step == TutorialStep.growth) {
     return switch (_growthPhase) {
+    GrowthTutorialPhase.focusHomeNotification => 'home.notificationButton',
     GrowthTutorialPhase.focusLetterCloseX => 'mail.detail.closeX',
     GrowthTutorialPhase.focusTrayNav => 'nav.tray',
     GrowthTutorialPhase.done => null,
@@ -490,7 +492,7 @@ class TutorialController extends ChangeNotifier {
     _connectionPhase = ConnectionTutorialPhase.focusHomeNotification;
     _retrospectPhase = RetrospectTutorialPhase.focusAiChatButton;
     _retrospectAssistantPicked = false;
-    _growthPhase = GrowthTutorialPhase.focusLetterCloseX;
+    _growthPhase = GrowthTutorialPhase.focusHomeNotification;
 
     // step별로 더 명확하게 하고 싶으면 아래처럼 분기해도 됨.
     if (step == TutorialStep.emotionalWriting) {
@@ -504,7 +506,7 @@ class TutorialController extends ChangeNotifier {
       _retrospectAssistantPicked = false;
     }
     if (step == TutorialStep.growth) {
-      _growthPhase = GrowthTutorialPhase.focusLetterCloseX;
+      _growthPhase = GrowthTutorialPhase.focusHomeNotification;
     }
   }
 

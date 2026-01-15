@@ -26,9 +26,6 @@ class TutorialFlowPage extends StatefulWidget {
 
   static Future<TutorialFlowResult?> show(BuildContext context,
       {int startIndex = 0}) {
-    final navState = Navigator.of(context);
-    log('[GATE] canPop=${navState.canPop()} routes? (cannot list without observer)');
-
     return Navigator.of(context).push<TutorialFlowResult>(
       PageRouteBuilder(
         opaque: false,
