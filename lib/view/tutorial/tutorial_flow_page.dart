@@ -283,11 +283,14 @@ class _TutorialStep extends StatelessWidget {
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(
-            height: 53,
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (image != null) image!,
+              ],
+            ),
           ),
-          if (image != null) image!,
-          const Spacer(),
           if (comment != null)
             Text(
               comment!,

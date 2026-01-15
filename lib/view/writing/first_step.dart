@@ -23,7 +23,7 @@ class FirstStep extends StatefulWidget {
   State<FirstStep> createState() => _FirstStepState();
 }
 
-class _FirstStepState extends State<FirstStep> {
+class _FirstStepState extends State<FirstStep> with WidgetsBindingObserver {
   late final TextEditingController _textEditingController;
   late final FocusNode _focusNode;
 
@@ -38,16 +38,18 @@ class _FirstStepState extends State<FirstStep> {
   bool _hideTextFocusRing = false; // focusText 링을 한번 누르면 즉시 숨김
   bool _toggleUnlocked = false; // toggle 단계에서만 true
   bool _didRegisterTargets = false;
+  bool _didUserDismissTextRing = false;
 
   TutorialTargetRegistry? _tutorialReg;
+
+  double _lastBottomInset = 0;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _textEditingController = TextEditingController();
     _focusNode = FocusNode();
-
-    // writeProvider content 동기화는 onChanged에서 처리
   }
 
   @override
@@ -87,6 +89,8 @@ class _FirstStepState extends State<FirstStep> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+
     _toTogglePhaseTimer?.cancel();
     _textEditingController.dispose();
     _focusNode.dispose();
@@ -102,6 +106,28 @@ class _FirstStepState extends State<FirstStep> {
     super.dispose();
   }
 
+  @override
+  void didChangeMetrics() {
+    // 키보드 열림/닫힘 감지
+    final bottomInset = WidgetsBinding
+            .instance.platformDispatcher.views.first.viewInsets.bottom /
+        WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio;
+
+    if (bottomInset == _lastBottomInset) return;
+    _lastBottomInset = bottomInset;
+
+    // ✅ 키보드 변화가 생기면 rect 재측정
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<TutorialTargetRegistry>().refreshAll();
+      // 한 번 더(안정)
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        context.read<TutorialTargetRegistry>().refreshAll();
+      });
+    });
+  }
+
   // ==========================
   // ✅ Tutorial <-> Local UI Sync
   // ==========================
@@ -109,8 +135,10 @@ class _FirstStepState extends State<FirstStep> {
     final t = context.read<TutorialController>();
 
     if (!t.isFirstWriteFlow) {
-      // 튜토리얼 아니면 로컬 상태 초기화
+      // 튜토리얼 아니면 타이머 정리
       _toTogglePhaseTimer?.cancel();
+      _toTogglePhaseTimer = null;
+
       if (!mounted) return;
       setState(() {
         _hideTextFocusRing = false;
@@ -121,29 +149,34 @@ class _FirstStepState extends State<FirstStep> {
 
     switch (t.firstWritePhase) {
       case FirstWriteTutorialPhase.focusText:
-        _toTogglePhaseTimer?.cancel();
+      // ✅ 여기서 타이머 cancel 하지 말 것!
         if (!mounted) return;
         setState(() {
-          _hideTextFocusRing = false;
+          _hideTextFocusRing = _didUserDismissTextRing;
           _toggleUnlocked = false;
         });
         return;
 
       case FirstWriteTutorialPhase.togglePublic:
+      // ✅ focusText를 벗어났을 때만 타이머 정리
         _toTogglePhaseTimer?.cancel();
+        _toTogglePhaseTimer = null;
+
         if (!mounted) return;
         setState(() {
-          _hideTextFocusRing = true; // text 링은 숨김 상태
-          _toggleUnlocked = true; // 토글만 허용
+          _hideTextFocusRing = true;
+          _toggleUnlocked = true;
         });
         return;
 
       case FirstWriteTutorialPhase.pressDone:
         _toTogglePhaseTimer?.cancel();
+        _toTogglePhaseTimer = null;
+
         if (!mounted) return;
         setState(() {
           _hideTextFocusRing = true;
-          _toggleUnlocked = false; // 토글 단계 종료
+          _toggleUnlocked = false;
         });
         return;
     }
@@ -237,22 +270,17 @@ class _FirstStepState extends State<FirstStep> {
   void _scheduleToTogglePhase() {
     _toTogglePhaseTimer?.cancel();
     _toTogglePhaseTimer = Timer(const Duration(seconds: 10), () {
-      if (!mounted) return;
-
+      if (!mounted) {
+        return;
+      }
       final t = context.read<TutorialController>();
+
       if (!t.isFirstWriteFlow) return;
-
-      // ✅ focusText 중에만 이동
       if (t.firstWritePhase != FirstWriteTutorialPhase.focusText) return;
-
       t.setFirstWritePhase(FirstWriteTutorialPhase.togglePublic);
-
-      // toggle 단계 unlock
-      setState(() {
-        _toggleUnlocked = true;
-      });
     });
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -281,6 +309,7 @@ class _FirstStepState extends State<FirstStep> {
             targetRect: rawRect,
             title: '공유를 통해 따뜻한 공감을 받고, \n또 누군가에게 힘이 되어주세요. ',
             subtitle: '기록마다 개별 설정 가능합니다.',
+            gap: 30,
           )
         : const SizedBox.shrink();
 
@@ -299,6 +328,22 @@ class _FirstStepState extends State<FirstStep> {
             width: 28,
             height: 28,
           );
+
+    final viewInsetsBottom = MediaQuery.of(context).viewInsets.bottom;
+    final screenH = MediaQuery.of(context).size.height;
+
+// 키보드 top Y (전체 화면 기준)
+    final keyboardTopY = screenH - viewInsetsBottom;
+
+// 링 rect가 키보드 아래로 내려가면 위로 끌어올림
+    Rect? adjustedPointRect = pointRect;
+    if (pointRect != null && viewInsetsBottom > 0) {
+      final overflow = pointRect.bottom - keyboardTopY;
+      if (overflow > 0) {
+        adjustedPointRect =
+            pointRect.shift(Offset(0, -overflow - 12)); // 12px 여유
+      }
+    }
 
     // ✅ overlay/락: targetId/rect가 유효할 때만!
     final lockAllExceptTarget =
@@ -357,15 +402,13 @@ class _FirstStepState extends State<FirstStep> {
                           onTap: () {
                             if (!allowTextTap) return;
 
-                            // 1) 포커스 주고 키보드 올림
                             _focusNode.requestFocus();
 
-                            // 2) 링 즉시 사라지게 + overlay off
                             setState(() {
                               _hideTextFocusRing = true;
+                              _didUserDismissTextRing = true;
                             });
 
-                            // 3) 10초 뒤 toggle 단계로
                             _scheduleToTogglePhase();
                           },
                           onChanged: (_) {
@@ -453,7 +496,7 @@ class _FirstStepState extends State<FirstStep> {
         // =======================
         if (lockAllExceptTarget)
           TutorialOverlay(
-            targetRect: pointRect!,
+            targetRect: adjustedPointRect!,
             radius: 14,
             guide: guideWidget,
           ),
