@@ -208,6 +208,7 @@ class _FirstStepState extends State<FirstStep> {
     );
 
     try {
+      if (t.active) writeProvider.setIsPublic(false);
       await writeProvider.aiAndSaveDiary(context);
     } finally {
       if (!mounted) return;

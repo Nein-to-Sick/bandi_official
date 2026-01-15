@@ -3,6 +3,8 @@ import 'dart:developer';
 
 import 'package:bandi_official/components/no_reuse/navigation_bar.dart';
 import 'package:bandi_official/controller/navigation_toggle_provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -44,7 +46,6 @@ class TutorialFlowPage extends StatefulWidget {
 
 class _TutorialFlowPageState extends State<TutorialFlowPage> {
   late int _index;
-  bool _handled = false;
 
   static const int _total = 5;
   late final PageController _controller;
@@ -73,9 +74,19 @@ class _TutorialFlowPageState extends State<TutorialFlowPage> {
     }
   }
 
-  void _next() {
+  Future<void> _next() async {
     final step = _stepForIndex(_index);
     final nextIndex = _index + 1;
+
+    if (step == TutorialStep.connectionAndEmpathy) {
+      try {
+        await _pushOtherDiaryNotificationForTutorial();
+      } catch (e, st) {
+        log('[Tutorial] failed to insert notification: $e', stackTrace: st);
+        // 실패해도 튜토리얼 흐름은 계속 진행
+      }
+    }
+
     if (_index == _total - 1) {
       context.read<NavigationToggleProvider>().selectIndex(0);
       Navigator.pop(context);
@@ -85,6 +96,31 @@ class _TutorialFlowPageState extends State<TutorialFlowPage> {
       );
     }
   }
+
+
+  Future<void> _pushOtherDiaryNotificationForTutorial() async {
+    String tempDiary = 'KzHjbSE3LCQVnxxk9jGK9PJexnU251';
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null || uid.isEmpty) {
+      log('[Tutorial] uid is null -> skip notification insert');
+      return;
+    }
+
+    final userRef = FirebaseFirestore.instance.collection('users').doc(uid);
+    final notiRef = userRef.collection('notifications').doc(); // auto id
+    final userSnap = await userRef.get();
+    final userData = userSnap.data();
+
+    final nickname = userData?['nickname'] ?? '누군가';
+    await notiRef.set({
+      'dataId': tempDiary,
+      'date': Timestamp.now(),
+      'notificationId': notiRef.id,
+      'title': '$nickname님과 비슷한 친구가 있어요.',
+      'type': 'otherDiary',
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {
