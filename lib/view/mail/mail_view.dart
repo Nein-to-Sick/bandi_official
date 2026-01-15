@@ -4,7 +4,7 @@ import 'package:bandi_official/components/appbar/new_custom_appbar.dart';
 import 'package:bandi_official/components/bottom_sheet/calendar_bottom_sheet.dart';
 import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
 import 'package:bandi_official/view/mail/controller/mail_controller.dart';
-import 'package:bandi_official/string_extention.dart';
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/mail/letters_view.dart';
 import 'package:bandi_official/view/mail/liked_diary_view.dart';
@@ -186,7 +186,9 @@ Widget _buildCustomToggle(BuildContext context, MailController controller) {
                 2,
                 (index) {
                   bool isSelected = controller.tabController.index == index;
-                  String label = index == 0 ? '편지' : '나눔 일기';
+                  String label = index == 0
+                      ? 'inbox_letters'.tr(context)
+                      : 'inbox_shared_journals'.tr(context);
 
                   return Expanded(
                     child: GestureDetector(

@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import '../local.dart';
+import 'local.dart';
 
 extension StringExtension on String {
   String tr(BuildContext context) {

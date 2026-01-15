@@ -83,7 +83,7 @@
 		<key>NSLocalNetworkUsageDescription</key>
 		<string>디버깅 및 서비스 동기화를 위해 로컬 네트워크 권한이 필요합니다.</string>
 		<key>NSMicrophoneUsageDescription</key>
-        <string>이 앱은 오디오 녹음 기능을 사용하지 않지만, 일부 라이브러리에서 권한을 요구할 수 있습니다.</string>
+		<string>이 앱은 오디오 녹음 기능을 사용하지 않지만, 일부 라이브러리에서 권한을 요구할 수 있습니다.</string>
 		<!-- Bonjour 서비스 허용 (디버그 서비스 연결용) -->
 		<key>NSBonjourServices</key>
 		<array>

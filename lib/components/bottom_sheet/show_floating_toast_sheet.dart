@@ -1,14 +1,15 @@
 import 'dart:ui';
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:flutter/material.dart';
 import '../../theme/custom_theme_data.dart';
 
 Future<void> showFloatingToastSheet(
-    BuildContext context, {
-      required String message,
-      String buttonText = '완료',
-      bool barrierDismissible = true,
-      VoidCallback? onClosed,
-    }) async {
+  BuildContext context, {
+  required String message,
+  String buttonText = "",
+  bool barrierDismissible = true,
+  VoidCallback? onClosed,
+}) async {
   await showGeneralDialog<void>(
     context: context,
     barrierDismissible: barrierDismissible,
@@ -20,6 +21,10 @@ Future<void> showFloatingToastSheet(
       final fade = CurvedAnimation(parent: anim, curve: Curves.easeOut);
       final scale = CurvedAnimation(parent: anim, curve: Curves.easeOutCubic);
       final slide = CurvedAnimation(parent: anim, curve: Curves.easeOutCubic);
+
+      if (buttonText.isEmpty) {
+        buttonText = "bottom_floating_toast_sheet_button".tr(context);
+      }
 
       return Material(
         type: MaterialType.transparency,
@@ -75,7 +80,6 @@ Future<void> showFloatingToastSheet(
                               ),
                             ),
                             const SizedBox(height: 20),
-
                             _SinglePrimarySheetButton(
                               text: buttonText,
                               background: BandiColor.accentColorYellow(ctx),

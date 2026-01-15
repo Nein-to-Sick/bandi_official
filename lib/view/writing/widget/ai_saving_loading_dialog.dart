@@ -1,4 +1,5 @@
 import 'dart:ui' show lerpDouble;
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:flutter/material.dart';
 import '../../../theme/custom_theme_data.dart';
 
@@ -13,13 +14,6 @@ class AiSavingLoadingDialogState extends State<AiSavingLoadingDialog>
     with TickerProviderStateMixin {
   late final AnimationController _timeline; // 0..1 (8초)
   late final AnimationController _pulse; // 0..1 (숨쉬기)
-
-  final _messages = const [
-    "당신의 이야기를 담는 중입니다.",
-    "반디가 최적의 제목을 찾고 있어요.",
-    "반디가 감정을 분석하고 있어요.",
-    "이제 거의 다 왔어요!",
-  ];
 
   @override
   void initState() {
@@ -63,6 +57,13 @@ class AiSavingLoadingDialogState extends State<AiSavingLoadingDialog>
 
   @override
   Widget build(BuildContext context) {
+    final messages = [
+      "v2_loading_comment_1".tr(context),
+      "v2_loading_comment_2".tr(context),
+      "v2_loading_comment_3".tr(context),
+      "v2_loading_comment_4".tr(context),
+    ];
+
     return Material(
       color: Colors.transparent,
       child: SafeArea(
@@ -101,7 +102,7 @@ class AiSavingLoadingDialogState extends State<AiSavingLoadingDialog>
               final pulse = 0.985 + 0.03 * _pulse.value;
               final pulsedGlowRadius = glowRadius * pulse;
 
-              final message = _messages[step];
+              final message = messages[step];
 
               return Column(
                 mainAxisAlignment: MainAxisAlignment.center,

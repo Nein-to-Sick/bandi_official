@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:bandi_official/string_extention.dart';
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
 import 'package:bandi_official/view/diary_ai_chat/controller/diary_ai_chat_controller.dart';
@@ -302,7 +302,8 @@ class _HomeRootLayerState extends State<HomeRootLayer>
                             items.add(
                               HomeNotiItem(
                                 id: _dailyReminderId(),
-                                text: "오늘 하루는 어떠셨나요?",
+                                text:
+                                    "v2_home_notification_state_1".tr(context),
                                 type: HomeNotiType.dailyReminder,
                                 createdAt: _dailyReminderCreatedAt(),
                                 onTap: () => writeProvider.toggleWrite(),
@@ -335,7 +336,9 @@ class _HomeRootLayerState extends State<HomeRootLayer>
                                               CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              "${userInfo.nickname}님,",
+                                              userInfo.nickname +
+                                                  "v2_home_notification_state_2"
+                                                      .tr(context),
                                               style:
                                                   BandiFont.titleSmall(context)!
                                                       .copyWith(
@@ -345,7 +348,8 @@ class _HomeRootLayerState extends State<HomeRootLayer>
                                               ),
                                             ),
                                             Text(
-                                              "오늘도 수고 많았어요.",
+                                              "v2_home_notification_state_3"
+                                                  .tr(context),
                                               style: BandiFont.headlineMedium(
                                                       context)!
                                                   .copyWith(
@@ -419,7 +423,7 @@ class _HomeRootLayerState extends State<HomeRootLayer>
                               child: HomeActionCardButton(
                                 icon: PhosphorIcons.pencilSimple(
                                     PhosphorIconsStyle.light),
-                                label: "일기 쓰기",
+                                label: "journal_writing".tr(context),
                                 onTap: () => writeProvider.toggleWrite(),
                               ),
                             ),

@@ -39,7 +39,7 @@ class LoginController extends ChangeNotifier {
   final List<LoginUiEvent> _pending = [];
 
   late final StreamController<LoginUiEvent> _events =
-  StreamController<LoginUiEvent>.broadcast(
+      StreamController<LoginUiEvent>.broadcast(
     onListen: () {
       // ✅ 리스너가 붙는 순간, 밀린 이벤트 모두 재전달
       for (final e in List<LoginUiEvent>.from(_pending)) {
@@ -98,9 +98,12 @@ class LoginController extends ChangeNotifier {
     try {
       User? user;
 
-      if (storage.loginMethod == 'google' && storage.googleAccessToken != null) {
-        user = await authService.signInWithGoogleTokens(storage.googleAccessToken!);
-      } else if (storage.loginMethod == 'apple' && storage.appleIdentityToken != null) {
+      if (storage.loginMethod == 'google' &&
+          storage.googleAccessToken != null) {
+        user = await authService
+            .signInWithGoogleTokens(storage.googleAccessToken!);
+      } else if (storage.loginMethod == 'apple' &&
+          storage.appleIdentityToken != null) {
         user = await authService.signInWithAppleTokens();
       } else {
         nav.selectIndex(-1);
@@ -165,7 +168,6 @@ class LoginController extends ChangeNotifier {
 
     nav.selectIndex(0);
   }
-
 
   /// 약관 동의 완료 시 UI에서 호출
   Future<void> onAgreementAccepted() async {

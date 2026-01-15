@@ -1,4 +1,4 @@
-import 'package:bandi_official/string_extention.dart';
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/mail/controller/mail_controller.dart';
 import 'package:flutter/material.dart';
@@ -48,7 +48,7 @@ class _LikedDiaryFilterChipsState extends State<LikedDiaryFilterChips> {
                         ),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
+                            horizontal: 10,
                             vertical: 6,
                           ),
                           child: Center(

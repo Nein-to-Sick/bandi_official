@@ -1,5 +1,7 @@
+import 'dart:developer';
+
 import 'package:bandi_official/model/keyword.dart';
-import 'package:bandi_official/string_extention.dart';
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:flutter/material.dart';
 
 class EmotionProvider with ChangeNotifier {
@@ -105,8 +107,8 @@ class EmotionProvider with ChangeNotifier {
 
   /// ✅ 선택 토글 (수정됨)
   void toggleEmotion(String keyword, BuildContext context) {
-    final String noneKeyword = 'emotion_keyword_없음'.tr(context);
-    final String unknownKeyword = 'emotion_keyword_모름'.tr(context);
+    const String noneKeyword = '없음';
+    const String unknownKeyword = '모름';
 
     if (_selectedEmotions.contains(keyword)) {
       _selectedEmotions.remove(keyword);
@@ -131,7 +133,7 @@ class EmotionProvider with ChangeNotifier {
   /// ✅ 새로고침 버튼: 전체 초기화
   void resetSelected(BuildContext context) {
     _selectedEmotions.clear();
-    _selectedEmotions.add('emotion_keyword_없음'.tr(context));
+    _selectedEmotions.add('없음');
     notifyListeners();
   }
 

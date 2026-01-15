@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:flutter/material.dart';
 import '../../theme/custom_theme_data.dart';
 
@@ -10,8 +11,8 @@ Future<bool?> showFloatingConfirmSheet(
   BuildContext context, {
   required String title,
   required String description,
-  String cancelText = '취소',
-  String confirmText = '확인',
+  String cancelText = '',
+  String confirmText = '',
   bool barrierDismissible = true,
   bool returnFalseOnBarrierTap = true,
 }) {
@@ -26,6 +27,14 @@ Future<bool?> showFloatingConfirmSheet(
       final fade = CurvedAnimation(parent: anim, curve: Curves.easeOut);
       final scale = CurvedAnimation(parent: anim, curve: Curves.easeOutCubic);
       final slide = CurvedAnimation(parent: anim, curve: Curves.easeOutCubic);
+
+      if (cancelText.isEmpty) {
+        cancelText = 'confirm'.tr(context);
+      }
+
+      if (confirmText.isEmpty) {
+        confirmText = 'cancel'.tr(context);
+      }
 
       return Material(
         type: MaterialType.transparency,
