@@ -223,7 +223,6 @@ class _HomeRootLayerState extends State<HomeRootLayer>
   @override
   Widget build(BuildContext context) {
     final writeProvider = context.watch<HomeToWrite>();
-    final diaryAiChatController = context.watch<DiaryAiChatController>();
     final alarmController = context.watch<AlarmController>();
 
     final isHomeVisible = !writeProvider.write &&
@@ -315,7 +314,7 @@ class _HomeRootLayerState extends State<HomeRootLayer>
 
                                   final f = DiaryAIChatSheet().show(
                                     context,
-                                    lockDismiss: false,
+                                    lockDismiss: tc.active,
                                   );
 
                                   f.whenComplete(() async {
