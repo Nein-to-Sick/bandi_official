@@ -1,7 +1,6 @@
 import 'dart:developer';
 import 'dart:ui';
 
-import 'package:bandi_official/controller/navigation_toggle_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -10,8 +9,6 @@ import '../../../components/button/primary_button.dart';
 import '../../../components/field/field.dart';
 import '../../../controller/user_info_controller.dart';
 import '../../../theme/custom_theme_data.dart';
-import '../../../string_extention.dart';
-import '../controller/login_controller.dart';
 import '../../../localization/string_extention.dart';
 import '../data/user_profile_repository.dart';
 
@@ -127,8 +124,6 @@ class _NicknameStatefulState extends State<_NicknameStateful> {
 
                       Navigator.pop(context, nick);
                     },
-
-
                   ),
                 ],
               ),

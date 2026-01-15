@@ -83,7 +83,7 @@ class _MyDiaryListViewState extends State<MyDiaryListView>
           .removeListener(_scrollListener);
       myDiaryListController.toggleIsMyDiaryListenerAdded(false);
     });
-    myDiaryListController.myDiaryScrollController.dispose();
+    // myDiaryListController.myDiaryScrollController.dispose();
     super.dispose();
   }
 

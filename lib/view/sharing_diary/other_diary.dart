@@ -407,8 +407,10 @@ class _OtherDiaryState extends State<OtherDiary> {
                             children: [
                               Expanded(
                                 child: Text(
-                                  _isTranslating ? "v2_other_diary_translation_loading"
-                                      .tr(context) : translatedTitle,
+                                  _isTranslating
+                                      ? "v2_other_diary_translation_loading"
+                                          .tr(context)
+                                      : translatedTitle,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: BandiFont.headlineMedium(context)
@@ -467,27 +469,30 @@ class _OtherDiaryState extends State<OtherDiary> {
                           height: 0,
                         ),
 
-                    // ===== Content =====
-                    const SizedBox(height: 16),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: SingleChildScrollView(
-                                child: SizedBox(
-                                  width: double.infinity,
-                                  child: Text(
-                                    _isTranslating
-                                        ? "v2_other_diary_translation_loading"
-                                            .tr(context)
-                                        : translatedContent,
-                                    style:
-                                        BandiFont.bodyLarge(context)?.copyWith(
-                                      color:
-                                          BandiColor.foundationColor90(context),
+                        // ===== Content =====
+                        const SizedBox(height: 16),
+                        Expanded(
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 24.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: SingleChildScrollView(
+                                    child: SizedBox(
+                                      width: double.infinity,
+                                      child: Text(
+                                        _isTranslating
+                                            ? "v2_other_diary_translation_loading"
+                                                .tr(context)
+                                            : translatedContent,
+                                        style: BandiFont.bodyLarge(context)
+                                            ?.copyWith(
+                                          color: BandiColor.foundationColor90(
+                                              context),
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -622,8 +627,8 @@ class _OtherDiaryState extends State<OtherDiary> {
 
                   final tc = context.read<TutorialController>();
 
-                  final shouldAdvance =
-                      tc.isConnectionFlow && tc.connectionPhase == ConnectionTutorialPhase.done;
+                  final shouldAdvance = tc.isConnectionFlow &&
+                      tc.connectionPhase == ConnectionTutorialPhase.done;
 
                   widget.writeProvider.offDiaryOpen();
 
@@ -635,9 +640,9 @@ class _OtherDiaryState extends State<OtherDiary> {
                   final nav = rootCtx.read<NavigationToggleProvider>();
                   final tcRoot = rootCtx.read<TutorialController>();
                   await tcRoot.advanceAfterPractice();
-                  tcRoot.scheduleExplainFlow(rootCtx, delay: const Duration(seconds: 3));
+                  tcRoot.scheduleExplainFlow(rootCtx,
+                      delay: const Duration(seconds: 3));
                 },
-
               );
             },
             child: Container(

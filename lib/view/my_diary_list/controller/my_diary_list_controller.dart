@@ -31,7 +31,7 @@ class MyDiaryListController with ChangeNotifier {
   ScrollController get myDiaryScrollController => _myDiaryScrollController;
   double myDiaryScrollPosition = 0.0;
 
-  MyDiaryListController() {
+  initScrollControllers() {
     // Add listener to save scroll position for MyDiary
     _myDiaryScrollController.addListener(() {
       if (!_myDiaryScrollController.hasClients) return;
@@ -46,13 +46,6 @@ class MyDiaryListController with ChangeNotifier {
       dev.log('_myDiaryScrollController has no clients');
     }
   }
-
-  @override
-  void dispose() {
-    _myDiaryScrollController.dispose();
-    super.dispose();
-  }
-
 
   // while loading
   bool isLoading = false;
