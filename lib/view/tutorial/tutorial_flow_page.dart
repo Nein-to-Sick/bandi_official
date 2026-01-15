@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 
 import '../../../theme/custom_theme_data.dart';
 import '../../../components/button/primary_button.dart';
+import '../alarm/controller/alarm_controller.dart';
 import 'controller/tutorial_controller.dart';
 
 class TutorialFlowResult {
@@ -23,7 +24,8 @@ class TutorialFlowPage extends StatefulWidget {
 
   const TutorialFlowPage({super.key, this.startIndex = 0});
 
-  static Future<TutorialFlowResult?> show(BuildContext context, {int startIndex = 0}) {
+  static Future<TutorialFlowResult?> show(BuildContext context,
+      {int startIndex = 0}) {
     final navState = Navigator.of(context);
     log('[GATE] canPop=${navState.canPop()} routes? (cannot list without observer)');
 
@@ -65,12 +67,18 @@ class _TutorialFlowPageState extends State<TutorialFlowPage> {
 
   TutorialStep _stepForIndex(int i) {
     switch (i) {
-      case 0: return TutorialStep.emotionalWriting;
-      case 1: return TutorialStep.connectionAndEmpathy;
-      case 2: return TutorialStep.retrospect;
-      case 3: return TutorialStep.growth;
-      case 4: return TutorialStep.done;
-      default: return TutorialStep.emotionalWriting;
+      case 0:
+        return TutorialStep.emotionalWriting;
+      case 1:
+        return TutorialStep.connectionAndEmpathy;
+      case 2:
+        return TutorialStep.retrospect;
+      case 3:
+        return TutorialStep.growth;
+      case 4:
+        return TutorialStep.done;
+      default:
+        return TutorialStep.emotionalWriting;
     }
   }
 
@@ -78,15 +86,54 @@ class _TutorialFlowPageState extends State<TutorialFlowPage> {
     final step = _stepForIndex(_index);
     final nextIndex = _index + 1;
 
-    if (step == TutorialStep.connectionAndEmpathy) {
+    String nickname = 'OO';
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid != null && uid.isNotEmpty) {
       try {
-        await _pushOtherDiaryNotificationForTutorial();
+        final userRef = FirebaseFirestore.instance.collection('users').doc(uid);
+        final userSnap = await userRef.get();
+        final userData = userSnap.data();
+        nickname = (userData?['nickname'] as String?)?.trim().isNotEmpty == true
+            ? (userData?['nickname'] as String).trim()
+            : 'OO';
       } catch (e, st) {
-        log('[Tutorial] failed to insert notification: $e', stackTrace: st);
-        // 실패해도 튜토리얼 흐름은 계속 진행
+        log('[Tutorial] failed to load nickname: $e', stackTrace: st);
       }
     }
 
+    if (step == TutorialStep.connectionAndEmpathy) {
+      try {
+        await _pushOtherDiaryNotificationForTutorial(nickname: nickname);
+      } catch (e, st) {
+        log('[Tutorial] failed to insert notification: $e', stackTrace: st);
+      }
+    }
+
+    if (step == TutorialStep.growth) {
+      try {
+        await context.read<AlarmController>().createTutorialLetterAndAlarm(
+          title: '웰컴 편지',
+          content: '''
+사랑하는 $nickname에게,
+
+이번 한 달은 어떤 색깔이었나요? 유난히 비가 많이 오던 날, $nickname이 찾았던 작은 행복을 기억해요.
+
+아침부터 쏟아지는 할 일들에 마음이 참 무거웠지만, 포기하지 않고 카페로 향했던 그 마음이 참 기특해요. 그곳에서 마신 따뜻한 커피 한 잔이 부정적인 생각들을 긍정으로 바꾸어주었죠. 사소한 기쁨을 발견할 줄 아는 $nickname은 이미 충분히 빛나는 사람이에요.
+
+이렇게 당신이 남긴 소중한 하루하루를 모아, 반디는 매달 끝자락에 당신만을 위한 편지를 보낼 거예요. 숫자로 표현된 통계보다 더 따뜻하게, 당신의 단단해진 마음을 비추어 드릴게요.
+
+힘겨운 시작도 긍정으로 마무리할 줄 아는 당신의 마음을 반디가 항상 응원할게요. 우리 다음 달에도 이 편지함에서 다시 만나요.
+
+당신의 곁에서 늘 따스하게 자라날 반디가
+''',
+        );
+      } catch (e, st) {
+        log('[Tutorial] failed to create tutorial letter/alarm: $e',
+            stackTrace: st);
+      }
+    }
+
+    // 기존 흐름 유지
     if (_index == _total - 1) {
       context.read<NavigationToggleProvider>().selectIndex(0);
       Navigator.pop(context);
@@ -97,9 +144,10 @@ class _TutorialFlowPageState extends State<TutorialFlowPage> {
     }
   }
 
+  Future<void> _pushOtherDiaryNotificationForTutorial(
+      {required String nickname}) async {
+    const tempDiary = 'KzHjbSE3LCQVnxxk9jGK9PJexnU251';
 
-  Future<void> _pushOtherDiaryNotificationForTutorial() async {
-    String tempDiary = 'KzHjbSE3LCQVnxxk9jGK9PJexnU251';
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null || uid.isEmpty) {
       log('[Tutorial] uid is null -> skip notification insert');
@@ -107,11 +155,8 @@ class _TutorialFlowPageState extends State<TutorialFlowPage> {
     }
 
     final userRef = FirebaseFirestore.instance.collection('users').doc(uid);
-    final notiRef = userRef.collection('notifications').doc(); // auto id
-    final userSnap = await userRef.get();
-    final userData = userSnap.data();
+    final notiRef = userRef.collection('notifications').doc();
 
-    final nickname = userData?['nickname'] ?? '누군가';
     await notiRef.set({
       'dataId': tempDiary,
       'date': Timestamp.now(),
@@ -120,7 +165,6 @@ class _TutorialFlowPageState extends State<TutorialFlowPage> {
       'type': 'otherDiary',
     });
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -180,7 +224,8 @@ class _TutorialFlowPageState extends State<TutorialFlowPage> {
                         ),
                         const _TutorialStep(
                           title: '이제 당신의 이야기를\n들려주세요.',
-                          description: '나의 감정을 분석하고, 힘들 때 나에게\n가장 필요한 한마디를 건네줄 거에요.',
+                          description:
+                              '나의 감정을 분석하고, 힘들 때 나에게\n가장 필요한 한마디를 건네줄 거에요.',
                         ),
                       ],
                     ),
@@ -247,13 +292,13 @@ class _TutorialStep extends StatelessWidget {
           if (image != null) image!,
           const Spacer(),
           if (comment != null)
-          Text(
-            comment!,
-            style: BandiFont.bodyLarge(context)?.copyWith(
-                color: BandiColor.neutralColor100(context),
-                height: 1.2,
-                fontSize: 16),
-          ),
+            Text(
+              comment!,
+              style: BandiFont.bodyLarge(context)?.copyWith(
+                  color: BandiColor.neutralColor100(context),
+                  height: 1.2,
+                  fontSize: 16),
+            ),
         ],
       ),
     );

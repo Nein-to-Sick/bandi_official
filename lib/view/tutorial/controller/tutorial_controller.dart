@@ -354,28 +354,6 @@ class TutorialController extends ChangeNotifier {
       final rootCtx = navigatorKey.currentContext;
       if (rootCtx == null) return;
       final res = await showExplainFlowNow(rootCtx);
-      if (res?.step == TutorialStep.growth) {
-        await Provider.of<AlarmController>(
-            rootCtx,
-            listen: false)
-            .createTutorialLetterAndAlarm(
-          title: '웰컴 편지',
-          content: '''
-사랑하는 OO에게,
-
-이번 한 달은 어떤 색깔이었나요? 유난히 비가 많이 오던 날, OO이 찾았던 작은 행복을 기억해요.
-
-아침부터 쏟아지는 할 일들에 마음이 참 무거웠지만, 포기하지 않고 카페로 향했던 그 마음이 참 기특해요. 그곳에서 마신 따뜻한 커피 한 잔이 부정적인 생각들을 긍정으로 바꾸어주었죠. 사소한 기쁨을 발견할 줄 아는 OO은 이미 충분히 빛나는 사람이에요.
-
-이렇게 당신이 남긴 소중한 하루하루를 모아, 반디는 매달 끝자락에 당신만을 위한 편지를 보낼 거예요. 숫자로 표현된 통계보다 더 따뜻하게, 당신의 단단해진 마음을 비추어 드릴게요.
-
-힘겨운 시작도 긍정으로 마무리할 줄 아는 당신의 마음을 반디가 항상 응원할게요. 우리 다음 달에도 이 편지함에서 다시 만나요.
-
-당신의 곁에서 늘 따스하게 자라날 반디가
-                                          ''',
-        );
-      }
-
       if (res != null) beginPracticeForStep(res.step);
     });
   }
