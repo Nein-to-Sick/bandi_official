@@ -1,8 +1,8 @@
 // tutorial/tutorial_flow_page.dart
 import 'dart:developer';
 
-import 'package:bandi_official/components/no_reuse/navigation_bar.dart';
 import 'package:bandi_official/controller/navigation_toggle_provider.dart';
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -80,6 +80,7 @@ class _TutorialFlowPageState extends State<TutorialFlowPage> {
   }
 
   Future<void> _next() async {
+    String langCode = Localizations.localeOf(context).languageCode;
     final step = _stepForIndex(_index);
     final nextIndex = _index + 1;
 
@@ -109,8 +110,9 @@ class _TutorialFlowPageState extends State<TutorialFlowPage> {
     if (step == TutorialStep.growth) {
       try {
         await context.read<AlarmController>().createTutorialLetterAndAlarm(
-          title: '웰컴 편지',
-          content: '''
+              title: 'v2_onboarding_step_letter_title'.tr(context),
+              content: (langCode == 'ko')
+                  ? '''
 사랑하는 $nickname에게,
 
 이번 한 달은 어떤 색깔이었나요? 유난히 비가 많이 오던 날, $nickname이 찾았던 작은 행복을 기억해요.
@@ -122,8 +124,21 @@ class _TutorialFlowPageState extends State<TutorialFlowPage> {
 힘겨운 시작도 긍정으로 마무리할 줄 아는 당신의 마음을 반디가 항상 응원할게요. 우리 다음 달에도 이 편지함에서 다시 만나요.
 
 당신의 곁에서 늘 따스하게 자라날 반디가
+'''
+                  : '''
+Dear $nickname,
+
+What was the hue of your world this past month? I still cherish the memory of that rainy afternoon when you found a hidden spark of joy amidst the gray.
+
+I remember how heavy the morning felt, yet I was so moved by your spirit. Instead of giving up, you gently led yourself to that quiet cafe. It's amazing how a single cup of coffee could shift the tides, turning heavy thoughts into peace. Someone like you, who finds light in the smallest cracks, is already glowing from within.
+
+Each month, I'll gather these fleeting moments into a letter just for you. Forget dry data; I'm here to reflect the quiet strength and warmth blooming inside you.
+
+I'll always be rooting for your resilience—your beautiful way of turning a tough start into a graceful finish. Let's meet here again next month.
+
+With love and warmth, Bandi
 ''',
-        );
+            );
       } catch (e, st) {
         log('[Tutorial] failed to create tutorial letter/alarm: $e',
             stackTrace: st);
@@ -143,6 +158,7 @@ class _TutorialFlowPageState extends State<TutorialFlowPage> {
 
   Future<void> _pushOtherDiaryNotificationForTutorial(
       {required String nickname}) async {
+    String langCode = Localizations.localeOf(context).languageCode;
     const tempDiary = 'KzHjbSE3LCQVnxxk9jGK9PJexnU251';
 
     final uid = FirebaseAuth.instance.currentUser?.uid;
@@ -158,7 +174,9 @@ class _TutorialFlowPageState extends State<TutorialFlowPage> {
       'dataId': tempDiary,
       'date': Timestamp.now(),
       'notificationId': notiRef.id,
-      'title': '$nickname님과 비슷한 친구가 있어요.',
+      'title': (langCode == 'ko')
+          ? '$nickname님과 비슷한 친구가 있어요.'
+          : 'Found someone who feels just like you!',
       'type': 'otherDiary',
     });
   }
@@ -190,39 +208,41 @@ class _TutorialFlowPageState extends State<TutorialFlowPage> {
                       onPageChanged: (i) => setState(() => _index = i),
                       children: [
                         _TutorialStep(
-                          title: '감정 기록',
-                          description: '반디 AI는 당신의 마음을 키워드로\n 정리하고 이해하도록 돕습니다.',
-                          comment: '하루 5분, 솔직하게 기록해보세요.',
+                          title: 'v2_onboarding_step_title_1'.tr(context),
+                          description:
+                              'v2_onboarding_step_description_1'.tr(context),
+                          comment: 'v2_onboarding_step_comment_1'.tr(context),
                           image: Image.asset(
                               'assets/images/onboarding/onboarding_img1.png'),
                         ),
                         _TutorialStep(
-                          title: '연결과 공감',
+                          title: 'v2_onboarding_step_title_2'.tr(context),
                           description:
-                              '익명으로 나와 비슷한 사람들의 기록에\n 공감의 선물을 건네고 받을 수 있습니다.',
-                          comment: '혼자가 아님을 확인해보세요.',
+                              'v2_onboarding_step_description_2'.tr(context),
+                          comment: 'v2_onboarding_step_comment_2'.tr(context),
                           image: Image.asset(
                               'assets/images/onboarding/onboarding_img2.png'),
                         ),
                         _TutorialStep(
-                          title: '회고',
+                          title: 'v2_onboarding_step_title_3'.tr(context),
                           description:
-                              '당신의 기록을 기억하는 반디와\n부담 없이 대화하며 오늘을 회고해 보세요.',
-                          comment: '대화를 통해 더 깊이 있게 자신을 이해하세요.',
+                              'v2_onboarding_step_description_3'.tr(context),
+                          comment: 'v2_onboarding_step_comment_3'.tr(context),
                           image: Image.asset(
                               'assets/images/onboarding/onboarding_img3.png'),
                         ),
                         _TutorialStep(
-                          title: '성장',
-                          description: '당신의 마음이 얼마나 단단하게\n변화했는지 되돌아볼 수 있습니다.',
-                          comment: '단순한 수치 대신, 반디의 편지를 확인하세요.',
+                          title: 'v2_onboarding_step_title_4'.tr(context),
+                          description:
+                              'v2_onboarding_step_description_4'.tr(context),
+                          comment: 'v2_onboarding_step_comment_4'.tr(context),
                           image: Image.asset(
                               'assets/images/onboarding/onboarding_img4.png'),
                         ),
-                        const _TutorialStep(
-                          title: '이제 당신의 이야기를\n들려주세요.',
+                        _TutorialStep(
+                          title: 'v2_onboarding_step_title_5'.tr(context),
                           description:
-                              '나의 감정을 분석하고, 힘들 때 나에게\n가장 필요한 한마디를 건네줄 거에요.',
+                              'v2_onboarding_step_description_5'.tr(context),
                         ),
                       ],
                     ),
@@ -232,7 +252,9 @@ class _TutorialFlowPageState extends State<TutorialFlowPage> {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
                     child: CustomPrimaryButton(
-                      title: _index == _total - 1 ? '시작하기' : '확인',
+                      title: _index == _total - 1
+                          ? 'v2_onboarding_step_button_1'.tr(context)
+                          : 'v2_onboarding_step_button_2'.tr(context),
                       onPrimaryButtonPressed: _next,
                       disableButton: false,
                     ),

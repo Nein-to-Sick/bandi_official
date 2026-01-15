@@ -308,5 +308,22 @@
   "v2_ai_chat_confirm_title": "Are you sure you want to leave?",
   "v2_ai_chat_confirm_content": "If you leave, the data of conversation will be lost forever.",
   "v2_ai_chat_confirm_button_1": "Stay here",
-  "v2_ai_chat_confirm_button_2": "Leave anyway"
+  "v2_ai_chat_confirm_button_2": "Leave anyway",
+  "v2_onboarding_step_button_1": "Get Started",
+  "v2_onboarding_step_button_2": "Next",
+  "v2_onboarding_step_letter_title": "Welcome Letter",
+  "v2_onboarding_step_title_1": "Track Your Emotions",
+  "v2_onboarding_step_description_1": "Discover your feelings\nthrough keywords curated by Bandi AI.",
+  "v2_onboarding_step_comment_1": "5 minutes a day to meet your true self.",
+  "v2_onboarding_step_title_2": "Connect & Relate",
+  "v2_onboarding_step_description_2": "Exchange supportive messages anonymously\nwith people who share similar feelings.",
+  "v2_onboarding_step_comment_2": "Remind yourself that you're not alone.",
+  "v2_onboarding_step_title_3": "Deep Reflection",
+  "v2_onboarding_step_description_3": "Bandi remembers every chapter of your story.\nHave a chat to reflect and find peace at the end of your day.",
+  "v2_onboarding_step_comment_3": "Deepen your self-understanding with every conversation.",
+  "v2_onboarding_step_title_4": "Inner Growth",
+  "v2_onboarding_step_description_4": "Trace your journey\nto a more resilient you.",
+  "v2_onboarding_step_comment_4": "Read a personal letter written just for you by Bandi.",
+  "v2_onboarding_step_title_5": "Your story begins here.",
+  "v2_onboarding_step_description_5": "Your emotions, understood.\nYour comfort, delivered."
 }

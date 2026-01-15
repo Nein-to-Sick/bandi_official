@@ -308,5 +308,22 @@
   "v2_ai_chat_confirm_title": "대화창을 정말로 나가시겠어요?",
   "v2_ai_chat_confirm_content": "지금까지 나눈 이야기는 모두 사라져요.",
   "v2_ai_chat_confirm_button_1": "취소",
-  "v2_ai_chat_confirm_button_2": "나가기"
+  "v2_ai_chat_confirm_button_2": "나가기",
+  "v2_onboarding_step_button_1": "시작하기",
+  "v2_onboarding_step_button_2": "확인",
+  "v2_onboarding_step_letter_title": "웰컴 편지",
+  "v2_onboarding_step_title_1": "감정 기록",
+  "v2_onboarding_step_description_1": "반디 AI는 당신의 마음을 키워드로\n정리하고 이해하도록 돕습니다.",
+  "v2_onboarding_step_comment_1": "하루 5분, 솔직하게 기록해보세요.",
+  "v2_onboarding_step_title_2": "연결과 공감",
+  "v2_onboarding_step_description_2": "익명으로 나와 비슷한 사람들의 기록에\n공감의 선물을 건네고 받을 수 있습니다.",
+  "v2_onboarding_step_comment_2": "혼자가 아님을 확인해보세요.",
+  "v2_onboarding_step_title_3": "회고",
+  "v2_onboarding_step_description_3": "당신의 기록을 기억하는 반디와\n부담 없이 대화하며 오늘을 회고해 보세요.",
+  "v2_onboarding_step_comment_3": "대화를 통해 더 깊이 있게 자신을 이해하세요.",
+  "v2_onboarding_step_title_4": "성장",
+  "v2_onboarding_step_description_4": "당신의 마음이 얼마나 단단하게\n변화했는지 되돌아볼 수 있습니다.",
+  "v2_onboarding_step_comment_4": "단순한 수치 대신, 반디의 편지를 확인하세요.",
+  "v2_onboarding_step_title_5": "이제 당신의 이야기를\n들려주세요.",
+  "v2_onboarding_step_description_5": "나의 감정을 분석하고, 힘들 때 나에게\n가장 필요한 한마디를 건네줄 거에요."
 }
