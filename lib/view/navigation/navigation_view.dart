@@ -1,6 +1,9 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:bandi_official/localization/string_extention.dart';
+import 'package:bandi_official/view/settings/controller/user_view_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -114,12 +117,15 @@ class _NavigationViewState extends State<NavigationView> {
           return;
         }
 
+        if (!mounted) return;
+
+        // ✅ 연결 안됨 → 시트 띄우고 선택 기다림
         final res = await showFloatingConfirmSheet(
           context,
-          title: '인터넷 연결이 잠시 끊겼나요?',
-          description: '네트워크 상태를 확인 후 다시 시도해 주세요.',
-          cancelText: '나가기',
-          confirmText: '새로고침',
+          title: 'internet_connection_check_title'.tr(context),
+          description: 'internet_connection_check_content'.tr(context),
+          cancelText: 'internet_connection_check_button_1'.tr(context),
+          confirmText: 'internet_connection_check_button_2'.tr(context),
           barrierDismissible: false,
         );
 
@@ -155,6 +161,7 @@ class _NavigationViewState extends State<NavigationView> {
     final mailController = context.watch<MailController>();
     final alarmController = context.watch<AlarmController>();
     final internet = context.watch<InternetConnectionController>();
+    final userViewController = context.watch<UserViewController>();
 
     final tutorial = context.watch<TutorialController>();
     final registry = context.watch<TutorialTargetRegistry>();
@@ -240,12 +247,26 @@ class _NavigationViewState extends State<NavigationView> {
           return;
         }
 
+        // 설정 화면시
+        if (nav.selectedIndex == -2) {
+          // 닉네임 수정 창
+          if (userViewController.settings == 2) {
+            userViewController.updateSettingValue(1);
+          }
+          // 그 외 설정창
+          else {
+            userViewController.updateSettingValue(0);
+          }
+          nav.selectIndex(3);
+          return;
+        }
+
         final shouldExit = await showFloatingConfirmSheet(
           context,
-          title: '온기를 정말로 종료하시겠어요?',
-          description: '언제든 위로가 필요하면 다시 찾아와 주세요.',
-          cancelText: '취소',
-          confirmText: '종료하기',
+          title: 'dialogue_message_exit_app_title'.tr(context),
+          description: 'dialogue_message_exit_app_content'.tr(context),
+          cancelText: 'dialogue_message_exit_app_button_1'.tr(context),
+          confirmText: 'dialogue_message_exit_app_button_2'.tr(context),
         );
 
         if (shouldExit == true) {

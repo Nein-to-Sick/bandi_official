@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../theme/custom_theme_data.dart';
-import '../../../string_extention.dart';
+import '../../../localization/string_extention.dart';
 
 class AppleLoginButton extends StatelessWidget {
   final VoidCallback onPressed;

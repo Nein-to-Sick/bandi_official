@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
-import 'package:bandi_official/string_extention.dart';
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:bandi_official/view/diary_ai_chat/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/view/diary_ai_chat/components/dialogue.dart';
 import 'package:bandi_official/view/diary_ai_chat/components/chat_message_bar.dart';
@@ -155,10 +155,10 @@ class _DiaryAIChatStatefulState extends State<_DiaryAIChatStateful> {
               onLeftActionButtonPressed: () async {
                 final ok = await showFloatingConfirmSheet(
                   context,
-                  title: '대화창을 정말로 나가시겠어요?',
-                  description: '지금까지 나눈 이야기는 모두 사라져요.',
-                  cancelText: '취소',
-                  confirmText: '나가기',
+                  title: 'v2_ai_chat_confirm_title'.tr(context),
+                  description: 'v2_ai_chat_confirm_content'.tr(context),
+                  cancelText: 'v2_ai_chat_confirm_button_1'.tr(context),
+                  confirmText: 'v2_ai_chat_confirm_button_2'.tr(context),
                 );
 
                 if (ok == true) {

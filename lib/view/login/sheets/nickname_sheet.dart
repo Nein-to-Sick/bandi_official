@@ -12,6 +12,7 @@ import '../../../controller/user_info_controller.dart';
 import '../../../theme/custom_theme_data.dart';
 import '../../../string_extention.dart';
 import '../controller/login_controller.dart';
+import '../../../localization/string_extention.dart';
 import '../data/user_profile_repository.dart';
 
 class NicknameSheet {
@@ -79,17 +80,19 @@ class _NicknameStatefulState extends State<_NicknameStateful> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const SizedBox(height: 8,),
+                  const SizedBox(
+                    height: 8,
+                  ),
                   Text(
                     "onboarding_nickname_title".tr(context),
-                    style: BandiFont.headlineMedium(context)
-                        ?.copyWith(color: BandiColor.foundationColor90(context)),
+                    style: BandiFont.headlineMedium(context)?.copyWith(
+                        color: BandiColor.foundationColor90(context)),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     "onboarding_nickname_subtitle".tr(context),
-                    style: BandiFont.labelSmall(context)
-                        ?.copyWith(color: BandiColor.foundationColor40(context)),
+                    style: BandiFont.labelSmall(context)?.copyWith(
+                        color: BandiColor.foundationColor40(context)),
                   ),
                   const SizedBox(height: 40),
                   CustomField(

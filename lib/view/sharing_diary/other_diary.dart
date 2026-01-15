@@ -2,7 +2,7 @@ import 'dart:developer' as develop;
 
 import 'package:bandi_official/components/button/primary_button.dart';
 import 'package:bandi_official/controller/home_to_write.dart';
-import 'package:bandi_official/string_extention.dart';
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
 import 'package:bandi_official/view/mail/controller/mail_controller.dart';
@@ -33,11 +33,11 @@ enum DiaryReaction { cheer, empathize, together }
 String reactionLabel(BuildContext context, DiaryReaction r) {
   switch (r) {
     case DiaryReaction.cheer:
-      return "응원해요";
+      return "reaction_support".tr(context);
     case DiaryReaction.empathize:
-      return "공감해요";
+      return "reaction_relate".tr(context);
     case DiaryReaction.together:
-      return "함께해요";
+      return "reaction_with".tr(context);
   }
 }
 
@@ -108,9 +108,12 @@ class _OtherDiaryState extends State<OtherDiary> {
 
   String _moreToggleButtonText() {
     if (currentLang == originalLang) {
-      return (originalLang == 'KO') ? "영어로 보기" : "한국어로 보기";
+      return (originalLang == 'KO')
+          ? "v2_other_diary_translation_state_1".tr(context)
+          : "v2_other_diary_translation_state_2".tr(context);
     }
-    return "원본으로 보기";
+    // 현재 번역본(반대 언어)을 보고 있으면 -> 원본으로 보기
+    return "v2_other_diary_translation_state_3".tr(context);
   }
 
   // =====================
@@ -404,7 +407,8 @@ class _OtherDiaryState extends State<OtherDiary> {
                             children: [
                               Expanded(
                                 child: Text(
-                                  _isTranslating ? "번역 중..." : translatedTitle,
+                                  _isTranslating ? "v2_other_diary_translation_loading"
+                                      .tr(context) : translatedTitle,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: BandiFont.headlineMedium(context)
@@ -463,29 +467,27 @@ class _OtherDiaryState extends State<OtherDiary> {
                           height: 0,
                         ),
 
-                        // ===== Content =====
-                        const SizedBox(height: 16),
-                        Expanded(
-                          child: Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 24.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  child: SingleChildScrollView(
-                                    child: SizedBox(
-                                      width: double.infinity,
-                                      child: Text(
-                                        _isTranslating
-                                            ? "번역 중..."
-                                            : translatedContent,
-                                        style: BandiFont.bodyLarge(context)
-                                            ?.copyWith(
-                                          color: BandiColor.foundationColor90(
-                                              context),
-                                        ),
-                                      ),
+                    // ===== Content =====
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: SingleChildScrollView(
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  child: Text(
+                                    _isTranslating
+                                        ? "v2_other_diary_translation_loading"
+                                            .tr(context)
+                                        : translatedContent,
+                                    style:
+                                        BandiFont.bodyLarge(context)?.copyWith(
+                                      color:
+                                          BandiColor.foundationColor90(context),
                                     ),
                                   ),
                                 ),
@@ -520,7 +522,7 @@ class _OtherDiaryState extends State<OtherDiary> {
   // =====================
   Widget _bottomChatBar(BuildContext context, HomeToWrite writeProvider) {
     final label = selectedReaction == null
-        ? "공감해요"
+        ? "reaction_relate".tr(context)
         : reactionLabel(context, selectedReaction!);
 
     final icon = selectedReaction == null
@@ -611,8 +613,9 @@ class _OtherDiaryState extends State<OtherDiary> {
 
                   await showFloatingToastSheet(
                     context,
-                    message: "따뜻한 공감 메시지가 전달되었어요.",
-                    buttonText: "완료",
+                    message: "v2_other_diary_send_reaction_content".tr(context),
+                    buttonText:
+                        "v2_other_diary_send_reaction_button".tr(context),
                   );
 
                   if (!context.mounted) return;
@@ -820,10 +823,10 @@ class _OtherDiaryState extends State<OtherDiary> {
       BuildContext context, HomeToWrite writeProvider) async {
     final ok = await showFloatingConfirmSheet(
       context,
-      title: '부적절한 일기로 신고할까요?',
-      description: '신고 시 동일한 내용의 일기는 더 이상 공유되지 않아요.',
-      cancelText: '취소',
-      confirmText: '신고하기',
+      title: 'v2_other_diary_report_title'.tr(context),
+      description: 'v2_other_diary_report_content'.tr(context),
+      cancelText: 'v2_other_diary_report_button_1'.tr(context),
+      confirmText: 'v2_other_diary_report_button_2'.tr(context),
     );
     if (ok == true) {
       try {

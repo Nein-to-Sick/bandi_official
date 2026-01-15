@@ -1,5 +1,5 @@
 import 'package:bandi_official/view/writing/controller/emotion_provider.dart';
-import 'package:bandi_official/string_extention.dart';
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -74,12 +74,10 @@ class _CustomFieldState extends State<CustomField> {
         hintStyle: BandiFont.bodyLarge(context)?.copyWith(
           color: BandiColor.foundationColor20(context),
         ),
-
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 7.5,
         ),
-
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(100),
           borderSide: BorderSide.none,
@@ -90,37 +88,35 @@ class _CustomFieldState extends State<CustomField> {
         ),
         filled: true,
         fillColor: BandiColor.neutralColor40(context),
-
         suffixIcon: _focusNode.hasFocus
             ? GestureDetector(
-          onTap: () {
-            _controller.clear();
-            setState(() {
-              _currentLength = 0;
-            });
-            widget.onChanged('');
-          },
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                PhosphorIcons.xCircle(PhosphorIconsStyle.fill),
-                size: 20,
-                color: BandiColor.foundationColor20(context),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                '$_currentLength/$maxLength',
-                style: BandiFont.labelSmall(context)?.copyWith(
-                  color: BandiColor.foundationColor40(context),
+                onTap: () {
+                  _controller.clear();
+                  setState(() {
+                    _currentLength = 0;
+                  });
+                  widget.onChanged('');
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      PhosphorIcons.xCircle(PhosphorIconsStyle.fill),
+                      size: 20,
+                      color: BandiColor.foundationColor20(context),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      '$_currentLength/$maxLength',
+                      style: BandiFont.labelSmall(context)?.copyWith(
+                        color: BandiColor.foundationColor40(context),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                  ],
                 ),
-              ),
-              const SizedBox(width: 16),
-            ],
-          ),
-        )
+              )
             : null,
-
         counterText: '',
       ),
       cursorHeight: 20,

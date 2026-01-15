@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../model/settingsInfos.dart';
-import '../../../string_extention.dart';
+import '../../../localization/string_extention.dart';
 import '../../../theme/custom_theme_data.dart';
 import '../../../components/button/primary_button.dart';
 import 'agreement_detail_dialog.dart';

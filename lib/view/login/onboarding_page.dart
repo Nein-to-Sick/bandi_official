@@ -4,7 +4,7 @@ import 'package:bandi_official/view/login/sheets/nickname_sheet.dart';
 import 'package:flutter/material.dart';
 
 import '../../theme/custom_theme_data.dart';
-import '../../string_extention.dart';
+import '../../localization/string_extention.dart';
 import '../../components/button/primary_button.dart';
 import '../../components/button/secondary_button.dart';
 
@@ -60,22 +60,20 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   if (step < 4) const SizedBox(height: 116),
-
                   if (step < 4)
                     OnboardingStepHeader(
                       step: step,
                       title: (step == 1)
                           ? "onboarding_step_title_1".tr(context)
                           : (step == 2)
-                          ? "onboarding_step_title_2".tr(context)
-                          : "onboarding_step_title_3".tr(context),
+                              ? "onboarding_step_title_2".tr(context)
+                              : "onboarding_step_title_3".tr(context),
                       subtitle: (step == 1)
                           ? "onboarding_step_subtitle_1".tr(context)
                           : (step == 2)
-                          ? "onboarding_step_subtitle_2".tr(context)
-                          : "onboarding_step_subtitle_3".tr(context),
+                              ? "onboarding_step_subtitle_2".tr(context)
+                              : "onboarding_step_subtitle_3".tr(context),
                     ),
-
                   if (step < 4)
                     Expanded(
                       child: Padding(
@@ -83,16 +81,13 @@ class _OnboardingPageState extends State<OnboardingPage> {
                         child: OnboardingStepImage(step: step),
                       ),
                     ),
-
                   if (step < 3)
                     CustomSecondaryButton(
                       title: 'onboarding_step_button_1'.tr(context),
                       onSecondaryButtonPressed: controller.skipToNickname,
                       disableButton: false,
                     ),
-
                   const SizedBox(height: 12),
-
                   if (step < 4)
                     CustomPrimaryButton(
                       title: step < 3
@@ -101,7 +96,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       onPrimaryButtonPressed: controller.next,
                       disableButton: false,
                     ),
-
                   const SizedBox(height: 32),
                 ],
               ),

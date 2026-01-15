@@ -1,3 +1,4 @@
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_switch/flutter_switch.dart';
 
@@ -40,7 +41,10 @@ class BottomBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Divider(color: BandiColor.neutralColor10(context), thickness: 1),
+        Divider(
+          color: BandiColor.neutralColor10(context),
+          thickness: 1,
+        ),
         Padding(
           padding: const EdgeInsets.fromLTRB(24, 15, 24, 16),
           child: Row(
@@ -88,7 +92,7 @@ class BottomBar extends StatelessWidget {
               Row(
                 children: [
                   _BarButton(
-                    title: "나가기",
+                    title: "v2_bottom_bar_button_exit".tr(context),
                     onTap: onExit,
                     disabled: !allowExit,
                   ),
@@ -96,7 +100,7 @@ class BottomBar extends StatelessWidget {
                   KeyedSubtree(
                     key: doneButtonKey,
                     child: _BarButton(
-                      title: "완료",
+                      title: "v2_bottom_bar_button_done".tr(context),
                       onTap: onDone,
                       disabled: !allowDone || !doneEnabled,
                     ),

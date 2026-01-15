@@ -3,6 +3,7 @@ import 'package:bandi_official/controller/date_provider.dart';
 import 'package:bandi_official/view/my_diary_list/controller/my_diary_list_controller.dart';
 import 'package:bandi_official/view/tutorial/controller/tutorial_controller.dart';
 import 'package:bandi_official/view/tutorial/controller/tutorial_target_registry.dart';
+import 'package:bandi_official/view/settings/controller/user_view_controller.dart';
 import 'package:bandi_official/view/writing/controller/diary_ai_analysis_controller.dart';
 import 'package:bandi_official/view/diary_ai_chat/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/controller/internet_connection_controller.dart';
@@ -31,7 +32,7 @@ import 'firebase_options.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
-import 'local.dart';
+import 'localization/local.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -130,6 +131,9 @@ class MainApp extends StatelessWidget {
             ),
             ChangeNotifierProvider(
               create: (context) => MyDiaryListController(),
+            ),
+            ChangeNotifierProvider(
+              create: (context) => UserViewController(),
             ),
           ],
           child: MaterialApp(

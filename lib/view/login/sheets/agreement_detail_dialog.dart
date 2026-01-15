@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 
-import '../../../string_extention.dart';
+import '../../../localization/string_extention.dart';
 import '../../../theme/custom_theme_data.dart';
 import '../../../components/button/primary_button.dart';
 import '../../settings/widget/agreement_content.dart';
 
 Future<void> showAgreementDetailDialog(
-    BuildContext context, {
-      required List<List<String>> data,
-      required String titleKey,
-    }) {
+  BuildContext context, {
+  required List<List<String>> data,
+  required String titleKey,
+}) {
   return showDialog(
     context: context,
     useSafeArea: false,

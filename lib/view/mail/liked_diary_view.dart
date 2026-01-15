@@ -2,7 +2,7 @@ import 'package:bandi_official/analytics/log_other_journal_search.dart';
 import 'package:bandi_official/components/loading/loading_page.dart';
 import 'package:bandi_official/view/mail/controller/mail_controller.dart';
 import 'package:bandi_official/model/diary.dart';
-import 'package:bandi_official/string_extention.dart';
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/mail/detail_view.dart';
 import 'package:flutter/material.dart';
@@ -22,24 +22,33 @@ class _LikedDiaryPageState extends State<LikedDiaryPage> {
 
   @override
   void initState() {
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       mailController = Provider.of<MailController>(context, listen: false);
 
-      mailController.loadDataAndSetting().then((value) {
-        mailController.restoreLikedDiaryScrollPosition();
+      mailController.loadDataAndSetting().then((_) {
+        if (mailController.likedDiaryScrollController.hasClients) {
+          mailController.restoreLikedDiaryScrollPosition();
+        } else {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mailController.likedDiaryScrollController.hasClients) {
+              mailController.restoreLikedDiaryScrollPosition();
+            }
+          });
+        }
 
         if (!mailController.isLikedDiaryListenerAdded) {
-          // when screen reached nearly bottom of the list load more past data
-          WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-            mailController.likedDiaryScrollController
-                .addListener(_scrollListener);
-            mailController.toggleIsLikedDiaryListenerAdded(true);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mailController.likedDiaryScrollController.hasClients) {
+              mailController.likedDiaryScrollController
+                  .addListener(_scrollListener);
+              mailController.toggleIsLikedDiaryListenerAdded(true);
+            }
           });
         }
       });
     });
-
-    super.initState();
   }
 
   void _scrollListener() async {
@@ -47,6 +56,8 @@ class _LikedDiaryPageState extends State<LikedDiaryPage> {
         mailController.isLoadingLikedDiary) {
       return;
     }
+
+    if (!mailController.likedDiaryScrollController.hasClients) return;
 
     final position = mailController.likedDiaryScrollController.position;
 
@@ -72,15 +83,19 @@ class _LikedDiaryPageState extends State<LikedDiaryPage> {
     final allDiaries = mailController.likedDiaryList;
     final DateTime? filterDate = mailController.likedDiaryFilteredDate;
 
-    // 선택된 날짜가 있으면 해당 날짜만, 없으면 전체 리스트
-    final displayList = filterDate == null
-        ? allDiaries
-        : allDiaries.where((diary) {
-            // diary.otherUserLikedAt 형식: "2024-07-25"
-            String targetDateString =
-                filterDate.toIso8601String().substring(0, 10);
-            return diary.otherUserLikedAt.startsWith(targetDateString);
-          }).toList();
+    List<Diary> displayList;
+
+    if (filterDate == null) {
+      displayList = List.from(allDiaries); // 원본 보호를 위해 복사본 생성
+    } else {
+      displayList = allDiaries.where((diary) {
+        // diary.otherUserLikedAt 형식: "2024-07-25"
+        String targetDateString = filterDate.toIso8601String().substring(0, 10);
+        return diary.otherUserLikedAt.startsWith(targetDateString);
+      }).toList();
+    }
+
+    displayList.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
     return (mailController.isLoading)
         ? MyFireFlyProgressbar(
@@ -118,7 +133,8 @@ Widget _buildEmptyState(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          'inbox_no_reacted_diaries'.tr(context),
+          'inbox_no_shared_journals'.tr(context),
+          textAlign: TextAlign.center,
           style: BandiFont.headlineMedium(context)?.copyWith(
             color: BandiColor.neutralColor80(context),
           ),
@@ -174,17 +190,23 @@ Widget likedDiaryWidget(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    diary.title,
-                    style: BandiFont.titleSmall(context)
-                        ?.copyWith(color: BandiColor.neutralColor90(context)),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  Flexible(
+                    flex: 2,
+                    child: Text(
+                      diary.title,
+                      style: BandiFont.titleSmall(context)
+                          ?.copyWith(color: BandiColor.neutralColor90(context)),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                  Text(
-                    date,
-                    style: BandiFont.labelSmall(context)
-                        ?.copyWith(color: BandiColor.neutralColor60(context)),
+                  Flexible(
+                    flex: 1,
+                    child: Text(
+                      date,
+                      style: BandiFont.labelSmall(context)
+                          ?.copyWith(color: BandiColor.neutralColor60(context)),
+                    ),
                   ),
                 ],
               ),

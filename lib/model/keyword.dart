@@ -1,4 +1,4 @@
-import 'package:bandi_official/string_extention.dart';
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:flutter/cupertino.dart';
 
 enum Emotion {
@@ -150,5 +150,4 @@ class Keyword {
         return "emotion_category_unknown".tr(context);
     }
   }
-
 }

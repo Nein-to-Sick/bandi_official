@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:bandi_official/string_extention.dart';
+import 'package:bandi_official/localization/string_extention.dart';
+import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
 import 'package:bandi_official/view/diary_ai_chat/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/controller/home_to_write.dart';
@@ -285,6 +287,116 @@ class _HomeRootLayerState extends State<HomeRootLayer>
                           if (tc.isGrowthFlow && tc.growthPhase == GrowthTutorialPhase.focusHomeNotification) {
                             tc.setGrowthPhase(GrowthTutorialPhase.focusLetterCloseX);
                           }
+                          // DB 알림 기준 최신 시간 (NEW dot 계산용)
+                          DateTime? latestRealAlarmAt;
+                          for (final a in dbAlarms) {
+                            final t = a.alarmTime.toDate();
+                            if (latestRealAlarmAt == null ||
+                                t.isAfter(latestRealAlarmAt)) {
+                              latestRealAlarmAt = t;
+                            }
+                          }
+                          _latestRealAlarmAt = latestRealAlarmAt;
+
+                          // dailyReminder(상태 기반, DB에 쌓이지 않음)
+                          if (!writeProvider.wroteDiaryToday) {
+                            items.add(
+                              HomeNotiItem(
+                                id: _dailyReminderId(),
+                                text:
+                                    "v2_home_notification_state_1".tr(context),
+                                type: HomeNotiType.dailyReminder,
+                                createdAt: _dailyReminderCreatedAt(),
+                                onTap: () => writeProvider.toggleWrite(),
+                              ),
+                            );
+                          }
+
+                          // 정렬
+                          items.sort(
+                              (a, b) => b.createdAt.compareTo(a.createdAt));
+
+                          // ✅ NEW dot 여부: DB 알림만 기준(리마인더 제외)
+                          final lastSeen = writeProvider.homeNotiLastSeenAt;
+                          final showNewDot = (latestRealAlarmAt != null) &&
+                              (lastSeen == null ||
+                                  latestRealAlarmAt.isAfter(lastSeen));
+
+                          final hideTopControls =
+                              items.isNotEmpty && _notiDropdownOpen;
+
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 17.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: items.isEmpty
+                                      ? Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              userInfo.nickname +
+                                                  "v2_home_notification_state_2"
+                                                      .tr(context),
+                                              style:
+                                                  BandiFont.titleSmall(context)!
+                                                      .copyWith(
+                                                color:
+                                                    BandiColor.neutralColor60(
+                                                        context),
+                                              ),
+                                            ),
+                                            Text(
+                                              "v2_home_notification_state_3"
+                                                  .tr(context),
+                                              style: BandiFont.headlineMedium(
+                                                      context)!
+                                                  .copyWith(
+                                                color:
+                                                    BandiColor.neutralColor100(
+                                                        context),
+                                              ),
+                                            ),
+                                          ],
+                                        )
+                                      : HomeNotificationStack(
+                                          key: const ValueKey(
+                                              "home_notification_stack"),
+                                          items: items,
+                                          showNewDot: showNewDot,
+                                          onDropdownOpenChanged: (open) {
+                                            WidgetsBinding.instance
+                                                .addPostFrameCallback((_) {
+                                              if (!mounted) return;
+                                              setState(() =>
+                                                  _notiDropdownOpen = open);
+                                            });
+                                          },
+                                        ),
+                                ),
+                                const SizedBox(width: 12),
+                                AnimatedOpacity(
+                                  duration: const Duration(milliseconds: 80),
+                                  opacity: hideTopControls ? 0.0 : 1.0,
+                                  child: IgnorePointer(
+                                    ignoring: hideTopControls,
+                                    child: SpeakerButton(
+                                      speakerOn: context
+                                          .watch<BgmController>()
+                                          .speakerOn,
+                                      onPressed: () {
+                                        final bgm =
+                                            context.read<BgmController>();
+                                        bgm.setSpeakerOn(!bgm.speakerOn);
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
                         },
                       ),
                       Padding(
@@ -346,7 +458,7 @@ class _HomeRootLayerState extends State<HomeRootLayer>
                                 key: _tutorialWriteBtnKey,
                                 icon: PhosphorIcons.pencilSimple(
                                     PhosphorIconsStyle.light),
-                                label: "일기 쓰기",
+                                label: "journal_writing".tr(context),
                                 onTap: () async {
                                   writeProvider.toggleWrite();
                                 },

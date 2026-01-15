@@ -1,4 +1,5 @@
 import 'dart:developer' as dev;
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
@@ -28,7 +29,10 @@ class _CustomPrimaryButtonState extends State<CustomPrimaryButton> {
 
   @override
   Widget build(BuildContext context) {
-    bool reverse = widget.title == "원본으로 보기" ? true : false;
+    bool reverse =
+        widget.title == "v2_other_diary_translation_state_3".tr(context)
+            ? true
+            : false;
 
     return GestureDetector(
       onTapDown: widget.disableButton
