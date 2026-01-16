@@ -1,12 +1,8 @@
 import 'dart:async';
-import 'package:bandi_official/components/no_reuse/navigation_bar.dart';
-import 'package:bandi_official/controller/navigation_toggle_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../main.dart';
-import '../../alarm/controller/alarm_controller.dart';
 import '../tutorial_flow_page.dart';
 
 enum TutorialStep {
@@ -44,7 +40,6 @@ enum GrowthTutorialPhase {
   done,
 }
 
-
 enum TutorialPhase {
   explain,
   practice,
@@ -79,14 +74,12 @@ class TutorialController extends ChangeNotifier {
   }
 
   // ✅ 서브스텝은 "메모리 전용" (스토리지 저장 X)
-  FirstWriteTutorialPhase _firstWritePhase =
-      FirstWriteTutorialPhase.focusText;
+  FirstWriteTutorialPhase _firstWritePhase = FirstWriteTutorialPhase.focusText;
   ConnectionTutorialPhase _connectionPhase =
       ConnectionTutorialPhase.focusHomeNotification;
   RetrospectTutorialPhase _retrospectPhase =
       RetrospectTutorialPhase.focusAiChatButton;
-  GrowthTutorialPhase _growthPhase =
-      GrowthTutorialPhase.focusHomeNotification;
+  GrowthTutorialPhase _growthPhase = GrowthTutorialPhase.focusHomeNotification;
 
   Completer<void>? _practiceCompleter;
 
@@ -102,21 +95,23 @@ class TutorialController extends ChangeNotifier {
 
   bool get isFirstWriteFlow =>
       _active &&
-          _phase == TutorialPhase.practice &&
-          _step == TutorialStep.emotionalWriting;
+      _phase == TutorialPhase.practice &&
+      _step == TutorialStep.emotionalWriting;
 
   bool get isConnectionFlow =>
       _active &&
-          _phase == TutorialPhase.practice &&
-          _step == TutorialStep.connectionAndEmpathy;
+      _phase == TutorialPhase.practice &&
+      _step == TutorialStep.connectionAndEmpathy;
 
   bool get isRetrospectFlow =>
       _active &&
-          _phase == TutorialPhase.practice &&
-          _step == TutorialStep.retrospect;
+      _phase == TutorialPhase.practice &&
+      _step == TutorialStep.retrospect;
 
   bool get isGrowthFlow =>
-      _active && _phase == TutorialPhase.practice && _step == TutorialStep.growth;
+      _active &&
+      _phase == TutorialPhase.practice &&
+      _step == TutorialStep.growth;
 
   FirstWriteTutorialPhase get firstWritePhase => _firstWritePhase;
   ConnectionTutorialPhase get connectionPhase => _connectionPhase;
@@ -125,12 +120,12 @@ class TutorialController extends ChangeNotifier {
 
   int get explainIndex {
     return switch (_step) {
-    TutorialStep.emotionalWriting => 0,
-    TutorialStep.connectionAndEmpathy => 1,
-    TutorialStep.retrospect => 2,
-    TutorialStep.growth => 3,
-    TutorialStep.done => 4,
-  };
+      TutorialStep.emotionalWriting => 0,
+      TutorialStep.connectionAndEmpathy => 1,
+      TutorialStep.retrospect => 2,
+      TutorialStep.growth => 3,
+      TutorialStep.done => 4,
+    };
   }
 
   bool _retrospectAssistantPicked = false;
@@ -171,39 +166,40 @@ class TutorialController extends ChangeNotifier {
 
     if (_step == TutorialStep.connectionAndEmpathy) {
       return switch (_connectionPhase) {
-      ConnectionTutorialPhase.focusHomeNotification =>
-      'home.notificationButton',
-    ConnectionTutorialPhase.focusReactionSelector => 'other.reactionSelector',
-    ConnectionTutorialPhase.sheetOneRing => 'other.reactionOptionAnchor',
-    ConnectionTutorialPhase.focusSendButton => 'other.sendButton',
-    ConnectionTutorialPhase.done => null,
-    };
+        ConnectionTutorialPhase.focusHomeNotification =>
+          'home.notificationButton',
+        ConnectionTutorialPhase.focusReactionSelector =>
+          'other.reactionSelector',
+        ConnectionTutorialPhase.sheetOneRing => 'other.reactionOptionAnchor',
+        ConnectionTutorialPhase.focusSendButton => 'other.sendButton',
+        ConnectionTutorialPhase.done => null,
+      };
     }
 
     if (_step == TutorialStep.retrospect) {
-    return switch (_retrospectPhase) {
-    RetrospectTutorialPhase.focusAiChatButton => 'home.aiChatButton',
-    RetrospectTutorialPhase.focusMessageBar => 'aichat.messageBar',
-    RetrospectTutorialPhase.messageSent => null,
-    };
+      return switch (_retrospectPhase) {
+        RetrospectTutorialPhase.focusAiChatButton => 'home.aiChatButton',
+        RetrospectTutorialPhase.focusMessageBar => 'aichat.messageBar',
+        RetrospectTutorialPhase.messageSent => null,
+      };
     }
 
     if (_step == TutorialStep.growth) {
-    return switch (_growthPhase) {
-    GrowthTutorialPhase.focusHomeNotification => 'home.notificationButton',
-    GrowthTutorialPhase.focusLetterCloseX => 'mail.detail.closeX',
-    GrowthTutorialPhase.focusTrayNav => 'nav.tray',
-    GrowthTutorialPhase.done => null,
-    };
+      return switch (_growthPhase) {
+        GrowthTutorialPhase.focusHomeNotification => 'home.notificationButton',
+        GrowthTutorialPhase.focusLetterCloseX => 'mail.detail.closeX',
+        GrowthTutorialPhase.focusTrayNav => 'nav.tray',
+        GrowthTutorialPhase.done => null,
+      };
     }
 
     // connectionAndEmpathy는 위에서 이미 처리함
     return switch (_step) {
-    TutorialStep.emotionalWriting => 'home.writeButton',
-    TutorialStep.retrospect => 'home.aiChatButton',
-    TutorialStep.growth => null,
-    TutorialStep.done => null,
-    TutorialStep.connectionAndEmpathy => 'home.notificationButton',
+      TutorialStep.emotionalWriting => 'home.writeButton',
+      TutorialStep.retrospect => 'home.aiChatButton',
+      TutorialStep.growth => null,
+      TutorialStep.done => null,
+      TutorialStep.connectionAndEmpathy => 'home.notificationButton',
     };
   }
 
@@ -216,10 +212,10 @@ class TutorialController extends ChangeNotifier {
   String? get firstWriteTargetId {
     if (!isFirstWriteFlow) return null;
     return switch (_firstWritePhase) {
-    FirstWriteTutorialPhase.focusText => 'write.textField',
-    FirstWriteTutorialPhase.togglePublic => 'write.togglePublic',
-    FirstWriteTutorialPhase.pressDone => 'write.doneButton',
-  };
+      FirstWriteTutorialPhase.focusText => 'write.textField',
+      FirstWriteTutorialPhase.togglePublic => 'write.togglePublic',
+      FirstWriteTutorialPhase.pressDone => 'write.doneButton',
+    };
   }
 
   // =================
@@ -324,8 +320,8 @@ class TutorialController extends ChangeNotifier {
   // ✅ 단일 진입: 즉시 설명 페이지
   // =========================
   Future<TutorialFlowResult?> showExplainFlowNow(
-      BuildContext context,
-      ) async {
+    BuildContext context,
+  ) async {
     if (flowOpened) return null;
 
     flowOpened = true;
@@ -345,9 +341,9 @@ class TutorialController extends ChangeNotifier {
   // ✅ 단일 진입: 지연 설명 페이지 (3초 등)
   // =========================
   void scheduleExplainFlow(
-      BuildContext context, {
-        Duration delay = const Duration(seconds: 3),
-      }) {
+    BuildContext context, {
+    Duration delay = const Duration(seconds: 3),
+  }) {
     if (flowOpened) return;
 
     _cancelPendingFlow();
@@ -406,9 +402,9 @@ class TutorialController extends ChangeNotifier {
     if (!_active || _step != TutorialStep.emotionalWriting) return;
 
     _firstWritePhase = switch (_firstWritePhase) {
-    FirstWriteTutorialPhase.focusText => FirstWriteTutorialPhase.togglePublic,
-    FirstWriteTutorialPhase.togglePublic => FirstWriteTutorialPhase.pressDone,
-    FirstWriteTutorialPhase.pressDone => FirstWriteTutorialPhase.pressDone,
+      FirstWriteTutorialPhase.focusText => FirstWriteTutorialPhase.togglePublic,
+      FirstWriteTutorialPhase.togglePublic => FirstWriteTutorialPhase.pressDone,
+      FirstWriteTutorialPhase.pressDone => FirstWriteTutorialPhase.pressDone,
     };
 
     notifyListeners();
@@ -418,15 +414,15 @@ class TutorialController extends ChangeNotifier {
     if (!isConnectionFlow) return;
 
     _connectionPhase = switch (_connectionPhase) {
-    ConnectionTutorialPhase.focusHomeNotification =>
-    ConnectionTutorialPhase.focusReactionSelector,
-    ConnectionTutorialPhase.focusReactionSelector =>
-    ConnectionTutorialPhase.sheetOneRing,
-    ConnectionTutorialPhase.sheetOneRing =>
-    ConnectionTutorialPhase.focusSendButton,
-    ConnectionTutorialPhase.focusSendButton => ConnectionTutorialPhase.done,
-    ConnectionTutorialPhase.done => ConnectionTutorialPhase.done,
-  };
+      ConnectionTutorialPhase.focusHomeNotification =>
+        ConnectionTutorialPhase.focusReactionSelector,
+      ConnectionTutorialPhase.focusReactionSelector =>
+        ConnectionTutorialPhase.sheetOneRing,
+      ConnectionTutorialPhase.sheetOneRing =>
+        ConnectionTutorialPhase.focusSendButton,
+      ConnectionTutorialPhase.focusSendButton => ConnectionTutorialPhase.done,
+      ConnectionTutorialPhase.done => ConnectionTutorialPhase.done,
+    };
 
     notifyListeners();
   }
@@ -478,12 +474,12 @@ class TutorialController extends ChangeNotifier {
   // ==========
   TutorialStep _nextOf(TutorialStep s) {
     return switch (s) {
-    TutorialStep.emotionalWriting => TutorialStep.connectionAndEmpathy,
-    TutorialStep.connectionAndEmpathy => TutorialStep.retrospect,
-    TutorialStep.retrospect => TutorialStep.growth,
-    TutorialStep.growth => TutorialStep.done,
-    TutorialStep.done => TutorialStep.done,
-  };
+      TutorialStep.emotionalWriting => TutorialStep.connectionAndEmpathy,
+      TutorialStep.connectionAndEmpathy => TutorialStep.retrospect,
+      TutorialStep.retrospect => TutorialStep.growth,
+      TutorialStep.growth => TutorialStep.done,
+      TutorialStep.done => TutorialStep.done,
+    };
   }
 
   void _resetSubPhasesForStep(TutorialStep step) {

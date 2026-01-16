@@ -1,3 +1,5 @@
+import 'package:bandi_official/components/appbar/appbar.dart';
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/home/widgets/home_notification_stack.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -13,11 +15,11 @@ import '../../tutorial/controller/tutorial_controller.dart';
 import '../../../controller/user_info_controller.dart';
 
 typedef MapAlarmsToItems = List<HomeNotiItem> Function({
-required List<Alarm> alarms,
-required AlarmController alarmController,
-required MailController mailController,
-required HomeToWrite writeProvider,
-required NavigationToggleProvider navigationToggleProvider,
+  required List<Alarm> alarms,
+  required AlarmController alarmController,
+  required MailController mailController,
+  required HomeToWrite writeProvider,
+  required NavigationToggleProvider navigationToggleProvider,
 });
 
 class HomeTopNotificationHeader extends StatelessWidget {
@@ -55,7 +57,8 @@ class HomeTopNotificationHeader extends StatelessWidget {
 
     final wrapForTutorial = tutorial.active &&
         tutorial.phase == TutorialPhase.practice &&
-        (tutorial.step == TutorialStep.connectionAndEmpathy || tutorial.step == TutorialStep.growth);
+        (tutorial.step == TutorialStep.connectionAndEmpathy ||
+            tutorial.step == TutorialStep.growth);
 
     return StreamBuilder<QuerySnapshot>(
       stream: alarmController.alarmStreamQuery(),
@@ -97,7 +100,7 @@ class HomeTopNotificationHeader extends StatelessWidget {
           items.add(
             HomeNotiItem(
               id: dailyReminderId(),
-              text: "오늘 하루는 어떠셨나요?",
+              text: "v2_home_notification_state_1".tr(context),
               type: HomeNotiType.dailyReminder,
               createdAt: dailyReminderCreatedAt(),
               onTap: () => writeProvider.toggleWrite(),
@@ -119,47 +122,51 @@ class HomeTopNotificationHeader extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                child: items.isEmpty
-                    ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "${userInfo.nickname}님,",
-                      style: BandiFont.titleSmall(context)!.copyWith(
-                        color: BandiColor.neutralColor60(context),
-                      ),
-                    ),
-                    Text(
-                      "오늘도 수고 많았어요.",
-                      style: BandiFont.headlineMedium(context)!.copyWith(
-                        color: BandiColor.neutralColor100(context),
-                      ),
-                    ),
-                  ],
-                )
-                    : HomeNotificationStack(
-                  key: tutorialNotiStackKey,
-                  items: items,
-                  showNewDot: showNewDot,
-                  onDropdownOpenChanged: (open) {
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      onDropdownOpenChanged(open);
-                    });
-                  },
-                  onStackTap: wrapForTutorial
-                      ? () async {
-                    final t = context.read<TutorialController>();
-                    if (t.step == TutorialStep.connectionAndEmpathy) {
-                      await t.advanceConnectionPhase(); // => focusReactionSelector
-                    }
-                    else if (t.connectionPhase == ConnectionTutorialPhase.focusHomeNotification) {
-                      t.setGrowthPhase(GrowthTutorialPhase.focusLetterCloseX);
-                    }
-                  }
-                      : null,
-
-                )
-              ),
+                  child: items.isEmpty
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              userInfo.nickname +
+                                  "v2_home_notification_state_2".tr(context),
+                              style: BandiFont.titleSmall(context)!.copyWith(
+                                color: BandiColor.neutralColor60(context),
+                              ),
+                            ),
+                            Text(
+                              "v2_home_notification_state_3".tr(context),
+                              style:
+                                  BandiFont.headlineMedium(context)!.copyWith(
+                                color: BandiColor.neutralColor100(context),
+                              ),
+                            ),
+                          ],
+                        )
+                      : HomeNotificationStack(
+                          key: tutorialNotiStackKey,
+                          items: items,
+                          showNewDot: showNewDot,
+                          onDropdownOpenChanged: (open) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              onDropdownOpenChanged(open);
+                            });
+                          },
+                          onStackTap: wrapForTutorial
+                              ? () async {
+                                  final t = context.read<TutorialController>();
+                                  if (t.step ==
+                                      TutorialStep.connectionAndEmpathy) {
+                                    await t
+                                        .advanceConnectionPhase(); // => focusReactionSelector
+                                  } else if (t.connectionPhase ==
+                                      ConnectionTutorialPhase
+                                          .focusHomeNotification) {
+                                    t.setGrowthPhase(
+                                        GrowthTutorialPhase.focusLetterCloseX);
+                                  }
+                                }
+                              : null,
+                        )),
               const SizedBox(width: 12),
             ],
           ),

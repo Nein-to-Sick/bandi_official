@@ -17,12 +17,12 @@ class FrostedNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(100),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(100),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
             child: Container(
               width: MediaQuery.of(context).size.width,
               padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),

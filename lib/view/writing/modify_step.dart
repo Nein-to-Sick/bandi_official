@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/localization/string_extention.dart';
 import 'package:bandi_official/view/my_diary_list/controller/my_diary_list_controller.dart';

@@ -371,8 +371,8 @@ class AlarmController with ChangeNotifier {
         case NotificationType.letterDetail:
           dev.log('Navigating to letter_detail');
 
-          var (isSuccess, item) = await mailController
-              .checkForNewLetterNewNotificationsAndSaveLetterToLocal();
+          var (isSuccess, item) =
+              await mailController.checkNewLetterAndSaveToLocal();
 
           if (isSuccess && item != null) {
             navigatorKey.currentState?.push(
@@ -537,6 +537,7 @@ class AlarmController with ChangeNotifier {
 
   Future<void> showLocalOtherDiaryNotification({
     required String diaryId,
+    required BuildContext context,
   }) async {
     const details = NotificationDetails(
       iOS: DarwinNotificationDetails(
@@ -562,8 +563,8 @@ class AlarmController with ChangeNotifier {
 
     await _local.show(
       notifId,
-      "나와 비슷한 친구를 찾았어요!",
-      "탭하여 확인해보세요.",
+      "v2_home_notification_sharing_state_3".tr(context),
+      "v2_home_notification_sharing_state_4".tr(context),
       details,
       payload: payload,
     );
@@ -719,17 +720,11 @@ class AlarmController with ChangeNotifier {
     final now = DateTime.now();
     final fs = FirebaseFirestore.instance;
 
-    final letterRef = fs
-        .collection('users')
-        .doc(uid)
-        .collection('letters')
-        .doc();
+    final letterRef =
+        fs.collection('users').doc(uid).collection('letters').doc();
 
-    final alarmRef = fs
-        .collection('users')
-        .doc(uid)
-        .collection('notifications')
-        .doc();
+    final alarmRef =
+        fs.collection('users').doc(uid).collection('notifications').doc();
 
     final batch = fs.batch();
 
@@ -742,9 +737,10 @@ class AlarmController with ChangeNotifier {
 
     batch.set(alarmRef, {
       'notificationId': alarmRef.id,
-      'type': 'letter',                 // AlarmType.letter 로 매핑되는 값
+      'type': 'letter', // AlarmType.letter 로 매핑되는 값
       'title': title,
-      'dataId': letterRef.id,           // ✅ _handleHomeNotiTap에서 readLetterDataFromDB(alarm.dataId)
+      'dataId': letterRef
+          .id, // ✅ _handleHomeNotiTap에서 readLetterDataFromDB(alarm.dataId)
       'date': Timestamp.fromDate(now),
     });
 

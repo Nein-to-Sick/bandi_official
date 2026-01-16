@@ -102,7 +102,6 @@ class MainApp extends StatelessWidget {
                 nav: ctx.read<NavigationToggleProvider>(),
                 userInfo: ctx.read<UserInfoValueModel>(),
                 tutorial: ctx.read<TutorialController>(),
-
               ),
             ),
             ChangeNotifierProvider(
@@ -161,7 +160,11 @@ class MainApp extends StatelessWidget {
               }
               return supportedLocales.first;
             },
-            home: const NavigationView(),
+            home: Padding(
+              padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).padding.bottom),
+              child: const NavigationView(),
+            ),
           ),
           // AuthWrapper(),
         );

@@ -349,8 +349,9 @@ class _OtherDiaryState extends State<OtherDiary> {
             rawRect != null)
         ? TutorialSpeechBubble(
             targetRect: rawRect,
-            title: '원하는 공감 메시지를 전하세요.',
-            subtitle: '메시지는 익명으로 안전하게 전달됩니다.',
+            title: 'v2_tutorial_speech_bubble_other_diary_title'.tr(context),
+            subtitle:
+                'v2_tutorial_speech_bubble_other_diary_subtitle'.tr(context),
             bubbleOffset: const Offset(20, 0),
             // ✅ 말풍선 전체를 오른쪽/아래로
             arrowOffsetX: -100, // ✅ 화살표만 살짝 오른쪽
