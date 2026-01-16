@@ -1,3 +1,4 @@
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_switch/flutter_switch.dart';
 
@@ -12,15 +13,38 @@ class BottomBar extends StatelessWidget {
   final VoidCallback onDone;
   final bool doneEnabled;
 
-  const BottomBar({super.key, required this.isPublic, required this.onTogglePublic, required this.publicLabel, required this.onExit, required this.onDone, required this.doneEnabled});
+  // ✅ 튜토리얼 제어용
+  final bool allowTogglePublic;
+  final bool allowExit;
+  final bool allowDone;
 
+  // ✅ registry용 key
+  final Key? publicSwitchKey;
+  final Key? doneButtonKey;
 
+  const BottomBar({
+    super.key,
+    required this.isPublic,
+    required this.onTogglePublic,
+    required this.publicLabel,
+    required this.onExit,
+    required this.onDone,
+    required this.doneEnabled,
+    this.allowTogglePublic = true,
+    this.allowExit = true,
+    this.allowDone = true,
+    this.publicSwitchKey,
+    this.doneButtonKey,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Divider(color: BandiColor.neutralColor10(context), thickness: 1,),
+        Divider(
+          color: BandiColor.neutralColor10(context),
+          thickness: 1,
+        ),
         Padding(
           padding: const EdgeInsets.fromLTRB(24, 15, 24, 16),
           child: Row(
@@ -31,16 +55,25 @@ class BottomBar extends StatelessWidget {
                 flex: 3,
                 child: Row(
                   children: [
-                    FlutterSwitch(
-                      value: isPublic,
-                      onToggle: onTogglePublic,
-                      width: 32.0,
-                      height: 16.0,
-                      padding: 2,
-                      toggleSize: 12.0,
-                      activeColor: BandiColor.accentColorYellow(context),
-                      inactiveColor: BandiColor.foundationColor40(context),
-                      inactiveToggleColor: BandiColor.foundationColor40(context),
+                    KeyedSubtree(
+                      key: publicSwitchKey,
+                      child: IgnorePointer(
+                        ignoring: !allowTogglePublic,
+                        child: FlutterSwitch(
+                          value: isPublic,
+                          onToggle: (v) {
+                            if (!allowTogglePublic) return;
+                            onTogglePublic(v);
+                          },
+                          width: 32.0,
+                          height: 16.0,
+                          padding: 2,
+                          toggleSize: 12.0,
+                          activeColor: BandiColor.accentColorYellow(context),
+                          inactiveColor: BandiColor.foundationColor40(context),
+                          inactiveToggleColor: BandiColor.foundationColor40(context),
+                        ),
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -59,18 +92,21 @@ class BottomBar extends StatelessWidget {
               Row(
                 children: [
                   _BarButton(
-                    title: "나가기",
+                    title: "v2_bottom_bar_button_exit".tr(context),
                     onTap: onExit,
+                    disabled: !allowExit,
                   ),
                   const SizedBox(width: 8),
-                  _BarButton(
-                    title: "완료",
-                    onTap: onDone,
-                    disabled: !doneEnabled,
+                  KeyedSubtree(
+                    key: doneButtonKey,
+                    child: _BarButton(
+                      title: "v2_bottom_bar_button_done".tr(context),
+                      onTap: onDone,
+                      disabled: !allowDone || !doneEnabled,
+                    ),
                   ),
                 ],
-              )
-
+              ),
             ],
           ),
         ),
@@ -98,13 +134,15 @@ class _BarButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
         decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(100),
-            color: BandiColor.neutralColor10(context)
+          borderRadius: BorderRadius.circular(100),
+          color: BandiColor.neutralColor10(context),
         ),
         child: Text(
           title,
           style: BandiFont.labelMedium(context)?.copyWith(
-            color: BandiColor.neutralColor90(context),
+            color: disabled
+                ? BandiColor.foundationColor40(context)
+                : BandiColor.neutralColor90(context),
           ),
         ),
       ),

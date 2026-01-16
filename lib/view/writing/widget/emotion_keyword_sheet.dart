@@ -1,6 +1,6 @@
 import 'package:bandi_official/components/button/primary_button.dart';
 import 'package:bandi_official/model/diary.dart';
-import 'package:bandi_official/string_extention.dart';
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:bandi_official/view/my_diary_list/controller/my_diary_list_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -90,7 +90,7 @@ class _EmotionKeywordSheetState extends State<EmotionKeywordSheet> {
                       children: [
                         Expanded(
                           child: Text(
-                            "감정 키워드",
+                            "v2_emotion_keyword_sheet_title".tr(context),
                             style: BandiFont.titleSmall(context)?.copyWith(
                               color: BandiColor.foundationColor80(context),
                             ),
@@ -161,7 +161,7 @@ class _EmotionKeywordSheetState extends State<EmotionKeywordSheet> {
                 right: 24,
                 bottom: 32,
                 child: CustomPrimaryButton(
-                    title: "완료",
+                    title: "v2_emotion_keyword_sheet_button".tr(context),
                     onPrimaryButtonPressed: () async {
                       provider.toggleIsLoading(true);
                       await widget.writeProvider

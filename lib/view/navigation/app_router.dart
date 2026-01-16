@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:bandi_official/view/my_diary_list/my_diary_list_view.dart';
 import 'package:flutter/material.dart';
 
@@ -12,7 +14,7 @@ import '../diary_ai_chat/controller/diary_ai_chat_controller.dart';
 import '../mail/controller/mail_controller.dart';
 import '../alarm/controller/alarm_controller.dart';
 import '../login/onboarding_gate.dart';
-import '../../string_extention.dart';
+import '../../localization/string_extention.dart';
 import '../settings/user_view.dart';
 
 class AppRouter {
@@ -24,11 +26,6 @@ class AppRouter {
     required MailController mailController,
     required AlarmController alarmController,
   }) {
-    // 오버레이 우선
-    // if (writeProvider.otherDiaryOpen == true && writeProvider.step == 1) {
-    //   return OtherDiary(writeProvider: writeProvider);
-    // }
-
     // 회원가입/온보딩
     if (nav.selectedIndex == -3) return const OnboardingGate();
 

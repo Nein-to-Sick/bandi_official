@@ -2,7 +2,7 @@ import 'package:bandi_official/analytics/log_other_journal_search.dart';
 import 'package:bandi_official/components/loading/loading_page.dart';
 import 'package:bandi_official/view/mail/controller/mail_controller.dart';
 import 'package:bandi_official/model/letter.dart';
-import 'package:bandi_official/string_extention.dart';
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/mail/detail_view.dart';
 import 'package:flutter/material.dart';
@@ -22,29 +22,41 @@ class _MyLettersPageState extends State<MyLettersPage> {
 
   @override
   void initState() {
+    super.initState();
+
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       mailController = Provider.of<MailController>(context, listen: false);
 
-      mailController.loadDataAndSetting().then((value) {
-        mailController.restoreLetterScrollPosition();
+      mailController.loadDataAndSetting().then((_) {
+        if (mailController.letterScrollController.hasClients) {
+          mailController.restoreLetterScrollPosition();
+        } else {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mailController.letterScrollController.hasClients) {
+              mailController.restoreLetterScrollPosition();
+            }
+          });
+        }
 
         if (!mailController.isLettersListenerAdded) {
-          // when screen reached nearly bottom of the list load more past data
-          WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-            mailController.letterScrollController.addListener(_scrollListener);
-            mailController.toggleIsLettersListenerAdded(true);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mailController.letterScrollController.hasClients) {
+              mailController.letterScrollController
+                  .addListener(_scrollListener);
+              mailController.toggleIsLettersListenerAdded(true);
+            }
           });
         }
       });
     });
-
-    super.initState();
   }
 
   void _scrollListener() async {
     if (!mailController.loadMoreLetterData || mailController.isLoadingLetter) {
       return;
     }
+
+    if (!mailController.letterScrollController.hasClients) return;
 
     final position = mailController.letterScrollController.position;
 
@@ -70,14 +82,20 @@ class _MyLettersPageState extends State<MyLettersPage> {
     final allLetters = mailController.letterList;
     final DateTime? filterDate = mailController.letterFilteredDate;
 
-    final displayList = filterDate == null
-        ? allLetters
-        : allLetters.where((letter) {
-            DateTime letterDate = letter.date.toDate();
-            // 연도와 월이 모두 일치하는지 확인
-            return letterDate.year == filterDate.year &&
-                letterDate.month == filterDate.month;
-          }).toList();
+    List<Letter> displayList;
+
+    if (filterDate == null) {
+      displayList = List.from(allLetters); // 원본 보호를 위해 복사본 생성
+    } else {
+      displayList = allLetters.where((letter) {
+        DateTime letterDate = letter.date.toDate();
+        // 연도와 월이 모두 일치하는지 확인
+        return letterDate.year == filterDate.year &&
+            letterDate.month == filterDate.month;
+      }).toList();
+    }
+
+    displayList.sort((a, b) => b.date.compareTo(a.date));
 
     return (mailController.isLoading)
         ? MyFireFlyProgressbar(
@@ -94,7 +112,7 @@ class _MyLettersPageState extends State<MyLettersPage> {
                     return Column(
                       children: [
                         lettersWidget(
-                            index, displayList[0], mailController, context),
+                            index, displayList[index], mailController, context),
                         if (index == displayList.length - 1)
                           SizedBox(
                             height: MediaQuery.of(context).padding.bottom + 188,
@@ -116,6 +134,7 @@ Widget _buildEmptyState(
       children: [
         Text(
           "inbox_no_letters".tr(context),
+          textAlign: TextAlign.center,
           style: BandiFont.headlineMedium(context)?.copyWith(
             color: BandiColor.neutralColor80(context),
           ),
@@ -170,17 +189,23 @@ Widget lettersWidget(int num, Letter letter, MailController mailController,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              '$numbering. $title',
-              style: BandiFont.titleSmall(context)
-                  ?.copyWith(color: BandiColor.neutralColor90(context)),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            Flexible(
+              flex: 2,
+              child: Text(
+                '$numbering. $title',
+                style: BandiFont.titleSmall(context)
+                    ?.copyWith(color: BandiColor.neutralColor90(context)),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-            Text(
-              date,
-              style: BandiFont.labelSmall(context)
-                  ?.copyWith(color: BandiColor.neutralColor60(context)),
+            Flexible(
+              flex: 1,
+              child: Text(
+                date,
+                style: BandiFont.labelSmall(context)
+                    ?.copyWith(color: BandiColor.neutralColor60(context)),
+              ),
             ),
           ],
         ),

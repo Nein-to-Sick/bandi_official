@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:bandi_official/analytics/log_other_diary_received.dart';
 import 'package:bandi_official/controller/user_info_controller.dart';
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:bandi_official/view/my_diary_list/controller/my_diary_list_controller.dart';
 import 'package:bandi_official/view/writing/controller/diary_ai_analysis_controller.dart';
 import 'package:bandi_official/model/diary.dart';
@@ -87,10 +88,13 @@ class HomeToWrite with ChangeNotifier {
           final userInfo = context.read<UserInfoValueModel>();
           final myNickname = userInfo.nickname;
 
+          if (!context.mounted) return;
+
           await sendOtherDiary(
             diaryId: returnDiaryId,
             alarmController: alarmController,
             username: myNickname,
+            context: context,
           );
 
           await logOtherDiaryReceived();
@@ -123,7 +127,7 @@ class HomeToWrite with ChangeNotifier {
 
       // Get the current number of diaries
       List<dynamic> myDiaryId = userData['myDiaryId'] ?? [];
-      int diaryCount = myDiaryId.length;
+      int diaryCount = extractLatestDiaryNumber(myDiaryId, userId!);
 
       // Generate a new diary ID
       String newDiaryId = "$userId${diaryCount + 1}";
@@ -158,6 +162,41 @@ class HomeToWrite with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       developer.log("Error saving diary: $e");
+    }
+  }
+
+  // myDiaryId 리스트의 마지막 요소를 찾아 그 숫자를 리턴하는 함수
+  int extractLatestDiaryNumber(
+      List<dynamic> myDiaryIdList, String currentUserId) {
+    // 1. 현재 사용자 ID가 유효한지 확인
+    if (currentUserId.isEmpty) {
+      return 0;
+    }
+
+    // 2. 리스트가 비어있는지 확인
+    if (myDiaryIdList.isEmpty) {
+      return 0;
+    }
+
+    // 3. 마지막 요소를 String으로 가져옵니다.
+    // myDiaryIdList는 dynamic 타입을 포함할 수 있으므로, .toString()을 사용합니다.
+    final String lastDiaryId = myDiaryIdList.last.toString();
+
+    // 4. 마지막 일기 ID가 사용자 ID로 시작하는지 확인합니다.
+    if (!lastDiaryId.startsWith(currentUserId)) {
+      return 0;
+    }
+
+    try {
+      // 5. 사용자 ID 이후의 부분(넘버링)을 잘라냅니다.
+      final String numberingPart = lastDiaryId.substring(currentUserId.length);
+
+      // 6. 숫자로 변환하여 반환합니다.
+      final int diaryCount = int.tryParse(numberingPart) ?? 0;
+
+      return diaryCount;
+    } catch (e) {
+      return 0;
     }
   }
 
@@ -316,7 +355,7 @@ class HomeToWrite with ChangeNotifier {
   Diary otherDiaryModel = Diary(
     userId: 'userId',
     title: '행복한 날입니다.',
-    content: '죄송해요 저는 여기까지입니다.',
+    content: '이용해주셔서 정말 감사합니다!',
     emotion: ['emotion'],
     createdAt: Timestamp.now(),
     updatedAt: Timestamp.now(),
@@ -335,6 +374,7 @@ class HomeToWrite with ChangeNotifier {
   Future<void> _saveOtherDiaryNotificationToDB({
     required String diaryId,
     String? title,
+    required BuildContext context,
   }) async {
     final uid = userId;
     if (uid == null || uid.isEmpty) return;
@@ -348,7 +388,7 @@ class HomeToWrite with ChangeNotifier {
     await docRef.set({
       'notificationId': docRef.id,
       'type': 'otherDiary',
-      'title': title ?? '새로운 공유 일기가 도착했어요',
+      'title': title ?? 'v2_home_notification_sharing_state_1'.tr(context),
       'dataId': diaryId,
       'date': FieldValue.serverTimestamp(),
     });
@@ -358,7 +398,9 @@ class HomeToWrite with ChangeNotifier {
     required String diaryId,
     required AlarmController alarmController,
     required String username,
+    required BuildContext context,
   }) async {
+    String langCode = Localizations.localeOf(context).languageCode;
     final documentSnapshot = await FirebaseFirestore.instance
         .collection('allDiary')
         .doc(diaryId)
@@ -368,13 +410,19 @@ class HomeToWrite with ChangeNotifier {
 
     final diary = Diary.fromSnapshot(documentSnapshot);
 
+    if (!context.mounted) return;
+
     await _saveOtherDiaryNotificationToDB(
       diaryId: diaryId,
-      title: '$username님과 비슷한 친구가 있어요.',
+      title: (langCode == 'ko')
+          ? username + "v2_home_notification_sharing_state_2".tr(context)
+          : "v2_home_notification_sharing_state_2".tr(context),
+      context: context,
     );
 
     await alarmController.showLocalOtherDiaryNotification(
       diaryId: diaryId,
+      context: context,
     );
 
     otherDiaryModel = diary;

@@ -1,8 +1,9 @@
+/*
 import 'package:bandi_official/components/loading/loading_page.dart';
 import 'package:bandi_official/view/mail/controller/mail_controller.dart';
 import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/model/letter.dart';
-import 'package:bandi_official/string_extention.dart';
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/mail/letters_view.dart';
 import 'package:bandi_official/view/mail/liked_diary_view.dart';
@@ -11,7 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import 'dart:developer' as dev;
-/*
+
 class EveryMailPage extends StatefulWidget {
   const EveryMailPage({super.key});
 
@@ -110,6 +111,7 @@ class _EveryMailPageState extends State<EveryMailPage> {
             ? Center(
                 child: Text(
                   'inbox_no_all'.tr(context),
+                  textAlign: TextAlign.center,
                   style: BandiFont.headlineMedium(context)?.copyWith(
                     color: BandiColor.neutralColor80(context),
                   ),

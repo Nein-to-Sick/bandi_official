@@ -1,3 +1,4 @@
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -41,10 +42,10 @@ class PermissionController with ChangeNotifier {
         if (context.mounted) {
           final ok = await showFloatingConfirmSheet(
             context,
-            title: '알림을 받지 않으시나요?',
-            description: '알림이 꺼지면 반디의 답장을 바로 확인할 수 없어요.',
-            cancelText: '취소',
-            confirmText: '알림 끄기',
+            title: 'dialogue_message_alarm_setting_title'.tr(context),
+            description: 'dialogue_message_alarm_setting_content'.tr(context),
+            cancelText: 'dialogue_message_alarm_setting_button_1'.tr(context),
+            confirmText: 'dialogue_message_alarm_setting_button_2'.tr(context),
           );
 
           if (ok == false) {

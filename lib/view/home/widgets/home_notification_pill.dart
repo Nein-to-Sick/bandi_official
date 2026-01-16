@@ -88,7 +88,7 @@ class HomeNotificationPill extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    text,
+                    text == "웰컴 편지" ? "첫번째 편지가 도착했어요." : text,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: BandiFont.titleSmall(context)?.copyWith(

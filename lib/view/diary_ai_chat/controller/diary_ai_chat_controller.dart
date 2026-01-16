@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:bandi_official/analytics/log_ai_chat_send.dart';
 import 'package:bandi_official/view/diary_ai_chat/model/diary_ai_chat.dart';
-import 'package:bandi_official/string_extention.dart';
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';

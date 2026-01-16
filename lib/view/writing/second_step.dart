@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/diary_ai_chat/controller/diary_ai_chat_controller.dart';
 import 'package:bandi_official/view/diary_ai_chat/diary_ai_chat_view.dart';
@@ -15,6 +16,9 @@ import '../../../controller/navigation_toggle_provider.dart';
 import '../../components/bottom_sheet/show_floating_confirm_sheet.dart';
 import 'dart:developer' as dev;
 
+import '../tutorial/controller/tutorial_controller.dart';
+import '../tutorial/tutorial_flow_page.dart';
+
 class SecondStep extends StatelessWidget {
   const SecondStep({super.key});
 
@@ -29,11 +33,34 @@ class SecondStep extends StatelessWidget {
 
     final title = writeProvider.diaryModel.title;
 
-    final dateText = DateFormat('yyyy년 M월 d일')
+    final dateText = DateFormat('detail_view_diary_date_form'.tr(context),
+            'detail_view_date_form_country'.tr(context))
         .format(writeProvider.diaryModel.createdAt.toDate());
 
-    void onPagePop() {
-      navigationToggleProvider.selectIndex(1);
+    Future<void> onPagePop() async {
+      final t = context.read<TutorialController>();
+
+      final shouldShowNextFlow =
+          t.active &&
+              t.phase == TutorialPhase.practice &&
+              t.step == TutorialStep.emotionalWriting;
+
+      if (shouldShowNextFlow) {
+        await t.advanceAfterPractice();
+
+        final res = await TutorialFlowPage.show(
+          context,
+          startIndex: context.read<TutorialController>().explainIndex,
+        );
+
+        if (res != null) {
+          await context.read<TutorialController>().beginPracticeForStep(res.step);
+        }
+      }
+
+      if (t.active) { navigationToggleProvider.selectIndex(-3); }
+      else { navigationToggleProvider.selectIndex(1); }
+
       writeProvider.initialize();
       writeProvider.toggleWrite();
     }
@@ -70,10 +97,14 @@ class SecondStep extends StatelessWidget {
                       } else if (action == DiarySheetAction.delete) {
                         final confirmed = await showFloatingConfirmSheet(
                           context,
-                          title: '일기를 정말로 삭제하시겠어요?',
-                          description: '한 번 삭제한 기록은 복구할 수 없어요.',
-                          cancelText: '취소',
-                          confirmText: '삭제',
+                          title:
+                              'v2_second_step_delete_confirm_title'.tr(context),
+                          description: 'v2_second_step_delete_confirm_content'
+                              .tr(context),
+                          cancelText: 'v2_second_step_delete_confirm_button_1'
+                              .tr(context),
+                          confirmText: 'v2_second_step_delete_confirm_button_2'
+                              .tr(context),
                         );
 
                         if (confirmed == true) {
@@ -156,7 +187,7 @@ class SecondStep extends StatelessWidget {
             Expanded(child: Container()),
             // ===== 하단 Frosted Bar =====
             _BottomFrostBar(
-              leftTitle: '감정 키워드',
+              leftTitle: 'v2_emotion_keyword_sheet_title'.tr(context),
               onTapLeft: () async {
                 await showEmotionKeywordSheet(
                   context,
@@ -173,8 +204,8 @@ class SecondStep extends StatelessWidget {
                   }
                 });
               },
-              onTapHome: () {
-                onPagePop();
+              onTapHome: () async {
+                await onPagePop();
               },
             ),
           ],

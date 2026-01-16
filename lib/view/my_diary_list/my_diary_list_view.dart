@@ -5,9 +5,8 @@ import 'package:bandi_official/components/loading/loading_page.dart';
 import 'package:bandi_official/controller/home_to_write.dart';
 import 'package:bandi_official/controller/navigation_toggle_provider.dart';
 import 'package:bandi_official/model/diary.dart';
-import 'package:bandi_official/string_extention.dart';
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
-import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
 import 'package:bandi_official/view/my_diary_list/controller/my_diary_list_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -28,27 +27,36 @@ class _MyDiaryListViewState extends State<MyDiaryListView>
 
   @override
   void initState() {
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      myDiaryListController =
-          Provider.of<MyDiaryListController>(context, listen: false);
+    super.initState();
 
-      myDiaryListController.initScrollControllers();
+    myDiaryListController =
+        Provider.of<MyDiaryListController>(context, listen: false);
 
+    myDiaryListController.initScrollControllers();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       myDiaryListController.loadDataAndSetting().then((value) {
-        myDiaryListController.restoreMyDiaryScrollPosition();
+        if (myDiaryListController.myDiaryScrollController.hasClients) {
+          myDiaryListController.restoreMyDiaryScrollPosition();
+        } else {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (myDiaryListController.myDiaryScrollController.hasClients) {
+              myDiaryListController.restoreMyDiaryScrollPosition();
+            }
+          });
+        }
 
         if (!myDiaryListController.isMyDiaryListenerAdded) {
-          // when screen reached nearly bottom of the list load more past data
-          WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-            myDiaryListController.myDiaryScrollController
-                .addListener(_scrollListener);
-            myDiaryListController.toggleIsMyDiaryListenerAdded(true);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (myDiaryListController.myDiaryScrollController.hasClients) {
+              myDiaryListController.myDiaryScrollController
+                  .addListener(_scrollListener);
+              myDiaryListController.toggleIsMyDiaryListenerAdded(true);
+            }
           });
         }
       });
     });
-
-    super.initState();
   }
 
   void _scrollListener() async {
@@ -56,6 +64,8 @@ class _MyDiaryListViewState extends State<MyDiaryListView>
         myDiaryListController.isLoadingMyDiary) {
       return;
     }
+
+    if (!myDiaryListController.myDiaryScrollController.hasClients) return;
 
     final position = myDiaryListController.myDiaryScrollController.position;
 
@@ -72,6 +82,7 @@ class _MyDiaryListViewState extends State<MyDiaryListView>
           .removeListener(_scrollListener);
       myDiaryListController.toggleIsMyDiaryListenerAdded(false);
     });
+    // myDiaryListController.myDiaryScrollController.dispose();
     super.dispose();
   }
 
@@ -83,15 +94,25 @@ class _MyDiaryListViewState extends State<MyDiaryListView>
     final allDiaries = myDiaryListController.myDiaryList;
     final DateTime? filterDate = myDiaryListController.myDiaryFilteredDate;
 
-    // 선택된 날짜가 있으면 해당 날짜만, 없으면 전체 리스트
-    final displayList = filterDate == null
-        ? allDiaries
-        : allDiaries.where((diary) {
-            DateTime diaryDate = diary.createdAt.toDate();
-            return diaryDate.year == filterDate.year &&
-                diaryDate.month == filterDate.month &&
-                diaryDate.day == filterDate.day;
-          }).toList();
+    // 1. 필터링 로직 (기존 코드)
+    // List<Diary> 타입으로 선언 (final 제거하여 정렬 가능하게 함)
+    List<Diary> displayList;
+
+    if (filterDate == null) {
+      displayList = List.from(allDiaries); // 원본 보호를 위해 복사본 생성
+    } else {
+      displayList = allDiaries.where((diary) {
+        // [중요] Timezone 문제 방지를 위해 .toLocal() 필수
+        DateTime diaryDate = diary.createdAt.toDate().toLocal();
+        return diaryDate.year == filterDate.year &&
+            diaryDate.month == filterDate.month &&
+            diaryDate.day == filterDate.day;
+      }).toList();
+    }
+
+    // 2. [핵심 수정] 화면 표시 직전 '최신순' 강제 정렬
+    // 작성일(createdAt) 기준 내림차순 (b를 a보다 앞에)
+    displayList.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
     return SafeArea(
       child: Scaffold(
@@ -101,8 +122,8 @@ class _MyDiaryListViewState extends State<MyDiaryListView>
           title: 'journal_title'.tr(context),
           // leftActionButtonIcon: PhosphorIcons.bell(PhosphorIconsStyle.thin),
           // onLeftActionButtonPressed: () async {
-          //   AlarmController alarmController =
-          //       Provider.of<AlarmController>(context, listen: false);
+          //   // AlarmController alarmController =
+          //   //     Provider.of<AlarmController>(context, listen: false);
 
           //   // local noti test
           //   // alarmController.testAllNotificationTypes();
@@ -178,6 +199,7 @@ Widget _buildEmptyState(bool isFiltered,
       children: [
         Text(
           'journal_no_diary'.tr(context),
+          textAlign: TextAlign.center,
           style: BandiFont.headlineMedium(context)?.copyWith(
             color: BandiColor.neutralColor80(context),
           ),
@@ -241,17 +263,23 @@ Widget myDiaryWidget(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              diary.title,
-              style: BandiFont.titleSmall(context)
-                  ?.copyWith(color: BandiColor.neutralColor90(context)),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            Flexible(
+              flex: 2,
+              child: Text(
+                diary.title,
+                style: BandiFont.titleSmall(context)
+                    ?.copyWith(color: BandiColor.neutralColor90(context)),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-            Text(
-              date,
-              style: BandiFont.labelSmall(context)
-                  ?.copyWith(color: BandiColor.neutralColor60(context)),
+            Flexible(
+              flex: 1,
+              child: Text(
+                date,
+                style: BandiFont.labelSmall(context)
+                    ?.copyWith(color: BandiColor.neutralColor60(context)),
+              ),
             ),
           ],
         ),

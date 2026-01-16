@@ -3,10 +3,12 @@ import 'dart:developer';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../../controller/navigation_toggle_provider.dart';
 import '../../../controller/securestorage_controller.dart';
 import '../../../controller/user_info_controller.dart';
+import '../../tutorial/controller/tutorial_controller.dart';
 import '../data/auth_service.dart';
 
 sealed class LoginUiEvent {
@@ -15,6 +17,10 @@ sealed class LoginUiEvent {
 
 class ShowAgreementSheet extends LoginUiEvent {
   const ShowAgreementSheet();
+}
+
+class ShowTutorialFlow extends LoginUiEvent {
+  const ShowTutorialFlow();
 }
 
 class ShowNicknameSheet extends LoginUiEvent {
@@ -31,6 +37,7 @@ class LoginController extends ChangeNotifier {
   final SecureStorageProvider storage;
   final NavigationToggleProvider nav;
   final UserInfoValueModel userInfo;
+  final TutorialController tutorial;
 
   bool _disposed = false;
   bool _initialized = false;
@@ -39,7 +46,7 @@ class LoginController extends ChangeNotifier {
   final List<LoginUiEvent> _pending = [];
 
   late final StreamController<LoginUiEvent> _events =
-  StreamController<LoginUiEvent>.broadcast(
+      StreamController<LoginUiEvent>.broadcast(
     onListen: () {
       // ✅ 리스너가 붙는 순간, 밀린 이벤트 모두 재전달
       for (final e in List<LoginUiEvent>.from(_pending)) {
@@ -57,9 +64,12 @@ class LoginController extends ChangeNotifier {
     required this.storage,
     required this.nav,
     required this.userInfo,
+    required this.tutorial,
   });
 
   void emit(LoginUiEvent e) {
+    log('emit $e hasListener=${_events.hasListener} closed=${_events.isClosed}');
+
     if (_disposed) return;
     if (_events.isClosed) return;
 
@@ -82,13 +92,41 @@ class LoginController extends ChangeNotifier {
     if (_initialized) return;
     _initialized = true;
 
-    if (nav.getIndex() != -1) return;
-
     await storage.loadLoginInfo();
 
+    final current = FirebaseAuth.instance.currentUser;
+    log('[LOGIN init] storage.isLoggedIn=${storage.isLoggedIn} current=${current?.uid}');
+
+    // ✅ 핵심: 저장소 기준 "로그인 아님"인데 currentUser가 살아있으면 => 유령 세션
+    if (!storage.isLoggedIn && current != null) {
+      await _hardSignOut(); // 아래 함수
+    }
+
+    final current2 = FirebaseAuth.instance.currentUser;
+    if (current2 != null) {
+      await _routeAfterAuth(current2);
+      return;
+    }
+
+    // 저장소 기준 자동로그인 시도
     if (storage.isLoggedIn && !authService.checkOnce) {
       authService.toggleCheckOnce();
       await tryAutoLogin();
+    } else {
+      nav.selectIndex(-1);
+    }
+  }
+
+  Future<void> _hardSignOut() async {
+    try {
+      // Google 세션까지 완전히 끊기
+      final g = GoogleSignIn();
+      await g.signOut();
+      await g.disconnect(); // 중요: 캐시 계정 끊기
+
+      await FirebaseAuth.instance.signOut();
+    } catch (_) {
+      // ignore
     }
   }
 
@@ -98,15 +136,17 @@ class LoginController extends ChangeNotifier {
     try {
       User? user;
 
-      if (storage.loginMethod == 'google' && storage.googleAccessToken != null) {
-        user = await authService.signInWithGoogleTokens(storage.googleAccessToken!);
-      } else if (storage.loginMethod == 'apple' && storage.appleIdentityToken != null) {
+      if (storage.loginMethod == 'google' &&
+          storage.googleAccessToken != null) {
+        user = await authService
+            .signInWithGoogleTokens(storage.googleAccessToken!);
+      } else if (storage.loginMethod == 'apple' &&
+          storage.appleIdentityToken != null) {
         user = await authService.signInWithAppleTokens();
       } else {
         nav.selectIndex(-1);
         return;
       }
-
       await _routeAfterAuth(user);
     } on FirebaseAuthException catch (e) {
       log("auto login error: ${e.code} ${e.message}");
@@ -150,7 +190,10 @@ class LoginController extends ChangeNotifier {
       return;
     }
 
-    // ✅ 가입 플로우는 -3에서만 처리
+    // ✅ 1) 가장 먼저 uid 주입
+    userInfo.updateUserID(user.uid);
+
+    // ✅ 2) 이제 온보딩 분기
     if (!userInfo.isAgreed) {
       nav.selectIndex(-3);
       emit(const ShowAgreementSheet());
@@ -163,11 +206,15 @@ class LoginController extends ChangeNotifier {
       return;
     }
 
+    if (!tutorial.finished) {
+      nav.selectIndex(-3);
+      emit(const ShowTutorialFlow());
+      return;
+    }
+
     nav.selectIndex(0);
   }
 
-
-  /// 약관 동의 완료 시 UI에서 호출
   Future<void> onAgreementAccepted() async {
     final uid = userInfo.userId;
     if (uid.isEmpty) return;
@@ -176,16 +223,21 @@ class LoginController extends ChangeNotifier {
       userId: uid,
       isAgreed: true,
     );
-
     userInfo.updateIsAgreed(true);
 
-    // 다음 단계로
+    nav.selectIndex(-3);
     emit(const ShowNicknameSheet());
   }
 
-  /// 닉네임 완료 시 UI에서 호출
+
+  Future<void> onTutorialFinished() async {
+    nav.selectIndex(0);
+  }
+
   Future<void> onNicknameCompleted(String nickname) async {
     userInfo.updateNickname(nickname);
-    nav.selectIndex(0);
+
+    nav.selectIndex(-3);
+    emit(const ShowTutorialFlow());
   }
 }

@@ -1,4 +1,4 @@
-import 'package:bandi_official/string_extention.dart';
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:bandi_official/view/settings/widget/agreement_content.dart';
 import 'package:bandi_official/view/settings/widget/frosted_settings_scaffold.dart';
 import 'package:flutter/material.dart';

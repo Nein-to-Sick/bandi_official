@@ -1,5 +1,7 @@
+import 'dart:developer';
 import 'dart:ui';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -7,7 +9,7 @@ import '../../../components/button/primary_button.dart';
 import '../../../components/field/field.dart';
 import '../../../controller/user_info_controller.dart';
 import '../../../theme/custom_theme_data.dart';
-import '../../../string_extention.dart';
+import '../../../localization/string_extention.dart';
 import '../data/user_profile_repository.dart';
 
 class NicknameSheet {
@@ -51,7 +53,6 @@ class _NicknameStatefulState extends State<_NicknameStateful> {
   Widget build(BuildContext context) {
     final userInfo = context.read<UserInfoValueModel>();
     final repo = context.read<UserProfileRepository>();
-
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
     return PopScope(
@@ -76,17 +77,19 @@ class _NicknameStatefulState extends State<_NicknameStateful> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const SizedBox(height: 8,),
+                  const SizedBox(
+                    height: 8,
+                  ),
                   Text(
                     "onboarding_nickname_title".tr(context),
-                    style: BandiFont.headlineMedium(context)
-                        ?.copyWith(color: BandiColor.foundationColor90(context)),
+                    style: BandiFont.headlineMedium(context)?.copyWith(
+                        color: BandiColor.foundationColor90(context)),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     "onboarding_nickname_subtitle".tr(context),
-                    style: BandiFont.labelSmall(context)
-                        ?.copyWith(color: BandiColor.foundationColor40(context)),
+                    style: BandiFont.labelSmall(context)?.copyWith(
+                        color: BandiColor.foundationColor40(context)),
                   ),
                   const SizedBox(height: 40),
                   CustomField(
@@ -100,18 +103,25 @@ class _NicknameStatefulState extends State<_NicknameStateful> {
                     title: 'onboarding_nickname_button'.tr(context),
                     disableButton: nickname.trim().isEmpty,
                     onPrimaryButtonPressed: () async {
+                      // Navigator.pop(context);
+                      // context.read<NavigationToggleProvider>().selectIndex(0);
                       final nick = nickname.trim();
                       if (nick.isEmpty) return;
 
-                      final uid = userInfo.userId;
-                      if (uid.isEmpty) return;
+                      final uid = userInfo.userId.isNotEmpty
+                          ? userInfo.userId
+                          : FirebaseAuth.instance.currentUser?.uid ?? '';
+
+                      if (uid.isEmpty) {
+                        log('[NICK] uid empty. userInfo.userId=${userInfo.userId} currentUser=${FirebaseAuth.instance.currentUser?.uid}');
+                        return;
+                      }
 
                       await repo.updateNickname(userId: uid, nickname: nick);
                       userInfo.updateNickname(nick);
 
                       if (!mounted) return;
 
-                      // ✅ bool이 아니라 닉네임을 반환
                       Navigator.pop(context, nick);
                     },
                   ),

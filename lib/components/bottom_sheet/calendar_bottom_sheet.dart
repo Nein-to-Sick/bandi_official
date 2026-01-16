@@ -5,7 +5,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 // 프로젝트 환경에 맞춰 import 경로 확인
 import 'package:bandi_official/theme/custom_theme_data.dart';
-import 'package:bandi_official/string_extention.dart';
+import 'package:bandi_official/localization/string_extention.dart';
 
 /// 캘린더 모드 정의
 enum CalendarMode {

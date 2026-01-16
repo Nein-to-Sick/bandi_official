@@ -1,4 +1,4 @@
-import '../oss_licenses.dart';
+import '../view/settings/model/oss_licenses.dart';
 
 /// Package license definition.
 class Package {

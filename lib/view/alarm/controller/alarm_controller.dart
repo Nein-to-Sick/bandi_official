@@ -8,7 +8,7 @@ import 'package:bandi_official/main.dart';
 import 'package:bandi_official/model/alarm.dart';
 import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/model/letter.dart';
-import 'package:bandi_official/string_extention.dart';
+import 'package:bandi_official/localization/string_extention.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -245,7 +245,7 @@ class AlarmController with ChangeNotifier {
           await _local.show(
             // message.hashCode를 사용하여 각 알림에 고유 ID 부여 (덮어쓰기 방지)
             message.hashCode,
-            message.notification!.title ?? '알림',
+            message.notification!.title ?? '',
             message.notification!.body ?? '',
             details,
             payload: payload,
@@ -371,8 +371,8 @@ class AlarmController with ChangeNotifier {
         case NotificationType.letterDetail:
           dev.log('Navigating to letter_detail');
 
-          var (isSuccess, item) = await mailController
-              .checkForNewLetterNewNotificationsAndSaveLetterToLocal();
+          var (isSuccess, item) =
+              await mailController.checkNewLetterAndSaveToLocal();
 
           if (isSuccess && item != null) {
             navigatorKey.currentState?.push(
@@ -537,6 +537,7 @@ class AlarmController with ChangeNotifier {
 
   Future<void> showLocalOtherDiaryNotification({
     required String diaryId,
+    required BuildContext context,
   }) async {
     const details = NotificationDetails(
       iOS: DarwinNotificationDetails(
@@ -562,8 +563,8 @@ class AlarmController with ChangeNotifier {
 
     await _local.show(
       notifId,
-      "나와 비슷한 친구를 찾았어요!",
-      "탭하여 확인해보세요.",
+      "v2_home_notification_sharing_state_3".tr(context),
+      "v2_home_notification_sharing_state_4".tr(context),
       details,
       payload: payload,
     );
@@ -707,5 +708,42 @@ class AlarmController with ChangeNotifier {
     }
 
     dev.log('✅ FCM Test Sequence Completed.');
+  }
+
+  Future<void> createTutorialLetterAndAlarm({
+    required String title,
+    required String content,
+  }) async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    final now = DateTime.now();
+    final fs = FirebaseFirestore.instance;
+
+    final letterRef =
+        fs.collection('users').doc(uid).collection('letters').doc();
+
+    final alarmRef =
+        fs.collection('users').doc(uid).collection('notifications').doc();
+
+    final batch = fs.batch();
+
+    batch.set(letterRef, {
+      'letterId': letterRef.id,
+      'date': Timestamp.fromDate(now),
+      'title': title,
+      'content': content,
+    });
+
+    batch.set(alarmRef, {
+      'notificationId': alarmRef.id,
+      'type': 'letter', // AlarmType.letter 로 매핑되는 값
+      'title': title,
+      'dataId': letterRef
+          .id, // ✅ _handleHomeNotiTap에서 readLetterDataFromDB(alarm.dataId)
+      'date': Timestamp.fromDate(now),
+    });
+
+    await batch.commit();
   }
 }
