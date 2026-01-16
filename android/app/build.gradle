@@ -60,8 +60,8 @@ android {
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
         minSdk = 23
         targetSdk = 35 //flutter.targetSdkVersion
-        versionCode = 210
-        versionName = 210
+        versionCode = 211
+        versionName = 211
         externalNativeBuild {
             // For ndk-build, instead use the ndkBuild block.
             cmake {
