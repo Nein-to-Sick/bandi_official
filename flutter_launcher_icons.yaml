@@ -1,8 +1,8 @@
 # flutter pub run flutter_launcher_icons
 flutter_launcher_icons:
-  image_path: "assets/images/app_icons/app_icon.jpg"
+  image_path: "assets/images/app_icons/app_icon_kr.png"
   adaptive_icon_background: "assets/images/app_icons/app_icon_background.png"
-  adaptive_icon_foreground: "assets/images/app_icons/app_icon.jpg"
+  adaptive_icon_foreground: "assets/images/app_icons/app_icon_kr.png"
   # image_path_android: "assets/images/icons/otherDiary.png"
   # image_path_ios: "assets/images/app_icons/Icon-App-83.5x83.5@2x.png"
   android: "launcher_icon"
