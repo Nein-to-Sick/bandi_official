@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:bandi_official/analytics/log_journal_share.dart';
 import 'package:bandi_official/localization/string_extention.dart';
@@ -377,6 +378,7 @@ class _FirstStepState extends State<FirstStep> with WidgetsBindingObserver {
             _focusNode.unfocus();
           },
           child: SafeArea(
+            bottom: false,
             child: Column(
               children: [
                 // ====== Body (TextField) ======

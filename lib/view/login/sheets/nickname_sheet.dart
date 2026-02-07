@@ -1,5 +1,6 @@
 import 'dart:developer';
-import 'dart:ui';
+import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -53,7 +54,13 @@ class _NicknameStatefulState extends State<_NicknameStateful> {
   Widget build(BuildContext context) {
     final userInfo = context.read<UserInfoValueModel>();
     final repo = context.read<UserProfileRepository>();
-    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final mq = MediaQuery.of(context);
+    final bottomInset = mq.viewInsets.bottom;
+    final sysBottom = mq.viewPadding.bottom;      
+
+    final extraBottom = (Platform.isAndroid && bottomInset == 0)
+        ? math.min(sysBottom, 48.0)
+        : 0.0;
 
     return PopScope(
       canPop: false,
@@ -73,7 +80,7 @@ class _NicknameStatefulState extends State<_NicknameStateful> {
               ),
             ),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+              padding: EdgeInsets.fromLTRB(24, 32, 24, 32 + extraBottom),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [

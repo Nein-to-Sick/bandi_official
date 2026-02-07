@@ -1,5 +1,5 @@
-import 'dart:developer';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:bandi_official/localization/string_extention.dart';
@@ -186,12 +186,15 @@ class _NavigationViewState extends State<NavigationView> {
         tutorial.step == TutorialStep.growth &&
         tutorial.growthPhase == GrowthTutorialPhase.focusTrayNav;
 
+    final sysBottom = MediaQuery.of(context).viewPadding.bottom;
+    final extraBottom = Platform.isAndroid ? math.min(sysBottom, 48.0) : 0.0;
+
     final guideWidget = showTrayBubble
         ? TutorialSpeechBubble(
             targetRect: rawRect!,
             title: 'v2_tutorial_speech_bubble_inbox_title'.tr(context),
             subtitle: 'v2_tutorial_speech_bubble_inbox_subtitle'.tr(context),
-            gap: 23,
+            gap: 23 + extraBottom,
           )
         : const SizedBox.shrink();
 
@@ -275,6 +278,9 @@ class _NavigationViewState extends State<NavigationView> {
           final isOk = snapshot.connectionState == ConnectionState.waiting ||
               (snapshot.hasData && snapshot.data == true);
 
+          final sysBottom = MediaQuery.of(context).viewPadding.bottom;
+          final extraBottom = Platform.isAndroid ? math.min(sysBottom, 48.0) : 0.0;
+
           return Container(
               decoration: BoxDecoration(
                 image: DecorationImage(
@@ -313,7 +319,7 @@ class _NavigationViewState extends State<NavigationView> {
                             Positioned(
                               left: 0,
                               right: 0,
-                              bottom: 32,
+                              bottom: 32 + extraBottom,
                               child: FrostedNavBar(
                                 selectedIndex: nav.selectedIndex,
                                 onTap: (i) async {

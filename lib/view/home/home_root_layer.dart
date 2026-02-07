@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:bandi_official/localization/string_extention.dart';
 import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
@@ -229,6 +231,9 @@ class _HomeRootLayerState extends State<HomeRootLayer>
 
     final canToggleChrome = isHomeVisible;
 
+    final sysBottom = MediaQuery.of(context).viewPadding.bottom;
+    final extraBottom = Platform.isAndroid ? math.min(sysBottom, 48.0) : 0.0;
+
     return Stack(
       children: [
         AnimatedOpacity(
@@ -289,7 +294,7 @@ class _HomeRootLayerState extends State<HomeRootLayer>
                         },
                       ),
                       Padding(
-                        padding: const EdgeInsets.only(bottom: 112),
+                        padding: EdgeInsets.only(bottom: 112 + extraBottom),
                         child: Row(
                           children: [
                             Expanded(

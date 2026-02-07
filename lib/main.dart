@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'dart:math' as math;
+
 import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
 import 'package:bandi_official/controller/date_provider.dart';
 import 'package:bandi_official/view/my_diary_list/controller/my_diary_list_controller.dart';
@@ -75,6 +78,9 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final sysBottom = MediaQuery.of(context).viewPadding.bottom;
+    final extraBottom = Platform.isAndroid ? math.min(sysBottom, 48.0) : 0.0;
+
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: CustomThemeMode.themeMode,
       builder: (context, mode, child) {
@@ -160,11 +166,7 @@ class MainApp extends StatelessWidget {
               }
               return supportedLocales.first;
             },
-            home: Padding(
-              padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).padding.bottom),
-              child: const NavigationView(),
-            ),
+            home: const NavigationView(),
           ),
           // AuthWrapper(),
         );

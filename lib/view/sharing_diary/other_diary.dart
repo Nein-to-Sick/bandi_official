@@ -1,4 +1,6 @@
 import 'dart:developer' as develop;
+import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:bandi_official/components/button/primary_button.dart';
 import 'package:bandi_official/controller/home_to_write.dart';
@@ -343,6 +345,9 @@ class _OtherDiaryState extends State<OtherDiary> {
     final rawRect =
         (practiceTargetId == null) ? null : reg.rectOf(practiceTargetId);
 
+    final sysBottom = MediaQuery.of(context).viewPadding.bottom;
+    final extraBottom = Platform.isAndroid ? math.min(sysBottom, 48.0) : 0.0;
+
     final guideWidget = (t.isConnectionFlow &&
             t.connectionPhase ==
                 ConnectionTutorialPhase.focusReactionSelector &&
@@ -352,7 +357,7 @@ class _OtherDiaryState extends State<OtherDiary> {
             title: 'v2_tutorial_speech_bubble_other_diary_title'.tr(context),
             subtitle:
                 'v2_tutorial_speech_bubble_other_diary_subtitle'.tr(context),
-            bubbleOffset: const Offset(20, 0),
+            bubbleOffset: Offset(20, Platform.isAndroid ? -20 : 0),
             // ✅ 말풍선 전체를 오른쪽/아래로
             arrowOffsetX: -100, // ✅ 화살표만 살짝 오른쪽
           )
@@ -385,6 +390,8 @@ class _OtherDiaryState extends State<OtherDiary> {
       });
     }
 
+
+
     return Stack(
       children: [
         Container(
@@ -395,7 +402,7 @@ class _OtherDiaryState extends State<OtherDiary> {
           child: SafeArea(
             bottom: false,
             child: Padding(
-              padding: const EdgeInsets.only(top: 24, bottom: 32),
+              padding: EdgeInsets.only(top: 24, bottom: 32 + extraBottom),
               child: Column(
                 children: [
                   Expanded(
