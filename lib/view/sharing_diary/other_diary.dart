@@ -347,7 +347,6 @@ class _OtherDiaryState extends State<OtherDiary> {
 
     final sysBottom = MediaQuery.of(context).viewPadding.bottom;
     final extraBottom = Platform.isAndroid ? math.min(sysBottom, 48.0) : 0.0;
-
     final guideWidget = (t.isConnectionFlow &&
             t.connectionPhase ==
                 ConnectionTutorialPhase.focusReactionSelector &&
@@ -357,7 +356,7 @@ class _OtherDiaryState extends State<OtherDiary> {
             title: 'v2_tutorial_speech_bubble_other_diary_title'.tr(context),
             subtitle:
                 'v2_tutorial_speech_bubble_other_diary_subtitle'.tr(context),
-            bubbleOffset: Offset(20, Platform.isAndroid ? -20 : 0),
+            bubbleOffset: Offset(20, extraBottom != 0 ? -20 : 0),
             // ✅ 말풍선 전체를 오른쪽/아래로
             arrowOffsetX: -100, // ✅ 화살표만 살짝 오른쪽
           )

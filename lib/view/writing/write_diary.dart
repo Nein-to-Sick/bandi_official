@@ -14,28 +14,25 @@ class WriteDiary extends StatelessWidget {
   Widget build(BuildContext context) {
     final writeProvider = Provider.of<HomeToWrite>(context);
 
-    return SafeArea(
-      top: false,
-      child: PopScope(
-        canPop: false,
-        child: writeProvider.step == 1
-            ? BackdropFilter(
-                filter: ImageFilter.blur(
-                    sigmaX: BandiEffects.blurLarge,
-                    sigmaY: BandiEffects.blurLarge),
-                child: Container(
-                    color: BandiColor.neutralColor10(context),
-                    child: const FirstStep()))
-            : writeProvider.step == 2
-                ? const SecondStep()
-                : BackdropFilter(
-                    filter: ImageFilter.blur(
-                        sigmaX: BandiEffects.blurLarge,
-                        sigmaY: BandiEffects.blurLarge),
-                    child: Container(
-                        color: BandiColor.neutralColor10(context),
-                        child: const ThirdStep())),
-      ),
+    return PopScope(
+      canPop: false,
+      child: writeProvider.step == 1
+          ? BackdropFilter(
+              filter: ImageFilter.blur(
+                  sigmaX: BandiEffects.blurLarge,
+                  sigmaY: BandiEffects.blurLarge),
+              child: Container(
+                  color: BandiColor.neutralColor10(context),
+                  child: FirstStep()))
+          : writeProvider.step == 2
+              ? const SafeArea(child: SecondStep())
+              : BackdropFilter(
+                  filter: ImageFilter.blur(
+                      sigmaX: BandiEffects.blurLarge,
+                      sigmaY: BandiEffects.blurLarge),
+                  child: Container(
+                      color: BandiColor.neutralColor10(context),
+                      child: const SafeArea(top: false, child: ThirdStep()))),
     );
   }
 }

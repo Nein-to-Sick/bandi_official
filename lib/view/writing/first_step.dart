@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:bandi_official/analytics/log_journal_share.dart';
 import 'package:bandi_official/localization/string_extention.dart';
@@ -296,6 +297,9 @@ class _FirstStepState extends State<FirstStep> with WidgetsBindingObserver {
       });
     }
 
+    final sysBottom = MediaQuery.of(context).viewPadding.bottom;
+    final extraBottom = Platform.isAndroid ? math.min(sysBottom, 48.0) : 0.0;
+    print(sysBottom);
     // ✅ 현재 클릭 가능한 대상 (서브단계 기준)
     final practiceTargetId = _currentPracticeTargetId(t);
     final rawRect =
@@ -310,7 +314,7 @@ class _FirstStepState extends State<FirstStep> with WidgetsBindingObserver {
             title: 'v2_tutorial_speech_bubble_write_diary_title'.tr(context),
             subtitle:
                 'v2_tutorial_speech_bubble_write_diary_subtitle'.tr(context),
-            gap: 30,
+            gap: 30 + (extraBottom != 0 ? 30 : 0),
           )
         : const SizedBox.shrink();
 
@@ -440,53 +444,56 @@ class _FirstStepState extends State<FirstStep> with WidgetsBindingObserver {
                 ),
 
                 // ====== Bottom Bar ======
-                BottomBar(
-                  isPublic: writeProvider.isPublic,
-                  publicLabel: writeProvider.isPublic
-                      ? "sharing_diary_on".tr(context)
-                      : "sharing_diary_off".tr(context),
+                SafeArea(
+                  top: false,
+                  child: BottomBar(
+                    isPublic: writeProvider.isPublic,
+                    publicLabel: writeProvider.isPublic
+                        ? "sharing_diary_on".tr(context)
+                        : "sharing_diary_off".tr(context),
 
-                  // ✅ tutorial key 전달
-                  publicSwitchKey: _toggleKey,
-                  doneButtonKey: _doneKey,
+                    // ✅ tutorial key 전달
+                    publicSwitchKey: _toggleKey,
+                    doneButtonKey: _doneKey,
 
-                  // ✅ 단계별 클릭 허용
-                  allowTogglePublic:
-                      !t.isFirstWriteFlow ? true : allowToggleTap,
-                  allowExit: allowExitTap,
-                  allowDone: !t.isFirstWriteFlow ? true : allowDoneTap,
+                    // ✅ 단계별 클릭 허용
+                    allowTogglePublic:
+                        !t.isFirstWriteFlow ? true : allowToggleTap,
+                    allowExit: allowExitTap,
+                    allowDone: !t.isFirstWriteFlow ? true : allowDoneTap,
 
-                  onTogglePublic: (v) async {
-                    if (t.isFirstWriteFlow) {
-                      if (!allowToggleTap) return;
+                    onTogglePublic: (v) async {
+                      if (t.isFirstWriteFlow) {
+                        if (!allowToggleTap) return;
 
-                      // ✅ 요구사항: “FlutterSwitch을 켜게”
-                      writeProvider.setIsPublic(true);
+                        // ✅ 요구사항: “FlutterSwitch을 켜게”
+                        writeProvider.setIsPublic(true);
 
-                      // 다음 서브 단계(완료 버튼)
-                      context.read<TutorialController>().setFirstWritePhase(
-                          FirstWriteTutorialPhase.pressDone);
+                        // 다음 서브 단계(완료 버튼)
+                        context.read<TutorialController>().setFirstWritePhase(
+                            FirstWriteTutorialPhase.pressDone);
 
-                      setState(() {
-                        _toggleUnlocked = false;
-                      });
-                      return;
-                    }
+                        setState(() {
+                          _toggleUnlocked = false;
+                        });
+                        return;
+                      }
 
-                    writeProvider.setIsPublic(v);
-                  },
+                      writeProvider.setIsPublic(v);
+                    },
 
-                  onExit: () async {
-                    if (!allowExitTap) return;
-                    await _handleExit(writeProvider);
-                  },
+                    onExit: () async {
+                      if (!allowExitTap) return;
+                      await _handleExit(writeProvider);
+                    },
 
-                  onDone: () async {
-                    if (t.isFirstWriteFlow && !allowDoneTap) return;
-                    await _handleDone(writeProvider);
-                  },
+                    onDone: () async {
+                      if (t.isFirstWriteFlow && !allowDoneTap) return;
+                      await _handleDone(writeProvider);
+                    },
 
-                  doneEnabled: doneEnabled,
+                    doneEnabled: doneEnabled,
+                  ),
                 ),
               ],
             ),
