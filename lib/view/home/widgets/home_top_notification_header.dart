@@ -1,7 +1,7 @@
-import 'package:bandi_official/components/appbar/appbar.dart';
 import 'package:bandi_official/localization/string_extention.dart';
 import 'package:bandi_official/theme/custom_theme_data.dart';
 import 'package:bandi_official/view/home/widgets/home_notification_stack.dart';
+import 'package:bandi_official/view/home/widgets/speaker_button.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -13,32 +13,33 @@ import '../../alarm/controller/alarm_controller.dart';
 import '../../mail/controller/mail_controller.dart';
 import '../../tutorial/controller/tutorial_controller.dart';
 import '../../../controller/user_info_controller.dart';
+import '../controller/bgm_controller.dart';
 
 typedef MapAlarmsToItems = List<HomeNotiItem> Function({
-  required List<Alarm> alarms,
-  required AlarmController alarmController,
-  required MailController mailController,
-  required HomeToWrite writeProvider,
-  required NavigationToggleProvider navigationToggleProvider,
+required List<Alarm> alarms,
+required AlarmController alarmController,
+required MailController mailController,
+required HomeToWrite writeProvider,
+required NavigationToggleProvider navigationToggleProvider,
 });
 
 class HomeTopNotificationHeader extends StatelessWidget {
   final GlobalKey tutorialNotiStackKey;
 
-  /// HomeRootLayer에서 상태 유지하려고 콜백으로 올려줌
+  final bool dropdownOpen; // ✅ 추가
+
   final void Function(bool open) onDropdownOpenChanged;
   final void Function(DateTime? latest) onLatestRealAlarmAtChanged;
 
-  /// 기존에 HomeRootLayer에 있던 매핑 함수 그대로 주입 (파일 쪼개도 로직 재사용)
   final MapAlarmsToItems mapAlarmsToHomeNotiItems;
 
-  /// dailyReminder id/time 계산을 외부에서 주입 (HomeRootLayer 메서드 재사용)
   final String Function() dailyReminderId;
   final DateTime Function() dailyReminderCreatedAt;
 
   const HomeTopNotificationHeader({
     super.key,
     required this.tutorialNotiStackKey,
+    required this.dropdownOpen, // ✅ 추가
     required this.onDropdownOpenChanged,
     required this.onLatestRealAlarmAtChanged,
     required this.mapAlarmsToHomeNotiItems,
@@ -116,58 +117,75 @@ class HomeTopNotificationHeader extends StatelessWidget {
         final showNewDot = (latestRealAlarmAt != null) &&
             (lastSeen == null || latestRealAlarmAt.isAfter(lastSeen));
 
+        // ✅ 스피커 숨김 조건: "알림이 2개 이상" + "드롭다운 열림"
+        final hideSpeaker = items.length > 1 && dropdownOpen;
+
         return Padding(
           padding: const EdgeInsets.only(top: 17.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                  child: items.isEmpty
-                      ? Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              userInfo.nickname +
-                                  "v2_home_notification_state_2".tr(context),
-                              style: BandiFont.titleSmall(context)!.copyWith(
-                                color: BandiColor.neutralColor60(context),
-                              ),
-                            ),
-                            Text(
-                              "v2_home_notification_state_3".tr(context),
-                              style:
-                                  BandiFont.headlineMedium(context)!.copyWith(
-                                color: BandiColor.neutralColor100(context),
-                              ),
-                            ),
-                          ],
-                        )
-                      : HomeNotificationStack(
-                          key: tutorialNotiStackKey,
-                          items: items,
-                          showNewDot: showNewDot,
-                          onDropdownOpenChanged: (open) {
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              onDropdownOpenChanged(open);
-                            });
-                          },
-                          onStackTap: wrapForTutorial
-                              ? () async {
-                                  final t = context.read<TutorialController>();
-                                  if (t.step ==
-                                      TutorialStep.connectionAndEmpathy) {
-                                    await t
-                                        .advanceConnectionPhase(); // => focusReactionSelector
-                                  } else if (t.connectionPhase ==
-                                      ConnectionTutorialPhase
-                                          .focusHomeNotification) {
-                                    t.setGrowthPhase(
-                                        GrowthTutorialPhase.focusLetterCloseX);
-                                  }
-                                }
-                              : null,
-                        )),
+                child: items.isEmpty
+                    ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      userInfo.nickname +
+                          "v2_home_notification_state_2".tr(context),
+                      style: BandiFont.titleSmall(context)!.copyWith(
+                        color: BandiColor.neutralColor60(context),
+                      ),
+                    ),
+                    Text(
+                      "v2_home_notification_state_3".tr(context),
+                      style:
+                      BandiFont.headlineMedium(context)!.copyWith(
+                        color: BandiColor.neutralColor100(context),
+                      ),
+                    ),
+                  ],
+                )
+                    : HomeNotificationStack(
+                  key: tutorialNotiStackKey,
+                  items: items,
+                  showNewDot: showNewDot,
+                  onDropdownOpenChanged: (open) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      onDropdownOpenChanged(open);
+                    });
+                  },
+                  onStackTap: wrapForTutorial
+                      ? () async {
+                    final t = context.read<TutorialController>();
+                    if (t.step == TutorialStep.connectionAndEmpathy) {
+                      await t.advanceConnectionPhase();
+                    } else if (t.connectionPhase ==
+                        ConnectionTutorialPhase.focusHomeNotification) {
+                      t.setGrowthPhase(
+                          GrowthTutorialPhase.focusLetterCloseX);
+                    }
+                  }
+                      : null,
+                ),
+              ),
               const SizedBox(width: 12),
+
+              // ✅ 스피커 버튼
+              AnimatedOpacity(
+                duration: const Duration(milliseconds: 80),
+                opacity: hideSpeaker ? 0.0 : 1.0,
+                child: IgnorePointer(
+                  ignoring: hideSpeaker,
+                  child: SpeakerButton(
+                    speakerOn: context.watch<BgmController>().speakerOn,
+                    onPressed: () {
+                      final bgm = context.read<BgmController>();
+                      bgm.setSpeakerOn(!bgm.speakerOn);
+                    },
+                  ),
+                ),
+              ),
             ],
           ),
         );
