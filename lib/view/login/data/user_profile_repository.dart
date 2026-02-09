@@ -111,7 +111,7 @@ class UserProfileRepository {
     required String userId,
     required bool isAgreed,
   }) async {
-    await _users.doc(userId).set({
+    await _users.doc(userId).update({
       'isAgreed': isAgreed,
       'last_agreed_at': isAgreed ? DateTime.now() : null,
       'updatedAt': FieldValue.serverTimestamp(),
