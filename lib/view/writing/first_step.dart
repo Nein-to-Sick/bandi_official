@@ -299,7 +299,6 @@ class _FirstStepState extends State<FirstStep> with WidgetsBindingObserver {
 
     final sysBottom = MediaQuery.of(context).viewPadding.bottom;
     final extraBottom = Platform.isAndroid ? math.min(sysBottom, 48.0) : 0.0;
-    print(sysBottom);
     // ✅ 현재 클릭 가능한 대상 (서브단계 기준)
     final practiceTargetId = _currentPracticeTargetId(t);
     final rawRect =
