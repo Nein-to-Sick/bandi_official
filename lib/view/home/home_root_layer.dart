@@ -128,7 +128,7 @@ class _HomeRootLayerState extends State<HomeRootLayer>
 
     if (alarm.type == AlarmType.likedDiary) {
       final Diary diary =
-          await alarmController.readDiaryDataFromDB(alarm.dataId);
+      await alarmController.readDiaryDataFromDB(alarm.dataId);
 
       writeProvider.readMyDiary(diary);
       navigationToggleProvider.selectIndex(0);
@@ -138,7 +138,7 @@ class _HomeRootLayerState extends State<HomeRootLayer>
 
     if (alarm.type == AlarmType.letter) {
       final Letter letter =
-          await alarmController.readLetterDataFromDB(alarm.dataId);
+      await alarmController.readLetterDataFromDB(alarm.dataId);
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         DetailViewSheet(item: letter, mailController: mailController)
@@ -159,7 +159,7 @@ class _HomeRootLayerState extends State<HomeRootLayer>
 
     if (alarm.type == AlarmType.otherDiary) {
       final Diary otherDiary =
-          await alarmController.readDiaryDataFromDB(alarm.dataId);
+      await alarmController.readDiaryDataFromDB(alarm.dataId);
       writeProvider.setOtherDiary(otherDiary);
       return;
     }
@@ -272,6 +272,7 @@ class _HomeRootLayerState extends State<HomeRootLayer>
                     children: [
                       HomeTopNotificationHeader(
                         tutorialNotiStackKey: _tutorialNotiStackKey,
+                        dropdownOpen: _notiDropdownOpen, // ✅ 전달
                         mapAlarmsToHomeNotiItems: _mapAlarmsToHomeNotiItems,
                         dailyReminderId: _dailyReminderId,
                         dailyReminderCreatedAt: _dailyReminderCreatedAt,
@@ -306,7 +307,7 @@ class _HomeRootLayerState extends State<HomeRootLayer>
                                 onTap: () async {
                                   final tc = context.read<TutorialController>();
                                   final diaryAiChatController =
-                                      context.read<DiaryAiChatController>();
+                                  context.read<DiaryAiChatController>();
 
                                   if (tc.isRetrospectFlow &&
                                       tc.retrospectPhase ==
@@ -339,9 +340,7 @@ class _HomeRootLayerState extends State<HomeRootLayer>
 
                                     if (!tc2.isRetrospectFlow) return;
 
-                                    // ✅ practice 완료 → 다음 step으로
                                     await tc2.advanceAfterPractice();
-
                                     tc2.scheduleExplainFlow(rootCtx);
                                   });
 
