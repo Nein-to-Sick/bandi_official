@@ -1,4 +1,7 @@
+import 'dart:io';
 import 'dart:ui';
+import 'dart:math' as math;
+
 import 'package:bandi_official/components/appbar/new_custom_appbar.dart';
 import 'package:bandi_official/model/diary.dart';
 import 'package:bandi_official/model/letter.dart';
@@ -155,6 +158,8 @@ class _DetailViewState extends State<DetailView> {
       '${'detail_view_header_1'.tr(context)}: ${DateFormat('detail_view_diary_date_form'.tr(context), 'detail_view_date_form_country'.tr(context)).format(dateTime)}';
       content = item.content;
     }
+    final sysBottom = MediaQuery.of(context).viewPadding.bottom;
+    final extraBottom = Platform.isAndroid ? math.min(sysBottom, 48.0) : 0.0;
 
     return PopScope(
       onPopInvokedWithResult: (didPop, result) {
@@ -199,7 +204,7 @@ class _DetailViewState extends State<DetailView> {
                 ),
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    padding: EdgeInsets.only(left: 24, right: 24, bottom: extraBottom),
                     child: SingleChildScrollView(
                       physics: const AlwaysScrollableScrollPhysics(),
                       child: SizedBox(
@@ -221,10 +226,13 @@ class _DetailViewState extends State<DetailView> {
             // ✅ 오버레이는 반드시 Positioned.fill로 “최상단”에
             if (focusingCloseX && _localRect != null)
               Positioned.fill(
-                child: TutorialOverlay(
-                  targetRect: _localRect!,
-                  radius: 14,
-                  guide: const SizedBox.shrink(),
+                child: IgnorePointer(
+                  ignoring: true,
+                  child: TutorialOverlay(
+                    targetRect: _localRect!,
+                    radius: 14,
+                    guide: const SizedBox.shrink(),
+                  ),
                 ),
               ),
           ],

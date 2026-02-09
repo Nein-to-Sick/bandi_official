@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'dart:ui';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -60,6 +62,9 @@ class _AgreementStatefulState extends State<_AgreementStateful> {
         CompanyInfo().localizedPrivacyPolicy['ko']!;
     final eula = CompanyInfo().localizedEula[langCode] ??
         CompanyInfo().localizedEula['ko']!;
+
+    final sysBottom = MediaQuery.of(context).viewPadding.bottom;
+    final extraBottom = Platform.isAndroid ? math.min(sysBottom, 48.0) : 0.0;
 
     return PopScope(
       canPop: false,
@@ -205,7 +210,7 @@ class _AgreementStatefulState extends State<_AgreementStateful> {
                           },
                           disableButton: !allSelected,
                         ),
-                        const SizedBox(height: 32),
+                        SizedBox(height: 32 + extraBottom),
                       ],
                     ),
                   ),

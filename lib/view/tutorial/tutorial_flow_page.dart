@@ -1,5 +1,7 @@
 // tutorial/tutorial_flow_page.dart
 import 'dart:developer';
+import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:bandi_official/controller/navigation_toggle_provider.dart';
 import 'package:bandi_official/localization/string_extention.dart';
@@ -183,6 +185,9 @@ With love and warmth, Bandi
 
   @override
   Widget build(BuildContext context) {
+    final sysBottom = MediaQuery.of(context).viewPadding.bottom;
+    final extraBottom = Platform.isAndroid ? math.min(sysBottom, 48.0) : 0.0;
+
     return PopScope(
       canPop: false,
       child: Scaffold(
@@ -250,7 +255,7 @@ With love and warmth, Bandi
 
                   // 하단 버튼
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
+                    padding: EdgeInsets.fromLTRB(24, 0, 24, 32 + extraBottom),
                     child: CustomPrimaryButton(
                       title: _index == _total - 1
                           ? 'v2_onboarding_step_button_1'.tr(context)
