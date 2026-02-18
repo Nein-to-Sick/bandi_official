@@ -1,5 +1,6 @@
-// tutorial/tutorial_flow_page.dart
 import 'dart:developer';
+import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:bandi_official/controller/navigation_toggle_provider.dart';
 import 'package:bandi_official/localization/string_extention.dart';
@@ -49,6 +50,9 @@ class _TutorialFlowPageState extends State<TutorialFlowPage> {
   static const int _total = 5;
   late final PageController _controller;
 
+  // ✅ 연타 방지 락
+  bool _isProceeding = false;
+
   @override
   void initState() {
     super.initState();
@@ -80,39 +84,45 @@ class _TutorialFlowPageState extends State<TutorialFlowPage> {
   }
 
   Future<void> _next() async {
-    String langCode = Localizations.localeOf(context).languageCode;
-    final step = _stepForIndex(_index);
-    final nextIndex = _index + 1;
+    // ✅ 이미 진행 중이면 무시 (연타 방지)
+    if (_isProceeding) return;
 
-    String nickname = 'OO';
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid != null && uid.isNotEmpty) {
-      try {
-        final userRef = FirebaseFirestore.instance.collection('users').doc(uid);
-        final userSnap = await userRef.get();
-        final userData = userSnap.data();
-        nickname = (userData?['nickname'] as String?)?.trim().isNotEmpty == true
-            ? (userData?['nickname'] as String).trim()
-            : 'OO';
-      } catch (e, st) {
-        log('[Tutorial] failed to load nickname: $e', stackTrace: st);
+    setState(() => _isProceeding = true);
+
+    try {
+      final langCode = Localizations.localeOf(context).languageCode;
+      final step = _stepForIndex(_index);
+      final nextIndex = _index + 1;
+
+      String nickname = 'OO';
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid != null && uid.isNotEmpty) {
+        try {
+          final userRef = FirebaseFirestore.instance.collection('users').doc(uid);
+          final userSnap = await userRef.get();
+          final userData = userSnap.data();
+          nickname = (userData?['nickname'] as String?)?.trim().isNotEmpty == true
+              ? (userData?['nickname'] as String).trim()
+              : 'OO';
+        } catch (e, st) {
+          log('[Tutorial] failed to load nickname: $e', stackTrace: st);
+        }
       }
-    }
 
-    if (step == TutorialStep.connectionAndEmpathy) {
-      try {
-        await _pushOtherDiaryNotificationForTutorial(nickname: nickname);
-      } catch (e, st) {
-        log('[Tutorial] failed to insert notification: $e', stackTrace: st);
+      if (step == TutorialStep.connectionAndEmpathy) {
+        try {
+          await _pushOtherDiaryNotificationForTutorial(nickname: nickname);
+        } catch (e, st) {
+          log('[Tutorial] failed to insert notification: $e', stackTrace: st);
+        }
       }
-    }
 
-    if (step == TutorialStep.growth) {
-      try {
-        await context.read<AlarmController>().createTutorialLetterAndAlarm(
-              title: 'v2_onboarding_step_letter_title'.tr(context),
-              content: (langCode == 'ko')
-                  ? '''
+      if (step == TutorialStep.growth) {
+        try {
+          await context.read<AlarmController>().createTutorialLetterAndAlarm(
+            title: 'v2_onboarding_step_letter_title'.tr(context),
+            content: (langCode == 'ko')
+                ? '''
 사랑하는 $nickname에게,
 
 이번 한 달은 어떤 색깔이었나요? 유난히 비가 많이 오던 날, $nickname이 찾았던 작은 행복을 기억해요.
@@ -125,7 +135,7 @@ class _TutorialFlowPageState extends State<TutorialFlowPage> {
 
 당신의 곁에서 늘 따스하게 자라날 반디가
 '''
-                  : '''
+                : '''
 Dear $nickname,
 
 What was the hue of your world this past month? I still cherish the memory of that rainy afternoon when you found a hidden spark of joy amidst the gray.
@@ -138,27 +148,35 @@ I'll always be rooting for your resilience—your beautiful way of turning a tou
 
 With love and warmth, Bandi
 ''',
-            );
-      } catch (e, st) {
-        log('[Tutorial] failed to create tutorial letter/alarm: $e',
-            stackTrace: st);
+          );
+        } catch (e, st) {
+          log('[Tutorial] failed to create tutorial letter/alarm: $e',
+              stackTrace: st);
+        }
       }
-    }
 
-    // 기존 흐름 유지
-    if (_index == _total - 1) {
-      context.read<NavigationToggleProvider>().selectIndex(0);
-      Navigator.pop(context);
-    } else {
-      Navigator.of(context).pop(
-        TutorialFlowResult(step: step, nextIndex: nextIndex),
-      );
+      // ✅ 여기서부터 네비게이션 (mounted 체크 필수)
+      if (!mounted) return;
+
+      if (_index == _total - 1) {
+        context.read<NavigationToggleProvider>().selectIndex(0);
+        Navigator.pop(context);
+      } else {
+        Navigator.of(context).pop(
+          TutorialFlowResult(step: step, nextIndex: nextIndex),
+        );
+      }
+    } finally {
+      // ✅ pop으로 화면이 이미 닫히는 케이스가 많아서 mounted 체크 후에만 setState
+      if (mounted) {
+        setState(() => _isProceeding = false);
+      }
     }
   }
 
   Future<void> _pushOtherDiaryNotificationForTutorial(
       {required String nickname}) async {
-    String langCode = Localizations.localeOf(context).languageCode;
+    final langCode = Localizations.localeOf(context).languageCode;
     const tempDiary = 'KzHjbSE3LCQVnxxk9jGK9PJexnU251';
 
     final uid = FirebaseAuth.instance.currentUser?.uid;
@@ -183,6 +201,9 @@ With love and warmth, Bandi
 
   @override
   Widget build(BuildContext context) {
+    final sysBottom = MediaQuery.of(context).viewPadding.bottom;
+    final extraBottom = Platform.isAndroid ? math.min(sysBottom, 48.0) : 0.0;
+
     return PopScope(
       canPop: false,
       child: Scaffold(
@@ -200,7 +221,6 @@ With love and warmth, Bandi
               bottom: false,
               child: Column(
                 children: [
-                  // 본문
                   Expanded(
                     child: PageView(
                       controller: _controller,
@@ -210,7 +230,7 @@ With love and warmth, Bandi
                         _TutorialStep(
                           title: 'v2_onboarding_step_title_1'.tr(context),
                           description:
-                              'v2_onboarding_step_description_1'.tr(context),
+                          'v2_onboarding_step_description_1'.tr(context),
                           comment: 'v2_onboarding_step_comment_1'.tr(context),
                           image: Image.asset(
                               'assets/images/onboarding/onboarding_img1.png'),
@@ -218,7 +238,7 @@ With love and warmth, Bandi
                         _TutorialStep(
                           title: 'v2_onboarding_step_title_2'.tr(context),
                           description:
-                              'v2_onboarding_step_description_2'.tr(context),
+                          'v2_onboarding_step_description_2'.tr(context),
                           comment: 'v2_onboarding_step_comment_2'.tr(context),
                           image: Image.asset(
                               'assets/images/onboarding/onboarding_img2.png'),
@@ -226,7 +246,7 @@ With love and warmth, Bandi
                         _TutorialStep(
                           title: 'v2_onboarding_step_title_3'.tr(context),
                           description:
-                              'v2_onboarding_step_description_3'.tr(context),
+                          'v2_onboarding_step_description_3'.tr(context),
                           comment: 'v2_onboarding_step_comment_3'.tr(context),
                           image: Image.asset(
                               'assets/images/onboarding/onboarding_img3.png'),
@@ -234,7 +254,7 @@ With love and warmth, Bandi
                         _TutorialStep(
                           title: 'v2_onboarding_step_title_4'.tr(context),
                           description:
-                              'v2_onboarding_step_description_4'.tr(context),
+                          'v2_onboarding_step_description_4'.tr(context),
                           comment: 'v2_onboarding_step_comment_4'.tr(context),
                           image: Image.asset(
                               'assets/images/onboarding/onboarding_img4.png'),
@@ -242,21 +262,21 @@ With love and warmth, Bandi
                         _TutorialStep(
                           title: 'v2_onboarding_step_title_5'.tr(context),
                           description:
-                              'v2_onboarding_step_description_5'.tr(context),
+                          'v2_onboarding_step_description_5'.tr(context),
                         ),
                       ],
                     ),
                   ),
 
-                  // 하단 버튼
+                  // ✅ 하단 버튼: 진행 중이면 disable
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
+                    padding: EdgeInsets.fromLTRB(24, 0, 24, 32 + extraBottom),
                     child: CustomPrimaryButton(
                       title: _index == _total - 1
                           ? 'v2_onboarding_step_button_1'.tr(context)
                           : 'v2_onboarding_step_button_2'.tr(context),
                       onPrimaryButtonPressed: _next,
-                      disableButton: false,
+                      disableButton: _isProceeding, // ✅ 핵심
                     ),
                   ),
                 ],
@@ -317,9 +337,10 @@ class _TutorialStep extends StatelessWidget {
             Text(
               comment!,
               style: BandiFont.bodyLarge(context)?.copyWith(
-                  color: BandiColor.neutralColor100(context),
-                  height: 1.2,
-                  fontSize: 16),
+                color: BandiColor.neutralColor100(context),
+                height: 1.2,
+                fontSize: 16,
+              ),
               textAlign: TextAlign.center,
             ),
         ],

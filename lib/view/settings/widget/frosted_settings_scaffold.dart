@@ -1,4 +1,7 @@
+import 'dart:io';
 import 'dart:ui';
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -25,6 +28,9 @@ class FrostedSettingsScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final sysBottom = MediaQuery.of(context).viewPadding.bottom;
+    final extraBottom = Platform.isAndroid ? math.min(sysBottom, 48.0) : 0.0;
+
     return Stack(
       children: [
         Container(color: backgroundColorBuilder(context)),
@@ -40,6 +46,7 @@ class FrostedSettingsScaffold extends StatelessWidget {
             children: [
               _settingsAppBar(context, title, onBack),
               Expanded(child: child),
+              SizedBox(height: extraBottom,)
             ],
           ),
         ),

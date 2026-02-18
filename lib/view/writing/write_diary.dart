@@ -23,16 +23,16 @@ class WriteDiary extends StatelessWidget {
                   sigmaY: BandiEffects.blurLarge),
               child: Container(
                   color: BandiColor.neutralColor10(context),
-                  child: const FirstStep()))
+                  child: FirstStep()))
           : writeProvider.step == 2
-              ? const SecondStep()
+              ? const SafeArea(child: SecondStep())
               : BackdropFilter(
                   filter: ImageFilter.blur(
                       sigmaX: BandiEffects.blurLarge,
                       sigmaY: BandiEffects.blurLarge),
                   child: Container(
                       color: BandiColor.neutralColor10(context),
-                      child: const ThirdStep())),
+                      child: const SafeArea(top: false, child: ThirdStep()))),
     );
   }
 }

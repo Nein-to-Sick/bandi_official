@@ -120,37 +120,77 @@ class SheetRingOverlay extends StatelessWidget {
   }
 }
 
-class _TutorialRing extends StatelessWidget {
+class _TutorialRing extends StatefulWidget {
   final double radius;
 
   const _TutorialRing({required this.radius});
 
   @override
+  State<_TutorialRing> createState() => _TutorialRingState();
+}
+
+class _TutorialRingState extends State<_TutorialRing>
+    with SingleTickerProviderStateMixin {
+
+  late AnimationController _controller;
+  late Animation<double> _opacity;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat(reverse: true); // ✅ 깜빡 반복
+
+    _opacity = Tween<double>(
+      begin: 1.0,
+      end: 0,
+    ).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Curves.easeInOut,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return ClipOval(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: BandiEffects.blurSmall,
-          sigmaY: BandiEffects.blurSmall,
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: BandiColor.neutralColor20(context),
-            border: Border.all(
-              color: BandiColor.neutralColor50(context),
-              width: 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.25),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
+    return FadeTransition(
+      opacity: _opacity,
+      child: ClipOval(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(
+            sigmaX: BandiEffects.blurSmall,
+            sigmaY: BandiEffects.blurSmall,
+          ),
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: BandiColor.neutralColor20(context),
+              border: Border.all(
+                color: BandiColor.neutralColor50(context),
+                width: 1,
               ),
-            ],
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.25),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 }
+

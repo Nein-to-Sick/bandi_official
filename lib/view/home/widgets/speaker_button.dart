@@ -6,7 +6,11 @@ class SpeakerButton extends StatelessWidget {
   final bool speakerOn;
   final VoidCallback onPressed;
 
-  const SpeakerButton({super.key, required this.speakerOn, required this.onPressed});
+  const SpeakerButton({
+    super.key,
+    required this.speakerOn,
+    required this.onPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +22,7 @@ class SpeakerButton extends StatelessWidget {
             ? PhosphorIcons.speakerSimpleHigh(PhosphorIconsStyle.light)
             : PhosphorIcons.speakerSimpleSlash(PhosphorIconsStyle.light),
         size: 24,
-        color: BandiColor.neutralColor90(context)
+        color: BandiColor.neutralColor90(context),
       ),
     );
   }

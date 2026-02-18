@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:bandi_official/localization/string_extention.dart';
 import 'package:bandi_official/view/alarm/controller/alarm_controller.dart';
@@ -126,7 +128,7 @@ class _HomeRootLayerState extends State<HomeRootLayer>
 
     if (alarm.type == AlarmType.likedDiary) {
       final Diary diary =
-          await alarmController.readDiaryDataFromDB(alarm.dataId);
+      await alarmController.readDiaryDataFromDB(alarm.dataId);
 
       writeProvider.readMyDiary(diary);
       navigationToggleProvider.selectIndex(0);
@@ -136,7 +138,7 @@ class _HomeRootLayerState extends State<HomeRootLayer>
 
     if (alarm.type == AlarmType.letter) {
       final Letter letter =
-          await alarmController.readLetterDataFromDB(alarm.dataId);
+      await alarmController.readLetterDataFromDB(alarm.dataId);
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         DetailViewSheet(item: letter, mailController: mailController)
@@ -157,7 +159,7 @@ class _HomeRootLayerState extends State<HomeRootLayer>
 
     if (alarm.type == AlarmType.otherDiary) {
       final Diary otherDiary =
-          await alarmController.readDiaryDataFromDB(alarm.dataId);
+      await alarmController.readDiaryDataFromDB(alarm.dataId);
       writeProvider.setOtherDiary(otherDiary);
       return;
     }
@@ -229,6 +231,9 @@ class _HomeRootLayerState extends State<HomeRootLayer>
 
     final canToggleChrome = isHomeVisible;
 
+    final sysBottom = MediaQuery.of(context).viewPadding.bottom;
+    final extraBottom = Platform.isAndroid ? math.min(sysBottom, 48.0) : 0.0;
+
     return Stack(
       children: [
         AnimatedOpacity(
@@ -267,6 +272,7 @@ class _HomeRootLayerState extends State<HomeRootLayer>
                     children: [
                       HomeTopNotificationHeader(
                         tutorialNotiStackKey: _tutorialNotiStackKey,
+                        dropdownOpen: _notiDropdownOpen, // ✅ 전달
                         mapAlarmsToHomeNotiItems: _mapAlarmsToHomeNotiItems,
                         dailyReminderId: _dailyReminderId,
                         dailyReminderCreatedAt: _dailyReminderCreatedAt,
@@ -289,7 +295,7 @@ class _HomeRootLayerState extends State<HomeRootLayer>
                         },
                       ),
                       Padding(
-                        padding: const EdgeInsets.only(bottom: 112),
+                        padding: EdgeInsets.only(bottom: 112 + extraBottom),
                         child: Row(
                           children: [
                             Expanded(
@@ -301,7 +307,7 @@ class _HomeRootLayerState extends State<HomeRootLayer>
                                 onTap: () async {
                                   final tc = context.read<TutorialController>();
                                   final diaryAiChatController =
-                                      context.read<DiaryAiChatController>();
+                                  context.read<DiaryAiChatController>();
 
                                   if (tc.isRetrospectFlow &&
                                       tc.retrospectPhase ==
@@ -334,9 +340,7 @@ class _HomeRootLayerState extends State<HomeRootLayer>
 
                                     if (!tc2.isRetrospectFlow) return;
 
-                                    // ✅ practice 완료 → 다음 step으로
                                     await tc2.advanceAfterPractice();
-
                                     tc2.scheduleExplainFlow(rootCtx);
                                   });
 
